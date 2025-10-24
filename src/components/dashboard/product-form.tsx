@@ -8,13 +8,14 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -24,6 +25,14 @@ import {
   SelectValue,
 } from '../ui/select';
 import Link from 'next/link';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 const emptyProduct: Product = {
   productType: 'Physical',
@@ -68,12 +77,12 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
   const handleAddWholesalePrice = () => {
     setProduct(prev => ({
         ...prev,
-        wholesalePricing: [...prev.wholesalePricing, { customerGroup: 'wholesale', price: 0 }]
+        wholesalePricing: [...(prev.wholesalePricing || []), { customerGroup: 'wholesale', price: 0, minOrderQuantity: 10 }]
     }))
   }
 
   const handleWholesalePriceChange = (index: number, field: keyof WholesalePrice, value: string | number) => {
-    const updatedPricing = [...product.wholesalePricing];
+    const updatedPricing = [...(product.wholesalePricing || [])];
     if (field === 'price' || field === 'minOrderQuantity') {
       updatedPricing[index][field] = Number(value);
     } else {
@@ -85,10 +94,21 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
   const handleRemoveWholesalePrice = (index: number) => {
      setProduct(prev => ({
         ...prev,
-        wholesalePricing: prev.wholesalePricing.filter((_, i) => i !== index)
+        wholesalePricing: (prev.wholesalePricing || []).filter((_, i) => i !== index)
     }))
   }
 
+  const handleVariantChange = (variantId: string, field: keyof ProductVariant, value: string | number) => {
+    setProduct(prev => ({
+        ...prev,
+        variants: prev.variants.map(v => {
+            if (v.id === variantId) {
+                return { ...v, [field]: value };
+            }
+            return v;
+        })
+    }));
+  };
 
   const handleSave = () => {
     toast({
@@ -115,6 +135,10 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
           <p className="text-muted-foreground">
             {initialProduct ? `Editing "${initialProduct.name}"` : 'Fill in the details below to create a new product.'}
           </p>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+            <Button variant="outline" asChild><Link href="/dashboard/products">Cancel</Link></Button>
+            <Button onClick={handleSave}>Save Product</Button>
         </div>
       </div>
       
@@ -160,18 +184,25 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
           <Card>
             <CardHeader>
                 <CardTitle>Pricing</CardTitle>
+                <CardDescription>Manage your product's retail and wholesale prices.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-                 <div className="space-y-2">
-                    <Label htmlFor="retailPrice">Retail Price ({product.currency})</Label>
-                    <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
-                </div>
-                <div className="space-y-2">
+            <CardContent className="space-y-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="retailPrice">Retail Price ({product.currency})</Label>
+                        <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="compareAtPrice">Compare At Price ({product.currency})</Label>
+                        <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000"/>
+                    </div>
+                 </div>
+                <div className="space-y-4">
                     <h4 className="font-medium text-sm">Wholesale Pricing</h4>
-                    {product.wholesalePricing.length > 0 && (
+                    {product.wholesalePricing && product.wholesalePricing.length > 0 && (
                         <div className="space-y-2">
                             {product.wholesalePricing.map((tier, index) => (
-                                <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
+                                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center p-2 border rounded-md">
                                     <Select value={tier.customerGroup} onValueChange={(value) => handleWholesalePriceChange(index, 'customerGroup', value)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select group" />
@@ -184,11 +215,17 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                                     </Select>
                                     <Input 
                                         type="number" 
+                                        value={tier.minOrderQuantity} 
+                                        onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
+                                        placeholder="Min. Quantity"
+                                    />
+                                    <Input 
+                                        type="number" 
                                         value={tier.price} 
                                         onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
-                                        placeholder="Price"
+                                        placeholder="Price per item"
                                     />
-                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)}>
+                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="justify-self-end">
                                         <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
                                 </div>
@@ -197,11 +234,66 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                     )}
                     <Button variant="outline" size="sm" onClick={handleAddWholesalePrice}>
                         <PlusCircle className="mr-2 h-4 w-4" />
-                        Add price tier
+                        Add wholesale tier
                     </Button>
                 </div>
             </CardContent>
           </Card>
+
+           {product.hasVariants && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Variants</CardTitle>
+                    <CardDescription>Manage price, stock, and SKU for each product combination.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Variant</TableHead>
+                                <TableHead className="w-[120px]">Price</TableHead>
+                                <TableHead className="w-[100px]">Stock</TableHead>
+                                <TableHead>SKU</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {product.variants.map((variant) => (
+                                <TableRow key={variant.id}>
+                                    <TableCell className="font-medium">
+                                        {Object.values(variant.optionValues).join(' / ')}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input
+                                            type="number"
+                                            value={variant.price || ''}
+                                            onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)}
+                                            placeholder={String(product.retailPrice)}
+                                            className="h-8"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input
+                                            type="number"
+                                            value={variant.stock}
+                                            onChange={(e) => handleVariantChange(variant.id, 'stock', e.target.value)}
+                                            className="h-8"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input
+                                            value={variant.sku || ''}
+                                            onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)}
+                                            placeholder="Variant SKU"
+                                            className="h-8"
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                   </Table>
+                </CardContent>
+            </Card>
+           )}
 
         </div>
 
@@ -239,11 +331,6 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                 </CardContent>
             </Card>
         </div>
-      </div>
-
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" asChild><Link href="/dashboard/products">Cancel</Link></Button>
-        <Button onClick={handleSave}>Save Product</Button>
       </div>
     </div>
   );
