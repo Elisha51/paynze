@@ -28,6 +28,7 @@ export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [locations, setLocations] = useState<Location[]>([]);
     const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
+    const [activeTab, setActiveTab] = useState('store');
     const { toast } = useToast();
 
     useEffect(() => {
@@ -118,7 +119,7 @@ export default function SettingsPage() {
           Manage your store's settings, locations, payment methods, and delivery options.
         </p>
       </div>
-      <Tabs defaultValue="store" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="store">Store</TabsTrigger>
           <TabsTrigger value="locations">Locations</TabsTrigger>
@@ -202,7 +203,7 @@ export default function SettingsPage() {
                     <CardHeader>
                     <CardTitle>Pickup Points</CardTitle>
                     <CardDescription>
-                        Allow customers to pick up their orders from your locations. Manage pickup points in the <TabsTrigger value="locations" className="text-primary p-0 h-auto bg-transparent shadow-none underline data-[state=active]:bg-transparent">Locations</TabsTrigger> tab.
+                        Allow customers to pick up their orders from your locations. Manage pickup points in the <button onClick={() => setActiveTab('locations')} className="text-primary p-0 h-auto bg-transparent shadow-none underline">Locations</button> tab.
                     </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
