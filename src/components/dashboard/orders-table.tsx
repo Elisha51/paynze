@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/select';
 import type { Order } from '@/lib/types';
 import { getOrders } from '@/services/orders';
+import { useSearch } from '@/context/search-context';
 
 const columns: ColumnDef<Order>[] = [
   {
@@ -175,6 +176,7 @@ export function OrdersTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const { searchQuery } = useSearch();
 
   React.useEffect(() => {
     async function loadOrders() {
@@ -200,21 +202,13 @@ export function OrdersTable() {
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter: searchQuery,
     },
+    onGlobalFilterChange: () => {}, 
   });
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter by customer..."
-          value={(table.getColumn('customer')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('customer')?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

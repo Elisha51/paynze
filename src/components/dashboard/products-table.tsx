@@ -44,6 +44,7 @@ import {
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Product } from '@/lib/types';
 import { getProducts } from '@/services/products';
+import { useSearch } from '@/context/search-context';
 
 const columns: ColumnDef<Product>[] = [
   {
@@ -183,6 +184,7 @@ export function ProductsTable() {
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  const { searchQuery } = useSearch();
 
   React.useEffect(() => {
     async function loadProducts() {
@@ -208,21 +210,13 @@ export function ProductsTable() {
       columnFilters,
       columnVisibility,
       rowSelection,
+      globalFilter: searchQuery,
     },
+    onGlobalFilterChange: () => {}, 
   });
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4">
-        <Input
-          placeholder="Filter products..."
-          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
-          onChange={(event) =>
-            table.getColumn('name')?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
