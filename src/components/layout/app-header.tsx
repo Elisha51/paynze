@@ -1,5 +1,5 @@
 'use client';
-import { Search, ShoppingCart } from 'lucide-react';
+import { Search } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,10 +16,8 @@ import Link from 'next/link';
 
 export default function AppHeader() {
   return (
-    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6">
-       <div className="flex-shrink-0">
-         <SidebarTrigger />
-       </div>
+    <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
+      <SidebarTrigger className="md:hidden" />
 
       <div className="w-full flex-1">
         <form>
@@ -38,7 +36,7 @@ export default function AppHeader() {
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
             <Avatar>
-              <AvatarImage src="https://picsum.photos/seed/admin/40/40" alt="@shadcn" />
+              <AvatarImage src="https://picsum.photos/seed/admin/40/40" alt="Admin" />
               <AvatarFallback>AD</AvatarFallback>
             </Avatar>
             <span className="sr-only">Toggle user menu</span>
@@ -47,7 +45,7 @@ export default function AppHeader() {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
