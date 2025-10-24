@@ -1,6 +1,7 @@
+
 'use client';
 
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,11 +25,13 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
+import { useSearch } from '@/context/search-context';
 
 export default function ProductsPage() {
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
+  const { searchQuery, setSearchQuery } = useSearch();
 
 
   return (
@@ -47,6 +50,16 @@ export default function ProductsPage() {
             </TabsTrigger>
           </TabsList>
           <div className="flex items-center space-x-2">
+             <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                type="search"
+                placeholder="Search products..."
+                className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                />
+            </div>
             <Dialog>
               <DialogTrigger asChild>
                 <Button>
@@ -99,6 +112,45 @@ export default function ProductsPage() {
             </CardHeader>
             <CardContent>
               <ProductsTable />
+            </CardContent>
+          </Card>
+        </TabsContent>
+         <TabsContent value="active">
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Active Products</CardTitle>
+              <CardDescription>
+                View all products that are currently visible to customers.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductsTable filter={{ column: 'status', value: 'active' }}/>
+            </CardContent>
+          </Card>
+        </TabsContent>
+         <TabsContent value="draft">
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Draft Products</CardTitle>
+              <CardDescription>
+                View all products that are not yet published.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductsTable filter={{ column: 'status', value: 'draft' }}/>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="archived">
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Archived Products</CardTitle>
+              <CardDescription>
+                View all products that have been archived.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProductsTable filter={{ column: 'status', value: 'archived' }}/>
             </CardContent>
           </Card>
         </TabsContent>

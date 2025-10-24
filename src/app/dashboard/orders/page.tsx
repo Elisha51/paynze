@@ -1,3 +1,6 @@
+
+'use client';
+
 import {
     Card,
     CardContent,
@@ -8,10 +11,14 @@ import {
   import { OrdersTable } from '@/components/dashboard/orders-table';
   import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
   import { Button } from '@/components/ui/button';
-  import { PlusCircle } from 'lucide-react';
+  import { Input } from '@/components/ui/input';
+  import { PlusCircle, Search } from 'lucide-react';
+  import { useSearch } from '@/context/search-context';
   
   
   export default function OrdersPage() {
+    const { searchQuery, setSearchQuery } = useSearch();
+
     return (
       <Tabs defaultValue="all">
           <div className="space-y-2 mb-4">
@@ -25,6 +32,16 @@ import {
                   <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
               </TabsList>
               <div className="flex items-center space-x-2">
+                <div className="relative">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                    type="search"
+                    placeholder="Search orders..."
+                    className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
                   <Button>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Create Order

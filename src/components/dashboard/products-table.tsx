@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import Image from 'next/image';
@@ -25,7 +26,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -177,7 +177,14 @@ const columns: ColumnDef<Product>[] = [
   },
 ];
 
-export function ProductsTable() {
+type ProductsTableProps = {
+  filter?: {
+    column: string;
+    value: string;
+  };
+};
+
+export function ProductsTable({ filter }: ProductsTableProps) {
   const [data, setData] = React.useState<Product[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -193,6 +200,15 @@ export function ProductsTable() {
     }
     loadProducts();
   }, []);
+  
+  React.useEffect(() => {
+    if (filter) {
+        setColumnFilters(prev => [...prev.filter(f => f.id !== filter.column), { id: filter.column, value: filter.value }]);
+    } else {
+        setColumnFilters(prev => prev.filter(f => f.id !== 'status' && f.id !== 'customerGroup')); // Clear specific filters
+    }
+  }, [filter]);
+
 
   const table = useReactTable({
     data,
@@ -318,3 +334,4 @@ export function ProductsTable() {
     </div>
   );
 }
+
