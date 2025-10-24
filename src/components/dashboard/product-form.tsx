@@ -256,7 +256,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline">Save as Template</Button>
             <Button onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
               Save Product
@@ -552,7 +551,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           )}
 
 
-           {product.hasVariants && product.variants?.length > 0 && (
+           {product.hasVariants && product.variants && product.variants.length > 0 && (
             <Card>
                 <CardHeader>
                     <CardTitle>Variants</CardTitle>

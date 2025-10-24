@@ -124,7 +124,7 @@ export function ProductDetails({ product }: { product: Product }) {
             </CardContent>
           </Card>
 
-          {product.hasVariants && product.variants?.length > 0 && (
+          {product.hasVariants && product.variants && product.variants.length > 0 && (
             <Card>
                 <CardHeader>
                     <CardTitle>Variants</CardTitle>
