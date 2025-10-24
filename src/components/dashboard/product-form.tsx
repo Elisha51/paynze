@@ -52,7 +52,7 @@ const emptyProduct: Product = {
   name: '',
   status: 'draft',
   images: [],
-  trackStock: true,
+  inventoryTracking: 'Track Quantity',
   stockQuantity: 0,
   requiresShipping: true,
   retailPrice: 0,
@@ -111,7 +111,14 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         setProduct(prev => ({ 
             ...prev, 
             requiresShipping: isPhysical,
+            inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track'
         }));
+    }
+     if (id === 'inventoryTracking') {
+        const trackStock = value !== 'Don\'t Track';
+        if (!trackStock) {
+            setProduct(prev => ({ ...prev, stockQuantity: 0, lowStockThreshold: undefined }));
+        }
     }
   }
 
@@ -418,84 +425,46 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                     <h4 className="font-medium text-sm">Wholesale Pricing</h4>
                     {product.wholesalePricing && product.wholesalePricing.length > 0 && (
                         <div className="space-y-2">
-                             <div className="hidden sm:grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
-                                <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
-                                <Label className="text-xs font-medium text-muted-foreground">Min. Quantity</Label>
-                                <Label className="text-xs font-medium text-muted-foreground">Price</Label>
-                             </div>
                             {product.wholesalePricing.map((tier, index) => (
-                                <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-start sm:items-center">
-                                    {/* Mobile View */}
-                                    <div className="sm:hidden border rounded-lg p-3 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <p className="font-medium">Wholesale Tier #{index + 1}</p>
-                                            <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} aria-label="Remove wholesale tier">
-                                                <Trash2 className="h-4 w-4 text-destructive" />
-                                            </Button>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
-                                            <Input
-                                                type="text"
-                                                aria-label="Customer Group"
-                                                value={tier.customerGroup}
-                                                onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
-                                                placeholder="e.g. Wholesale"
-                                            />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <div className='space-y-1'>
-                                                <Label className="text-xs font-medium text-muted-foreground">Min. Quantity</Label>
+                                <Card key={index} className="p-3">
+                                    <div className="flex justify-between items-start">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 flex-1">
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`ws-group-${index}`} className="text-xs">Customer Group</Label>
+                                                <Input
+                                                    id={`ws-group-${index}`}
+                                                    type="text"
+                                                    value={tier.customerGroup}
+                                                    onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
+                                                    placeholder="e.g. Wholesale"
+                                                />
+                                            </div>
+                                             <div className="space-y-1">
+                                                <Label htmlFor={`ws-qty-${index}`} className="text-xs">Min. Quantity</Label>
                                                 <Input 
+                                                    id={`ws-qty-${index}`}
                                                     type="number" 
-                                                    aria-label="Minimum Order Quantity"
                                                     value={tier.minOrderQuantity} 
                                                     onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
                                                     placeholder="Min. Quantity"
                                                 />
                                             </div>
-                                            <div className='space-y-1'>
-                                                <Label className="text-xs font-medium text-muted-foreground">Price</Label>
+                                             <div className="space-y-1">
+                                                <Label htmlFor={`ws-price-${index}`} className="text-xs">Price</Label>
                                                 <Input 
+                                                    id={`ws-price-${index}`}
                                                     type="number" 
-                                                    aria-label="Price per item"
                                                     value={tier.price} 
                                                     onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
                                                     placeholder="Price per item"
                                                 />
                                             </div>
                                         </div>
+                                         <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="ml-2 flex-shrink-0" aria-label="Remove wholesale tier">
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
                                     </div>
-
-                                    {/* Desktop View */}
-                                    <Input
-                                        type="text"
-                                        aria-label="Customer Group"
-                                        value={tier.customerGroup}
-                                        onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
-                                        placeholder="e.g. Wholesale"
-                                        className="hidden sm:block"
-                                    />
-                                    <Input 
-                                        type="number" 
-                                        aria-label="Minimum Order Quantity"
-                                        value={tier.minOrderQuantity} 
-                                        onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
-                                        placeholder="Min. Quantity"
-                                        className="hidden sm:block"
-                                    />
-                                     <Input 
-                                        type="number" 
-                                        aria-label="Price per item"
-                                        value={tier.price} 
-                                        onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
-                                        placeholder="Price per item"
-                                        className="hidden sm:block"
-                                    />
-                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="hidden sm:inline-flex" aria-label="Remove wholesale tier">
-                                        <Trash2 className="h-4 w-4 text-destructive" />
-                                    </Button>
-                                </div>
+                                </Card>
                             ))}
                         </div>
                     )}
@@ -513,32 +482,48 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                     <CardTitle>Inventory & Shipping</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
+                            <Input id="sku" value={product.sku || ''} onChange={handleInputChange}/>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="barcode">Barcode (GTIN, UPC, etc.)</Label>
+                            <Input id="barcode" value={product.barcode || ''} onChange={handleInputChange}/>
+                        </div>
+                    </div>
                      <div className="space-y-2">
-                        <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
-                        <Input id="sku" value={product.sku || ''} onChange={handleInputChange}/>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="barcode">Barcode (GTIN, UPC, etc.)</Label>
-                        <Input id="barcode" value={product.barcode || ''} onChange={handleInputChange}/>
-                    </div>
-                     <div className="flex items-center space-x-2">
-                        <Checkbox id="trackStock" checked={product.trackStock} onCheckedChange={(c) => handleCheckboxChange('trackStock', !!c)} />
-                        <Label htmlFor="trackStock">Track stock quantity</Label>
+                        <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
+                        <Select value={product.inventoryTracking} onValueChange={(v) => handleSelectChange('inventoryTracking', v)}>
+                            <SelectTrigger id="inventoryTracking">
+                                <SelectValue placeholder="Select tracking method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Don't Track">Don't Track</SelectItem>
+                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
+                                <SelectItem value="Track with Serial Numbers">Track with Serial Numbers</SelectItem>
+                            </SelectContent>
+                        </Select>
                      </div>
-                     {product.trackStock && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
-                            <div className="space-y-2">
+
+                     {product.inventoryTracking !== 'Don\'t Track' && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-4 border-l-2">
+                            <div className="space-y-2 md:col-span-1">
+                                <Label htmlFor="unitOfMeasure">Unit of Measure</Label>
+                                <Input id="unitOfMeasure" value={product.unitOfMeasure || 'unit'} onChange={handleInputChange} placeholder="e.g. kg, m, unit"/>
+                            </div>
+                            <div className="space-y-2 md:col-span-1">
                                 <Label htmlFor="stockQuantity">Available Quantity</Label>
                                 <Input id="stockQuantity" type="number" value={product.stockQuantity} onChange={handleNumberChange} />
                             </div>
-                             <div className="space-y-2">
+                             <div className="space-y-2 md:col-span-1">
                                 <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
                                 <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
                             </div>
                         </div>
                      )}
                      <div className="flex items-center space-x-2">
-                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} />
+                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} disabled={product.productType !== 'Physical'}/>
                         <Label htmlFor="requiresShipping">This is a physical product that requires shipping</Label>
                      </div>
                       {product.requiresShipping && (

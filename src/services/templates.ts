@@ -14,6 +14,8 @@ export const productTemplates: ProductTemplate[] = [
       requiresShipping: true,
       isTaxable: true,
       hasVariants: true,
+      inventoryTracking: 'Track Quantity',
+      unitOfMeasure: 'unit',
       optionNames: ['Size', 'Color'],
       variants: [
         { id: 'v1', optionValues: { Size: 'Small', Color: 'Black' }, stock: 10 },
@@ -34,7 +36,7 @@ export const productTemplates: ProductTemplate[] = [
     product: {
       productType: 'Digital',
       requiresShipping: false,
-      trackStock: false,
+      inventoryTracking: 'Don\'t Track',
       stockQuantity: 99999,
       isTaxable: false,
       hasVariants: false,
@@ -50,7 +52,7 @@ export const productTemplates: ProductTemplate[] = [
     product: {
       productType: 'Service',
       requiresShipping: false,
-      trackStock: false,
+      inventoryTracking: 'Don\'t Track',
       stockQuantity: 99999,
       serviceDuration: '1 hour',
       isTaxable: true,

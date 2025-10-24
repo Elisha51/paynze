@@ -203,9 +203,15 @@ export function ProductDetails({ product }: { product: Product }) {
                         <p>{product.barcode || '-'}</p>
                     </div>
                      <div>
-                        <h3 className="font-medium text-sm text-muted-foreground">Stock</h3>
-                        <p>{product.trackStock ? `${product.stockQuantity} available` : 'Not tracked'}</p>
+                        <h3 className="font-medium text-sm text-muted-foreground">Inventory Tracking</h3>
+                        <p>{product.inventoryTracking}</p>
                     </div>
+                    {product.inventoryTracking !== 'Don\'t Track' && (
+                       <div>
+                            <h3 className="font-medium text-sm text-muted-foreground">Stock</h3>
+                            <p>{product.stockQuantity} {product.unitOfMeasure || 'units'}</p>
+                        </div>
+                    )}
                     {product.requiresShipping && (
                         <>
                             <div>

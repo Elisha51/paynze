@@ -41,8 +41,9 @@ export type Product = {
   // II. Inventory & Logistics
   sku?: string;
   barcode?: string; // GTIN, EAN, UPC
-  trackStock: boolean;
+  inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | 'Don\'t Track';
   stockQuantity: number;
+  unitOfMeasure?: string;
   lowStockThreshold?: number;
   requiresShipping: boolean;
   weight?: number; // in kg
