@@ -48,6 +48,8 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
       if (storedState) {
         setIsCollapsed(storedState === 'collapsed');
       }
+    } else {
+        setIsCollapsed(false);
     }
   }, [isMobile]);
 
@@ -64,21 +66,12 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   };
 
   const state = isMobile ? 'expanded' : isCollapsed ? 'collapsed' : 'expanded';
-
-  const contextValue = React.useMemo(
-    () => ({
-      state,
-      isMobile,
-      toggleSidebar,
-    }),
-    [state, isMobile, toggleSidebar]
-  );
   
   const sheetOpenValue = isMobile ? isSheetOpen : false;
   const onSheetOpenChange = isMobile ? setSheetOpen : () => {};
 
   return (
-    <SidebarContext.Provider value={contextValue}>
+    <SidebarContext.Provider value={{ state, isMobile, toggleSidebar }}>
       <TooltipProvider delayDuration={0}>
         <Sheet open={sheetOpenValue} onOpenChange={onSheetOpenChange}>
           {children}
@@ -99,8 +92,10 @@ export const Sidebar = React.forwardRef<
     <Comp
       ref={ref}
       className={cn(
-        'group flex flex-col transition-all duration-300 ease-in-out data-[state=collapsed]:(w-16) data-[state=expanded]:(w-64)',
+        'group flex flex-col transition-all duration-300 ease-in-out',
         !isMobile && 'h-screen sticky top-0 border-r bg-sidebar text-sidebar-foreground',
+        !isMobile && state === 'expanded' && 'w-64',
+        !isMobile && state === 'collapsed' && 'w-16',
         isMobile && 'w-64 bg-sidebar text-sidebar-foreground p-0',
         className
       )}
@@ -229,7 +224,7 @@ export const SidebarMenuButton = React.forwardRef<
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-           if (child.type === 'span' || child.type === Badge) {
+           if (child.type === 'span') {
             return React.cloneElement(child as React.ReactElement, {
               className: cn(
                 child.props.className,
