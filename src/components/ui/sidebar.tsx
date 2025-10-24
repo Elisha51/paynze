@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -13,7 +14,7 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 
@@ -101,6 +102,7 @@ export const Sidebar = React.forwardRef<
       data-state={state}
       {...props}
     >
+      {isMobile && <SheetTitle className="sr-only">Navigation Menu</SheetTitle>}
       {children}
     </Comp>
   );
