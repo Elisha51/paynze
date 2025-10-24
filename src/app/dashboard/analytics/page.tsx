@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -93,3 +94,4 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import Link from 'next/link';
@@ -148,3 +149,4 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
     </Sidebar>
   );
 }
+

@@ -26,6 +26,7 @@ export type InventoryItem = {
   serialNumber?: string;
   status: 'Available' | 'Sold' | 'Reserved' | 'Damaged' | 'Returned';
   locationName?: string; // e.g. 'Warehouse A, Shelf B-3'
+  variant?: ProductVariant; // Back-reference to the variant
 };
 
 export type StockAdjustment = {
@@ -242,3 +243,4 @@ export type ShippingZone = {
         price: number;
     }[];
 };
+

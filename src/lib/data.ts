@@ -207,3 +207,4 @@ export const salesData: SalesData[] = [
     { name: 'Nov', total: Math.floor(Math.random() * 5000) + 1000 },
     { name: 'Dec', total: Math.floor(Math.random() * 5000) + 1000 },
 ];
+
