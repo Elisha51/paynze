@@ -86,6 +86,14 @@ export type Product = {
   productVisibility?: string[]; // e.g., 'Online Store', 'POS'
 };
 
+export type ProductTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  icon: string; // Lucide icon name
+  product: Partial<Product>;
+};
+
 
 export type Order = {
     id: string;

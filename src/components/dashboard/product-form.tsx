@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Product, WholesalePrice, ProductVariant, ProductImage } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
@@ -63,10 +63,18 @@ const emptyProduct: Product = {
   wholesalePricing: [],
 };
 
-export function ProductForm({ product: initialProduct }: { product?: Product }) {
-  const [product, setProduct] = useState<Product>(initialProduct || emptyProduct);
+export function ProductForm({ initialProduct }: { initialProduct?: Partial<Product> | null }) {
+  const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [templateName, setTemplateName] = useState('');
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (initialProduct) {
+        setProduct({ ...emptyProduct, ...initialProduct });
+    }
+  }, [initialProduct]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -89,10 +97,8 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
   };
 
   const handleFilesChange = (newFiles: (File | ProductImage)[]) => {
-    // Generate IDs for new File objects
     const processedFiles = newFiles.map(file => {
       if (file instanceof File && !(file as any).id) {
-        // This is a new file, give it an ID
         const newFileWithId = file as any;
         newFileWithId.id = `new-${Math.random().toString(36).substr(2, 9)}`;
         return newFileWithId;
@@ -207,9 +213,20 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
       title: 'Product Saved',
       description: `${product.name} has been updated successfully.`,
     });
-    // In a real app, this would be a POST/PUT request to an API
     console.log('Saving product:', product);
   };
+  
+  const handleSaveAsTemplate = () => {
+    // In a real app, this would be a POST request to an API
+    console.log('Saving as template:', { name: templateName, config: product });
+    toast({
+      title: 'Template Saved',
+      description: `"${templateName}" has been saved.`,
+    });
+    setShowTemplateDialog(false);
+    setTemplateName('');
+  };
+
   
   const uploadedImages = useMemo(() => product.images.filter(img => 'url' in img || img instanceof File) as (ProductImage | File & { id: string, url?: string })[], [product.images]);
 
@@ -225,14 +242,40 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">
-            {initialProduct ? `Edit Product` : 'Add New Product'}
+            {initialProduct?.sku ? `Edit Product` : 'Add New Product'}
           </h1>
           <p className="text-muted-foreground">
-            {initialProduct ? `Editing "${initialProduct.name}"` : 'Fill in the details below to create a new product.'}
+            {initialProduct?.sku ? `Editing "${initialProduct.name}"` : 'Fill in the details below to create a new product.'}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" asChild><Link href="/dashboard/products">Cancel</Link></Button>
+            <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
+              <DialogTrigger asChild>
+                <Button variant="outline"><Save className="mr-2 h-4 w-4" /> Save as Template</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Save Product as Template</DialogTitle>
+                  <DialogDescription>
+                    Save the current product's configuration (options, category, etc.) as a new template for faster creation later.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-2">
+                  <Label htmlFor="template-name">Template Name</Label>
+                  <Input 
+                    id="template-name" 
+                    value={templateName}
+                    onChange={(e) => setTemplateName(e.target.value)}
+                    placeholder="e.g., 'Standard T-Shirt'"
+                  />
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>Cancel</Button>
+                  <Button onClick={handleSaveAsTemplate} disabled={!templateName}>Save Template</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
             <Button onClick={handleSave}>Save Product</Button>
         </div>
       </div>
@@ -368,7 +411,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
             </CardContent>
           </Card>
 
-           {product.hasVariants && (
+           {product.hasVariants && product.variants?.length > 0 && (
             <Card>
                 <CardHeader>
                     <CardTitle>Variants</CardTitle>
@@ -515,5 +558,4 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
       </div>
     </div>
   );
-
-    
+}
