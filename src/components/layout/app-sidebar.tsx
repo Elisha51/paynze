@@ -44,7 +44,7 @@ export default function AppSidebar() {
             <Link href="/" className="flex items-center gap-2">
             <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
             <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Payze</h2>
+                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Paynze</h2>
             </div>
             </Link>
         </SidebarHeader>

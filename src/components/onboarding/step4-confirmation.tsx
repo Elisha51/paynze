@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step4-confirmation.tsx
 'use client';
 import { useRouter } from 'next/navigation';
@@ -16,7 +17,7 @@ export default function Step4Confirmation() {
     localStorage.setItem('onboardingData', JSON.stringify(formData));
     toast({
         title: "Store Created!",
-        description: "Welcome to Payze. You are now being redirected to your dashboard.",
+        description: "Welcome to Paynze. You are now being redirected to your dashboard.",
         variant: "default"
     });
     setTimeout(() => {
@@ -40,7 +41,7 @@ export default function Step4Confirmation() {
             </div>
             <div className="space-y-2 p-4 border rounded-lg">
                 <h3 className="font-semibold flex items-center gap-2"><Globe className="h-5 w-5 text-primary" /> Store Details</h3>
-                <p><strong>URL:</strong> {formData.subdomain}.payze.app</p>
+                <p><strong>URL:</strong> {formData.subdomain}.paynze.app</p>
                 <p><strong>Currency:</strong> {formData.currency}</p>
                 <p><strong>Language:</strong> {formData.language}</p>
             </div>
@@ -77,7 +78,7 @@ export default function Step4Confirmation() {
                                 </div>
                                 <div>
                                     <h2 className="text-2xl font-bold">{formData.businessName}</h2>
-                                    <p className="text-sm text-gray-500">{formData.subdomain}.payze.app</p>
+                                    <p className="text-sm text-gray-500">{formData.subdomain}.paynze.app</p>
                                 </div>
                             </div>
                             <div className="grid grid-cols-2 gap-4">

@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { Toaster } from "@/components/ui/toaster";
@@ -11,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Payze',
+  title: 'Paynze',
   description: 'Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants.',
   manifest: '/manifest.json',
   themeColor: '#ffffff',

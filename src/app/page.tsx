@@ -28,7 +28,7 @@ const features = [
   {
     icon: <ShoppingCart className="h-8 w-8 text-primary" />,
     title: 'Subdomain & Branding',
-    description: 'Get a unique yourname.payze.app URL and customize your storefront.',
+    description: 'Get a unique yourname.paynze.app URL and customize your storefront.',
   },
 ];
 
@@ -36,13 +36,13 @@ const testimonials = [
     {
         name: 'Juma Kato',
         role: 'Kikuubo Traders, Kampala',
-        quote: 'Payze helped us get our wholesale business online in a week. Our sales have doubled since we started accepting mobile money.',
+        quote: 'Paynze helped us get our wholesale business online in a week. Our sales have doubled since we started accepting mobile money.',
         avatar: 'https://picsum.photos/seed/juma/100/100',
     },
     {
         name: 'Amina Njoroge',
         role: 'Fabric Retailer, Nairobi',
-        quote: 'Managing inventory and orders used to be a headache. With Payze, everything is in one place and so much easier to track.',
+        quote: 'Managing inventory and orders used to be a headache. With Paynze, everything is in one place and so much easier to track.',
         avatar: 'https://picsum.photos/seed/amina/100/100',
     }
 ]
@@ -55,7 +55,7 @@ export default function Home() {
         <div className="container flex h-14 items-center">
           <Link href="/" className="flex items-center space-x-2">
             <ShoppingCart className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline">Payze</span>
+            <span className="font-bold text-xl font-headline">Paynze</span>
           </Link>
           <nav className="ml-auto flex items-center space-x-2">
             <Button variant="ghost" asChild>
@@ -75,7 +75,7 @@ export default function Home() {
             <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
               <div className="space-y-4">
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-primary">
-                  Bring Your Business Online with Payze.
+                  Bring Your Business Online with Paynze.
                 </h1>
                 <p className="max-w-[600px] text-muted-foreground md:text-xl">
                   Empowering African wholesalers, retailers & stockists to sell online, accept mobile money, and manage their business with ease.
@@ -87,7 +87,7 @@ export default function Home() {
                 </div>
               </div>
               <div className="hidden lg:block">
-                  <img src="https://picsum.photos/seed/hero-payze/600/400" alt="African merchant using a phone" className="rounded-xl shadow-lg" data-ai-hint="african merchant" />
+                  <img src="https://picsum.photos/seed/hero-paynze/600/400" alt="African merchant using a phone" className="rounded-xl shadow-lg" data-ai-hint="african merchant" />
               </div>
             </div>
           </div>
@@ -134,7 +134,7 @@ export default function Home() {
                 Everything You Need to Succeed
               </h2>
               <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed">
-                Payze provides all the tools to run your business online and off.
+                Paynze provides all the tools to run your business online and off.
               </p>
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-3 mt-12">
@@ -226,7 +226,7 @@ export default function Home() {
       </main>
 
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Payze. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Paynze. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#" className="text-xs hover:underline underline-offset-4">
             About
@@ -245,5 +245,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

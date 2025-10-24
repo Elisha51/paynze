@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step2-store-setup.tsx
 'use client';
 import { useState } from 'react';
@@ -31,7 +32,7 @@ export default function Step2StoreSetup() {
         setIsAvailable(true);
         toast({
             title: "Subdomain available!",
-            description: `katos.payze.app is yours.`,
+            description: `katos.paynze.app is yours.`,
         });
     }, 500)
   };
@@ -47,12 +48,12 @@ export default function Step2StoreSetup() {
           <Label htmlFor="subdomain">Desired Subdomain</Label>
           <div className="flex items-center space-x-2">
             <Input id="subdomain" placeholder="e.g. katos" value={formData.subdomain} onChange={handleInputChange} className="flex-1" />
-             <span className="text-muted-foreground">.payze.app</span>
+             <span className="text-muted-foreground">.paynze.app</span>
             <Button variant="outline" onClick={checkAvailability}>Check Availability</Button>
           </div>
            {isAvailable && (
               <p className="text-sm text-accent flex items-center gap-1">
-                <CheckCircle className="h-4 w-4" /> Your store will be available at {formData.subdomain}.payze.app
+                <CheckCircle className="h-4 w-4" /> Your store will be available at {formData.subdomain}.paynze.app
               </p>
            )}
         </div>

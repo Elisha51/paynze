@@ -42,7 +42,7 @@ export default function SignupPage() {
                 <Label htmlFor="subdomain">Choose your store URL</Label>
                 <div className="flex items-center">
                     <Input id="subdomain" placeholder="mystore" />
-                    <span className="ml-2 text-muted-foreground text-sm">.payze.app</span>
+                    <span className="ml-2 text-muted-foreground text-sm">.paynze.app</span>
                 </div>
               </div>
             <div className="grid gap-2">
