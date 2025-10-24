@@ -57,7 +57,9 @@ export const products: Product[] = [
         ],
         stockAdjustments: [
             { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import' },
-            { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' }
+            { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' },
+            { id: 'adj-005', date: '2023-03-01', type: 'Sale', quantity: -5, reason: 'Order #ORD-012', channel: 'Online' },
+            { id: 'adj-006', date: '2023-03-10', type: 'Sale', quantity: -10, reason: 'Order #ORD-014', channel: 'In-Store' },
         ]
       },
       {
@@ -133,6 +135,9 @@ export const products: Product[] = [
           { id: 'inv-004', serialNumber: 'SN-SHOE-42-004', status: 'Damaged', locationName: 'Downtown Store'},
           { id: 'inv-005', serialNumber: 'SN-SHOE-42-005', status: 'Reserved', locationName: 'Order #ORD-015'},
           { id: 'inv-006', serialNumber: 'SN-SHOE-42-006', status: 'Returned', locationName: 'Downtown Store'},
+        ],
+         stockAdjustments: [
+            { id: 'adj-shoe-1', date: '2023-03-01', type: 'Sale', quantity: -1, reason: 'Order #ORD-013', channel: 'Online' },
         ]
       },
       { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stockByLocation: [

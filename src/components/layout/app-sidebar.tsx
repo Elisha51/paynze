@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Sidebar,
   SidebarHeader,
@@ -25,6 +25,7 @@ import {
   FileText,
   Building,
   Truck,
+  BarChartHorizontal,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -36,6 +37,7 @@ const menuItems = [
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChartHorizontal },
 ];
 
 const premiumMenuItems = [
