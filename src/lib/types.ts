@@ -1,5 +1,12 @@
 
 
+export type ProductVariant = {
+  optionName: string;
+  value: string;
+  price: number;
+  stock: number;
+};
+
 export type Product = {
   name: string;
   description?: string;
@@ -11,12 +18,7 @@ export type Product = {
     price: number;
   }[];
   stockQuantity: number;
-  variants: {
-    optionName: string;
-    value: string;
-    price: number;
-    stock: number;
-  }[];
+  variants: ProductVariant[];
   visibility: 'published' | 'draft' | 'archived';
   images: string[];
   discount: string | null;
