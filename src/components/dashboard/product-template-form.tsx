@@ -26,9 +26,6 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from "@/components/ui/command";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from '@/lib/utils';
 
 const emptyTemplate: Partial<ProductTemplate> = {
@@ -52,12 +49,16 @@ const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     return LucideIcon ? <LucideIcon {...props} /> : <Lucide.Package {...props} />;
 };
 
-const availableIcons = Object.keys(Lucide).filter(key => typeof Lucide[key as keyof typeof Lucide] === 'object' && key !== 'createLucideIcon' && /^[A-Z]/.test(key));
+const availableIcons = Object.keys(Lucide).filter(key => 
+    typeof Lucide[key as keyof typeof Lucide] === 'object' && 
+    key !== 'createLucideIcon' && 
+    /^[A-Z]/.test(key) &&
+    !key.endsWith('Icon')
+);
 
 
 export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Partial<ProductTemplate> | null }) {
   const [template, setTemplate] = useState<Partial<ProductTemplate>>(initialTemplate || emptyTemplate);
-  const [openCombobox, setOpenCombobox] = useState(false);
   const { toast } = useToast();
   
   useEffect(() => {
@@ -177,51 +178,26 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
               </div>
               <div className="space-y-2">
                  <Label htmlFor="icon">Icon</Label>
-                 <Popover open={openCombobox} onOpenChange={setOpenCombobox}>
-                    <PopoverTrigger asChild>
-                        <Button
-                            variant="outline"
-                            role="combobox"
-                            aria-expanded={openCombobox}
-                            className="w-full justify-between"
-                        >
-                            <div className="flex items-center gap-2">
+                 <Select value={template.icon} onValueChange={(value) => handleSelectChange('icon', value)}>
+                    <SelectTrigger id="icon">
+                        <SelectValue placeholder="Select an icon">
+                           <div className="flex items-center gap-2">
                                 <Icon name={template.icon || 'Package'} className="h-4 w-4" />
                                 {template.icon || 'Select icon...'}
                             </div>
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                        </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                        <Command>
-                            <CommandInput placeholder="Search icon..." />
-                            <CommandEmpty>No icon found.</CommandEmpty>
-                            <CommandGroup className="max-h-64 overflow-y-auto">
-                                {availableIcons.map((iconName) => (
-                                <CommandItem
-                                    key={iconName}
-                                    value={iconName}
-                                    onSelect={(currentValue) => {
-                                        handleSelectChange('icon', iconName === template.icon ? 'Package' : iconName);
-                                        setOpenCombobox(false);
-                                    }}
-                                >
-                                    <Check
-                                        className={cn(
-                                            "mr-2 h-4 w-4",
-                                            template.icon === iconName ? "opacity-100" : "opacity-0"
-                                        )}
-                                    />
-                                    <div className="flex items-center gap-2">
-                                       <Icon name={iconName} className="h-4 w-4" />
-                                       {iconName}
-                                    </div>
-                                </CommandItem>
-                                ))}
-                            </CommandGroup>
-                        </Command>
-                    </PopoverContent>
-                 </Popover>
+                        </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableIcons.map(iconName => (
+                            <SelectItem key={iconName} value={iconName}>
+                                <div className="flex items-center gap-2">
+                                    <Icon name={iconName} className="h-4 w-4" />
+                                    {iconName}
+                                </div>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                 </Select>
                  <p className="text-xs text-muted-foreground">
                     This icon will represent your template in the "Add Product" screen.
                  </p>
