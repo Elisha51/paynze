@@ -21,14 +21,13 @@ import {
   LogOut,
   ChevronLeft,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, badge: '26' },
+  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
@@ -60,11 +59,6 @@ export default function AppSidebar() {
                     >
                     <item.icon className="h-5 w-5 shrink-0" />
                     <span className="flex-1">{item.label}</span>
-                    {item.badge && (
-                        <Badge className="h-6 w-auto px-2 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        {item.badge}
-                        </Badge>
-                    )}
                     </SidebarMenuButton>
                 </Link>
                 </SidebarMenuItem>
