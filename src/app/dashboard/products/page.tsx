@@ -3,7 +3,7 @@
 
 import { PlusCircle, Upload, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ProductsTable } from '@/components/dashboard/products-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import type { Product } from '@/lib/types';
@@ -58,6 +58,11 @@ export default function ProductsPage() {
       </DropdownMenu>
   );
 
+  const allProducts = useMemo(() => products.filter(p => p.status !== 'archived'), [products]);
+  const publishedProducts = useMemo(() => products.filter(p => p.status === 'published'), [products]);
+  const draftProducts = useMemo(() => products.filter(p => p.status === 'draft'), [products]);
+  const archivedProducts = useMemo(() => products.filter(p => p.status === 'archived'), [products]);
+
   return (
     <DashboardPageLayout
         title="Products"
@@ -66,36 +71,32 @@ export default function ProductsPage() {
     >
         <DashboardPageLayout.TabContent value="all">
             <ProductsTable
-                data={products}
+                data={allProducts}
                 setData={setProducts}
-                filter={{ column: 'status', excludeValue: 'archived' }}
                 cardTitle='All Products'
                 cardDescription='Manage all your active and draft products.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="published">
             <ProductsTable 
-                data={products}
+                data={publishedProducts}
                 setData={setProducts}
-                filter={{ column: 'status', value: 'published' }}
                 cardTitle='Published Products'
                 cardDescription='View all products that are currently visible to customers.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="draft">
             <ProductsTable
-                data={products}
+                data={draftProducts}
                 setData={setProducts}
-                filter={{ column: 'status', value: 'draft' }}
                 cardTitle='Draft Products'
                 cardDescription='View all products that are not yet published.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="archived">
             <ProductsTable 
-                data={products}
+                data={archivedProducts}
                 setData={setProducts}
-                filter={{ column: 'status', value: 'archived' }}
                 cardTitle='Archived Products'
                 cardDescription='View all products that have been archived.'
             />

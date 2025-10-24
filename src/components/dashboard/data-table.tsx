@@ -34,17 +34,11 @@ import { useSearch } from '@/context/search-context';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  filter?: {
-    column: string;
-    value?: string;
-    excludeValue?: string;
-  };
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  filter,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -73,21 +67,6 @@ export function DataTable<TData, TValue>({
     },
     globalFilterFn: 'auto',
   });
-
-  React.useEffect(() => {
-    if (filter && filter.column) {
-      const column = table.getColumn(filter.column);
-      if (column) {
-        if (filter.value !== undefined) {
-          column.setFilterValue(filter.value);
-        } else if (filter.excludeValue !== undefined) {
-          column.setFilterValue((value: string) => value !== filter.excludeValue);
-        } else {
-          column.setFilterValue(undefined);
-        }
-      }
-    }
-  }, [filter, table]);
 
   return (
     <div className="w-full">
