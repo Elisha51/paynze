@@ -25,7 +25,6 @@ import {
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
-import { Badge } from '../ui/badge';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -42,10 +41,10 @@ export default function AppSidebar() {
   return (
     <Sidebar>
         <SidebarHeader>
-            <Link href="/dashboard" className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
             <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
             <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Paynze</h2>
+                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Payze</h2>
             </div>
             </Link>
         </SidebarHeader>
