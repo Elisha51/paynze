@@ -38,7 +38,12 @@ export type ProductVariant = {
   imageIds?: string[]; // IDs of the primary images for this variant
   
   // Inventory details move to the variant level
-  stockQuantity: number;
+  stock: {
+    onHand: number;
+    available: number;
+    reserved: number;
+    damaged: number;
+  };
   inventoryItems?: InventoryItem[]; // For serialized tracking
 };
 
@@ -163,5 +168,3 @@ export type SalesData = {
   name: string;
   total: number;
 };
-
-    

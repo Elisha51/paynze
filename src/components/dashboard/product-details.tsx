@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -61,9 +62,11 @@ export function ProductDetails({ product }: { product: Product }) {
               <TabsTrigger value="overview">Overview</TabsTrigger>
                <Tooltip>
                     <TooltipTrigger asChild>
+                      <div tabIndex={isSerialized ? -1 : 0}>
                         <TabsTrigger value="inventory" disabled={!isSerialized} className="disabled:cursor-not-allowed">
                             Inventory
                         </TabsTrigger>
+                      </div>
                     </TooltipTrigger>
                     {!isSerialized && (
                         <TooltipContent>
@@ -177,8 +180,9 @@ export function ProductDetails({ product }: { product: Product }) {
                                       <TableRow>
                                           <TableHead>Variant</TableHead>
                                           <TableHead>Price</TableHead>
-                                          <TableHead>Stock</TableHead>
                                           <TableHead>SKU</TableHead>
+                                          <TableHead className="text-right">On Hand</TableHead>
+                                          <TableHead className="text-right">Available</TableHead>
                                       </TableRow>
                                   </TableHeader>
                                   <TableBody>
@@ -188,13 +192,16 @@ export function ProductDetails({ product }: { product: Product }) {
                                                   {Object.values(variant.optionValues).join(' / ')}
                                               </TableCell>
                                               <TableCell>
-                                              {variant.price ? formatCurrency(variant.price, product.currency) : '-'}
-                                              </TableCell>
-                                              <TableCell>
-                                                  {variant.stockQuantity}
+                                                {variant.price ? formatCurrency(variant.price, product.currency) : '-'}
                                               </TableCell>
                                               <TableCell>
                                                   {variant.sku || '-'}
+                                              </TableCell>
+                                              <TableCell className="text-right">
+                                                  {variant.stock?.onHand}
+                                              </TableCell>
+                                              <TableCell className="text-right text-primary font-bold">
+                                                  {variant.stock?.available}
                                               </TableCell>
                                           </TableRow>
                                       ))}
@@ -247,10 +254,10 @@ export function ProductDetails({ product }: { product: Product }) {
                                   <h3 className="font-medium text-sm text-muted-foreground">Inventory Tracking</h3>
                                   <p>{product.inventoryTracking}</p>
                               </div>
-                              {product.inventoryTracking !== 'Don\'t Track' && product.variants.length === 0 && (
-                              <div>
-                                      <h3 className="font-medium text-sm text-muted-foreground">Stock</h3>
-                                      <p>{product.variants[0]?.stockQuantity || 0} {product.unitOfMeasure || 'units'}</p>
+                              {product.inventoryTracking !== 'Don\'t Track' && product.variants.length > 0 && !product.hasVariants && (
+                                  <div>
+                                      <h3 className="font-medium text-sm text-muted-foreground">Stock On Hand</h3>
+                                      <p>{product.variants[0]?.stock?.onHand || 0} {product.unitOfMeasure || 'units'}</p>
                                   </div>
                               )}
                               {product.requiresShipping && (

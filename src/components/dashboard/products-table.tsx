@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import Image from 'next/image';
@@ -137,7 +138,7 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'stockQuantity',
+    accessorKey: 'stock.available',
     header: ({ column }) => {
         return (
             <div className="text-right">
@@ -155,8 +156,8 @@ const getColumns = (
         const product = row.original;
         // Sum stock from all variants if they exist, otherwise use the first variant's stock (for non-variant products)
         const totalStock = product.hasVariants 
-            ? product.variants.reduce((sum, v) => sum + v.stockQuantity, 0)
-            : product.variants[0]?.stockQuantity ?? 0;
+            ? product.variants.reduce((sum, v) => sum + v.stock.available, 0)
+            : product.variants[0]?.stock.available ?? 0;
         return <div className="text-right">{totalStock}</div>;
       }
   },

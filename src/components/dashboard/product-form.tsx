@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X } from 'lucide-react';
@@ -13,7 +14,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
@@ -46,6 +47,8 @@ import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
+
+const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
 
 const emptyProduct: Product = {
   productType: 'Physical',
@@ -90,9 +93,9 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
         id: `variant-${Date.now()}-${index}`,
         optionValues,
         price: undefined,
-        stockQuantity: 0,
         sku: '',
-        imageIds: []
+        imageIds: [],
+        stock: { ...defaultStock },
     }));
 };
 
@@ -123,7 +126,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         if (product.variants.length === 0) {
             setProduct(prev => ({
                 ...prev,
-                variants: [{ id: 'default-variant', optionValues: {}, stockQuantity: 0, price: prev.retailPrice }]
+                variants: [{ id: 'default-variant', optionValues: {}, stock: { ...defaultStock }, price: prev.retailPrice }]
             }));
         }
     }
@@ -174,7 +177,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         setProduct(prev => ({ 
             ...prev, 
             lowStockThreshold: undefined, 
-            variants: prev.variants.map(v => ({...v, stockQuantity: 0})) 
+            variants: prev.variants.map(v => ({...v, stock: {...defaultStock}})) 
         }));
     }
   }
@@ -252,13 +255,28 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   };
 
 
-  const handleVariantChange = (variantId: string, field: keyof ProductVariant, value: string | number) => {
+  const handleVariantStockChange = (variantId: string, field: keyof ProductVariant['stock'], value: string) => {
+    setProduct(prev => ({
+        ...prev,
+        variants: prev.variants.map(v => {
+            if (v.id === variantId) {
+                const newStock = { ...v.stock, [field]: Number(value) || 0 };
+                // Recalculate available stock
+                newStock.available = newStock.onHand - newStock.reserved - newStock.damaged;
+                return { ...v, stock: newStock };
+            }
+            return v;
+        })
+    }));
+  };
+
+  const handleVariantChange = (variantId: string, field: keyof Omit<ProductVariant, 'stock'>, value: string | number) => {
     setProduct(prev => ({
         ...prev,
         variants: prev.variants.map(v => {
             if (v.id === variantId) {
                 const updatedVariant = { ...v };
-                if (field === 'price' || field === 'stockQuantity') {
+                if (field === 'price') {
                     updatedVariant[field] = Number(value);
                 } else {
                     updatedVariant[field] = value as string;
@@ -626,8 +644,9 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Variant</TableHead>
-                                    <TableHead className="w-[120px]">Price</TableHead>
-                                    <TableHead className="w-[100px]">Stock</TableHead>
+                                    <TableHead>Price</TableHead>
+                                    <TableHead>On Hand</TableHead>
+                                    <TableHead className="text-center">Available</TableHead>
                                     <TableHead>SKU</TableHead>
                                     <TableHead className="text-center">Images</TableHead>
                                 </TableRow>
@@ -651,12 +670,15 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                         <TableCell>
                                             <Input
                                                 type="number"
-                                                aria-label="Variant Stock"
-                                                value={variant.stockQuantity}
-                                                onChange={(e) => handleVariantChange(variant.id, 'stockQuantity', e.target.value)}
-                                                className="h-8 min-w-[80px]"
+                                                aria-label="Variant On Hand Stock"
+                                                value={variant.stock.onHand}
+                                                onChange={(e) => handleVariantStockChange(variant.id, 'onHand', e.target.value)}
+                                                className="h-8 w-20"
                                                 disabled={product.inventoryTracking === 'Don\'t Track'}
                                             />
+                                        </TableCell>
+                                        <TableCell className="text-center text-muted-foreground">
+                                          {variant.stock.available}
                                         </TableCell>
                                         <TableCell>
                                             <Input
@@ -752,19 +774,26 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                         </Select>
                      </div>
 
-                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && (
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-4 border-l-2">
-                            <div className="space-y-2 md:col-span-1">
-                                <Label htmlFor="unitOfMeasure">Unit of Measure</Label>
-                                <Input id="unitOfMeasure" value={product.unitOfMeasure || 'unit'} onChange={handleInputChange} placeholder="e.g. kg, m, unit"/>
+                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && product.variants.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="onHand">On Hand Quantity</Label>
+                                <Input id="onHand" type="number" value={product.variants[0]?.stock?.onHand || 0} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'onHand', e.target.value)} />
+                                <p className="text-xs text-muted-foreground">Total physical stock.</p>
                             </div>
-                            <div className="space-y-2 md:col-span-1">
-                                <Label htmlFor="stockQuantity">Available Quantity</Label>
-                                <Input id="stockQuantity" type="number" value={product.variants[0]?.stockQuantity || 0} onChange={(e) => handleVariantChange(product.variants[0].id, 'stockQuantity', e.target.value)} />
+                            <div className="space-y-2">
+                                <Label>Available for Sale</Label>
+                                <div className="h-10 flex items-center px-3 text-sm text-muted-foreground">
+                                    {product.variants[0]?.stock?.available || 0}
+                                </div>
                             </div>
-                             <div className="space-y-2 md:col-span-1">
+                            <div className="space-y-2">
                                 <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
                                 <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="unitOfMeasure">Unit of Measure</Label>
+                                <Input id="unitOfMeasure" value={product.unitOfMeasure || 'unit'} onChange={handleInputChange} placeholder="e.g. kg, m, unit"/>
                             </div>
                         </div>
                      )}
@@ -843,5 +872,3 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     </div>
   );
 }
-
-    

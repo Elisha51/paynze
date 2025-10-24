@@ -44,8 +44,8 @@ export const products: Product[] = [
         { name: 'Pattern', values: ['Floral', 'Geometric'] }
     ],
     variants: [
-      { id: 'var1', optionValues: { Color: 'Red', Pattern: 'Floral' }, price: 35000, stockQuantity: 50, sku: 'KIT-001-RF' },
-      { id: 'var2', optionValues: { Color: 'Blue', Pattern: 'Geometric' }, price: 35000, stockQuantity: 50, sku: 'KIT-001-BG' },
+      { id: 'var1', optionValues: { Color: 'Red', Pattern: 'Floral' }, price: 35000, sku: 'KIT-001-RF', stock: { onHand: 50, available: 50, reserved: 0, damaged: 0 } },
+      { id: 'var2', optionValues: { Color: 'Blue', Pattern: 'Geometric' }, price: 35000, sku: 'KIT-001-BG', stock: { onHand: 30, available: 25, reserved: 5, damaged: 0 } },
     ],
   },
   {
@@ -90,15 +90,16 @@ export const products: Product[] = [
         id: 'var3', 
         optionValues: { Size: '42' }, 
         price: 75000, 
-        stockQuantity: 15, 
         sku: 'SHOE-002-42',
+        stock: { onHand: 15, available: 14, reserved: 0, damaged: 1 },
         inventoryItems: [
           { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', location: 'Warehouse A'},
           { id: 'inv-002', serialNumber: 'SN-SHOE-42-002', status: 'Available', location: 'Warehouse A'},
           { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', location: 'Shipped'},
+          { id: 'inv-004', serialNumber: 'SN-SHOE-42-004', status: 'Damaged', location: 'Warehouse A'},
         ]
       },
-      { id: 'var4', optionValues: { Size: '43' }, price: 75000, stockQuantity: 15, sku: 'SHOE-002-43' },
+      { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0 } },
     ],
   },
   {
