@@ -75,13 +75,16 @@ export function DataTable<TData, TValue>({
   });
 
   React.useEffect(() => {
-    if (filter) {
-      if(filter.value) {
-        table.getColumn(filter.column)?.setFilterValue(filter.value);
-      } else if (filter.excludeValue) {
-        table.getColumn(filter.column)?.setFilterValue((value: string) => value !== filter.excludeValue)
-      } else {
-        table.getColumn(filter.column)?.setFilterValue(undefined);
+    if (filter && filter.column) {
+      const column = table.getColumn(filter.column);
+      if (column) {
+        if (filter.value !== undefined) {
+          column.setFilterValue(filter.value);
+        } else if (filter.excludeValue !== undefined) {
+          column.setFilterValue((value: string) => value !== filter.excludeValue);
+        } else {
+          column.setFilterValue(undefined);
+        }
       }
     }
   }, [filter, table]);
