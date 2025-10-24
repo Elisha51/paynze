@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import type { ProductTemplate, Product } from '@/lib/types';
+import * as Lucide from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -42,6 +43,15 @@ const emptyTemplate: Partial<ProductTemplate> = {
   }
 };
 
+const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
+    const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
+    return LucideIcon ? <LucideIcon {...props} /> : <Lucide.Package {...props} />;
+};
+
+const availableIcons = [
+    'Package', 'Shirt', 'Book', 'Briefcase', 'Gift', 'ToyBrick', 'Gem', 'Coffee', 'Cpu', 'Watch', 'Laptop', 'Smartphone', 'Paintbrush', 'Camera', 'Music', 'Flower'
+]
+
 export function ProductTemplateForm() {
   const [template, setTemplate] = useState<Partial<ProductTemplate>>(emptyTemplate);
   const { toast } = useToast();
@@ -51,6 +61,10 @@ export function ProductTemplateForm() {
     setTemplate(prev => ({...prev, [id]: value}));
   };
   
+  const handleSelectChange = (field: keyof ProductTemplate, value: string) => {
+    setTemplate(prev => ({...prev, [field]: value}));
+  }
+
   const handleProductChange = (field: keyof Product, value: any) => {
     setTemplate(prev => ({
       ...prev,
@@ -136,14 +150,23 @@ export function ProductTemplateForm() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="icon">Icon</Label>
-                <Input 
-                  id="icon" 
-                  placeholder="e.g., Shirt"
-                  value={template.icon || ''}
-                  onChange={handleInputChange}
-                />
+                 <Select value={template.icon || 'Package'} onValueChange={(v) => handleSelectChange('icon', v)}>
+                    <SelectTrigger id="icon">
+                        <SelectValue placeholder="Select an icon" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {availableIcons.map(iconName => (
+                            <SelectItem key={iconName} value={iconName}>
+                                <div className="flex items-center gap-2">
+                                    <Icon name={iconName} className="h-4 w-4" />
+                                    {iconName}
+                                </div>
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
                 <p className="text-xs text-muted-foreground">
-                    Choose any icon name from the <a href="https://lucide.dev/icons/" target="_blank" rel="noopener noreferrer" className="underline">Lucide icon library</a>.
+                    This icon will represent your template in the "Add Product" screen.
                 </p>
               </div>
             </CardContent>
@@ -202,7 +225,7 @@ export function ProductTemplateForm() {
                 {template.product?.hasVariants && (
                     <div className="pl-6 space-y-4">
                         <h4 className="font-medium text-sm">Variant Options</h4>
-                        {template.product?.optionNames?.map((option, index) => (
+                        {(template.product?.optionNames || []).map((option, index) => (
                            <div key={index} className="flex items-center gap-2">
                              <Input 
                                 value={option} 
@@ -227,7 +250,21 @@ export function ProductTemplateForm() {
             <Card>
                 <CardHeader>
                     <CardTitle>Preview</CardTitle>
-                    <CardDescription>A glimpse of the product settings.</CardDescription>
+                    <CardDescription>A glimpse of the template card.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <Card className="cursor-pointer flex flex-col items-center justify-center text-center p-4">
+                        <div className="p-4 rounded-full bg-primary/10 mb-2">
+                           <Icon name={template.icon || 'Package'} className="h-8 w-8 text-primary" />
+                        </div>
+                        <h3 className="font-semibold">{template.name || 'Template Name'}</h3>
+                        <p className="text-sm text-muted-foreground">{template.description || 'Template Description'}</p>
+                    </Card>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Configuration Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm space-y-2 text-muted-foreground">
                     <p><span className="font-semibold text-foreground">Type:</span> {template.product?.productType}</p>
@@ -236,8 +273,8 @@ export function ProductTemplateForm() {
                     {template.product?.hasVariants && template.product.optionNames && template.product.optionNames.length > 0 && (
                         <div>
                             <p className="font-semibold text-foreground">Options:</p>
-                            <ul className="list-disc list-inside">
-                                {template.product.optionNames.map((opt, i) => (
+                            <ul className="list-disc list-inside pl-4">
+                                {template.product.optionNames.filter(opt => opt).map((opt, i) => (
                                     <li key={i}>{opt}</li>
                                 ))}
                             </ul>
