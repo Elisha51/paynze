@@ -406,32 +406,30 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                     <h4 className="font-medium text-sm">Wholesale Pricing</h4>
                     {product.wholesalePricing && product.wholesalePricing.length > 0 && (
                         <div className="space-y-2">
-                             <div className="hidden sm:grid grid-cols-4 gap-2 items-center">
+                             <div className="hidden sm:grid grid-cols-[1fr_1fr_1fr_auto] gap-2 items-center">
                                 <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
                                 <Label className="text-xs font-medium text-muted-foreground">Min. Quantity</Label>
                                 <Label className="text-xs font-medium text-muted-foreground">Price</Label>
                              </div>
                             {product.wholesalePricing.map((tier, index) => (
-                                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-start sm:items-center">
-                                    <div className='space-y-1 sm:hidden'>
-                                        <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
-                                        <Input
-                                            type="text"
-                                            aria-label="Customer Group"
-                                            value={tier.customerGroup}
-                                            onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
-                                            placeholder="e.g. Wholesale"
-                                        />
+                                <div key={index} className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1fr_auto] gap-2 items-start sm:items-center">
+                                    {/* Mobile View */}
+                                    <div className="sm:hidden grid grid-cols-[1fr_auto] gap-2 items-center">
+                                        <div className="space-y-1">
+                                            <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
+                                            <Input
+                                                type="text"
+                                                aria-label="Customer Group"
+                                                value={tier.customerGroup}
+                                                onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
+                                                placeholder="e.g. Wholesale"
+                                            />
+                                        </div>
+                                         <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="self-end" aria-label="Remove wholesale tier">
+                                            <Trash2 className="h-4 w-4 text-destructive" />
+                                        </Button>
                                     </div>
-                                    <Input
-                                        type="text"
-                                        aria-label="Customer Group"
-                                        value={tier.customerGroup}
-                                        onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
-                                        placeholder="e.g. Wholesale"
-                                        className="hidden sm:block"
-                                    />
-                                    <div className='space-y-1 sm:hidden'>
+                                    <div className='sm:hidden space-y-1'>
                                         <Label className="text-xs font-medium text-muted-foreground">Min. Quantity</Label>
                                         <Input 
                                             type="number" 
@@ -441,15 +439,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                             placeholder="Min. Quantity"
                                         />
                                     </div>
-                                    <Input 
-                                        type="number" 
-                                        aria-label="Minimum Order Quantity"
-                                        value={tier.minOrderQuantity} 
-                                        onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
-                                        placeholder="Min. Quantity"
-                                        className="hidden sm:block"
-                                    />
-                                    <div className='space-y-1 sm:hidden'>
+                                    <div className='sm:hidden space-y-1'>
                                         <Label className="text-xs font-medium text-muted-foreground">Price</Label>
                                         <Input 
                                             type="number" 
@@ -459,6 +449,24 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                             placeholder="Price per item"
                                         />
                                     </div>
+
+                                    {/* Desktop View */}
+                                    <Input
+                                        type="text"
+                                        aria-label="Customer Group"
+                                        value={tier.customerGroup}
+                                        onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
+                                        placeholder="e.g. Wholesale"
+                                        className="hidden sm:block"
+                                    />
+                                    <Input 
+                                        type="number" 
+                                        aria-label="Minimum Order Quantity"
+                                        value={tier.minOrderQuantity} 
+                                        onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
+                                        placeholder="Min. Quantity"
+                                        className="hidden sm:block"
+                                    />
                                      <Input 
                                         type="number" 
                                         aria-label="Price per item"
@@ -467,7 +475,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                         placeholder="Price per item"
                                         className="hidden sm:block"
                                     />
-                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="justify-self-end" aria-label="Remove wholesale tier">
+                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="hidden sm:inline-flex" aria-label="Remove wholesale tier">
                                         <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
                                 </div>
