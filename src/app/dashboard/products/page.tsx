@@ -96,7 +96,7 @@ export default function ProductsPage() {
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="reports">
-            <ProductPerformanceReport />
+            <ProductPerformanceReport products={products} />
         </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );
