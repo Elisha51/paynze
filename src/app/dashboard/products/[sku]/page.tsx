@@ -16,7 +16,13 @@ export default function EditProductPage({ params }: { params: { sku: string } })
       const allProducts = await getProducts();
       const foundProduct = allProducts.find(p => p.sku === params.sku);
       if (foundProduct) {
-        setProduct(foundProduct);
+        // Ensure wholesalePricing is an array
+        const productWithDefaults = {
+          ...foundProduct,
+          wholesalePricing: foundProduct.wholesalePricing || [],
+          images: foundProduct.images || [],
+        };
+        setProduct(productWithDefaults);
       }
       setLoading(false);
     }

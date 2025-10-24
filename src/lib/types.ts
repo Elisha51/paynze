@@ -5,6 +5,11 @@ export type ProductImage = {
   url: string;
 };
 
+export type WholesalePrice = {
+  group: 'wholesale' | 'retailer' | string;
+  price: number;
+}
+
 export type ProductVariant = {
   id: string;
   optionName: string;
@@ -21,10 +26,7 @@ export type Product = {
   sku: string;
   category: string;
   retailPrice: number;
-  wholesalePricing: {
-    group: string;
-    price: number;
-  }[];
+  wholesalePricing: WholesalePrice[];
   stockQuantity: number;
   trackStock: boolean;
   variants: ProductVariant[];
