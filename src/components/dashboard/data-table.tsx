@@ -12,6 +12,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  FilterFn,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -42,6 +43,17 @@ interface DataTableProps<TData, TValue> {
   cardDescription: string;
 }
 
+// Custom filter function to handle comma-separated values
+const listFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
+    if (typeof filterValue === 'string') {
+        const values = filterValue.split(',');
+        const rowValue = row.getValue(columnId);
+        return values.includes(rowValue);
+    }
+    return true;
+};
+
+
 export function DataTable<TData, TValue>({
   columns,
   data,
@@ -56,38 +68,22 @@ export function DataTable<TData, TValue>({
 
   React.useEffect(() => {
     if (filter) {
-      if (filter.column === 'visibility' && filter.value.includes(',')) {
-        // Special case for 'all' products tab to show multiple visibility states
-        const values = filter.value.split(',');
-        setColumnFilters(prev => [
-            ...prev.filter(f => f.id !== filter.column), 
-            { id: filter.column, value: values }
-        ]);
-      } else {
         setColumnFilters(prev => [
             ...prev.filter(f => f.id !== filter.column), 
             { id: filter.column, value: filter.value }
         ]);
-      }
     } else {
       // Clear filters if no filter is provided
       setColumnFilters([]);
     }
   }, [filter]);
 
-  const customFilterFn = (row: any, columnId: string, filterValue: any) => {
-    const rowValue = row.getValue(columnId);
-    if (Array.isArray(filterValue)) {
-      return filterValue.includes(rowValue);
-    }
-    return rowValue === filterValue;
-  };
 
   const table = useReactTable({
     data,
     columns,
     filterFns: {
-        custom: customFilterFn,
+        list: listFilterFn,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -105,6 +101,13 @@ export function DataTable<TData, TValue>({
       globalFilter: searchQuery,
     },
     globalFilterFn: 'auto',
+    getColumn: (id: string) => {
+        const column = table.getAllColumns().find(c => c.id === id);
+        if (id === 'visibility') {
+            (column as any).filterFn = 'list';
+        }
+        return column;
+    }
   });
 
   return (

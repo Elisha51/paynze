@@ -34,7 +34,8 @@ import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
 
 const getColumns = (
-  archiveProduct: (sku: string) => void
+  archiveProduct: (sku: string) => void,
+  onEdit: (product: Product) => void,
 ): ColumnDef<Product>[] => [
   {
     id: 'select',
@@ -167,7 +168,7 @@ const getColumns = (
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
                       Delete
@@ -201,6 +202,7 @@ const getColumns = (
 type ProductsTableProps = {
   data: Product[];
   setData: React.Dispatch<React.SetStateAction<Product[]>>;
+  onEdit: (product: Product) => void;
   filter?: {
     column: string;
     value: string;
@@ -209,7 +211,7 @@ type ProductsTableProps = {
   cardDescription: string;
 };
 
-export function ProductsTable({ data, setData, filter, cardTitle, cardDescription }: ProductsTableProps) {
+export function ProductsTable({ data, setData, onEdit, filter, cardTitle, cardDescription }: ProductsTableProps) {
   const { toast } = useToast();
   
   const archiveProduct = (sku: string) => {
@@ -224,7 +226,7 @@ export function ProductsTable({ data, setData, filter, cardTitle, cardDescriptio
     });
   };
 
-  const columns = React.useMemo(() => getColumns(archiveProduct), [archiveProduct]);
+  const columns = React.useMemo(() => getColumns(archiveProduct, onEdit), [archiveProduct, onEdit]);
 
   return (
     <DataTable
