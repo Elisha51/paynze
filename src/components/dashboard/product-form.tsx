@@ -93,6 +93,16 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     const { id, value } = e.target;
     setProduct((prev) => ({ ...prev, [id]: Number(value) || 0 }));
   };
+
+  const handleDimensionChange = (dimension: 'length' | 'width' | 'height', value: string) => {
+      setProduct(prev => ({
+          ...prev,
+          dimensions: {
+              ...prev.dimensions,
+              [dimension]: Number(value) || 0,
+          }
+      }));
+  }
   
   const handleSelectChange = (id: keyof Product, value: string) => {
     const isPhysical = value === 'Physical';
@@ -540,21 +550,21 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                                      <div className="space-y-1 sm:hidden">
                                         <Label className="text-xs">Length</Label>
-                                        <Input id="dimensions.length" type="number" placeholder="Length" />
+                                        <Input type="number" placeholder="Length" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
                                      </div>
-                                      <Input id="dimensions.length" type="number" placeholder="Length" className="hidden sm:block" />
+                                      <Input type="number" placeholder="Length" className="hidden sm:block" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
 
                                       <div className="space-y-1 sm:hidden">
                                         <Label className="text-xs">Width</Label>
-                                        <Input id="dimensions.width" type="number" placeholder="Width" />
+                                        <Input type="number" placeholder="Width" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
                                      </div>
-                                     <Input id="dimensions.width" type="number" placeholder="Width" className="hidden sm:block" />
+                                     <Input type="number" placeholder="Width" className="hidden sm:block" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
 
                                      <div className="space-y-1 sm:hidden">
                                         <Label className="text-xs">Height</Label>
-                                        <Input id="dimensions.height" type="number" placeholder="Height" />
+                                        <Input type="number" placeholder="Height" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
                                      </div>
-                                     <Input id="dimensions.height" type="number" placeholder="Height" className="hidden sm:block" />
+                                     <Input type="number" placeholder="Height" className="hidden sm:block" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
                                 </div>
                             </div>
                         </div>
@@ -709,4 +719,3 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   );
 }
 
-    

@@ -48,6 +48,7 @@ export const products: Product[] = [
   {
     productType: 'Digital',
     name: 'E-commerce Business Guide',
+    sku: 'EBOOK-001',
     shortDescription: 'A comprehensive guide to starting your online business in East Africa.',
     longDescription: '<p>This e-book covers everything from setting up your store to marketing and logistics.</p>',
     status: 'published',
@@ -67,10 +68,10 @@ export const products: Product[] = [
    {
     productType: 'Physical',
     name: 'Handmade Leather Shoes',
+    sku: 'SHOE-002',
     shortDescription: 'Genuine leather shoes, handcrafted by skilled artisans. Durable, comfortable, and stylish for any occasion.',
     status: 'draft',
     images: [{ id: 'img3', url: `https://picsum.photos/seed/SHOE-002/400/400` }],
-    sku: 'SHOE-002',
     trackStock: true,
     stockQuantity: 30,
     requiresShipping: true,
@@ -82,13 +83,14 @@ export const products: Product[] = [
     hasVariants: true,
     optionNames: ['Size'],
     variants: [
-      { id: 'var3', optionValues: { Size: '42' }, price: 75000, stock: 15 },
-      { id: 'var4', optionValues: { Size: '43' }, price: 75000, stock: 15 },
+      { id: 'var3', optionValues: { Size: '42' }, price: 75000, stock: 15, sku: 'SHOE-002-42' },
+      { id: 'var4', optionValues: { Size: '43' }, price: 75000, stock: 15, sku: 'SHOE-002-43' },
     ],
   },
   {
     productType: 'Service',
     name: '1-on-1 Business Consultation',
+    sku: 'CONSULT-01',
     shortDescription: 'Book a one-hour session with our e-commerce experts to accelerate your growth.',
     longDescription: '<p>Get personalized advice on marketing, sales, and operations for your online store.</p>',
     status: 'published',

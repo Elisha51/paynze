@@ -29,7 +29,7 @@ export function ProductDetails({ product }: { product: Product }) {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
   
-  const uploadedImages = product.images.filter(img => 'url' in img || img instanceof File);
+  const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File));
 
   return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -198,6 +198,10 @@ export function ProductDetails({ product }: { product: Product }) {
                         <h3 className="font-medium text-sm text-muted-foreground">SKU</h3>
                         <p>{product.sku || '-'}</p>
                     </div>
+                    <div>
+                        <h3 className="font-medium text-sm text-muted-foreground">Barcode</h3>
+                        <p>{product.barcode || '-'}</p>
+                    </div>
                      <div>
                         <h3 className="font-medium text-sm text-muted-foreground">Stock</h3>
                         <p>{product.trackStock ? `${product.stockQuantity} available` : 'Not tracked'}</p>
@@ -210,7 +214,7 @@ export function ProductDetails({ product }: { product: Product }) {
                             </div>
                             <div>
                                 <h3 className="font-medium text-sm text-muted-foreground">Dimensions</h3>
-                                <p>{product.dimensions ? `${product.dimensions.length}L x ${product.dimensions.width}W x ${product.dimensions.height}H cm` : '-'}</p>
+                                <p>{product.dimensions && product.dimensions.length ? `${product.dimensions.length}L x ${product.dimensions.width}W x ${product.dimensions.height}H cm` : '-'}</p>
                             </div>
                         </>
                     )}
