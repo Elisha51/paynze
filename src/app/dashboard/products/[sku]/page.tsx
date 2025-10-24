@@ -4,6 +4,7 @@ import { ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { getProducts } from '@/services/products';
 import { ProductDetails } from '@/components/dashboard/product-details';
+import { ProductDetailsAdjustStock } from '@/components/dashboard/product-details-adjust-stock';
 
 export default async function ViewProductPage({ params }: { params: { sku: string } }) {
   const { sku } = params;
@@ -28,13 +29,13 @@ export default async function ViewProductPage({ params }: { params: { sku: strin
   return (
     <div className="space-y-6">
        <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild className="hidden md:inline-flex">
+        <Button variant="outline" size="icon" asChild>
           <Link href="/dashboard/products">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back to Products</span>
           </Link>
         </Button>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">
             {product.name}
           </h1>
@@ -43,12 +44,13 @@ export default async function ViewProductPage({ params }: { params: { sku: strin
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button asChild>
-                <Link href={`/dashboard/products/${sku}/edit`}>
+            <Button variant="outline" asChild>
+                 <Link href={`/dashboard/products/${sku}/edit`}>
                     <Edit className="mr-2 h-4 w-4" />
-                    Edit Product
+                    Edit
                 </Link>
             </Button>
+            <ProductDetailsAdjustStock product={product} />
         </div>
       </div>
 

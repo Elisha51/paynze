@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/table"
 import type { Product, InventoryItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { ProductDetailsAdjustStock } from './product-details-adjust-stock';
 
 function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     const variant = {
@@ -92,7 +91,6 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                         <CardTitle>Inventory Summary</CardTitle>
                         <CardDescription>Overall stock levels for "{product.name}".</CardDescription>
                     </div>
-                    <ProductDetailsAdjustStock product={product} />
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
