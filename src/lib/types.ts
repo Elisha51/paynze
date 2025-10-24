@@ -15,6 +15,7 @@ export type ProductVariant = {
 };
 
 export type Product = {
+  productType: 'Physical' | 'Digital' | 'Service';
   name: string;
   description?: string;
   sku: string;
@@ -25,11 +26,15 @@ export type Product = {
     price: number;
   }[];
   stockQuantity: number;
+  trackStock: boolean;
   variants: ProductVariant[];
   visibility: 'published' | 'draft' | 'archived';
   images: (ProductImage | File)[]; // Allow for File objects during upload
   videoUrl?: string;
   discount: string | null;
+  requiresShipping: boolean;
+  weight: number;
+  digitalFileUrl?: string;
 };
 
 export type Order = {
