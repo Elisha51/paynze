@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { getProductTemplates } from '@/services/templates';
 import type { ProductTemplate } from '@/lib/types';
 import * as Lucide from 'lucide-react';
+import Link from 'next/link';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
@@ -31,18 +32,21 @@ export function ProductTemplatesTab() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {templates.map(template => (
-                <Card 
-                    key={template.id} 
-                    className="cursor-pointer hover:border-primary transition-colors flex flex-col items-center justify-center text-center p-4"
-                >
-                    <div className="p-4 rounded-full bg-primary/10 mb-2">
-                        <Icon name={template.icon} className="h-8 w-8 text-primary" />
-                    </div>
-                    <h3 className="font-semibold">{template.name}</h3>
-                    <p className="text-sm text-muted-foreground">{template.description}</p>
-                </Card>
+                <Link key={template.id} href={`/dashboard/templates/${template.id}/edit`} passHref>
+                    <Card 
+                        className="cursor-pointer hover:border-primary transition-colors flex flex-col items-center justify-center text-center p-4 h-full"
+                    >
+                        <div className="p-4 rounded-full bg-primary/10 mb-2">
+                            <Icon name={template.icon} className="h-8 w-8 text-primary" />
+                        </div>
+                        <h3 className="font-semibold">{template.name}</h3>
+                        <p className="text-sm text-muted-foreground">{template.description}</p>
+                    </Card>
+                </Link>
             ))}
         </CardContent>
     </Card>
   );
 }
+
+    
