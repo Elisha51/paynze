@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Check, CreditCard, ShoppingCart, Truck, Users, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const features = [
   {
@@ -61,8 +62,8 @@ export default function Home() {
             <Button variant="ghost" asChild>
               <Link href="/login">Log In</Link>
             </Button>
-            <Button asChild className="bg-accent hover:bg-accent/90">
-              <Link href="/get-started">Get Started</Link>
+            <Button asChild>
+              <Link href="/get-started">Sign Up</Link>
             </Button>
           </nav>
         </div>
@@ -70,24 +71,24 @@ export default function Home() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-20 md:py-32 lg:py-40 bg-gradient-to-br from-blue-50 to-green-50">
+        <section className="w-full py-20 md:py-24 lg:py-32 bg-gray-900 text-white">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 items-center">
-              <div className="space-y-4">
-                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-primary">
-                  Bring Your Business Online with Paynze.
+            <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
+              <div className="space-y-6">
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">
+                  Start Selling Online for Free
                 </h1>
-                <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                  Empowering African wholesalers, retailers & stockists to sell online, accept mobile money, and manage their business with ease.
+                <p className="max-w-[600px] text-gray-300 md:text-xl">
+                  Join our community of over 100k entrepreneurs and begin selling. Don't think twice, this is the easiest way to start your online store.
                 </p>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" asChild className="bg-accent hover:bg-accent/90">
-                    <Link href="/get-started">Start for Free</Link>
+                  <Button size="lg" asChild>
+                    <Link href="/get-started">Sign Up for Free</Link>
                   </Button>
                 </div>
               </div>
-              <div className="hidden lg:block">
-                  <img src="https://picsum.photos/seed/hero-paynze/600/400" alt="African merchant using a phone" className="rounded-xl shadow-lg" data-ai-hint="african merchant" />
+              <div className="hidden lg:block bg-gradient-to-r from-blue-500 to-green-500 p-2 rounded-lg">
+                  <Image src="https://picsum.photos/seed/hero-paynze/600/400" alt="Paynze dashboard screenshot" width={600} height={400} className="rounded-md shadow-2xl" data-ai-hint="dashboard screenshot" />
               </div>
             </div>
           </div>
@@ -174,7 +175,7 @@ export default function Home() {
                             </ul>
                         </CardContent>
                         <div className="p-6">
-                           <Button className="w-full bg-accent hover:bg-accent/90" asChild><Link href="/get-started">Start for Free</Link></Button>
+                           <Button className="w-full" asChild><Link href="/get-started">Start for Free</Link></Button>
                         </div>
                     </Card>
                     <Card className="flex flex-col border-primary">
@@ -245,3 +246,5 @@ export default function Home() {
     </div>
   );
 }
+
+    

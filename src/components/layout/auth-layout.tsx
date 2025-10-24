@@ -19,3 +19,5 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         </div>
     )
 }
+
+    
