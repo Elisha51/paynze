@@ -7,21 +7,21 @@ import { useEffect, useState } from 'react';
 import type { Product } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 
-export default function EditProductPage({ params }: { params: { sku: string } }) {
+export default function EditProductPage({ params: { sku } }: { params: { sku: string } }) {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchProduct() {
       const allProducts = await getProducts();
-      const foundProduct = allProducts.find(p => p.sku === params.sku);
+      const foundProduct = allProducts.find(p => p.sku === sku);
       if (foundProduct) {
         setProduct(foundProduct);
       }
       setLoading(false);
     }
     fetchProduct();
-  }, [params.sku]);
+  }, [sku]);
 
   if (loading) {
     return (
