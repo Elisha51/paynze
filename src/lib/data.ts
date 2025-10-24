@@ -1,8 +1,10 @@
+
 import type { Product, Order, Customer, RecentSale, SalesData } from './types';
 
 export const products: Product[] = [
   {
     name: 'Colorful Kitenge Fabric',
+    description: 'Vibrant and colorful Kitenge fabric, perfect for making dresses, shirts, and other traditional attire. High-quality cotton material.',
     sku: 'KIT-001',
     category: 'Fabrics',
     retailPrice: 35000,
@@ -18,6 +20,7 @@ export const products: Product[] = [
   },
   {
     name: 'Handmade Leather Shoes',
+    description: 'Genuine leather shoes, handcrafted by skilled artisans. Durable, comfortable, and stylish for any occasion.',
     sku: 'SHOE-002',
     category: 'Footwear',
     retailPrice: 75000,
@@ -33,6 +36,7 @@ export const products: Product[] = [
   },
   {
     name: 'Woven Sisal Basket',
+    description: 'Beautifully woven sisal basket, ideal for shopping or as a decorative home item. Eco-friendly and sustainable.',
     sku: 'BAS-003',
     category: 'Homeware',
     retailPrice: 25000,
@@ -45,6 +49,7 @@ export const products: Product[] = [
   },
   {
     name: 'Kenyan Arabica Coffee',
+    description: 'Rich and aromatic Arabica coffee beans from the highlands of Kenya. A perfect start to your day.',
     sku: 'COF-004',
     category: 'Groceries',
     retailPrice: 15000,
@@ -57,6 +62,7 @@ export const products: Product[] = [
   },
   {
     name: 'Maasai Beaded Necklace',
+    description: 'Traditional Maasai beaded necklace, handmade with intricate details. A stunning piece of jewelry.',
     sku: 'JWL-005',
     category: 'Accessories',
     retailPrice: 18000,
