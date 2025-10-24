@@ -6,19 +6,19 @@ import { getProductTemplates } from '@/services/templates';
 import { useState, useEffect } from 'react';
 import type { ProductTemplate } from '@/lib/types';
 
-export default function EditProductTemplatePage({ params: { id } }: { params: { id: string } }) {
+export default function EditProductTemplatePage({ params }: { params: { id: string } }) {
   const [template, setTemplate] = useState<ProductTemplate | null>(null);
 
   useEffect(() => {
     async function loadTemplate() {
       const allTemplates = await getProductTemplates();
-      const foundTemplate = allTemplates.find(t => t.id === id);
+      const foundTemplate = allTemplates.find(t => t.id === params.id);
       if (foundTemplate) {
         setTemplate(foundTemplate);
       }
     }
     loadTemplate();
-  }, [id]);
+  }, [params.id]);
   
   if(!template) {
       return <div>Loading template...</div>
