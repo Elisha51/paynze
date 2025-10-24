@@ -33,7 +33,7 @@ export default function Step3Preferences() {
   };
 
   return (
-    <Card>
+    <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Basic Preferences</CardTitle>
         <CardDescription>Set up your payment and delivery options.</CardDescription>
@@ -42,11 +42,17 @@ export default function Step3Preferences() {
         <div className="space-y-4 rounded-md border p-4">
             <h3 className="font-medium">Payment Options</h3>
             <div className="flex items-center justify-between">
-                <Label htmlFor="cod">Enable Cash on Delivery</Label>
+                <Label htmlFor="cod" className="flex flex-col space-y-1">
+                  <span>Enable Cash on Delivery</span>
+                  <span className="font-normal leading-snug text-muted-foreground text-xs">Accept cash when you deliver the order.</span>
+                </Label>
                 <Switch id="cod" checked={formData.paymentOptions.cod} onCheckedChange={(c) => handleSwitchChange('cod', c)} />
             </div>
             <div className="flex items-center justify-between">
-                <Label htmlFor="mobileMoney">Enable Mobile Money (MTN, Airtel, M-Pesa)</Label>
+                <Label htmlFor="mobileMoney" className="flex flex-col space-y-1">
+                  <span>Enable Mobile Money</span>
+                  <span className="font-normal leading-snug text-muted-foreground text-xs">Accept MTN, Airtel, M-Pesa.</span>
+                </Label>
                 <Switch id="mobileMoney" checked={formData.paymentOptions.mobileMoney} onCheckedChange={(c) => handleSwitchChange('mobileMoney', c)} />
             </div>
         </div>
@@ -54,7 +60,10 @@ export default function Step3Preferences() {
         <div className="space-y-4 rounded-md border p-4">
             <h3 className="font-medium">Delivery & Pickup</h3>
             <div className="flex items-center justify-between">
-                <Label htmlFor="pickup">Enable In-store Pickup</Label>
+                 <Label htmlFor="pickup" className="flex flex-col space-y-1">
+                  <span>Enable In-store Pickup</span>
+                   <span className="font-normal leading-snug text-muted-foreground text-xs">Allow customers to collect from you.</span>
+                </Label>
                 <Switch id="pickup" checked={formData.delivery.pickup} onCheckedChange={(c) => handleSwitchChange('pickup', c)} />
             </div>
             {formData.delivery.pickup && (

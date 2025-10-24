@@ -3,6 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { themes } from '@/lib/themes';
 
 type OnboardingFormData = {
   businessName: string;
@@ -11,6 +12,7 @@ type OnboardingFormData = {
   subdomain: string;
   currency: string;
   language: string;
+  theme: string;
   paymentOptions: {
     cod: boolean;
     mobileMoney: boolean;
@@ -39,6 +41,7 @@ const initialFormData: OnboardingFormData = {
   subdomain: '',
   currency: 'UGX',
   language: 'English',
+  theme: themes[0].name,
   paymentOptions: {
     cod: true,
     mobileMoney: false,
@@ -57,14 +60,10 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Autosave simulation
-    if (step > 1 && step < 5) {
+    if (step > 1 && step < 6) { // Now 6 steps with confirmation
         const timer = setTimeout(() => {
             localStorage.setItem('onboardingDraft', JSON.stringify(formData));
-            toast({
-              title: "Progress Saved",
-              description: "Your onboarding progress has been saved locally.",
-            });
-        }, 2000);
+        }, 3000);
         return () => clearTimeout(timer);
     }
   }, [formData, step, toast]);
@@ -73,9 +72,18 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
       // Load draft from local storage
       const draft = localStorage.getItem('onboardingDraft');
       if (draft) {
-          setFormData(JSON.parse(draft));
+          try {
+            const parsedDraft = JSON.parse(draft);
+            setFormData(parsedDraft);
+             toast({
+              title: "Draft Loaded",
+              description: "We've loaded your previously saved progress.",
+            });
+          } catch (e) {
+            console.error("Could not parse onboarding draft", e);
+          }
       }
-  }, [])
+  }, [toast])
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
