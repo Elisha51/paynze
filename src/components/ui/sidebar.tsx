@@ -14,10 +14,9 @@ import {
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Badge } from '@/components/ui/badge';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
-const SIDEBAR_WIDTH_DEFAULT = '16rem';
-const SIDEBAR_WIDTH_COLLAPSED = '4rem';
 
 type SidebarContextValue = {
   state: 'expanded' | 'collapsed';
@@ -143,7 +142,7 @@ export const SidebarHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('border-b p-2', className)}
+    className={cn('border-b p-2 relative', className)}
     {...props}
   />
 ));
@@ -229,22 +228,17 @@ export const SidebarMenuButton = React.forwardRef<
       className={cn(sidebarMenuButtonVariants({ isActive }), 'group/button', className)}
       {...props}
     >
-      {React.Children.map(children, (child, index) => {
-        if (React.isValidElement(child) && child.type === 'span') {
-          return React.cloneElement(child as React.ReactElement, {
-            className: cn(
-              'truncate transition-opacity duration-300',
-              state === 'collapsed' && 'opacity-0 w-0'
-            ),
-          });
-        }
-        if (React.isValidElement(child) && child.type === Badge) {
-           return React.cloneElement(child as React.ReactElement, {
-            className: cn(
-              'ml-auto transition-opacity duration-300',
-              state === 'collapsed' && 'opacity-0'
-            ),
-          });
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child)) {
+           if (child.type === 'span' || child.type === Badge) {
+            return React.cloneElement(child as React.ReactElement, {
+              className: cn(
+                child.props.className,
+                'transition-opacity duration-300',
+                state === 'collapsed' && 'opacity-0 w-0'
+              ),
+            });
+           }
         }
         return child;
       })}
@@ -275,18 +269,3 @@ export const SidebarInset = React.forwardRef<
     )
 })
 SidebarInset.displayName = 'SidebarInset';
-
-export const Badge = React.forwardRef<
-  HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
-  <div
-    ref={ref}
-    className={cn(
-      'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-      className
-    )}
-    {...props}
-  />
-));
-Badge.displayName = 'Badge';

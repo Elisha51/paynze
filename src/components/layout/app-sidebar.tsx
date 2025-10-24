@@ -24,6 +24,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
+import { cn } from '@/lib/utils';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -41,12 +42,12 @@ export default function AppSidebar() {
     <Sidebar>
         <SidebarHeader className="p-4 flex items-center justify-between">
             <Link href="/dashboard" className="flex items-center gap-2">
-            <ShoppingCart className="w-8 h-8 text-primary" />
-            <div className="flex flex-col">
-                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground">Paynze</h2>
-            </div>
+              <ShoppingCart className="w-8 h-8 text-primary" />
+              <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
+                  <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground">Paynze</h2>
+              </div>
             </Link>
-            <Button variant="ghost" size="icon" className="h-8 w-8 md:flex hidden" onClick={toggleSidebar}>
+            <Button variant="ghost" size="icon" className={cn("h-8 w-8 md:flex hidden", state === 'collapsed' && 'absolute -right-10 top-2')} onClick={toggleSidebar}>
               <ChevronLeft className="h-5 w-5 transition-transform duration-300 group-data-[state=collapsed]:rotate-180" />
             </Button>
         </SidebarHeader>
