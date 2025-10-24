@@ -4,7 +4,6 @@ import * as React from 'react';
 import Image from 'next/image';
 import {
   ColumnDef,
-  Row,
 } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 
@@ -31,7 +30,6 @@ import {
 } from "@/components/ui/alert-dialog"
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Product } from '@/lib/types';
-import { getProducts } from '@/services/products';
 import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
 
@@ -107,11 +105,12 @@ const getColumns = (
   {
     accessorKey: 'visibility',
     header: 'Status',
-    cell: ({ row }) => (
-      <Badge variant={row.getValue('visibility') === 'draft' ? 'secondary' : row.getValue('visibility') === 'archived' ? 'outline' : 'default'}>
-        {row.getValue('visibility')}
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const visibility = row.getValue('visibility') as string;
+      const variant = visibility === 'draft' ? 'secondary' : visibility === 'archived' ? 'outline' : 'default';
+      const capitalizedVisibility = visibility.charAt(0).toUpperCase() + visibility.slice(1);
+      return <Badge variant={variant}>{capitalizedVisibility}</Badge>;
+    }
   },
   {
     accessorKey: 'retailPrice',
@@ -200,6 +199,8 @@ const getColumns = (
 ];
 
 type ProductsTableProps = {
+  data: Product[];
+  setData: React.Dispatch<React.SetStateAction<Product[]>>;
   filter?: {
     column: string;
     value: string;
@@ -208,17 +209,8 @@ type ProductsTableProps = {
   cardDescription: string;
 };
 
-export function ProductsTable({ filter, cardTitle, cardDescription }: ProductsTableProps) {
-  const [data, setData] = React.useState<Product[]>([]);
+export function ProductsTable({ data, setData, filter, cardTitle, cardDescription }: ProductsTableProps) {
   const { toast } = useToast();
-
-  React.useEffect(() => {
-    async function loadProducts() {
-      const fetchedProducts = await getProducts();
-      setData(fetchedProducts);
-    }
-    loadProducts();
-  }, []);
   
   const archiveProduct = (sku: string) => {
     setData(currentData =>

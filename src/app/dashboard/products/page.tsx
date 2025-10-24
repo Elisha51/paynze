@@ -20,13 +20,25 @@ import { ProductsTable } from '@/components/dashboard/products-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
 import { useToast } from '@/hooks/use-toast';
+import type { Product } from '@/lib/types';
+import { getProducts } from '@/services/products';
 
 export default function ProductsPage() {
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   const { toast } = useToast();
+
+  useState(() => {
+    async function loadProducts() {
+        const fetchedProducts = await getProducts();
+        setProducts(fetchedProducts);
+    }
+    loadProducts();
+  });
 
   const handleSuggestDescription = async () => {
     if (!productName || !category) {
@@ -53,6 +65,42 @@ export default function ProductsPage() {
     }
   };
 
+  const handleSaveProduct = () => {
+    if (!productName || !category) {
+        toast({
+            variant: "destructive",
+            title: "Name and Category required",
+            description: "Please enter a product name and category to save.",
+        });
+        return;
+    }
+    const newProduct: Product = {
+        name: productName,
+        sku: `SKU-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
+        category: category,
+        retailPrice: 0, // Default value, can be edited later
+        wholesalePricing: [],
+        stockQuantity: 0, // Default value
+        variants: [],
+        visibility: 'draft',
+        images: [],
+        discount: null,
+    };
+
+    setProducts(prevProducts => [newProduct, ...prevProducts]);
+    
+    toast({
+        title: "Product Saved as Draft",
+        description: `${productName} has been added to your products.`,
+    });
+
+    // Reset form and close dialog
+    setProductName('');
+    setCategory('');
+    setDescription('');
+    setIsDialogOpen(false);
+  };
+
 
   const tabs = [
       { value: 'all', label: 'All' },
@@ -62,7 +110,7 @@ export default function ProductsPage() {
   ];
 
   const cta = (
-     <Dialog>
+     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -73,7 +121,7 @@ export default function ProductsPage() {
           <DialogHeader>
             <DialogTitle>Add New Product</DialogTitle>
             <DialogDescription>
-              Fill in the details for your new product. Click save when you're done.
+              Fill in the details for your new product. It will be saved as a draft.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
@@ -97,7 +145,7 @@ export default function ProductsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit">Save Product</Button>
+            <Button type="button" onClick={handleSaveProduct}>Save Product</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -112,6 +160,8 @@ export default function ProductsPage() {
     >
         <DashboardPageLayout.TabContent value="all">
             <ProductsTable
+                data={products}
+                setData={setProducts}
                 filter={{ column: 'visibility', value: 'published,draft' }}
                 cardTitle='All Products'
                 cardDescription='Manage your products and view their sales performance.'
@@ -119,13 +169,17 @@ export default function ProductsPage() {
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="active">
             <ProductsTable 
+                data={products}
+                setData={setProducts}
                 filter={{ column: 'visibility', value: 'published' }}
                 cardTitle='Active Products'
                 cardDescription='View all products that are currently visible to customers.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="draft">
-            <ProductsTable 
+            <ProductsTable
+                data={products}
+                setData={setProducts}
                 filter={{ column: 'visibility', value: 'draft' }}
                 cardTitle='Draft Products'
                 cardDescription='View all products that are not yet published.'
@@ -133,6 +187,8 @@ export default function ProductsPage() {
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="archived">
             <ProductsTable 
+                data={products}
+                setData={setProducts}
                 filter={{ column: 'visibility', value: 'archived' }}
                 cardTitle='Archived Products'
                 cardDescription='View all products that have been archived.'
