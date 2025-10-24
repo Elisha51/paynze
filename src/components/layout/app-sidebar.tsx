@@ -50,12 +50,15 @@ const bottomMenuItems = [
 
 type AppSidebarProps = {
     onboardingData: OnboardingFormData | null;
+    isDevMode: boolean;
 }
 
-export default function AppSidebar({ onboardingData }: AppSidebarProps) {
+export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
   const isPremium = onboardingData?.plan === 'Premium';
+
+  const showPremiumFeatures = isDevMode || isPremium;
 
   return (
     <Sidebar>
@@ -83,7 +86,7 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
                 </Link>
                 </SidebarMenuItem>
             ))}
-             {isPremium && premiumMenuItems.map((item) => (
+             {showPremiumFeatures && premiumMenuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>
                     <SidebarMenuButton
