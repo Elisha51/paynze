@@ -1,3 +1,4 @@
+
 'use client';
 
 import Link from 'next/link';
@@ -24,6 +25,7 @@ import {
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -75,7 +77,7 @@ export default function AppSidebar() {
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                <Link href="/" passHref>
+                <Link href="/login" passHref>
                     <SidebarMenuButton tooltip="Logout">
                         <LogOut className="h-5 w-5 shrink-0" />
                         <span className="flex-1">Logout</span>

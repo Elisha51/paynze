@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CheckCircle, ShoppingCart, Users, Truck, MessageCircle, BarChart } from 'lucide-react';
@@ -51,10 +52,10 @@ export default function Home() {
           </Link>
           <nav className="ml-auto flex items-center space-x-2">
             <Button variant="ghost" asChild>
-              <Link href="/dashboard">Log In</Link>
+              <Link href="/login">Log In</Link>
             </Button>
             <Button asChild>
-              <Link href="/dashboard">Get Started Free</Link>
+              <Link href="/signup">Get Started Free</Link>
             </Button>
           </nav>
         </div>
@@ -86,7 +87,7 @@ export default function Home() {
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button size="lg" asChild>
-                    <Link href="/dashboard">Start Free - Create Store</Link>
+                    <Link href="/signup">Start Free - Create Store</Link>
                   </Button>
                 </div>
               </div>
