@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Upload, ChevronDown } from 'lucide-react';
+import { PlusCircle, Upload, ChevronDown, BarChart2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo } from 'react';
 import { ProductsTable } from '@/components/dashboard/products-table';
@@ -15,6 +15,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { ProductPerformanceReport } from '@/components/dashboard/analytics/product-performance-report';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -32,6 +33,7 @@ export default function ProductsPage() {
       { value: 'published', label: 'Published' },
       { value: 'draft', label: 'Draft' },
       { value: 'archived', label: 'Archived' },
+      { value: 'reports', label: 'Reports', className: 'flex items-center gap-2' },
   ];
 
   const cta = (
@@ -73,33 +75,28 @@ export default function ProductsPage() {
             <ProductsTable
                 data={allProducts}
                 setData={setProducts}
-                cardTitle='All Products'
-                cardDescription='Manage all your active and draft products.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="published">
             <ProductsTable 
                 data={publishedProducts}
                 setData={setProducts}
-                cardTitle='Published Products'
-                cardDescription='View all products that are currently visible to customers.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="draft">
             <ProductsTable
                 data={draftProducts}
                 setData={setProducts}
-                cardTitle='Draft Products'
-                cardDescription='View all products that are not yet published.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="archived">
             <ProductsTable 
                 data={archivedProducts}
                 setData={setProducts}
-                cardTitle='Archived Products'
-                cardDescription='View all products that have been archived.'
             />
+        </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.TabContent value="reports">
+            <ProductPerformanceReport />
         </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );

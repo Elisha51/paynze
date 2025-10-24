@@ -23,7 +23,9 @@ const TabContent = ({ value, children }: { value: string, children: React.ReactN
     return (
         <TabsContent value={value}>
             <Card className="mt-4">
-                {children}
+                <CardContent className="p-6">
+                    {children}
+                </CardContent>
             </Card>
         </TabsContent>
     )
@@ -35,24 +37,31 @@ TabContent.displayName = 'TabContent';
 export function DashboardPageLayout({ title, tabs, cta, children }: DashboardPageLayoutProps) {
   const { searchQuery, setSearchQuery } = useSearch();
 
+  // This logic is to handle cases where the table has its own Card wrapper
   const childrenArray = Array.isArray(children) ? children : [children];
-  const cardContent = childrenArray.map((child, index) => {
+  const enhancedChildren = childrenArray.map((child, index) => {
     if (child.type.displayName === 'TabContent') {
-      const cardTitle = child.props.children.props.cardTitle;
-      const cardDescription = child.props.children.props.cardDescription;
-      return (
-        <TabsContent key={index} value={child.props.value}>
-            <Card className="mt-4">
-                <CardHeader>
-                    <CardTitle>{cardTitle}</CardTitle>
-                    <CardDescription>{cardDescription}</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {child.props.children}
-                </CardContent>
-            </Card>
-        </TabsContent>
-      )
+      const childProps = child.props.children.props;
+      // If the direct child of TabContent is already a Card, we don't need to wrap it again.
+      if (child.props.children.type.displayName === 'Card') {
+          return child;
+      }
+      // If the table component has its own CardHeader, render it directly
+      if (childProps.cardTitle && childProps.cardDescription) {
+          return (
+             <TabsContent key={index} value={child.props.value}>
+                <Card className="mt-4">
+                    <CardHeader>
+                        <CardTitle>{childProps.cardTitle}</CardTitle>
+                        <CardDescription>{childProps.cardDescription}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        {child.props.children}
+                    </CardContent>
+                </Card>
+             </TabsContent>
+          )
+      }
     }
     return child;
   });
@@ -86,7 +95,7 @@ export function DashboardPageLayout({ title, tabs, cta, children }: DashboardPag
             {cta}
           </div>
         </div>
-        {children}
+        {enhancedChildren}
       </Tabs>
     </>
   );
