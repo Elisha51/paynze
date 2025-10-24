@@ -1,15 +1,32 @@
 'use client';
+import * as React from 'react';
 import Image from 'next/image';
-import { MoreHorizontal } from 'lucide-react';
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from '@tanstack/react-table';
+import { MoreHorizontal, PlusCircle } from 'lucide-react';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -19,134 +36,229 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useEffect, useState } from 'react';
 import type { Product } from '@/lib/types';
 import { getProducts } from '@/services/products';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+
+const columns: ColumnDef<Product>[] = [
+  {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
+    accessorKey: 'imageId',
+    header: () => <div className="hidden">Image</div>,
+    cell: ({ row }) => {
+      const product = row.original;
+      const image = PlaceHolderImages.find((p) => p.id === product.imageId);
+      return (
+        <div className="w-[64px] h-[64px] hidden sm:table-cell">
+          {image && (
+            <Image
+              alt={product.name}
+              className="aspect-square rounded-md object-cover"
+              height="64"
+              src={image.imageUrl}
+              width="64"
+              data-ai-hint={image.imageHint}
+            />
+          )}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: 'name',
+    header: 'Name',
+    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => (
+      <Badge variant={row.getValue('status') === 'draft' ? 'secondary' : 'default'}>
+        {row.getValue('status')}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: 'price',
+    header: () => <div className="text-right">Price (UGX)</div>,
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue('price'));
+      const formatted = new Intl.NumberFormat('en-US').format(amount);
+      return <div className="text-right font-medium">{formatted}</div>;
+    },
+  },
+  {
+    accessorKey: 'stock',
+    header: 'Stock',
+  },
+  {
+    accessorKey: 'category',
+    header: 'Category',
+  },
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      return (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="h-8 w-8 p-0">
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem>Edit</DropdownMenuItem>
+            <DropdownMenuItem>Delete</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      );
+    },
+  },
+];
 
 export function ProductsTable() {
-  const [products, setProducts] = useState<Product[]>([]);
+  const [data, setData] = React.useState<Product[]>([]);
+  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({});
+  const [rowSelection, setRowSelection] = React.useState({});
 
-  useEffect(() => {
+  React.useEffect(() => {
     async function loadProducts() {
       const fetchedProducts = await getProducts();
-      setProducts(fetchedProducts);
+      setData(fetchedProducts);
     }
     loadProducts();
   }, []);
 
+  const table = useReactTable({
+    data,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
+
   return (
-    <>
-      <div className="hidden md:block">
+    <div className="w-full">
+      <div className="flex items-center py-4">
+        <Input
+          placeholder="Filter products..."
+          value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
+          onChange={(event) =>
+            table.getColumn('name')?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+      </div>
+      <div className="rounded-md border">
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead className="w-[100px] sm:table-cell">
-                <span className="sr-only">Image</span>
-              </TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Price (UGX)</TableHead>
-              <TableHead>Stock</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>
-                <span className="sr-only">Actions</span>
-              </TableHead>
-            </TableRow>
+            {table.getHeaderGroups().map((headerGroup) => (
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
+            ))}
           </TableHeader>
           <TableBody>
-            {products.map((product) => {
-              const image = PlaceHolderImages.find((p) => p.id === product.imageId);
-              return (
-                <TableRow key={product.id}>
-                  <TableCell className="sm:table-cell">
-                    {image && (
-                      <Image
-                        alt={product.name}
-                        className="aspect-square rounded-md object-cover"
-                        height="64"
-                        src={image.imageUrl}
-                        width="64"
-                        data-ai-hint={image.imageHint}
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>
-                    <Badge variant={product.status === 'draft' ? 'secondary' : 'default'}>
-                      {product.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{product.price.toLocaleString()}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell>
-                    {product.category}
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Toggle menu</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Delete</DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && 'selected'}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext()
+                      )}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              );
-            })}
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center"
+                >
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:hidden">
-        {products.map((product) => {
-           const image = PlaceHolderImages.find((p) => p.id === product.imageId);
-           return (
-            <Card key={product.id}>
-              <CardHeader>
-                 {image && (
-                  <div className="relative h-40 w-full">
-                    <Image
-                        alt={product.name}
-                        className="aspect-square rounded-md object-cover"
-                        src={image.imageUrl}
-                        fill
-                        data-ai-hint={image.imageHint}
-                      />
-                  </div>
-                )}
-                <CardTitle className="text-base flex items-center justify-between">
-                  {product.name}
-                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button aria-haspopup="true" size="icon" variant="ghost">
-                        <MoreHorizontal className="h-4 w-4" />
-                        <span className="sr-only">Toggle menu</span>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 text-sm">
-                <div><strong>Price:</strong> {product.price.toLocaleString()} UGX</div>
-                <div><strong>Stock:</strong> {product.stock}</div>
-                <div><strong>Category:</strong> {product.category}</div>
-                <div><strong>Status:</strong>  <Badge variant={product.status === 'draft' ? 'secondary' : 'default'}>{product.status}</Badge></div>
-              </CardContent>
-            </Card>
-           )
-        })}
+      <div className="flex items-center justify-end space-x-2 py-4">
+        <div className="flex-1 text-sm text-muted-foreground">
+          {table.getFilteredSelectedRowModel().rows.length} of{' '}
+          {table.getFilteredRowModel().rows.length} row(s) selected.
+        </div>
+        <div className="space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
       </div>
-    </>
+    </div>
   );
 }
