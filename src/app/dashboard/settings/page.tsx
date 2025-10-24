@@ -27,12 +27,15 @@ export default function SettingsPage() {
         setSettings(prev => prev ? { ...prev, [id]: value } : null);
     };
 
-    const handleSwitchChange = (id: 'cod' | 'mobileMoney' | 'pickup', checked: boolean) => {
+    const handleSwitchChange = (id: 'cod' | 'mobileMoney' | 'pickup' | 'enableLowStockAlerts', checked: boolean) => {
         if (!settings) return;
 
         if (id === 'pickup') {
             setSettings(prev => prev ? { ...prev, delivery: { ...prev.delivery, [id]: checked } } : null);
-        } else {
+        } else if (id === 'enableLowStockAlerts') {
+            setSettings(prev => prev ? { ...prev, inventory: { ...prev.inventory, [id]: checked } } : null);
+        }
+        else {
             setSettings(prev => prev ? { ...prev, paymentOptions: { ...prev.paymentOptions, [id]: checked } } : null);
         }
     };
@@ -52,10 +55,11 @@ export default function SettingsPage() {
         </p>
       </div>
       <Tabs defaultValue="store" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="store">Store</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="delivery">Delivery</TabsTrigger>
+          <TabsTrigger value="inventory">Inventory</TabsTrigger>
         </TabsList>
         <TabsContent value="store">
           <Card>
@@ -168,6 +172,29 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
+        <TabsContent value="inventory">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Inventory</CardTitle>
+                    <CardDescription>
+                        Manage global settings for stock and inventory tracking.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-4">
+                            <Label htmlFor="enableLowStockAlerts" className="flex flex-col space-y-1">
+                                <span>Enable Low Stock Alerts</span>
+                                <span className="font-normal leading-snug text-muted-foreground">
+                                    Receive notifications when inventory drops below a defined threshold.
+                                </span>
+                            </Label>
+                            <Switch id="enableLowStockAlerts" checked={settings?.inventory?.enableLowStockAlerts} onCheckedChange={(c) => handleSwitchChange('enableLowStockAlerts', c)} />
+                        </CardHeader>
+                    </Card>
+                </CardContent>
+            </Card>
+        </TabsContent>
       </Tabs>
       <div className="mt-8 flex justify-end">
         <Button>Save Changes</Button>
@@ -175,5 +202,3 @@ export default function SettingsPage() {
     </>
   );
 }
-
-    

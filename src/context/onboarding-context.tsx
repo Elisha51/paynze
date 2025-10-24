@@ -23,6 +23,9 @@ export type OnboardingFormData = {
     address: string;
     deliveryFee: string;
   };
+  inventory?: {
+    enableLowStockAlerts?: boolean;
+  };
 };
 
 type OnboardingContextType = {
@@ -52,6 +55,9 @@ const initialFormData: OnboardingFormData = {
     address: '',
     deliveryFee: '',
   },
+  inventory: {
+    enableLowStockAlerts: true,
+  }
 };
 
 export function OnboardingProvider({ children }: { children: ReactNode }) {

@@ -48,6 +48,7 @@ import { Checkbox } from '../ui/checkbox';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
 import { Separator } from '../ui/separator';
+import type { OnboardingFormData } from '@/context/onboarding-context';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
 
@@ -106,11 +107,17 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
 export function ProductForm({ initialProduct }: { initialProduct?: Partial<Product> | null }) {
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
     // When initialProduct changes, reset the form state
     setProduct({ ...emptyProduct, ...initialProduct });
+
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
   }, [initialProduct]);
   
   useEffect(() => {
@@ -168,21 +175,24 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   }
   
   const handleSelectChange = (id: keyof Product, value: string) => {
-    setProduct(prev => ({ ...prev, [id]: value }));
     if (id === 'productType') {
         const isPhysical = value === 'Physical';
         setProduct(prev => ({ 
             ...prev, 
+            productType: value as Product['productType'],
             requiresShipping: isPhysical,
             inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
-            variants: isPhysical ? prev.variants : [],
-            options: isPhysical ? prev.options : [{ name: '', values: [] }],
             hasVariants: isPhysical ? prev.hasVariants : false,
+            options: isPhysical ? prev.options : [],
+            variants: isPhysical ? prev.variants : [],
         }));
+    } else {
+        setProduct(prev => ({ ...prev, [id]: value }));
     }
      if (id === 'inventoryTracking' && value === "Don't Track") {
         setProduct(prev => ({ 
             ...prev, 
+            inventoryTracking: value as Product['inventoryTracking'],
             lowStockThreshold: undefined, 
             variants: prev.variants.map(v => ({...v, stock: {...defaultStock}})) 
         }));
@@ -679,7 +689,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                             {Object.values(variant.optionValues).join(' / ')}
                                         </TableCell>
                                         <TableCell>
-                                             <Select value={variant.status} onValueChange={(v) => handleVariantChange(variant.id, 'status', v)}>
+                                             <Select value={variant.status} onValueChange={(v) => handleVariantChange(variant.id, 'status', v as ProductVariant['status'])}>
                                                 <SelectTrigger className="h-8 min-w-[120px]">
                                                     <SelectValue placeholder="Select status" />
                                                 </SelectTrigger>
@@ -823,10 +833,12 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                     {product.variants[0]?.stock?.available || 0}
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
-                                <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
-                            </div>
+                            {settings?.inventory?.enableLowStockAlerts && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
+                                    <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
+                                </div>
+                            )}
                              <div className="space-y-2">
                                 <Label htmlFor="unitOfMeasure">Unit of Measure</Label>
                                 <Input id="unitOfMeasure" value={product.unitOfMeasure || 'unit'} onChange={handleInputChange} placeholder="e.g. kg, m, unit"/>
