@@ -24,6 +24,7 @@ export type StockAdjustment = {
     type: 'Initial Stock' | 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage';
     quantity: number; // Can be positive or negative
     reason?: string;
+    channel?: 'Online' | 'In-Store';
 };
 
 export type ProductOption = {
@@ -45,7 +46,8 @@ export type ProductVariant = {
   };
   imageIds?: string[]; // IDs of the primary images for this variant
   
-  // Inventory details move to the variant level
+  // Inventory details
+  status: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
   stock: {
     onHand: number;
     available: number;
@@ -98,6 +100,7 @@ export type Product = {
   tags?: string[];
   vendor?: string;
   collections?: string[];
+  productVisibility?: ('Online Store' | 'POS')[]; // e.g., ['Online Store', 'POS']
   seo?: {
     pageTitle?: string;
     metaDescription?: string;
@@ -112,7 +115,6 @@ export type Product = {
   // VI. Configuration & Customization
   templateId?: string; // ID of a saved product template
   customFields?: { [key: string]: any };
-  productVisibility?: string[]; // e.g., 'Online Store', 'POS'
 };
 
 export type ProductTemplate = {

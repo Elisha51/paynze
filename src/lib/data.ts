@@ -33,6 +33,7 @@ export const products: Product[] = [
     tags: ['kitenge', 'african print', 'cotton'],
     vendor: 'Local Weavers Co.',
     collections: ['New Arrivals'],
+    productVisibility: ['Online Store', 'POS'],
     seo: {
       pageTitle: 'Colorful Kitenge Fabric | AfriStore',
       metaDescription: 'Buy high-quality, colorful Kitenge fabric for all your fashion needs.',
@@ -49,21 +50,23 @@ export const products: Product[] = [
         optionValues: { Color: 'Red', Pattern: 'Floral' }, 
         price: 35000, 
         sku: 'KIT-001-RF', 
+        status: 'In Stock',
         stock: { onHand: 50, available: 48, reserved: 2, damaged: 0 },
         stockAdjustments: [
             { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import' },
-            { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009' }
+            { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' }
         ]
       },
       { 
         id: 'var2', 
         optionValues: { Color: 'Blue', Pattern: 'Geometric' }, 
         price: 35000, 
-        sku: 'KIT-001-BG', 
+        sku: 'KIT-001-BG',
+        status: 'In Stock',
         stock: { onHand: 30, available: 25, reserved: 5, damaged: 0 },
         stockAdjustments: [
             { id: 'adj-003', date: '2023-01-15', type: 'Initial Stock', quantity: 30, reason: 'Initial import' },
-            { id: 'adj-004', date: '2023-02-22', type: 'Sale', quantity: -5, reason: 'Order #ORD-011' }
+            { id: 'adj-004', date: '2023-02-22', type: 'Sale', quantity: -5, reason: 'Order #ORD-011', channel: 'In-Store' }
         ]
       },
     ],
@@ -86,6 +89,7 @@ export const products: Product[] = [
     variants: [],
     inventoryTracking: 'Don\'t Track',
     requiresShipping: false,
+    productVisibility: ['Online Store'],
     wholesalePricing: [],
   },
    {
@@ -103,6 +107,7 @@ export const products: Product[] = [
     currency: 'UGX',
     wholesalePricing: [{ customerGroup: 'wholesale', price: 65000 }],
     isTaxable: true,
+    productVisibility: ['POS'],
     hasVariants: true,
     options: [{ name: 'Size', values: ['42', '43'] }],
     variants: [
@@ -111,6 +116,7 @@ export const products: Product[] = [
         optionValues: { Size: '42' }, 
         price: 75000, 
         sku: 'SHOE-002-42',
+        status: 'Low Stock',
         stock: { onHand: 4, available: 2, reserved: 1, damaged: 1 },
         inventoryItems: [
           { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', location: 'Warehouse A'},
@@ -120,7 +126,7 @@ export const products: Product[] = [
           { id: 'inv-005', serialNumber: 'SN-SHOE-42-005', status: 'Reserved', location: 'Order #ORD-015'},
         ]
       },
-      { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0 } },
+      { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0 } },
     ],
   },
   {
@@ -139,6 +145,7 @@ export const products: Product[] = [
     options: [],
     variants: [],
     inventoryTracking: 'Don\'t Track',
+    productVisibility: ['Online Store'],
     requiresShipping: false,
     wholesalePricing: [],
   }

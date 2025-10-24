@@ -58,6 +58,7 @@ function StockAdjustmentRow({ adjustment }: { adjustment: StockAdjustment }) {
                     {adjustment.type}
                 </span>
             </TableCell>
+            <TableCell>{adjustment.channel || 'N/A'}</TableCell>
             <TableCell className={cn('font-mono font-medium', quantityColor)}>
                 {quantitySign}{adjustment.quantity}
             </TableCell>
@@ -181,6 +182,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                     <TableHead>Date</TableHead>
                                     {product.hasVariants && <TableHead>Variant</TableHead>}
                                     <TableHead>Type</TableHead>
+                                    <TableHead>Channel</TableHead>
                                     <TableHead>Quantity</TableHead>
                                     <TableHead>Reason</TableHead>
                                 </TableRow>
@@ -193,13 +195,14 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                             <TableCell>{new Date(adj.date).toLocaleDateString()}</TableCell>
                                             {product.hasVariants && <TableCell>{variant ? Object.values(variant.optionValues).join(' / ') : 'Default'}</TableCell>}
                                             <TableCell><span className={cn('font-medium', adjustmentTypeColors[adj.type])}>{adj.type}</span></TableCell>
+                                            <TableCell>{adj.channel || 'N/A'}</TableCell>
                                             <TableCell className={cn('font-mono font-medium', adj.quantity > 0 ? 'text-green-600' : 'text-red-600')}>{adj.quantity > 0 ? '+' : ''}{adj.quantity}</TableCell>
                                             <TableCell className="text-muted-foreground">{adj.reason || '–'}</TableCell>
                                         </TableRow>
                                    )
                                 }) : (
                                     <TableRow>
-                                        <TableCell colSpan={product.hasVariants ? 5 : 4} className="text-center h-24">
+                                        <TableCell colSpan={product.hasVariants ? 6 : 5} className="text-center h-24">
                                             No stock history available for this product.
                                         </TableCell>
                                     </TableRow>
@@ -212,4 +215,3 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
         </div>
     );
 }
-

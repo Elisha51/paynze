@@ -2,7 +2,7 @@
 
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -47,6 +47,7 @@ import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
+import { Separator } from '../ui/separator';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
 
@@ -64,6 +65,7 @@ const emptyProduct: Product = {
   options: [{ name: '', values: [] }],
   variants: [],
   wholesalePricing: [],
+  productVisibility: ['Online Store'],
 };
 
 // Helper function to generate variants from options
@@ -92,6 +94,7 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
     return variants.map((optionValues, index) => ({
         id: `variant-${Date.now()}-${index}`,
         optionValues,
+        status: 'In Stock',
         price: undefined,
         sku: '',
         imageIds: [],
@@ -126,10 +129,11 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         if (product.variants.length === 0) {
             setProduct(prev => ({
                 ...prev,
-                variants: [{ id: 'default-variant', optionValues: {}, stock: { ...defaultStock }, price: prev.retailPrice }]
+                variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stock: { ...defaultStock }, price: prev.retailPrice }]
             }));
         }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product.options, product.hasVariants]);
 
 
@@ -170,7 +174,10 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         setProduct(prev => ({ 
             ...prev, 
             requiresShipping: isPhysical,
-            inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track'
+            inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
+            variants: isPhysical ? prev.variants : [],
+            options: isPhysical ? prev.options : [],
+            hasVariants: isPhysical ? prev.hasVariants : false,
         }));
     }
      if (id === 'inventoryTracking' && value === "Don't Track") {
@@ -181,6 +188,19 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         }));
     }
   }
+  
+  const handleVisibilityChange = (channel: 'Online Store' | 'POS', checked: boolean) => {
+    let currentVisibility = product.productVisibility || [];
+    if (checked) {
+        if (!currentVisibility.includes(channel)) {
+            currentVisibility.push(channel);
+        }
+    } else {
+        currentVisibility = currentVisibility.filter(c => c !== channel);
+    }
+    setProduct(prev => ({ ...prev, productVisibility: currentVisibility }));
+  };
+
 
   const handleStatusChange = (value: Product['status']) => {
     setProduct((prev) => ({ ...prev, status: value }));
@@ -279,7 +299,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                 if (field === 'price') {
                     updatedVariant[field] = Number(value);
                 } else {
-                    updatedVariant[field] = value as string;
+                    (updatedVariant as any)[field] = value;
                 }
                 return updatedVariant;
             }
@@ -644,6 +664,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Variant</TableHead>
+                                    <TableHead>Status</TableHead>
                                     <TableHead>Price</TableHead>
                                     <TableHead>On Hand</TableHead>
                                     <TableHead className="text-center">Available</TableHead>
@@ -656,6 +677,21 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                     <TableRow key={variant.id}>
                                         <TableCell className="font-medium">
                                             {Object.values(variant.optionValues).join(' / ')}
+                                        </TableCell>
+                                        <TableCell>
+                                             <Select value={variant.status} onValueChange={(v) => handleVariantChange(variant.id, 'status', v)}>
+                                                <SelectTrigger className="h-8 min-w-[120px]">
+                                                    <SelectValue placeholder="Select status" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="In Stock">In Stock</SelectItem>
+                                                    <SelectItem value="Out of Stock">Out of Stock</SelectItem>
+                                                    <SelectItem value="Low Stock">Low Stock</SelectItem>
+                                                    <SelectItem value="Pre-Order">Pre-Order</SelectItem>
+                                                    <SelectItem value="Backordered">Backordered</SelectItem>
+                                                    <SelectItem value="Discontinued">Discontinued</SelectItem>
+                                                </SelectContent>
+                                            </Select>
                                         </TableCell>
                                         <TableCell>
                                             <Input
@@ -840,20 +876,44 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         <div className="lg:col-span-1 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Status</CardTitle>
+                    <CardTitle>Product Status</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <Label htmlFor="status" className="sr-only">Status</Label>
-                    <Select value={product.status} onValueChange={handleStatusChange}>
-                        <SelectTrigger id="status">
-                            <SelectValue placeholder="Set status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="published">Published</SelectItem>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="archived">Archived</SelectItem>
-                        </SelectContent>
-                    </Select>
+                <CardContent className="space-y-4">
+                    <div className='space-y-2'>
+                        <Label htmlFor="status">Listing Status</Label>
+                        <Select value={product.status} onValueChange={handleStatusChange}>
+                            <SelectTrigger id="status">
+                                <SelectValue placeholder="Set status" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="published">Published</SelectItem>
+                                <SelectItem value="draft">Draft</SelectItem>
+                                <SelectItem value="archived">Archived</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <Separator />
+                    <div className='space-y-3'>
+                        <Label>Visibility</Label>
+                         <div className="flex items-start space-x-3">
+                            <Checkbox id="visibility-online" checked={product.productVisibility?.includes('Online Store')} onCheckedChange={(c) => handleVisibilityChange('Online Store', !!c)}/>
+                            <div className="grid gap-1.5 leading-none">
+                                <Label htmlFor="visibility-online" className="flex items-center gap-2"><Laptop />Online Store</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    Show this product on your website.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="flex items-start space-x-3">
+                            <Checkbox id="visibility-pos" checked={product.productVisibility?.includes('POS')} onCheckedChange={(c) => handleVisibilityChange('POS', !!c)}/>
+                            <div className="grid gap-1.5 leading-none">
+                                <Label htmlFor="visibility-pos" className="flex items-center gap-2"><Store />Point of Sale</Label>
+                                <p className="text-sm text-muted-foreground">
+                                    Show this product in your physical store.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
            <Card>

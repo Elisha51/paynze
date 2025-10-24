@@ -20,6 +20,7 @@ import {
 import Image from 'next/image';
 import type { Product } from '@/lib/types';
 import { Remarkable } from 'remarkable';
+import { Laptop, Store } from 'lucide-react';
 
 const md = new Remarkable();
 
@@ -30,6 +31,18 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
   }
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File));
+
+  const getVariantStatusBadge = (status: Product['variants'][0]['status']) => {
+    switch (status) {
+        case 'In Stock': return <Badge variant="default">In Stock</Badge>;
+        case 'Low Stock': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Low Stock</Badge>;
+        case 'Out of Stock': return <Badge variant="destructive">Out of Stock</Badge>;
+        case 'Pre-Order': return <Badge variant="outline" className="text-blue-600 border-blue-600">Pre-Order</Badge>;
+        case 'Backordered': return <Badge variant="outline" className="text-orange-600 border-orange-600">Backordered</Badge>;
+        case 'Discontinued': return <Badge variant="outline">Discontinued</Badge>;
+        default: return <Badge variant="secondary">{status}</Badge>;
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
@@ -135,6 +148,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Variant</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead>Price</TableHead>
                                 <TableHead>SKU</TableHead>
                                 <TableHead className="text-right">On Hand</TableHead>
@@ -146,6 +160,9 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                                 <TableRow key={variant.id}>
                                     <TableCell className="font-medium">
                                         {Object.values(variant.optionValues).join(' / ')}
+                                    </TableCell>
+                                    <TableCell>
+                                        {getVariantStatusBadge(variant.status)}
                                     </TableCell>
                                     <TableCell>
                                     {variant.price ? formatCurrency(variant.price, product.currency) : '-'}
@@ -172,12 +189,22 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
         <div className="lg:col-span-1 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Status</CardTitle>
+                    <CardTitle>Status & Visibility</CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <Badge variant={product.status === 'draft' ? 'secondary' : product.status === 'archived' ? 'outline' : 'default'}>
-                        {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                    </Badge>
+                <CardContent className='space-y-4'>
+                    <div>
+                        <h3 className="font-medium text-sm text-muted-foreground">Listing Status</h3>
+                        <Badge variant={product.status === 'draft' ? 'secondary' : product.status === 'archived' ? 'outline' : 'default'}>
+                            {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
+                        </Badge>
+                    </div>
+                    <div>
+                        <h3 className="font-medium text-sm text-muted-foreground">Channels</h3>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                            {product.productVisibility?.includes('Online Store') && <Badge variant="outline" className="flex items-center gap-2"><Laptop /> Online Store</Badge>}
+                            {product.productVisibility?.includes('POS') && <Badge variant="outline" className="flex items-center gap-2"><Store /> Point of Sale</Badge>}
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
         <Card>
