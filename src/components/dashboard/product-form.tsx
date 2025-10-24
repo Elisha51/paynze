@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -46,6 +45,7 @@ import {
 import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { RichTextEditor } from '../ui/rich-text-editor';
+import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
 
 const emptyProduct: Product = {
   productType: 'Physical',
@@ -65,6 +65,7 @@ const emptyProduct: Product = {
 
 export function ProductForm({ product: initialProduct }: { product?: Product }) {
   const [product, setProduct] = useState<Product>(initialProduct || emptyProduct);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (
@@ -162,6 +163,44 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
         })
     }));
   };
+  
+  const handleGenerateDescription = async (field: 'short' | 'long') => {
+    if (!product.name || !product.category) {
+        toast({
+            variant: "destructive",
+            title: "Missing Information",
+            description: "Please provide a product name and category before generating a description.",
+        });
+        return;
+    }
+    setIsGenerating(true);
+    try {
+        const result = await suggestProductDescription({
+            productName: product.name,
+            category: product.category,
+        });
+        if (result.description) {
+            if (field === 'short') {
+                setProduct(prev => ({...prev, shortDescription: result.description}));
+            } else {
+                setProduct(prev => ({...prev, longDescription: result.description}));
+            }
+            toast({
+                title: "Description Generated",
+                description: "The AI-powered description has been added.",
+            });
+        }
+    } catch (error) {
+        console.error("Failed to generate description:", error);
+        toast({
+            variant: "destructive",
+            title: "Generation Failed",
+            description: "Could not generate a description at this time.",
+        });
+    } finally {
+        setIsGenerating(false);
+    }
+  };
 
   const handleSave = () => {
     toast({
@@ -210,7 +249,13 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                 <Input id="name" value={product.name} onChange={handleInputChange} placeholder="e.g., Kitenge Fabric"/>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="shortDescription">Short Description (max 160 characters)</Label>
+                <div className="flex justify-between items-center">
+                    <Label htmlFor="shortDescription">Short Description (max 160 characters)</Label>
+                    <Button variant="ghost" size="sm" onClick={() => handleGenerateDescription('short')} disabled={isGenerating}>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        {isGenerating ? 'Generating...' : 'Generate'}
+                    </Button>
+                </div>
                 <Textarea 
                   id="shortDescription" 
                   value={product.shortDescription || ''} 
@@ -222,7 +267,13 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                  <p className="text-xs text-muted-foreground text-right">{product.shortDescription?.length || 0} / 160</p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="longDescription">Detailed Description</Label>
+                <div className="flex justify-between items-center">
+                    <Label htmlFor="longDescription">Detailed Description</Label>
+                     <Button variant="ghost" size="sm" onClick={() => handleGenerateDescription('long')} disabled={isGenerating}>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        {isGenerating ? 'Generating...' : 'Generate'}
+                    </Button>
+                </div>
                  <RichTextEditor
                   id="longDescription"
                   value={product.longDescription || ''}
@@ -464,4 +515,5 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
       </div>
     </div>
   );
-}
+
+    
