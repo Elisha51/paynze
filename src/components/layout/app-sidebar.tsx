@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import {
   Sidebar,
   SidebarHeader,
@@ -22,6 +23,8 @@ import {
   LogOut,
   ChevronLeft,
   FileText,
+  Building,
+  Truck,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -33,9 +36,17 @@ const menuItems = [
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
+];
+
+const premiumMenuItems = [
+  { href: '/dashboard/suppliers', label: 'Suppliers', icon: Building, plan: 'Premium' },
+  { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: Truck, plan: 'Premium' },
+];
+
+const bottomMenuItems = [
   { href: '/dashboard/templates', label: 'Templates', icon: FileText },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
+]
 
 type AppSidebarProps = {
     onboardingData: OnboardingFormData | null;
@@ -44,6 +55,16 @@ type AppSidebarProps = {
 export default function AppSidebar({ onboardingData }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
+  const [isPremium, setIsPremium] = useState(false);
+
+  useEffect(() => {
+    // In a real app, this would come from user auth state
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+      const parsedData = JSON.parse(data);
+      setIsPremium(parsedData.plan === 'Premium');
+    }
+  }, []);
 
   return (
     <Sidebar>
@@ -71,11 +92,37 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
                 </Link>
                 </SidebarMenuItem>
             ))}
+             {isPremium && premiumMenuItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                <Link href={item.href} passHref>
+                    <SidebarMenuButton
+                    isActive={pathname.startsWith(item.href)}
+                    tooltip={item.label}
+                    >
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    <span className="flex-1">{item.label}</span>
+                    </SidebarMenuButton>
+                </Link>
+                </SidebarMenuItem>
+             ))}
             </SidebarMenu>
         </SidebarContent>
 
         <SidebarFooter>
             <SidebarMenu>
+            {bottomMenuItems.map((item) => (
+                 <SidebarMenuItem key={item.href}>
+                 <Link href={item.href} passHref>
+                     <SidebarMenuButton
+                     isActive={pathname.startsWith(item.href)}
+                     tooltip={item.label}
+                     >
+                     <item.icon className="h-5 w-5 shrink-0" />
+                     <span className="flex-1">{item.label}</span>
+                     </SidebarMenuButton>
+                 </Link>
+                 </SidebarMenuItem>
+            ))}
             <SidebarMenuItem>
                 <SidebarMenuButton tooltip="Support">
                     <LifeBuoy className="h-5 w-5 shrink-0" />
@@ -105,5 +152,3 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
     </Sidebar>
   );
 }
-
-    

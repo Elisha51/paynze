@@ -1,0 +1,156 @@
+
+'use client';
+
+import { PlusCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import * as React from 'react';
+import {
+  ColumnDef,
+} from '@tanstack/react-table';
+import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import type { PurchaseOrder } from '@/lib/types';
+import { getPurchaseOrders } from '@/services/procurement';
+import { DataTable } from '@/components/dashboard/data-table';
+
+
+const columns: ColumnDef<PurchaseOrder>[] = [
+  {
+    accessorKey: 'id',
+    header: 'Order ID',
+  },
+  {
+    accessorKey: 'supplierName',
+    header: 'Supplier',
+  },
+  {
+    accessorKey: 'orderDate',
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Order Date
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+  },
+    {
+    accessorKey: 'expectedDelivery',
+    header: 'Expected Delivery',
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => (
+      <Badge variant={row.getValue('status') === 'Sent' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
+        {row.getValue('status')}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: 'totalCost',
+    header: ({ column }) => {
+        return (
+            <div className="text-right">
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                >
+                    Total
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+          </div>
+        );
+      },
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue('totalCost'));
+      const currency = row.original.currency;
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+      return <div className="text-right font-medium">{formatted}</div>;
+    },
+  },
+  {
+    id: 'actions',
+    enableHiding: false,
+    cell: ({ row }) => {
+      return (
+        <div className="text-right">
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem>View Details</DropdownMenuItem>
+                <DropdownMenuItem>Mark as Received</DropdownMenuItem>
+            </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+      );
+    },
+  },
+];
+
+
+function PurchaseOrdersTable() {
+  const [data, setData] = React.useState<PurchaseOrder[]>([]);
+
+  React.useEffect(() => {
+    async function loadData() {
+      const fetchedData = await getPurchaseOrders();
+      setData(fetchedData);
+    }
+    loadData();
+  }, []);
+
+  return (
+    <DataTable
+      columns={columns}
+      data={data}
+    />
+  );
+}
+
+
+export default function PurchaseOrdersPage() {
+
+  const tabs = [
+    { value: 'all', label: 'All Purchase Orders' },
+    { value: 'sent', label: 'Sent' },
+    { value: 'received', label: 'Received' },
+  ];
+
+  const cta = (
+    <Button>
+      <PlusCircle className="mr-2 h-4 w-4" />
+      Create Purchase Order
+    </Button>
+  );
+
+  return (
+    <DashboardPageLayout
+      title="Purchase Orders"
+      tabs={tabs}
+      cta={cta}
+    >
+      <DashboardPageLayout.TabContent value="all">
+        <PurchaseOrdersTable />
+      </DashboardPageLayout.TabContent>
+    </DashboardPageLayout>
+  );
+}

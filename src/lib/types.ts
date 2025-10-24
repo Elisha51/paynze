@@ -179,3 +179,32 @@ export type SalesData = {
   name: string;
   total: number;
 };
+
+// Procurement Types
+export type Supplier = {
+  id: string;
+  name: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  address: string;
+};
+
+export type PurchaseOrderItem = {
+  productId: string;
+  productName: string;
+  quantity: number;
+  cost: number; // Cost per item
+};
+
+export type PurchaseOrder = {
+  id: string; // e.g., 'PO-001'
+  supplierId: string;
+  supplierName: string;
+  status: 'Draft' | 'Sent' | 'Partial' | 'Received' | 'Cancelled';
+  items: PurchaseOrderItem[];
+  orderDate: string;
+  expectedDelivery: string;
+  totalCost: number;
+  currency: 'UGX' | 'KES' | 'TZS' | 'USD';
+};
