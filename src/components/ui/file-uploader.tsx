@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
-import { useDropzone, type DropzoneOptions } from 'react-dropzone';
+import { useCallback, useMemo } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './button';
@@ -13,7 +13,7 @@ import type { ProductImage } from '@/lib/types';
 
 interface FileUploaderProps {
   files: (File | ProductImage)[];
-  onFilesChange: (files: (File | ProductImage)[]) => void;
+  onFilesChange: (files: (File | ProductImage)[] | File[]) => void;
   maxFiles?: number;
 }
 
@@ -46,10 +46,12 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
       'image/png': ['.png'],
       'image/jpeg': ['.jpeg', '.jpg'],
       'image/gif': ['.gif'],
+      'application/pdf': ['.pdf'],
+      'application/zip': ['.zip'],
     },
-    maxSize: 5 * 1024 * 1024, // 5MB
+    maxSize: 10 * 1024 * 1024, // 10MB
     maxFiles: maxFiles,
-    multiple: true,
+    multiple: maxFiles > 1,
     disabled: files.length >= maxFiles,
   });
 
@@ -59,10 +61,17 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
   };
 
   const previews = useMemo(() => files.map((file, index) => {
-    const url = file instanceof File ? URL.createObjectURL(file) : file.url;
+    const isImage = file.type.startsWith('image/');
+    const url = file instanceof File ? URL.createObjectURL(file) : (file as ProductImage).url;
     return (
       <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border">
-        <Image src={url} alt="Product image preview" fill className="object-cover" />
+        {isImage ? (
+            <Image src={url} alt="File preview" fill className="object-cover" />
+        ) : (
+            <div className="flex flex-col items-center justify-center h-full bg-muted p-2">
+                <p className="text-xs text-center break-all">{file.name}</p>
+            </div>
+        )}
         <Button
           variant="destructive"
           size="icon"
@@ -96,9 +105,9 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
             <p>Drop the files here ...</p>
           ) : (
             <div>
-              <p className="font-semibold">Drag & drop images here, or click to browse</p>
+              <p className="font-semibold">Drag & drop files here, or click to browse</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Up to {maxFiles} images (5MB each). Supports JPG, PNG, GIF.
+                Up to {maxFiles} file(s) (10MB each).
               </p>
             </div>
           )}
@@ -106,7 +115,7 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
       </div>
       {files.length > 0 && (
         <div className="space-y-2">
-            <p className="font-medium text-sm flex items-center gap-2"><ImageIcon className="h-5 w-5"/> Image Previews</p>
+            <p className="font-medium text-sm flex items-center gap-2"><ImageIcon className="h-5 w-5"/> File Previews</p>
             <div className="flex flex-wrap gap-2">
                 {previews}
             </div>

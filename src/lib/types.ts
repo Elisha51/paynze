@@ -51,7 +51,7 @@ export type Product = {
     width: number;
     height: number;
   };
-  digitalFileUrl?: string; // For digital products
+  digitalFile?: File; // For digital products
   downloadLimit?: number; // For digital products
   serviceDuration?: string; // For service products, e.g., "1 hour", "Per Session"
 
@@ -104,7 +104,7 @@ export type EmailTemplate = {
 
 export type SmsTemplate = {
   id: string;
-  name: string;
+  name:string;
   description: string;
   message: string; // Can contain variables like {{orderId}}
 };

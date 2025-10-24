@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -41,7 +41,6 @@ import {
   DialogTrigger,
   DialogFooter,
   DialogClose,
-  DialogDescription
 } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
@@ -81,6 +80,10 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     const { id, value } = e.target;
     setProduct((prev) => ({ ...prev, [id]: value }));
   };
+
+  const handleCheckboxChange = (id: keyof Product, checked: boolean) => {
+    setProduct((prev) => ({...prev, [id]: checked }));
+  }
   
   const handleDescriptionChange = (value: string) => {
     setProduct(prev => ({ ...prev, longDescription: value }));
@@ -90,6 +93,15 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     const { id, value } = e.target;
     setProduct((prev) => ({ ...prev, [id]: Number(value) || 0 }));
   };
+  
+  const handleSelectChange = (id: keyof Product, value: string) => {
+    const isPhysical = value === 'Physical';
+    setProduct(prev => ({ 
+        ...prev, 
+        [id]: value,
+        requiresShipping: isPhysical,
+    }));
+  }
 
   const handleStatusChange = (value: Product['status']) => {
     setProduct((prev) => ({ ...prev, status: value }));
@@ -105,6 +117,14 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
       return file;
     });
     setProduct({ ...product, images: processedFiles as (ProductImage | File)[] });
+  };
+
+  const handleDigitalFileChange = (files: File[]) => {
+      if (files.length > 0) {
+          setProduct(prev => ({ ...prev, digitalFile: files[0] }));
+      } else {
+          setProduct(prev => ({ ...prev, digitalFile: undefined }));
+      }
   };
   
   const handleAddWholesalePrice = () => {
@@ -236,7 +256,11 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button onClick={handleSave}>Save Product</Button>
+            <Button variant="outline">Save as Template</Button>
+            <Button onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" />
+              Save Product
+            </Button>
         </div>
       </div>
       
@@ -247,9 +271,24 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
               <CardTitle>General Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name</Label>
-                <Input id="name" value={product.name} onChange={handleInputChange} placeholder="e.g., Kitenge Fabric"/>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="name">Product Name</Label>
+                    <Input id="name" value={product.name} onChange={handleInputChange} placeholder="e.g., Kitenge Fabric"/>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="productType">Product Type</Label>
+                    <Select value={product.productType} onValueChange={(v) => handleSelectChange('productType', v)}>
+                        <SelectTrigger id="productType">
+                            <SelectValue placeholder="Select product type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Physical"><div className="flex items-center gap-2"><Package className="h-4 w-4"/> Physical</div></SelectItem>
+                            <SelectItem value="Digital"><div className="flex items-center gap-2"><Download className="h-4 w-4"/> Digital</div></SelectItem>
+                            <SelectItem value="Service"><div className="flex items-center gap-2"><Clock className="h-4 w-4"/> Service</div></SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -307,6 +346,46 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                 </div>
             </CardContent>
           </Card>
+
+          {product.productType === 'Digital' && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Digital Asset</CardTitle>
+                    <CardDescription>Upload the file for your digital product.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label>Digital File</Label>
+                        <FileUploader
+                            files={product.digitalFile ? [product.digitalFile] : []}
+                            onFilesChange={handleDigitalFileChange}
+                            maxFiles={1}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="downloadLimit">Download Limit</Label>
+                        <Input id="downloadLimit" type="number" value={product.downloadLimit || ''} onChange={handleNumberChange} placeholder="e.g., 5" />
+                        <p className="text-xs text-muted-foreground">Leave blank for unlimited downloads.</p>
+                    </div>
+                </CardContent>
+            </Card>
+          )}
+          
+          {product.productType === 'Service' && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Service Details</CardTitle>
+                    <CardDescription>Specify the details of the service you are providing.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="serviceDuration">Service Duration</Label>
+                        <Input id="serviceDuration" value={product.serviceDuration || ''} onChange={handleInputChange} placeholder="e.g., 1 hour, Per Session" />
+                    </div>
+                </CardContent>
+            </Card>
+          )}
+
 
           <Card>
             <CardHeader>
@@ -370,6 +449,61 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                 </div>
             </CardContent>
           </Card>
+
+          {product.productType === 'Physical' && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Inventory & Shipping</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="space-y-2">
+                        <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
+                        <Input id="sku" value={product.sku || ''} onChange={handleInputChange}/>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="barcode">Barcode (GTIN, UPC, etc.)</Label>
+                        <Input id="barcode" value={product.barcode || ''} onChange={handleInputChange}/>
+                    </div>
+                     <div className="flex items-center space-x-2">
+                        <Checkbox id="trackStock" checked={product.trackStock} onCheckedChange={(c) => handleCheckboxChange('trackStock', !!c)} />
+                        <Label htmlFor="trackStock">Track stock quantity</Label>
+                     </div>
+                     {product.trackStock && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="stockQuantity">Available Quantity</Label>
+                                <Input id="stockQuantity" type="number" value={product.stockQuantity} onChange={handleNumberChange} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
+                                <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
+                            </div>
+                        </div>
+                     )}
+                     <div className="flex items-center space-x-2">
+                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} />
+                        <Label htmlFor="requiresShipping">This is a physical product that requires shipping</Label>
+                     </div>
+                      {product.requiresShipping && (
+                        <div className="pl-6 space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="weight">Weight (kg)</Label>
+                                <Input id="weight" type="number" value={product.weight || ''} onChange={handleNumberChange} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label>Dimensions (cm)</Label>
+                                <div className="grid grid-cols-3 gap-2">
+                                     <Input id="dimensions.length" type="number" placeholder="Length" />
+                                     <Input id="dimensions.width" type="number" placeholder="Width" />
+                                     <Input id="dimensions.height" type="number" placeholder="Height" />
+                                </div>
+                            </div>
+                        </div>
+                     )}
+                </CardContent>
+            </Card>
+          )}
+
 
            {product.hasVariants && product.variants?.length > 0 && (
             <Card>
@@ -507,10 +641,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                      <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
                         <Input id="category" value={product.category || ''} onChange={handleInputChange} placeholder="e.g., Fabrics"/>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
-                        <Input id="sku" value={product.sku || ''} onChange={handleInputChange}/>
                     </div>
                 </CardContent>
             </Card>
