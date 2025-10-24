@@ -10,10 +10,9 @@ import {
   Users,
   CreditCard,
   Activity,
-  BarChart,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { recentSales } from '@/lib/data';
+import { recentSales, salesData } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 

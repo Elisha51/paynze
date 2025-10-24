@@ -1,3 +1,4 @@
+'use client';
 import Image from 'next/image';
 import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -17,10 +18,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { products } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useEffect, useState } from 'react';
+import type { Product } from '@/lib/types';
+import { getProducts } from '@/services/products';
 
 export function ProductsTable() {
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    async function loadProducts() {
+      const fetchedProducts = await getProducts();
+      setProducts(fetchedProducts);
+    }
+    loadProducts();
+  }, []);
+
   return (
     <Table>
       <TableHeader>

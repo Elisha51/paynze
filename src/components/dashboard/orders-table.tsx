@@ -1,3 +1,4 @@
+'use client';
 import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,9 +17,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { orders } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import type { Order } from '@/lib/types';
+import { getOrders } from '@/services/orders';
+
 
 export function OrdersTable() {
+  const [orders, setOrders] = useState<Order[]>([]);
+
+  useEffect(() => {
+    async function loadOrders() {
+      const fetchedOrders = await getOrders();
+      setOrders(fetchedOrders);
+    }
+    loadOrders();
+  }, []);
+
   return (
     <Table>
       <TableHeader>

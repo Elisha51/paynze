@@ -17,9 +17,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { customers } from '@/lib/data';
+import { useEffect, useState } from 'react';
+import type { Customer } from '@/lib/types';
+import { getCustomers } from '@/services/customers';
+
 
 export function CustomersTable() {
+  const [customers, setCustomers] = useState<Customer[]>([]);
+
+  useEffect(() => {
+    async function loadCustomers() {
+      const fetchedCustomers = await getCustomers();
+      setCustomers(fetchedCustomers);
+    }
+    loadCustomers();
+  }, []);
+
   return (
     <Table>
       <TableHeader>

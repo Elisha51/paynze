@@ -1,12 +1,4 @@
-export type Product = {
-  id: string;
-  name: string;
-  imageId: string;
-  status: 'active' | 'draft';
-  price: number;
-  stock: number;
-  category: string;
-};
+import type { Product, Order, Customer, RecentSale, SalesData } from './types';
 
 export const products: Product[] = [
   { id: 'prod-01', name: 'Colorful Kitenge Fabric', imageId: 'product-kitenge', status: 'active', price: 35000, stock: 100, category: 'Fabrics' },
@@ -15,16 +7,6 @@ export const products: Product[] = [
   { id: 'prod-04', name: 'Kenyan Arabica Coffee', imageId: 'product-coffee', status: 'draft', price: 15000, stock: 200, category: 'Groceries' },
   { id: 'prod-05', name: 'Maasai Beaded Necklace', imageId: 'product-jewelry', status: 'active', price: 18000, stock: 80, category: 'Accessories' },
 ];
-
-export type Order = {
-    id: string;
-    customer: string;
-    email: string;
-    date: string;
-    status: 'Pending' | 'Paid' | 'Shipped' | 'Delivered' | 'Cancelled';
-    total: string;
-    paymentMethod: 'Mobile Money' | 'Cash on Delivery';
-};
   
 export const orders: Order[] = [
     { id: 'ORD-001', customer: 'Olivia Martin', email: 'olivia.martin@email.com', date: '2023-02-15', status: 'Delivered', total: 'KES 75,000', paymentMethod: 'Mobile Money' },
@@ -33,23 +15,6 @@ export const orders: Order[] = [
     { id: 'ORD-004', customer: 'William Kim', email: 'will@email.com', date: '2023-02-12', status: 'Paid', total: 'KES 150,000', paymentMethod: 'Mobile Money' },
     { id: 'ORD-005', customer: 'Sofia Davis', email: 'sofia.davis@email.com', date: '2023-02-11', status: 'Pending', total: 'KES 18,000', paymentMethod: 'Cash on Delivery' },
 ];
-
-export type Customer = {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    customerGroup: 'default' | 'wholesale' | 'retailer';
-    lastOrder: string;
-    totalSpend: string;
-    purchaseHistory: {
-        productId: string;
-        quantity: number;
-        price: number;
-        category: string;
-        timestamp: string;
-    }[];
-};
 
 export const customers: Customer[] = [
     { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'wholesale', lastOrder: '2023-01-23', totalSpend: 'KES 250,000', purchaseHistory: [{productId: 'prod-01', quantity: 5, price: 32000, category: 'Fabrics', timestamp: '2023-01-23T10:00:00Z'}] },
@@ -60,7 +25,7 @@ export const customers: Customer[] = [
 ];
 
 
-export const recentSales = [
+export const recentSales: RecentSale[] = [
   { id: 'sale-01', name: 'Olivia Martin', email: 'olivia.martin@email.com', amount: '+KES 1,999.00', avatarId: 'avatar-1' },
   { id: 'sale-02', name: 'Jackson Lee', email: 'jackson.lee@email.com', amount: '+KES 39.00', avatarId: 'avatar-2' },
   { id: 'sale-03', name: 'Isabella Nguyen', email: 'isabella.nguyen@email.com', amount: '+KES 299.00', avatarId: 'avatar-3' },
@@ -68,7 +33,7 @@ export const recentSales = [
   { id: 'sale-05', name: 'Sofia Davis', email: 'sofia.davis@email.com', amount: '+KES 39.00', avatarId: 'avatar-5' },
 ];
 
-export const salesData = [
+export const salesData: SalesData[] = [
     { name: 'Jan', total: Math.floor(Math.random() * 5000) + 1000 },
     { name: 'Feb', total: Math.floor(Math.random() * 5000) + 1000 },
     { name: 'Mar', total: Math.floor(Math.random() * 5000) + 1000 },
