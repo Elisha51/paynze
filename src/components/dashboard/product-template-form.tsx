@@ -2,7 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Package, PlusCircle, Trash2, X } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import type { ProductTemplate, Product, ProductOption } from '@/lib/types';
+import type { ProductTemplate, Product } from '@/lib/types';
 import * as Lucide from 'lucide-react';
 import {
   Select,
@@ -26,7 +26,6 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
-import { cn } from '@/lib/utils';
 
 const emptyTemplate: Partial<ProductTemplate> = {
   name: '',

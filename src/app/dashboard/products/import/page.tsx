@@ -15,12 +15,6 @@ export default function ImportProductsPage() {
     const [uploadedFile, setUploadedFile] = useState<File[]>([]);
     const { toast } = useToast();
 
-    const steps = [
-        { label: 'Download Template' },
-        { label: 'Upload File' },
-        { label: 'Review & Import' },
-    ];
-
     const handleFileChange = (files: File[]) => {
         if (files.length > 0) {
             setUploadedFile(files);
