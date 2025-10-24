@@ -3,7 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import {
   Sidebar,
   SidebarHeader,
@@ -55,20 +55,7 @@ type AppSidebarProps = {
 export default function AppSidebar({ onboardingData }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
-  const [isPremium, setIsPremium] = useState(false);
-
-  useEffect(() => {
-    // In a real app, this would come from user auth state
-    const data = localStorage.getItem('onboardingData');
-    if (data) {
-      try {
-        const parsedData = JSON.parse(data);
-        setIsPremium(parsedData.plan === 'Premium');
-      } catch (e) {
-        console.error("Failed to parse onboarding data:", e);
-      }
-    }
-  }, []);
+  const isPremium = onboardingData?.plan === 'Premium';
 
   return (
     <Sidebar>

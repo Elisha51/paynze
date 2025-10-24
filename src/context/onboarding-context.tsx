@@ -39,7 +39,7 @@ type OnboardingContextType = {
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 const initialFormData: OnboardingFormData = {
-  plan: 'Free',
+  plan: 'Premium',
   businessName: '',
   businessType: 'Retailer',
   contactPhone: '',
