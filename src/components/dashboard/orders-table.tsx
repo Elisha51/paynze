@@ -169,7 +169,14 @@ const columns: ColumnDef<Order>[] = [
   },
 ];
 
-export function OrdersTable() {
+type OrdersTableProps = {
+  filter?: {
+    column: string;
+    value: string;
+  };
+};
+
+export function OrdersTable({ filter }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -185,6 +192,14 @@ export function OrdersTable() {
     }
     loadOrders();
   }, []);
+
+  React.useEffect(() => {
+    if (filter) {
+      table.setColumnFilters(prev => [...prev.filter(f => f.id !== filter.column), { id: filter.column, value: filter.value }]);
+    } else {
+        table.setColumnFilters(prev => prev.filter(f => f.id !== 'status'));
+    }
+  }, [filter]);
 
   const table = useReactTable({
     data,

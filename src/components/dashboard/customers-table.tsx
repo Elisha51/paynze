@@ -165,7 +165,14 @@ const columns: ColumnDef<Customer>[] = [
   },
 ];
 
-export function CustomersTable() {
+type CustomersTableProps = {
+  filter?: {
+    column: string;
+    value: string;
+  };
+};
+
+export function CustomersTable({ filter }: CustomersTableProps) {
   const [data, setData] = React.useState<Customer[]>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -181,6 +188,15 @@ export function CustomersTable() {
     }
     loadCustomers();
   }, []);
+
+  React.useEffect(() => {
+    if (filter) {
+      setColumnFilters(prev => [...prev.filter(f => f.id !== filter.column), { id: filter.column, value: filter.value }]);
+    } else {
+        setColumnFilters(prev => prev.filter(f => f.id !== 'customerGroup'));
+    }
+  }, [filter]);
+
 
   const table = useReactTable({
     data,
