@@ -13,6 +13,8 @@ const ptSans = PT_Sans({
 export const metadata: Metadata = {
   title: 'Paynze',
   description: 'Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants.',
+  manifest: '/manifest.json',
+  themeColor: '#ffffff',
 };
 
 export default function RootLayout({
@@ -26,6 +28,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet" />
+        <link rel="apple-touch-icon" href="/icon-192x192.png" />
       </head>
       <body className={cn("font-body antialiased", ptSans.variable)}>
         {children}

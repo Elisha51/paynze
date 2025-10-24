@@ -20,7 +20,7 @@ import {
 import { useEffect, useState } from 'react';
 import type { Customer } from '@/lib/types';
 import { getCustomers } from '@/services/customers';
-
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 export function CustomersTable() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -34,64 +34,110 @@ export function CustomersTable() {
   }, []);
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead className="hidden sm:table-cell">Contact</TableHead>
-          <TableHead>Group</TableHead>
-          <TableHead className="hidden md:table-cell">Last Order</TableHead>
-          <TableHead className="text-right">Total Spend</TableHead>
-          <TableHead>
-            <span className="sr-only">Actions</span>
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
+    <>
+      <div className="hidden md:block">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Group</TableHead>
+              <TableHead>Last Order</TableHead>
+              <TableHead className="text-right">Total Spend</TableHead>
+              <TableHead>
+                <span className="sr-only">Actions</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {customers.map((customer) => (
+              <TableRow key={customer.id}>
+                <TableCell className="font-medium">{customer.name}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span>{customer.email}</span>
+                    <span className="text-muted-foreground">{customer.phone}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{customer.customerGroup}</Badge>
+                </TableCell>
+                <TableCell>{customer.lastOrder}</TableCell>
+                <TableCell className="text-right">{customer.totalSpend}</TableCell>
+                <TableCell>
+                    <div className="flex items-center justify-end gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Toggle menu</span>
+                            </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                Send via WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <Phone className="mr-2 h-4 w-4" />
+                                Send via SMS
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                                <Info className="mr-2 h-4 w-4" />
+                                View Details
+                            </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+      <div className="md:hidden grid grid-cols-1 gap-4">
         {customers.map((customer) => (
-          <TableRow key={customer.id}>
-            <TableCell className="font-medium">{customer.name}</TableCell>
-            <TableCell className="hidden sm:table-cell">
-              <div className="flex flex-col">
-                <span>{customer.email}</span>
-                <span className="text-muted-foreground">{customer.phone}</span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <Badge variant="outline">{customer.customerGroup}</Badge>
-            </TableCell>
-            <TableCell className="hidden md:table-cell">{customer.lastOrder}</TableCell>
-            <TableCell className="text-right">{customer.totalSpend}</TableCell>
-            <TableCell>
-                <div className="flex items-center justify-end gap-2">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button aria-haspopup="true" size="icon" variant="ghost">
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>
-                            <MessageCircle className="mr-2 h-4 w-4" />
-                            Send via WhatsApp
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Phone className="mr-2 h-4 w-4" />
-                            Send via SMS
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                            <Info className="mr-2 h-4 w-4" />
-                            View Details
-                        </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-              </div>
-            </TableCell>
-          </TableRow>
+          <Card key={customer.id}>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                {customer.name}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button aria-haspopup="true" size="icon" variant="ghost">
+                      <MoreHorizontal className="h-4 w-4" />
+                      <span className="sr-only">Toggle menu</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem>
+                        <MessageCircle className="mr-2 h-4 w-4" />
+                        Send via WhatsApp
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Phone className="mr-2 h-4 w-4" />
+                        Send via SMS
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Info className="mr-2 h-4 w-4" />
+                        View Details
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </CardTitle>
+              <CardDescription>
+                <Badge variant="outline">{customer.customerGroup}</Badge>
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2 text-sm">
+                <p><strong>Contact:</strong> {customer.email}, {customer.phone}</p>
+                <p><strong>Last Order:</strong> {customer.lastOrder}</p>
+                <p><strong>Total Spend:</strong> {customer.totalSpend}</p>
+            </CardContent>
+          </Card>
         ))}
-      </TableBody>
-    </Table>
+      </div>
+    </>
   );
 }
