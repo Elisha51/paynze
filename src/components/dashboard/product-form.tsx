@@ -83,11 +83,14 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
 
   const handleWholesalePriceChange = (index: number, field: keyof WholesalePrice, value: string | number) => {
     const updatedPricing = [...(product.wholesalePricing || [])];
+    const tier = { ...updatedPricing[index] };
+
     if (field === 'price' || field === 'minOrderQuantity') {
-      updatedPricing[index][field] = Number(value);
+        tier[field] = Number(value);
     } else {
-      updatedPricing[index][field] = value as string;
+        tier[field] = value as string;
     }
+    updatedPricing[index] = tier;
     setProduct(prev => ({ ...prev, wholesalePricing: updatedPricing }));
   };
 
@@ -103,7 +106,13 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
         ...prev,
         variants: prev.variants.map(v => {
             if (v.id === variantId) {
-                return { ...v, [field]: value };
+                const updatedVariant = { ...v };
+                if (field === 'price' || field === 'stock') {
+                    updatedVariant[field] = Number(value);
+                } else {
+                    updatedVariant[field] = value as string;
+                }
+                return updatedVariant;
             }
             return v;
         })
@@ -174,7 +183,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                     />
                 </div>
                  <div className="space-y-2">
-                    <Label htmlFor="videoUrl">Video URL</Label>
+                    <Label htmlFor="videoUrl">Video URL (Optional)</Label>
                     <Input id="videoUrl" value={product.videoUrl || ''} onChange={handleInputChange} placeholder="e.g., https://www.youtube.com/watch?v=..."/>
                     <p className="text-xs text-muted-foreground">Embed a single video from YouTube or Vimeo.</p>
                 </div>
@@ -201,10 +210,15 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                     <h4 className="font-medium text-sm">Wholesale Pricing</h4>
                     {product.wholesalePricing && product.wholesalePricing.length > 0 && (
                         <div className="space-y-2">
+                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                                <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Min. Quantity</Label>
+                                <Label className="text-xs font-medium text-muted-foreground">Price</Label>
+                             </div>
                             {product.wholesalePricing.map((tier, index) => (
-                                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center p-2 border rounded-md">
+                                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
                                     <Select value={tier.customerGroup} onValueChange={(value) => handleWholesalePriceChange(index, 'customerGroup', value)}>
-                                        <SelectTrigger>
+                                        <SelectTrigger aria-label="Customer Group">
                                             <SelectValue placeholder="Select group" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -215,17 +229,19 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                                     </Select>
                                     <Input 
                                         type="number" 
+                                        aria-label="Minimum Order Quantity"
                                         value={tier.minOrderQuantity} 
                                         onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
                                         placeholder="Min. Quantity"
                                     />
                                     <Input 
                                         type="number" 
+                                        aria-label="Price per item"
                                         value={tier.price} 
                                         onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
                                         placeholder="Price per item"
                                     />
-                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="justify-self-end">
+                                    <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="justify-self-end" aria-label="Remove wholesale tier">
                                         <Trash2 className="h-4 w-4 text-destructive" />
                                     </Button>
                                 </div>
@@ -265,6 +281,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                                     <TableCell>
                                         <Input
                                             type="number"
+                                            aria-label="Variant Price"
                                             value={variant.price || ''}
                                             onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)}
                                             placeholder={String(product.retailPrice)}
@@ -274,6 +291,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                                     <TableCell>
                                         <Input
                                             type="number"
+                                            aria-label="Variant Stock"
                                             value={variant.stock}
                                             onChange={(e) => handleVariantChange(variant.id, 'stock', e.target.value)}
                                             className="h-8"
@@ -281,6 +299,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                                     </TableCell>
                                     <TableCell>
                                         <Input
+                                            aria-label="Variant SKU"
                                             value={variant.sku || ''}
                                             onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)}
                                             placeholder="Variant SKU"
@@ -303,8 +322,9 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                     <CardTitle>Status</CardTitle>
                 </CardHeader>
                 <CardContent>
+                    <Label htmlFor="status" className="sr-only">Status</Label>
                     <Select value={product.status} onValueChange={handleStatusChange}>
-                        <SelectTrigger>
+                        <SelectTrigger id="status">
                             <SelectValue placeholder="Set status" />
                         </SelectTrigger>
                         <SelectContent>
