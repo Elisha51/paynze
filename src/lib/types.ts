@@ -63,6 +63,11 @@ export type ProductVariant = {
   stockAdjustments?: StockAdjustment[]; // For history tracking
 };
 
+export type PreorderSettings = {
+  paymentType: 'full' | 'deposit';
+  depositAmount?: number; // Can be percentage or fixed amount
+};
+
 
 export type Product = {
   // I. Core Identity & Media
@@ -70,7 +75,7 @@ export type Product = {
   name: string;
   shortDescription?: string;
   longDescription?: string; // Rich text
-  status: 'draft' | 'published' | 'archived';
+  status: 'draft' | 'published' | 'archived' | 'Pre-Order';
   images: (ProductImage | File)[]; // Supports uploaded files or existing images
   videoUrl?: string;
 
@@ -99,6 +104,7 @@ export type Product = {
   isTaxable: boolean;
   taxClass?: string;
   costPerItem?: number; // For profit tracking
+  preorderSettings?: PreorderSettings;
 
   // IV. Organization & Discovery
   category?: string;

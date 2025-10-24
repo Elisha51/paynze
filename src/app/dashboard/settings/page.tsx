@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -11,13 +11,23 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { OnboardingFormData } from '@/context/onboarding-context';
 import { LocationsTab } from '@/components/settings/locations-tab';
-import type { Location } from '@/lib/types';
+import type { Location, ShippingZone } from '@/lib/types';
 import { getLocations as fetchLocations } from '@/services/locations';
-
+import { PlusCircle, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [locations, setLocations] = useState<Location[]>([]);
+    const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
+    const { toast } = useToast();
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -29,6 +39,11 @@ export default function SettingsPage() {
             setLocations(fetchedLocations);
         }
         loadLocations();
+        // Mock initial shipping zones
+        setShippingZones([
+            { id: 'zone-1', name: 'Kampala Metro', countries: ['UG'], cities: ['Kampala'], deliveryMethods: [{ id: 'dm-1', name: 'Flat Rate', price: 10000 }] },
+            { id: 'zone-2', name: 'Nationwide', countries: ['UG'], deliveryMethods: [{ id: 'dm-2', name: 'Flat Rate', price: 25000 }] }
+        ]);
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -55,6 +70,43 @@ export default function SettingsPage() {
         const { id, value } = e.target;
         setSettings(prev => prev ? { ...prev, delivery: { ...prev.delivery, [id]: value } } : null);
     };
+
+    const handleAddZone = () => {
+        const newZone: ShippingZone = {
+            id: `zone_${Date.now()}`,
+            name: 'New Zone',
+            countries: [],
+            deliveryMethods: [{ id: `dm_${Date.now()}`, name: 'Flat Rate', price: 0 }]
+        };
+        setShippingZones(prev => [...prev, newZone]);
+    }
+    
+    const handleZoneChange = (zoneId: string, field: 'name' | 'price', value: string | number) => {
+        setShippingZones(prev => prev.map(zone => {
+            if (zone.id === zoneId) {
+                if (field === 'name') {
+                    return { ...zone, name: value as string };
+                }
+                if (field === 'price') {
+                    const newMethods = [...zone.deliveryMethods];
+                    newMethods[0] = { ...newMethods[0], price: Number(value) };
+                    return { ...zone, deliveryMethods: newMethods };
+                }
+            }
+            return zone;
+        }))
+    }
+    
+    const handleRemoveZone = (zoneId: string) => {
+        setShippingZones(prev => prev.filter(zone => zone.id !== zoneId));
+    };
+
+    const handleSaveChanges = () => {
+        toast({
+            title: 'Settings Saved',
+            description: 'Your changes have been saved successfully.',
+        });
+    }
 
   return (
     <>
@@ -143,48 +195,66 @@ export default function SettingsPage() {
           </Card>
         </TabsContent>
         <TabsContent value="delivery">
-          <Card>
-            <CardHeader>
-              <CardTitle>Delivery & Pickup</CardTitle>
-              <CardDescription>
-                Set up your shipping rates and pickup locations.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between pb-4">
-                  <Label htmlFor="pickup" className="flex flex-col space-y-1">
-                    <span>In-Store Pickup</span>
-                    <span className="font-normal leading-snug text-muted-foreground">
-                      Allow customers to pick up their orders from your location.
-                    </span>
-                  </Label>
-                  <Switch id="pickup" checked={settings?.delivery.pickup} onCheckedChange={(c) => handleSwitchChange('pickup', c)} />
-                </CardHeader>
-                <CardContent className={!settings?.delivery.pickup ? 'hidden' : ''}>
-                  <Label htmlFor="address">Pickup Address</Label>
-                  <Input id="address" value={settings?.delivery.address || ''} onChange={handleDeliveryInputChange} />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="flat-rate" className="flex flex-col space-y-1">
-                            <span>Flat Rate Shipping</span>
-                            <span className="font-normal leading-snug text-muted-foreground">
-                                Charge a single rate for all deliveries.
-                            </span>
-                        </Label>
-                        <Switch id="flat-rate" defaultChecked={!!settings?.delivery.deliveryFee} />
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <Label htmlFor="deliveryFee">Flat Rate Fee ({settings?.currency || '...'})</Label>
-                    <Input id="deliveryFee" type="number" value={settings?.delivery.deliveryFee || ''} onChange={handleDeliveryInputChange} />
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                    <CardTitle>Pickup Points</CardTitle>
+                    <CardDescription>
+                        Allow customers to pick up their orders from your locations. Manage pickup points in the <TabsTrigger value="locations" className="text-primary p-0 h-auto bg-transparent shadow-none underline data-[state=active]:bg-transparent">Locations</TabsTrigger> tab.
+                    </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {locations.filter(l => l.isPickupLocation).length > 0 ? (
+                             <ul className="list-disc list-inside space-y-1 text-sm">
+                                {locations.filter(l => l.isPickupLocation).map(loc => (
+                                    <li key={loc.id}><strong>{loc.name}:</strong> {loc.address}</li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">No pickup points enabled. Go to the 'Locations' tab to enable them.</p>
+                        )}
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Shipping Zones</CardTitle>
+                        <CardDescription>
+                            Create zones to set different delivery fees for different areas.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {shippingZones.map((zone) => (
+                           <Card key={zone.id}>
+                               <CardHeader className="flex-row items-center justify-between">
+                                 <div className="flex-1">
+                                    <Input 
+                                        className="text-lg font-semibold border-0 shadow-none -ml-3 w-full p-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-auto"
+                                        value={zone.name}
+                                        onChange={(e) => handleZoneChange(zone.id, 'name', e.target.value)}
+                                    />
+                                    <p className="text-sm text-muted-foreground">Applies to: {zone.cities.join(', ')}</p>
+                                 </div>
+                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveZone(zone.id)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                               </CardHeader>
+                               <CardContent>
+                                    <Label htmlFor={`zone-price-${zone.id}`}>Flat Rate Price ({settings?.currency || '...'})</Label>
+                                    <Input
+                                        id={`zone-price-${zone.id}`}
+                                        type="number"
+                                        value={zone.deliveryMethods[0].price}
+                                        onChange={(e) => handleZoneChange(zone.id, 'price', e.target.value)}
+                                    />
+                               </CardContent>
+                           </Card>
+                        ))}
+                         <Button variant="outline" onClick={handleAddZone}>
+                           <PlusCircle className="mr-2 h-4 w-4" /> Add Shipping Zone
+                         </Button>
+                    </CardContent>
+                </Card>
+            </div>
         </TabsContent>
         <TabsContent value="inventory">
             <Card>
@@ -211,7 +281,7 @@ export default function SettingsPage() {
         </TabsContent>
       </Tabs>
       <div className="mt-8 flex justify-end">
-        <Button>Save Changes</Button>
+        <Button onClick={handleSaveChanges}>Save Changes</Button>
       </div>
     </>
   );

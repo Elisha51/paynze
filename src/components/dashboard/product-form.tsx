@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -49,6 +49,7 @@ import { RichTextEditor } from '../ui/rich-text-editor';
 import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
 import { Separator } from '../ui/separator';
 import type { OnboardingFormData } from '@/context/onboarding-context';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -215,6 +216,16 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
 
   const handleStatusChange = (value: Product['status']) => {
     setProduct((prev) => ({ ...prev, status: value }));
+  };
+  
+  const handlePreorderPaymentChange = (field: keyof PreorderSettings, value: string | number) => {
+    setProduct(prev => ({
+      ...prev,
+      preorderSettings: {
+        ...(prev.preorderSettings || { paymentType: 'full' }),
+        [field]: value
+      }
+    }));
   };
 
   const handleFilesChange = (newFiles: (File | ProductImage)[]) => {
@@ -915,6 +926,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                 <SelectItem value="published">Published</SelectItem>
                                 <SelectItem value="draft">Draft</SelectItem>
                                 <SelectItem value="archived">Archived</SelectItem>
+                                <SelectItem value="Pre-Order">Pre-Order</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -942,6 +954,42 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                     </div>
                 </CardContent>
             </Card>
+            {product.status === 'Pre-Order' && (
+              <Card>
+                <CardHeader>
+                  <CardTitle>Pre-order Settings</CardTitle>
+                  <CardDescription>Configure how you want to take payments for this pre-order product.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                   <RadioGroup
+                      value={product.preorderSettings?.paymentType || 'full'}
+                      onValueChange={(v) => handlePreorderPaymentChange('paymentType', v)}
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="full" id="po-full" />
+                        <Label htmlFor="po-full">Require payment in full</Label>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="deposit" id="po-deposit" />
+                        <Label htmlFor="po-deposit">Require a deposit</Label>
+                      </div>
+                    </RadioGroup>
+                    {product.preorderSettings?.paymentType === 'deposit' && (
+                        <div className="space-y-2 pl-6">
+                            <Label htmlFor="depositAmount">Deposit Amount ({product.currency})</Label>
+                            <Input
+                                id="depositAmount"
+                                type="number"
+                                value={product.preorderSettings.depositAmount || ''}
+                                onChange={(e) => handlePreorderPaymentChange('depositAmount', Number(e.target.value))}
+                                placeholder="e.g. 5000 or 20%"
+                            />
+                             <p className="text-xs text-muted-foreground">Can be a fixed amount or a percentage.</p>
+                        </div>
+                    )}
+                </CardContent>
+              </Card>
+            )}
            <Card>
                 <CardHeader>
                     <CardTitle>Organization</CardTitle>
