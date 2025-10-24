@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ArrowLeft, Download, Upload, FileCheck2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Stepper, Step } from '@/components/ui/stepper';
+import { Stepper } from '@/components/ui/stepper';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
@@ -47,7 +47,7 @@ export default function ImportProductsPage() {
             const text = event.target?.result as string;
             const lines = text.split('\n');
             const headers = lines[0].split(',');
-            const productCount = lines.length - 1; // Exclude header row
+            const productCount = lines.length > 1 ? lines.length - 1 : 0; // Exclude header row
 
             console.log('Parsed Headers:', headers);
             console.log(`Simulating import of ${productCount} products.`);
@@ -79,7 +79,7 @@ export default function ImportProductsPage() {
                 <Stepper currentStep={currentStep - 1} steps={steps} />
             </div>
 
-            <Card className="w-full">
+            <Card>
                 <CardHeader>
                     <CardTitle>Step 1: Download Template</CardTitle>
                     <CardDescription>
@@ -87,15 +87,17 @@ export default function ImportProductsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <Button asChild variant={currentStep === 1 ? 'default' : 'outline'}>
-                        <a href="/products-template.csv" download>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download CSV Template
-                        </a>
-                    </Button>
-                    <Button variant="link" onClick={() => setCurrentStep(2)} className={currentStep === 1 ? 'ml-4' : 'hidden'}>
-                        I have my file ready
-                    </Button>
+                    <div className="flex items-center gap-4">
+                        <Button asChild variant={currentStep === 1 ? 'default' : 'outline'}>
+                            <a href="/products-template.csv" download>
+                                <Download className="mr-2 h-4 w-4" />
+                                Download CSV Template
+                            </a>
+                        </Button>
+                        <Button variant="link" onClick={() => setCurrentStep(2)} className={currentStep === 1 ? 'ml-4' : 'hidden'}>
+                            I have my file ready
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
 
@@ -111,6 +113,7 @@ export default function ImportProductsPage() {
                         files={uploadedFile}
                         onFilesChange={handleFileChange}
                         maxFiles={1}
+                        accept={{ 'text/csv': ['.csv'] }}
                     />
                 </CardContent>
             </Card>
@@ -123,12 +126,14 @@ export default function ImportProductsPage() {
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {uploadedFile.length > 0 && (
+                    {uploadedFile.length > 0 ? (
                         <div className="flex items-center gap-2 p-4 rounded-md bg-muted">
                             <FileCheck2 className="h-6 w-6 text-green-600" />
                             <p className="font-medium">{uploadedFile[0].name}</p>
                             <p className="text-sm text-muted-foreground">({Math.round(uploadedFile[0].size / 1024)} KB)</p>
                         </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">Please upload a file in the step above to review it here.</p>
                     )}
                 </CardContent>
             </Card>

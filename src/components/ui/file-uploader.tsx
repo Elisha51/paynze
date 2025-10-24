@@ -3,7 +3,7 @@
 
 import { useCallback, useMemo } from 'react';
 import { useDropzone } from 'react-dropzone';
-import { Upload, X, Image as ImageIcon } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, File as FileIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from './button';
 import Image from 'next/image';
@@ -26,9 +26,6 @@ export function FileUploader({
     'image/png': ['.png'],
     'image/jpeg': ['.jpeg', '.jpg'],
     'image/gif': ['.gif'],
-    'application/pdf': ['.pdf'],
-    'application/zip': ['.zip'],
-    'text/csv': ['.csv'],
   },
 }: FileUploaderProps) {
   const { toast } = useToast();
@@ -47,9 +44,10 @@ export function FileUploader({
         });
       }
 
-      let newFiles;
+      let newFiles: File[];
       if (maxFiles > 1) {
-        newFiles = [...files, ...acceptedFiles].slice(0, maxFiles) as File[];
+        // We cast files to any because it could be ProductImage type
+        newFiles = [...(files as any[]), ...acceptedFiles].slice(0, maxFiles);
       } else {
         newFiles = acceptedFiles.slice(0, 1);
       }
@@ -73,9 +71,10 @@ export function FileUploader({
   };
 
   const previews = useMemo(() => files.map((file, index) => {
-    const isImage = file instanceof File && file.type?.startsWith('image/');
-    const url = file instanceof File ? URL.createObjectURL(file) : (file as ProductImage).url;
-    const name = file instanceof File ? file.name : 'Image';
+    const isFile = file instanceof File;
+    const isImage = isFile && file.type?.startsWith('image/');
+    const url = isFile ? URL.createObjectURL(file) : (file as ProductImage).url;
+    const name = isFile ? file.name : 'Image';
     
     return (
       <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border">
@@ -83,7 +82,8 @@ export function FileUploader({
             <Image src={url} alt="File preview" fill className="object-cover" />
         ) : (
             <div className="flex flex-col items-center justify-center h-full bg-muted p-2">
-                <p className="text-xs text-center break-all">{name}</p>
+                <FileIcon className="h-8 w-8 text-muted-foreground" />
+                <p className="text-xs text-center break-all mt-1">{name}</p>
             </div>
         )}
         <Button

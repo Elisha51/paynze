@@ -45,7 +45,3 @@ export function Stepper({ currentStep, steps }: StepperProps) {
     </div>
   );
 }
-
-export function Step({ children }: { children: React.ReactNode }) {
-    return <>{children}</>
-}
