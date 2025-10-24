@@ -10,6 +10,12 @@ import { FileUploader } from '@/components/ui/file-uploader';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
 
+const steps = [
+  { label: 'Download Template' },
+  { label: 'Upload CSV' },
+  { label: 'Review & Import' },
+];
+
 export default function ImportProductsPage() {
     const [currentStep, setCurrentStep] = useState(1);
     const [uploadedFile, setUploadedFile] = useState<File[]>([]);
