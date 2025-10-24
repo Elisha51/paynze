@@ -56,15 +56,39 @@ export function DataTable<TData, TValue>({
 
   React.useEffect(() => {
     if (filter) {
-      setColumnFilters(prev => [...prev.filter(f => f.id !== filter.column), { id: filter.column, value: filter.value }]);
+      if (filter.column === 'visibility' && filter.value.includes(',')) {
+        // Special case for 'all' products tab to show multiple visibility states
+        const values = filter.value.split(',');
+        setColumnFilters(prev => [
+            ...prev.filter(f => f.id !== filter.column), 
+            { id: filter.column, value: values }
+        ]);
+      } else {
+        setColumnFilters(prev => [
+            ...prev.filter(f => f.id !== filter.column), 
+            { id: filter.column, value: filter.value }
+        ]);
+      }
     } else {
-        setColumnFilters(prev => prev.filter(f => f.id !== 'status' && f.id !== 'customerGroup')); 
+      // Clear filters if no filter is provided
+      setColumnFilters([]);
     }
   }, [filter]);
+
+  const customFilterFn = (row: any, columnId: string, filterValue: any) => {
+    const rowValue = row.getValue(columnId);
+    if (Array.isArray(filterValue)) {
+      return filterValue.includes(rowValue);
+    }
+    return rowValue === filterValue;
+  };
 
   const table = useReactTable({
     data,
     columns,
+    filterFns: {
+        custom: customFilterFn,
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -80,7 +104,7 @@ export function DataTable<TData, TValue>({
       rowSelection,
       globalFilter: searchQuery,
     },
-    onGlobalFilterChange: () => {}, 
+    globalFilterFn: 'auto',
   });
 
   return (

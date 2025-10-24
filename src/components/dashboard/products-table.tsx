@@ -4,6 +4,7 @@ import * as React from 'react';
 import Image from 'next/image';
 import {
   ColumnDef,
+  Row,
 } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
 
@@ -17,13 +18,26 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Product } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { DataTable } from './data-table';
+import { useToast } from '@/hooks/use-toast';
 
-
-const columns: ColumnDef<Product>[] = [
+const getColumns = (
+  archiveProduct: (sku: string) => void
+): ColumnDef<Product>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -94,7 +108,7 @@ const columns: ColumnDef<Product>[] = [
     accessorKey: 'visibility',
     header: 'Status',
     cell: ({ row }) => (
-      <Badge variant={row.getValue('visibility') === 'draft' ? 'secondary' : 'default'}>
+      <Badge variant={row.getValue('visibility') === 'draft' ? 'secondary' : row.getValue('visibility') === 'archived' ? 'outline' : 'default'}>
         {row.getValue('visibility')}
       </Badge>
     ),
@@ -142,21 +156,45 @@ const columns: ColumnDef<Product>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Edit</DropdownMenuItem>
-            <DropdownMenuItem>Delete</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
+        const product = row.original;
+        return (
+            <AlertDialog>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <AlertDialogTrigger asChild>
+                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
+                      Delete
+                    </DropdownMenuItem>
+                  </AlertDialogTrigger>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action will archive the product &quot;{product.name}&quot;. It will no longer be visible to customers but can be restored later.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    className="bg-destructive hover:bg-destructive/90"
+                    onClick={() => archiveProduct(product.sku)}
+                  >
+                    Archive
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+        );
     },
   },
 ];
@@ -172,6 +210,7 @@ type ProductsTableProps = {
 
 export function ProductsTable({ filter, cardTitle, cardDescription }: ProductsTableProps) {
   const [data, setData] = React.useState<Product[]>([]);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     async function loadProducts() {
@@ -181,6 +220,19 @@ export function ProductsTable({ filter, cardTitle, cardDescription }: ProductsTa
     loadProducts();
   }, []);
   
+  const archiveProduct = (sku: string) => {
+    setData(currentData =>
+      currentData.map(product =>
+        product.sku === sku ? { ...product, visibility: 'archived' } : product
+      )
+    );
+    toast({
+        title: "Product Archived",
+        description: "The product has been moved to the archive.",
+    });
+  };
+
+  const columns = React.useMemo(() => getColumns(archiveProduct), [archiveProduct]);
 
   return (
     <DataTable

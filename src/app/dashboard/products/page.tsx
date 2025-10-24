@@ -58,7 +58,7 @@ export default function ProductsPage() {
       { value: 'all', label: 'All' },
       { value: 'active', label: 'Active' },
       { value: 'draft', label: 'Draft' },
-      { value: 'archived', label: 'Archived', className: 'hidden sm:flex' },
+      { value: 'archived', label: 'Archived' },
   ];
 
   const cta = (
@@ -111,28 +111,29 @@ export default function ProductsPage() {
         cta={cta}
     >
         <DashboardPageLayout.TabContent value="all">
-            <ProductsTable 
+            <ProductsTable
+                filter={{ column: 'visibility', value: 'published,draft' }}
                 cardTitle='All Products'
                 cardDescription='Manage your products and view their sales performance.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="active">
             <ProductsTable 
-                filter={{ column: 'status', value: 'active' }}
+                filter={{ column: 'visibility', value: 'published' }}
                 cardTitle='Active Products'
                 cardDescription='View all products that are currently visible to customers.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="draft">
             <ProductsTable 
-                filter={{ column: 'status', value: 'draft' }}
+                filter={{ column: 'visibility', value: 'draft' }}
                 cardTitle='Draft Products'
                 cardDescription='View all products that are not yet published.'
             />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="archived">
             <ProductsTable 
-                filter={{ column: 'status', value: 'archived' }}
+                filter={{ column: 'visibility', value: 'archived' }}
                 cardTitle='Archived Products'
                 cardDescription='View all products that have been archived.'
             />
