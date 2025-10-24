@@ -1,0 +1,3 @@
+name,sku,retailPrice,stockQuantity,category,status,shortDescription
+"Vibrant Kitenge Fabric","KIT-001",35000,100,"Fabrics","published","Colorful African print fabric."
+"Handmade Leather Sandals","SND-002",55000,50,"Footwear","draft","Comfortable and durable sandals."

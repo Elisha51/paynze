@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Upload, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { ProductsTable } from '@/components/dashboard/products-table';
@@ -9,6 +9,12 @@ import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import type { Product } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -29,12 +35,27 @@ export default function ProductsPage() {
   ];
 
   const cta = (
-     <Button asChild>
-        <Link href="/dashboard/products/add">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Product
-        </Link>
-      </Button>
+     <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button>
+            Add Product <ChevronDown className="ml-2 h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/products/add">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add Manually
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/dashboard/products/import">
+                <Upload className="mr-2 h-4 w-4" />
+                Import Products
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
   );
 
   return (

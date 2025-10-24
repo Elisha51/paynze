@@ -13,11 +13,24 @@ import type { ProductImage } from '@/lib/types';
 
 interface FileUploaderProps {
   files: (File | ProductImage)[];
-  onFilesChange: (files: (File | ProductImage)[] | File[]) => void;
+  onFilesChange: (files: File[]) => void;
   maxFiles?: number;
+  accept?: { [key: string]: string[] };
 }
 
-export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUploaderProps) {
+export function FileUploader({
+  files,
+  onFilesChange,
+  maxFiles = 15,
+  accept = {
+    'image/png': ['.png'],
+    'image/jpeg': ['.jpeg', '.jpg'],
+    'image/gif': ['.gif'],
+    'application/pdf': ['.pdf'],
+    'application/zip': ['.zip'],
+    'text/csv': ['.csv'],
+  },
+}: FileUploaderProps) {
   const { toast } = useToast();
 
   const onDrop = useCallback(
@@ -34,7 +47,12 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
         });
       }
 
-      const newFiles = [...files, ...acceptedFiles].slice(0, maxFiles);
+      let newFiles;
+      if (maxFiles > 1) {
+        newFiles = [...files, ...acceptedFiles].slice(0, maxFiles) as File[];
+      } else {
+        newFiles = acceptedFiles.slice(0, 1);
+      }
       onFilesChange(newFiles);
     },
     [files, onFilesChange, maxFiles, toast]
@@ -42,13 +60,7 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: {
-      'image/png': ['.png'],
-      'image/jpeg': ['.jpeg', '.jpg'],
-      'image/gif': ['.gif'],
-      'application/pdf': ['.pdf'],
-      'application/zip': ['.zip'],
-    },
+    accept,
     maxSize: 10 * 1024 * 1024, // 10MB
     maxFiles: maxFiles,
     multiple: maxFiles > 1,
@@ -56,18 +68,18 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
   });
 
   const removeFile = (index: number) => {
-    const newFiles = files.filter((_, i) => i !== index);
+    const newFiles = files.filter((_, i) => i !== index) as File[];
     onFilesChange(newFiles);
   };
 
   const previews = useMemo(() => files.map((file, index) => {
-    const isImage = file instanceof File && file.type.startsWith('image/');
+    const isImage = file instanceof File && file.type?.startsWith('image/');
     const url = file instanceof File ? URL.createObjectURL(file) : (file as ProductImage).url;
     const name = file instanceof File ? file.name : 'Image';
     
     return (
       <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border">
-        {isImage || !(file instanceof File) ? (
+        {isImage ? (
             <Image src={url} alt="File preview" fill className="object-cover" />
         ) : (
             <div className="flex flex-col items-center justify-center h-full bg-muted p-2">
@@ -115,7 +127,7 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
           )}
         </div>
       </div>
-      {files.length > 0 && (
+      {files.length > 0 && maxFiles > 1 && (
         <div className="space-y-2">
             <p className="font-medium text-sm flex items-center gap-2"><ImageIcon className="h-5 w-5"/> File Previews</p>
             <div className="flex flex-wrap gap-2">
