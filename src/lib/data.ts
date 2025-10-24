@@ -1,12 +1,74 @@
 import type { Product, Order, Customer, RecentSale, SalesData } from './types';
 
 export const products: Product[] = [
-  { id: 'prod-01', name: 'Colorful Kitenge Fabric', imageId: 'product-kitenge', status: 'active', price: 35000, stock: 100, category: 'Fabrics' },
-  { id: 'prod-02', name: 'Handmade Leather Shoes', imageId: 'product-shoes', status: 'active', price: 75000, stock: 30, category: 'Footwear' },
-  { id: 'prod-03', name: 'Woven Sisal Basket', imageId: 'product-basket', status: 'active', price: 25000, stock: 50, category: 'Homeware' },
-  { id: 'prod-04', name: 'Kenyan Arabica Coffee', imageId: 'product-coffee', status: 'draft', price: 15000, stock: 200, category: 'Groceries' },
-  { id: 'prod-05', name: 'Maasai Beaded Necklace', imageId: 'product-jewelry', status: 'active', price: 18000, stock: 80, category: 'Accessories' },
+  {
+    name: 'Colorful Kitenge Fabric',
+    sku: 'KIT-001',
+    category: 'Fabrics',
+    retailPrice: 35000,
+    wholesalePricing: [{ group: 'wholesale', price: 30000 }, { group: 'retailer', price: 32000 }],
+    stockQuantity: 100,
+    variants: [
+      { optionName: 'Color', value: 'Red', price: 35000, stock: 50 },
+      { optionName: 'Color', value: 'Blue', price: 35000, stock: 50 },
+    ],
+    visibility: 'published',
+    images: ['product-kitenge'],
+    discount: 'SALE10',
+  },
+  {
+    name: 'Handmade Leather Shoes',
+    sku: 'SHOE-002',
+    category: 'Footwear',
+    retailPrice: 75000,
+    wholesalePricing: [{ group: 'wholesale', price: 65000 }],
+    stockQuantity: 30,
+    variants: [
+      { optionName: 'Size', value: '42', price: 75000, stock: 15 },
+      { optionName: 'Size', value: '43', price: 75000, stock: 15 },
+    ],
+    visibility: 'published',
+    images: ['product-shoes'],
+    discount: null,
+  },
+  {
+    name: 'Woven Sisal Basket',
+    sku: 'BAS-003',
+    category: 'Homeware',
+    retailPrice: 25000,
+    wholesalePricing: [],
+    stockQuantity: 50,
+    variants: [],
+    visibility: 'published',
+    images: ['product-basket'],
+    discount: null,
+  },
+  {
+    name: 'Kenyan Arabica Coffee',
+    sku: 'COF-004',
+    category: 'Groceries',
+    retailPrice: 15000,
+    wholesalePricing: [{ group: 'wholesale', price: 12000 }],
+    stockQuantity: 200,
+    variants: [],
+    visibility: 'draft',
+    images: ['product-coffee'],
+    discount: null,
+  },
+  {
+    name: 'Maasai Beaded Necklace',
+    sku: 'JWL-005',
+    category: 'Accessories',
+    retailPrice: 18000,
+    wholesalePricing: [],
+    stockQuantity: 80,
+    variants: [],
+    visibility: 'published',
+    images: ['product-jewelry'],
+    discount: null,
+  }
 ];
+
   
 export const orders: Order[] = [
     { id: 'ORD-001', customer: 'Olivia Martin', email: 'olivia.martin@email.com', date: '2023-02-15', status: 'Delivered', total: 'KES 75,000', paymentMethod: 'Mobile Money' },

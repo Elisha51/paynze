@@ -47,23 +47,22 @@ const columns: ColumnDef<Product>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: 'imageId',
+    accessorKey: 'images',
     header: () => <div className="hidden">Image</div>,
     cell: ({ row }) => {
       const product = row.original;
-      const image = PlaceHolderImages.find((p) => p.id === product.imageId);
+      const imageId = product.images[0] || 'product-placeholder';
+      const image = PlaceHolderImages.find((p) => p.id === imageId);
       return (
         <div className="w-[64px] h-[64px] hidden sm:table-cell">
-          {image && (
-            <Image
-              alt={product.name}
-              className="aspect-square rounded-md object-cover"
-              height="64"
-              src={image.imageUrl}
-              width="64"
-              data-ai-hint={image.imageHint}
-            />
-          )}
+          <Image
+            alt={product.name}
+            className="aspect-square rounded-md object-cover"
+            height="64"
+            src={image?.imageUrl || `https://picsum.photos/seed/${product.sku}/64/64`}
+            width="64"
+            data-ai-hint={image?.imageHint}
+          />
         </div>
       );
     },
@@ -81,19 +80,27 @@ const columns: ColumnDef<Product>[] = [
           </Button>
         );
       },
-    cell: ({ row }) => <div className="font-medium">{row.getValue('name')}</div>,
+    cell: ({ row }) => {
+      const product = row.original;
+      return (
+        <div className="flex flex-col">
+          <span className="font-medium">{product.name}</span>
+          <span className="text-xs text-muted-foreground">{product.sku}</span>
+        </div>
+      )
+    },
   },
   {
-    accessorKey: 'status',
+    accessorKey: 'visibility',
     header: 'Status',
     cell: ({ row }) => (
-      <Badge variant={row.getValue('status') === 'draft' ? 'secondary' : 'default'}>
-        {row.getValue('status')}
+      <Badge variant={row.getValue('visibility') === 'draft' ? 'secondary' : 'default'}>
+        {row.getValue('visibility')}
       </Badge>
     ),
   },
   {
-    accessorKey: 'price',
+    accessorKey: 'retailPrice',
     header: ({ column }) => {
         return (
             <div className="text-right">
@@ -101,20 +108,20 @@ const columns: ColumnDef<Product>[] = [
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
                 >
-                    Price (UGX)
+                    Price
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
           </div>
         );
       },
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue('price'));
-      const formatted = new Intl.NumberFormat('en-US').format(amount);
+      const amount = parseFloat(row.getValue('retailPrice'));
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(amount);
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
   {
-    accessorKey: 'stock',
+    accessorKey: 'stockQuantity',
     header: 'Stock',
   },
   {

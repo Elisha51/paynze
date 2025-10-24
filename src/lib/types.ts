@@ -1,11 +1,23 @@
+
 export type Product = {
-  id: string;
   name: string;
-  imageId: string;
-  status: 'active' | 'draft';
-  price: number;
-  stock: number;
+  sku: string;
   category: string;
+  retailPrice: number;
+  wholesalePricing: {
+    group: string;
+    price: number;
+  }[];
+  stockQuantity: number;
+  variants: {
+    optionName: string;
+    value: string;
+    price: number;
+    stock: number;
+  }[];
+  visibility: 'published' | 'draft' | 'archived';
+  images: string[];
+  discount: string | null;
 };
 
 export type Order = {

@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -18,11 +18,41 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { ProductsTable } from '@/components/dashboard/products-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
+import { useToast } from '@/hooks/use-toast';
 
 export default function ProductsPage() {
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
+
+  const handleSuggestDescription = async () => {
+    if (!productName || !category) {
+        toast({
+            variant: "destructive",
+            title: "Name and Category required",
+            description: "Please enter a product name and category to generate a description.",
+        });
+        return;
+    }
+    setIsGenerating(true);
+    try {
+        const result = await suggestProductDescription({ productName, category });
+        setDescription(result.description);
+    } catch (error) {
+        console.error("Failed to generate description:", error);
+        toast({
+            variant: "destructive",
+            title: "Generation Failed",
+            description: "Could not generate a description at this time. Please try again.",
+        });
+    } finally {
+        setIsGenerating(false);
+    }
+  };
+
 
   const tabs = [
       { value: 'all', label: 'All' },
@@ -39,31 +69,31 @@ export default function ProductsPage() {
             Add Product
           </Button>
         </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[480px]">
           <DialogHeader>
             <DialogTitle>Add New Product</DialogTitle>
             <DialogDescription>
               Fill in the details for your new product. Click save when you're done.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
-                Name
-              </Label>
-              <Input id="name" value={productName} onChange={(e) => setProductName(e.target.value)} className="col-span-3" placeholder="e.g. Kitenge Fabric" />
+          <div className="grid gap-6 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Product Name</Label>
+              <Input id="name" value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="e.g. Kitenge Fabric" />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
-                Category
-              </Label>
-              <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="col-span-3" placeholder="e.g. Fabrics"/>
+            <div className="space-y-2">
+              <Label htmlFor="category">Category</Label>
+              <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="e.g. Fabrics"/>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="description" className="text-right">
-                Description
-              </Label>
-              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" placeholder="A brief description of the product."/>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="description">Description</Label>
+                <Button variant="outline" size="sm" onClick={handleSuggestDescription} disabled={isGenerating}>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  {isGenerating ? 'Generating...' : 'Suggest'}
+                </Button>
+              </div>
+              <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="min-h-[100px]" placeholder="A brief, appealing description of the product."/>
             </div>
           </div>
           <DialogFooter>
