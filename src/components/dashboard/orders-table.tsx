@@ -105,11 +105,11 @@ export function OrdersTable() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-              <p><strong>Customer:</strong> {order.customer}</p>
-              <p><strong>Date:</strong> {order.date}</p>
-              <p><strong>Status:</strong> <Badge variant={order.status === 'Pending' ? 'secondary' : order.status === 'Cancelled' ? 'destructive' : 'default'}>{order.status}</Badge></p>
-              <p><strong>Payment:</strong> {order.paymentMethod}</p>
-              <p className="font-medium text-right">{order.total}</p>
+              <div><strong>Customer:</strong> {order.customer}</div>
+              <div><strong>Date:</strong> {order.date}</div>
+              <div><strong>Status:</strong> <Badge variant={order.status === 'Pending' ? 'secondary' : order.status === 'Cancelled' ? 'destructive' : 'default'}>{order.status}</Badge></div>
+              <div><strong>Payment:</strong> {order.paymentMethod}</div>
+              <div className="font-medium text-right">{order.total}</div>
             </CardContent>
           </Card>
         ))}

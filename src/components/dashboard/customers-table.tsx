@@ -131,9 +131,9 @@ export function CustomersTable() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
-                <p><strong>Contact:</strong> {customer.email}, {customer.phone}</p>
-                <p><strong>Last Order:</strong> {customer.lastOrder}</p>
-                <p><strong>Total Spend:</strong> {customer.totalSpend}</p>
+                <div><strong>Contact:</strong> {customer.email}, {customer.phone}</div>
+                <div><strong>Last Order:</strong> {customer.lastOrder}</div>
+                <div><strong>Total Spend:</strong> {customer.totalSpend}</div>
             </CardContent>
           </Card>
         ))}

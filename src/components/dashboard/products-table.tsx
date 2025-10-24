@@ -138,10 +138,10 @@ export function ProductsTable() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-2 text-sm">
-                <p><strong>Price:</strong> {product.price.toLocaleString()} UGX</p>
-                <p><strong>Stock:</strong> {product.stock}</p>
-                <p><strong>Category:</strong> {product.category}</p>
-                <p><strong>Status:</strong>  <Badge variant={product.status === 'draft' ? 'secondary' : 'default'}>{product.status}</Badge></p>
+                <div><strong>Price:</strong> {product.price.toLocaleString()} UGX</div>
+                <div><strong>Stock:</strong> {product.stock}</div>
+                <div><strong>Category:</strong> {product.category}</div>
+                <div><strong>Status:</strong>  <Badge variant={product.status === 'draft' ? 'secondary' : 'default'}>{product.status}</Badge></div>
               </CardContent>
             </Card>
            )
