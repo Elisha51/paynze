@@ -94,6 +94,20 @@ export type ProductTemplate = {
   product: Partial<Product>;
 };
 
+export type EmailTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  subject: string;
+  body: string; // Can contain variables like {{customerName}}
+};
+
+export type SmsTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  message: string; // Can contain variables like {{orderId}}
+};
 
 export type Order = {
     id: string;

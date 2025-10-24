@@ -21,6 +21,7 @@ import {
   LifeBuoy,
   LogOut,
   ChevronLeft,
+  FileText,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -32,6 +33,7 @@ const menuItems = [
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
+  { href: '/dashboard/templates', label: 'Templates', icon: FileText },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
@@ -60,7 +62,7 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>
                     <SidebarMenuButton
-                    isActive={pathname === item.href}
+                    isActive={pathname.startsWith(item.href) && (item.href !== '/dashboard' || pathname === '/dashboard')}
                     tooltip={item.label}
                     >
                     <item.icon className="h-5 w-5 shrink-0" />

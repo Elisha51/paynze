@@ -2,12 +2,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { ProductForm } from '@/components/dashboard/product-form';
-import { getTemplates } from '@/services/templates';
+import { getProductTemplates } from '@/services/templates';
 import type { ProductTemplate, Product } from '@/lib/types';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import * as Lucide from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
@@ -39,7 +37,7 @@ export default function AddProductPage() {
 
     useEffect(() => {
         async function loadTemplates() {
-            const fetchedTemplates = await getTemplates();
+            const fetchedTemplates = await getProductTemplates();
             setTemplates(fetchedTemplates);
         }
         loadTemplates();
@@ -59,12 +57,10 @@ export default function AddProductPage() {
         return (
             <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                    <Button variant="outline" size="icon" asChild>
-                    <Link href="/dashboard/products">
-                        <ArrowLeft className="h-4 w-4" />
+                    <Link href="/dashboard/products" className="p-2 rounded-md hover:bg-muted">
+                        <ArrowLeft className="h-5 w-5" />
                         <span className="sr-only">Back to Products</span>
                     </Link>
-                    </Button>
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Add New Product</h1>
                         <p className="text-muted-foreground">Start with a template or from scratch.</p>

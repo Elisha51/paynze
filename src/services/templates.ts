@@ -1,7 +1,8 @@
 
-import type { ProductTemplate } from '@/lib/types';
 
-export const templates: ProductTemplate[] = [
+import type { ProductTemplate, EmailTemplate, SmsTemplate } from '@/lib/types';
+
+export const productTemplates: ProductTemplate[] = [
   {
     id: 'tpl-tshirt',
     name: 'T-Shirt',
@@ -60,8 +61,51 @@ export const templates: ProductTemplate[] = [
   },
 ];
 
-export async function getTemplates(): Promise<ProductTemplate[]> {
+export const emailTemplates: EmailTemplate[] = [
+    {
+        id: 'email-welcome',
+        name: 'Welcome Email',
+        description: 'Sent to new customers when they sign up.',
+        subject: 'Welcome to {{storeName}}!',
+        body: 'Hi {{customerName}}, thanks for joining us!',
+    },
+    {
+        id: 'email-order-confirmation',
+        name: 'Order Confirmation',
+        description: 'Sent after a customer places an order.',
+        subject: 'Your order #{{orderId}} is confirmed!',
+        body: 'Thanks for your order, {{customerName}}. We will notify you once it ships.',
+    }
+]
+
+export const smsTemplates: SmsTemplate[] = [
+    {
+        id: 'sms-shipping-update',
+        name: 'Shipping Update',
+        description: 'Sent when an order is shipped.',
+        message: 'Hi {{customerName}}, your order #{{orderId}} has shipped and is on its way!',
+    },
+     {
+        id: 'sms-delivery-update',
+        name: 'Out for Delivery',
+        description: 'Sent when an order is out for delivery.',
+        message: 'Your order #{{orderId}} is out for delivery today!',
+    }
+]
+
+
+export async function getProductTemplates(): Promise<ProductTemplate[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 300));
-  return templates;
+  return productTemplates;
+}
+
+export async function getEmailTemplates(): Promise<EmailTemplate[]> {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return emailTemplates;
+}
+
+export async function getSmsTemplates(): Promise<SmsTemplate[]> {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return smsTemplates;
 }

@@ -67,8 +67,6 @@ const emptyProduct: Product = {
 export function ProductForm({ initialProduct }: { initialProduct?: Partial<Product> | null }) {
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
-  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-  const [templateName, setTemplateName] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -217,18 +215,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     console.log('Saving product:', product);
   };
   
-  const handleSaveAsTemplate = () => {
-    // In a real app, this would be a POST request to an API
-    console.log('Saving as template:', { name: templateName, config: product });
-    toast({
-      title: 'Template Saved',
-      description: `"${templateName}" has been saved.`,
-    });
-    setShowTemplateDialog(false);
-    setTemplateName('');
-  };
-
-  
   const uploadedImages = useMemo(() => product.images.filter(img => 'url' in img || img instanceof File) as (ProductImage | File & { id: string, url?: string })[], [product.images]);
 
 
@@ -250,33 +236,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-              <DialogTrigger asChild>
-                <Button variant="outline"><Save className="mr-2 h-4 w-4" /> Save as Template</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Save Product as Template</DialogTitle>
-                  <DialogDescription>
-                    Save the current product's configuration (options, category, etc.) as a new template for faster creation later.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-2">
-                  <Label htmlFor="template-name">Template Name</Label>
-                  <Input 
-                    id="template-name" 
-                    value={templateName}
-                    onChange={(e) => setTemplateName(e.target.value)}
-                    placeholder="e.g., 'Standard T-Shirt'"
-                  />
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowTemplateDialog(false)}>Cancel</Button>
-                  <Button onClick={handleSaveAsTemplate} disabled={!templateName}>Save Template</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
             <Button onClick={handleSave}>Save Product</Button>
         </div>
       </div>
