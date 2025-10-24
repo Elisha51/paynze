@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Product, WholesalePrice, ProductVariant, ProductImage } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
@@ -105,12 +105,14 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   }
   
   const handleSelectChange = (id: keyof Product, value: string) => {
-    const isPhysical = value === 'Physical';
-    setProduct(prev => ({ 
-        ...prev, 
-        [id]: value,
-        requiresShipping: isPhysical,
-    }));
+    setProduct(prev => ({ ...prev, [id]: value }));
+    if (id === 'productType') {
+        const isPhysical = value === 'Physical';
+        setProduct(prev => ({ 
+            ...prev, 
+            requiresShipping: isPhysical,
+        }));
+    }
   }
 
   const handleStatusChange = (value: Product['status']) => {
@@ -245,7 +247,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     console.log('Saving product:', product);
   };
   
-  const uploadedImages = useMemo(() => product.images.filter(img => 'url' in img || img instanceof File) as (ProductImage | File & { id: string, url?: string })[], [product.images]);
+  const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
 
 
   return (
@@ -718,4 +720,3 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     </div>
   );
 }
-    

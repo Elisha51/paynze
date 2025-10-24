@@ -68,7 +68,7 @@ export default function ProductsPage() {
             <ProductsTable
                 data={products}
                 setData={setProducts}
-                filter={{ column: 'status', value: 'published,draft' }}
+                filter={{ column: 'status', excludeValue: 'archived' }}
                 cardTitle='All Products'
                 cardDescription='Manage all your active and draft products.'
             />

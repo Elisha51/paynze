@@ -12,7 +12,6 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-  FilterFn,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -35,13 +34,17 @@ import { useSearch } from '@/context/search-context';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  cardTitle: string;
-  cardDescription: string;
+  filter?: {
+    column: string;
+    value?: string;
+    excludeValue?: string;
+  };
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  filter,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -70,6 +73,18 @@ export function DataTable<TData, TValue>({
     },
     globalFilterFn: 'auto',
   });
+
+  React.useEffect(() => {
+    if (filter) {
+      if(filter.value) {
+        table.getColumn(filter.column)?.setFilterValue(filter.value);
+      } else if (filter.excludeValue) {
+        table.getColumn(filter.column)?.setFilterValue((value: string) => value !== filter.excludeValue)
+      } else {
+        table.getColumn(filter.column)?.setFilterValue(undefined);
+      }
+    }
+  }, [filter, table]);
 
   return (
     <div className="w-full">

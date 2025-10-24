@@ -30,7 +30,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import type { Product } from '@/lib/types';
 import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
@@ -226,13 +225,14 @@ type ProductsTableProps = {
   setData: React.Dispatch<React.SetStateAction<Product[]>>;
   filter?: {
     column: string;
-    value: string;
+    value?: string;
+    excludeValue?: string;
   };
   cardTitle: string;
   cardDescription: string;
 };
 
-export function ProductsTable({ data, setData, filter, cardTitle, cardDescription }: ProductsTableProps) {
+export function ProductsTable({ data, setData, filter }: ProductsTableProps) {
   const { toast } = useToast();
   
   const archiveProduct = (sku: string) => {
@@ -248,22 +248,12 @@ export function ProductsTable({ data, setData, filter, cardTitle, cardDescriptio
   };
 
   const columns = React.useMemo(() => getColumns(archiveProduct), [archiveProduct]);
-  
-  const filteredData = data.filter(product => {
-      if (filter && filter.value) {
-          const values = filter.value.split(',');
-          // assuming filter.column is 'status' now instead of 'visibility'
-          return values.includes(product.status);
-      }
-      return true;
-  });
 
   return (
     <DataTable
         columns={columns}
-        data={filteredData}
-        cardTitle={cardTitle}
-        cardDescription={cardDescription}
+        data={data}
+        filter={filter}
     />
   );
 }
