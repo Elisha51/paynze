@@ -23,12 +23,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { getCountryList } from '@/services/countries';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [locations, setLocations] = useState<Location[]>([]);
     const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
     const [activeTab, setActiveTab] = useState('store');
+    const [countryList, setCountryList] = useState<{name: string, code: string}[]>([]);
     const { toast } = useToast();
 
     useEffect(() => {
@@ -36,15 +38,19 @@ export default function SettingsPage() {
         if (data) {
             setSettings(JSON.parse(data));
         }
-        async function loadLocations() {
-            const fetchedLocations = await fetchLocations();
+        async function loadData() {
+            const [fetchedLocations, fetchedCountries] = await Promise.all([
+                fetchLocations(),
+                getCountryList()
+            ]);
             setLocations(fetchedLocations);
+            setCountryList(fetchedCountries);
         }
-        loadLocations();
+        loadData();
         // Mock initial shipping zones
         setShippingZones([
             { id: 'zone-1', name: 'Kampala Metro', countries: ['UG'], cities: ['Kampala'], deliveryMethods: [{ id: 'dm-1', name: 'Flat Rate', price: 10000 }] },
-            { id: 'zone-2', name: 'Nationwide', countries: ['UG'], cities: [], deliveryMethods: [{ id: 'dm-2', name: 'Flat Rate', price: 25000 }] }
+            { id: 'zone-2', name: 'Nationwide Uganda', countries: ['UG'], cities: [], deliveryMethods: [{ id: 'dm-2', name: 'Flat Rate', price: 25000 }] }
         ]);
     }, []);
 
@@ -76,7 +82,7 @@ export default function SettingsPage() {
     const handleAddZone = () => {
         const newZone: ShippingZone = {
             id: `zone_${Date.now()}`,
-            name: 'New Zone',
+            name: 'New Shipping Zone',
             countries: [],
             cities: [],
             deliveryMethods: [{ id: `dm_${Date.now()}`, name: 'Flat Rate', price: 0 }]
@@ -84,7 +90,7 @@ export default function SettingsPage() {
         setShippingZones(prev => [...prev, newZone]);
     }
     
-    const handleZoneChange = (zoneId: string, field: 'name' | 'price', value: string | number) => {
+    const handleZoneChange = (zoneId: string, field: 'name' | 'price' | 'countries', value: any) => {
         setShippingZones(prev => prev.map(zone => {
             if (zone.id === zoneId) {
                 if (field === 'name') {
@@ -94,6 +100,9 @@ export default function SettingsPage() {
                     const newMethods = [...zone.deliveryMethods];
                     newMethods[0] = { ...newMethods[0], price: Number(value) };
                     return { ...zone, deliveryMethods: newMethods };
+                }
+                if (field === 'countries') {
+                    return { ...zone, countries: value as string[] };
                 }
             }
             return zone;
@@ -228,16 +237,23 @@ export default function SettingsPage() {
                     <CardContent className="space-y-4">
                         {shippingZones.map((zone) => (
                            <Card key={zone.id}>
-                               <CardHeader className="flex-row items-center justify-between">
-                                 <div className="flex-1">
+                               <CardHeader className="flex-row items-center justify-between gap-4">
+                                 <div className="flex-1 space-y-2">
                                     <Input 
                                         className="text-lg font-semibold border-0 shadow-none -ml-3 w-full p-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-auto"
                                         value={zone.name}
                                         onChange={(e) => handleZoneChange(zone.id, 'name', e.target.value)}
                                     />
-                                    <p className="text-sm text-muted-foreground">
-                                        Applies to: {zone.cities && zone.cities.length > 0 ? zone.cities.join(', ') : 'All cities in selected countries'}
-                                    </p>
+                                    <Select value={zone.countries[0]} onValueChange={(v) => handleZoneChange(zone.id, 'countries', [v])}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select a country" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {countryList.map(c => (
+                                                <SelectItem key={c.code} value={c.code}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
                                  </div>
                                   <Button variant="ghost" size="icon" onClick={() => handleRemoveZone(zone.id)}>
                                     <Trash2 className="h-4 w-4 text-destructive" />

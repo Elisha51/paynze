@@ -129,6 +129,12 @@ export type Product = {
   customFields?: { [key: string]: any };
 };
 
+export type Category = {
+  id: string;
+  name: string;
+  description?: string;
+};
+
 export type ProductTemplate = {
   id: string;
   name: string;

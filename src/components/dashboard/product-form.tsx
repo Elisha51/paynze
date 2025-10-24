@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -50,6 +50,7 @@ import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptio
 import { Separator } from '../ui/separator';
 import type { OnboardingFormData } from '@/context/onboarding-context';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { getCategories } from '@/services/categories';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -110,6 +111,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -120,6 +122,12 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     if (data) {
         setSettings(JSON.parse(data));
     }
+
+    async function loadCategories() {
+        const fetchedCategories = await getCategories();
+        setCategories(fetchedCategories);
+    }
+    loadCategories();
   }, [initialProduct]);
   
   useEffect(() => {
@@ -997,7 +1005,16 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                 <CardContent className="space-y-4">
                      <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
-                        <Input id="category" value={product.category || ''} onChange={handleInputChange} placeholder="e.g., Fabrics"/>
+                        <Select value={product.category} onValueChange={(v) => handleSelectChange('category', v)}>
+                            <SelectTrigger id="category">
+                                <SelectValue placeholder="Select a category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {categories.map(cat => (
+                                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
                     </div>
                 </CardContent>
             </Card>

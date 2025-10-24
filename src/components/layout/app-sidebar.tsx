@@ -25,6 +25,7 @@ import {
   FileText,
   Building,
   Truck,
+  Shapes,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -35,6 +36,7 @@ const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/products', label: 'Products', icon: Package },
+  { href: '/dashboard/categories', label: 'Categories', icon: Shapes },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
 ];
 
