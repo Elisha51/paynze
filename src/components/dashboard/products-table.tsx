@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -61,7 +62,7 @@ const getColumns = (
   },
   {
     accessorKey: 'images',
-    header: () => <div className="hidden">Image</div>,
+    header: () => <div className="hidden sm:table-cell">Image</div>,
     cell: ({ row }) => {
       const product = row.original;
       const imageUrl = (product.images[0] as { url: string })?.url;
@@ -79,6 +80,7 @@ const getColumns = (
         </div>
       );
     },
+    enableSorting: false,
   },
   {
     accessorKey: 'name',
@@ -137,7 +139,20 @@ const getColumns = (
   },
   {
     accessorKey: 'stockQuantity',
-    header: 'Stock',
+    header: ({ column }) => {
+        return (
+            <div className="text-right">
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+                >
+                    Stock
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+        );
+      },
+      cell: ({ row }) => <div className="text-right">{row.getValue('stockQuantity')}</div>
   },
   {
     accessorKey: 'category',
@@ -169,9 +184,13 @@ const getColumns = (
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/products/${product.sku}`}>Edit</Link>
+                   <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/products/${product.sku}`}>View</Link>
                   </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/products/${product.sku}/edit`}>Edit</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
                       Archive

@@ -242,9 +242,9 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild className="hidden md:inline-flex">
-          <Link href="/dashboard/products">
+          <Link href={initialProduct?.sku ? `/dashboard/products/${initialProduct.sku}` : "/dashboard/products"}>
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Products</span>
+            <span className="sr-only">Back</span>
           </Link>
         </Button>
         <div>
