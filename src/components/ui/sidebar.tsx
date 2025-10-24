@@ -99,13 +99,12 @@ export const Sidebar = React.forwardRef<
     <Comp
       ref={ref}
       className={cn(
-        'group flex flex-col transition-all duration-300 ease-in-out',
+        'group flex flex-col transition-all duration-300 ease-in-out data-[state=collapsed]:(w-16) data-[state=expanded]:(w-64)',
         !isMobile && 'h-screen sticky top-0 border-r bg-sidebar text-sidebar-foreground',
-        !isMobile && state === 'expanded' && 'w-64',
-        !isMobile && state === 'collapsed' && 'w-16',
         isMobile && 'w-64 bg-sidebar text-sidebar-foreground p-0',
         className
       )}
+      data-state={state}
       {...props}
     >
       {children}
@@ -142,7 +141,7 @@ export const SidebarHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('border-b p-2 relative', className)}
+    className={cn('border-b p-2 h-14', className)}
     {...props}
   />
 ));
@@ -225,7 +224,7 @@ export const SidebarMenuButton = React.forwardRef<
   const buttonContent = (
     <Comp
       ref={ref}
-      className={cn(sidebarMenuButtonVariants({ isActive }), 'group/button', className)}
+      className={cn(sidebarMenuButtonVariants({ isActive }), 'group/button', state === 'collapsed' && 'justify-center', className)}
       {...props}
     >
       {React.Children.map(children, (child) => {
@@ -234,8 +233,8 @@ export const SidebarMenuButton = React.forwardRef<
             return React.cloneElement(child as React.ReactElement, {
               className: cn(
                 child.props.className,
-                'transition-opacity duration-300',
-                state === 'collapsed' && 'opacity-0 w-0'
+                'transition-all duration-300',
+                state === 'collapsed' && 'opacity-0 w-0 absolute'
               ),
             });
            }

@@ -40,19 +40,21 @@ export default function AppSidebar() {
 
   return (
     <Sidebar>
-        <SidebarHeader className="p-4 flex items-center justify-between">
-            <Link href="/dashboard" className="flex items-center gap-2">
-              <ShoppingCart className="w-8 h-8 text-primary" />
-              <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                  <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground">Paynze</h2>
-              </div>
-            </Link>
-            <Button variant="ghost" size="icon" className={cn("h-8 w-8 md:flex hidden", state === 'collapsed' && 'absolute -right-10 top-2')} onClick={toggleSidebar}>
-              <ChevronLeft className="h-5 w-5 transition-transform duration-300 group-data-[state=collapsed]:rotate-180" />
-            </Button>
+        <SidebarHeader>
+            <div className="flex items-center justify-between">
+                <Link href="/dashboard" className="flex items-center gap-2 flex-1">
+                <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
+                <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
+                    <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Paynze</h2>
+                </div>
+                </Link>
+                <Button variant="ghost" size="icon" className="h-8 w-8 hidden md:flex shrink-0" onClick={toggleSidebar}>
+                    <ChevronLeft className="h-5 w-5 transition-transform duration-300 group-data-[state=collapsed]:rotate-180" />
+                </Button>
+            </div>
         </SidebarHeader>
 
-        <SidebarContent className="p-2 flex-1">
+        <SidebarContent>
             <SidebarMenu>
             {menuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
@@ -60,12 +62,11 @@ export default function AppSidebar() {
                     <SidebarMenuButton
                     isActive={pathname === item.href}
                     tooltip={item.label}
-                    className="justify-start"
                     >
-                    <item.icon className="h-5 w-5" />
-                    <span>{item.label}</span>
+                    <item.icon className="h-5 w-5 shrink-0" />
+                    <span className="flex-1">{item.label}</span>
                     {item.badge && (
-                        <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Badge className="h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                         {item.badge}
                         </Badge>
                     )}
@@ -76,19 +77,19 @@ export default function AppSidebar() {
             </SidebarMenu>
         </SidebarContent>
 
-        <SidebarFooter className="p-2 border-t">
+        <SidebarFooter>
             <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton className="justify-start" tooltip="Support">
-                    <LifeBuoy className="h-5 w-5" />
-                    <span>Support</span>
+                <SidebarMenuButton tooltip="Support">
+                    <LifeBuoy className="h-5 w-5 shrink-0" />
+                    <span className="flex-1">Support</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/" passHref>
-                    <SidebarMenuButton className="justify-start" tooltip="Logout">
-                        <LogOut className="h-5 w-5" />
-                        <span>Logout</span>
+                    <SidebarMenuButton tooltip="Logout">
+                        <LogOut className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">Logout</span>
                     </SidebarMenuButton>
                 </Link>
             </SidebarMenuItem>
