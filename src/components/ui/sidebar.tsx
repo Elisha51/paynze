@@ -14,7 +14,6 @@ import {
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Badge } from '@/components/ui/badge';
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state';
 
@@ -136,7 +135,7 @@ export const SidebarHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('border-b p-2 h-14', className)}
+    className={cn('border-b p-2 h-14 flex items-center', className)}
     {...props}
   />
 ));
@@ -160,7 +159,7 @@ export const SidebarFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('border-t p-2', className)}
+    className={cn('p-2', className)}
     {...props}
   />
 ));
@@ -219,17 +218,26 @@ export const SidebarMenuButton = React.forwardRef<
   const buttonContent = (
     <Comp
       ref={ref}
-      className={cn(sidebarMenuButtonVariants({ isActive }), 'group/button', state === 'collapsed' && 'justify-center', className)}
+      className={cn(sidebarMenuButtonVariants({ isActive }), 'group/button relative', state === 'collapsed' && 'justify-center', className)}
       {...props}
     >
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
+           if (child.props.className?.includes('badge')) {
+            return React.cloneElement(child as React.ReactElement, {
+                className: cn(
+                    child.props.className,
+                    'transition-all duration-300',
+                    state === 'expanded' ? '' : 'absolute -top-2 -right-2 p-1.5 h-auto text-xs',
+                ),
+            });
+           }
            if (child.type === 'span') {
             return React.cloneElement(child as React.ReactElement, {
               className: cn(
                 child.props.className,
                 'transition-all duration-300',
-                state === 'collapsed' && 'opacity-0 w-0 absolute'
+                state === 'collapsed' && 'opacity-0 w-0'
               ),
             });
            }

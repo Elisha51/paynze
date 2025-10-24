@@ -41,17 +41,12 @@ export default function AppSidebar() {
   return (
     <Sidebar>
         <SidebarHeader>
-            <div className="flex items-center justify-between">
-                <Link href="/dashboard" className="flex items-center gap-2 flex-1">
-                <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
-                <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                    <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Paynze</h2>
-                </div>
-                </Link>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hidden md:flex shrink-0" onClick={toggleSidebar}>
-                    <ChevronLeft className="h-5 w-5 transition-transform duration-300 group-data-[state=collapsed]:rotate-180" />
-                </Button>
+            <Link href="/dashboard" className="flex items-center gap-2">
+            <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
+            <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
+                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Paynze</h2>
             </div>
+            </Link>
         </SidebarHeader>
 
         <SidebarContent>
@@ -66,7 +61,7 @@ export default function AppSidebar() {
                     <item.icon className="h-5 w-5 shrink-0" />
                     <span className="flex-1">{item.label}</span>
                     {item.badge && (
-                        <Badge className="h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                        <Badge className="h-6 w-auto px-2 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground">
                         {item.badge}
                         </Badge>
                     )}
@@ -94,6 +89,16 @@ export default function AppSidebar() {
                 </Link>
             </SidebarMenuItem>
             </SidebarMenu>
+             <div className="border-t -mx-2 mt-2 pt-2">
+                <SidebarMenu>
+                    <SidebarMenuItem>
+                        <Button variant="ghost" className="w-full justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={toggleSidebar}>
+                             <ChevronLeft className={cn("h-6 w-6 shrink-0 transition-transform duration-300", state === 'collapsed' && 'rotate-180')} />
+                             <span className="sr-only">Toggle Sidebar</span>
+                        </Button>
+                    </SidebarMenuItem>
+                </SidebarMenu>
+             </div>
       </SidebarFooter>
     </Sidebar>
   );
