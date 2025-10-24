@@ -52,7 +52,7 @@ export const products: Product[] = [
     longDescription: '<p>This e-book covers everything from setting up your store to marketing and logistics.</p>',
     status: 'published',
     images: [{ id: 'img2', url: `https://picsum.photos/seed/EBOOK-001/400/400` }],
-    digitalFileUrl: '/downloads/ebook.pdf',
+    digitalFile: undefined, // This would be a File object in the real app
     downloadLimit: 5,
     retailPrice: 10000,
     currency: 'KES',
@@ -86,6 +86,24 @@ export const products: Product[] = [
       { id: 'var4', optionValues: { Size: '43' }, price: 75000, stock: 15 },
     ],
   },
+  {
+    productType: 'Service',
+    name: '1-on-1 Business Consultation',
+    shortDescription: 'Book a one-hour session with our e-commerce experts to accelerate your growth.',
+    longDescription: '<p>Get personalized advice on marketing, sales, and operations for your online store.</p>',
+    status: 'published',
+    images: [{ id: 'img4', url: 'https://picsum.photos/seed/CONSULT-01/400/400'}],
+    serviceDuration: '1 hour',
+    retailPrice: 50000,
+    currency: 'KES',
+    isTaxable: true,
+    hasVariants: false,
+    variants: [],
+    trackStock: false,
+    stockQuantity: 999,
+    requiresShipping: false,
+    wholesalePricing: [],
+  }
 ];
 
   
