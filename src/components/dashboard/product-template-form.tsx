@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -52,10 +51,10 @@ const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     return LucideIcon ? <LucideIcon {...props} /> : <Lucide.Package {...props} />;
 };
 
-const availableIcons = Object.keys(Lucide).filter(key => typeof Lucide[key as keyof typeof Lucide] === 'object' && key !== 'createLucideIcon');
+const availableIcons = Object.keys(Lucide).filter(key => typeof Lucide[key as keyof typeof Lucide] === 'object' && key !== 'createLucideIcon' && /^[A-Z]/.test(key));
 
 
-export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Partial<ProductTemplate> }) {
+export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Partial<ProductTemplate> | null }) {
   const [template, setTemplate] = useState<Partial<ProductTemplate>>(initialTemplate || emptyTemplate);
   const [openCombobox, setOpenCombobox] = useState(false);
   const { toast } = useToast();
@@ -192,7 +191,7 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
                                     key={iconName}
                                     value={iconName}
                                     onSelect={(currentValue) => {
-                                        handleSelectChange('icon', currentValue === template.icon ? '' : currentValue);
+                                        handleSelectChange('icon', iconName === template.icon ? 'Package' : iconName);
                                         setOpenCombobox(false);
                                     }}
                                 >
@@ -334,5 +333,3 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
     </div>
   );
 }
-
-    
