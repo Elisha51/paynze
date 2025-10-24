@@ -40,7 +40,8 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
-  DialogClose
+  DialogClose,
+  DialogDescription
 } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
