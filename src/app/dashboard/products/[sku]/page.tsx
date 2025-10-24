@@ -14,3 +14,5 @@ export default async function EditProductPage({ params }: { params: { sku: strin
 
   return <ProductForm product={product} />;
 }
+
+    
