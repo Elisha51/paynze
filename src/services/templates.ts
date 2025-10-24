@@ -16,14 +16,9 @@ export const productTemplates: ProductTemplate[] = [
       hasVariants: true,
       inventoryTracking: 'Track Quantity',
       unitOfMeasure: 'unit',
-      optionNames: ['Size', 'Color'],
-      variants: [
-        { id: 'v1', optionValues: { Size: 'Small', Color: 'Black' }, stock: 10 },
-        { id: 'v2', optionValues: { Size: 'Medium', Color: 'Black' }, stock: 10 },
-        { id: 'v3', optionValues: { Size: 'Large', Color: 'Black' }, stock: 10 },
-        { id: 'v4', optionValues: { Size: 'Small', Color: 'White' }, stock: 10 },
-        { id: 'v5', optionValues: { Size: 'Medium', Color: 'White' }, stock: 10 },
-        { id: 'v6', optionValues: { Size: 'Large', Color: 'White' }, stock: 10 },
+      options: [
+        { name: 'Size', values: ['Small', 'Medium', 'Large'] },
+        { name: 'Color', values: ['Black', 'White'] }
       ],
       tags: ['t-shirt', 'apparel', 'clothing'],
     },
@@ -37,7 +32,6 @@ export const productTemplates: ProductTemplate[] = [
       productType: 'Digital',
       requiresShipping: false,
       inventoryTracking: 'Don\'t Track',
-      stockQuantity: 99999,
       isTaxable: false,
       hasVariants: false,
       category: 'Digital Goods',
@@ -53,7 +47,6 @@ export const productTemplates: ProductTemplate[] = [
       productType: 'Service',
       requiresShipping: false,
       inventoryTracking: 'Don\'t Track',
-      stockQuantity: 99999,
       serviceDuration: '1 hour',
       isTaxable: true,
       hasVariants: false,
@@ -111,3 +104,5 @@ export async function getSmsTemplates(): Promise<SmsTemplate[]> {
   await new Promise(resolve => setTimeout(resolve, 300));
   return smsTemplates;
 }
+
+    

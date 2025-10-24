@@ -18,6 +18,11 @@ export type InventoryItem = {
   location?: string; // e.g. 'Warehouse A, Shelf B-3'
 };
 
+export type ProductOption = {
+  name: string;
+  values: string[];
+};
+
 export type ProductVariant = {
   id: string; // e.g., 'variant-sm-red'
   optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
@@ -87,7 +92,7 @@ export type Product = {
 
   // V. Variants
   hasVariants: boolean;
-  options: { name: string, values: string[] }[];
+  options: ProductOption[];
   variants: ProductVariant[];
 
   // VI. Configuration & Customization
@@ -158,3 +163,5 @@ export type SalesData = {
   name: string;
   total: number;
 };
+
+    

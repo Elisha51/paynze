@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, Package, PlusCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Package, PlusCircle, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,7 +16,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import type { ProductTemplate, Product } from '@/lib/types';
+import type { ProductTemplate, Product, ProductOption } from '@/lib/types';
 import * as Lucide from 'lucide-react';
 import {
   Select,
@@ -40,9 +41,9 @@ const emptyTemplate: Partial<ProductTemplate> = {
     requiresShipping: true,
     isTaxable: false,
     hasVariants: false,
-    trackStock: true,
+    inventoryTracking: 'Track Quantity',
     currency: 'UGX',
-    optionNames: [],
+    options: [{ name: '', values: [] }],
   }
 };
 
@@ -81,25 +82,34 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
   const handleProductChange = (field: keyof Product, value: any) => {
     setTemplate(prev => ({
       ...prev,
-      product: { ...prev!.product, [field]: value }
+      product: { ...(prev?.product || {}), [field]: value }
     }));
   };
   
-  const handleOptionNameChange = (index: number, value: string) => {
-    const newOptionNames = [...(template.product?.optionNames || [])];
-    newOptionNames[index] = value;
-    handleProductChange('optionNames', newOptionNames);
+ const handleOptionChange = (optionIndex: number, field: 'name' | 'value', value: string) => {
+      const productOptions = template.product?.options || [];
+      const updatedOptions = [...productOptions];
+      if (field === 'name') {
+          updatedOptions[optionIndex].name = value;
+      } else {
+          updatedOptions[optionIndex].values = value.split(',').map(v => v.trim()).filter(Boolean);
+      }
+      handleProductChange('options', updatedOptions);
   };
 
-  const addOptionName = () => {
-    const newOptionNames = [...(template.product?.optionNames || []), ''];
-    handleProductChange('optionNames', newOptionNames);
+  const addOption = () => {
+    const productOptions = template.product?.options || [];
+    if (productOptions.length < 3) {
+      handleProductChange('options', [...productOptions, { name: '', values: [] }]);
+    }
   };
-  
-  const removeOptionName = (index: number) => {
-    const newOptionNames = (template.product?.optionNames || []).filter((_, i) => i !== index);
-    handleProductChange('optionNames', newOptionNames);
+
+  const removeOption = (optionIndex: number) => {
+    const productOptions = template.product?.options || [];
+    const updatedOptions = productOptions.filter((_, i) => i !== optionIndex);
+    handleProductChange('options', updatedOptions);
   };
+
 
   const handleSave = () => {
     toast({
@@ -110,9 +120,10 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
     console.log("Saving template:", template);
   };
   
-  const pageTitle = initialTemplate ? 'Edit Product Template' : 'Create Product Template';
-  const pageDescription = initialTemplate ? 'Update the details of this template.' : 'Design a new reusable template for your products.';
+  const pageTitle = initialTemplate?.id ? 'Edit Product Template' : 'Create Product Template';
+  const pageDescription = initialTemplate?.id ? 'Update the details of this template.' : 'Design a new reusable template for your products.';
 
+  const productOptions = template.product?.options || [];
 
   return (
     <div className="space-y-6">
@@ -269,23 +280,43 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
                 </div>
                 
                 {template.product?.hasVariants && (
-                    <div className="pl-6 space-y-4">
-                        <h4 className="font-medium text-sm">Variant Options</h4>
-                        {(template.product?.optionNames || []).map((option, index) => (
-                           <div key={index} className="flex items-center gap-2">
-                             <Input 
-                                value={option} 
-                                onChange={(e) => handleOptionNameChange(index, e.target.value)}
-                                placeholder={`Option ${index + 1} (e.g. Size)`}
-                             />
-                             <Button variant="ghost" size="icon" onClick={() => removeOptionName(index)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                             </Button>
-                           </div>
-                        ))}
-                        <Button variant="outline" size="sm" onClick={addOptionName}>
-                           <PlusCircle className="mr-2 h-4 w-4" /> Add Option
-                        </Button>
+                    <div className="space-y-4 pl-8 border-l">
+                        <h4 className="font-medium">Options</h4>
+                            {productOptions.map((option, index) => (
+                                <Card key={index} className="p-4">
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1 space-y-2">
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`option-name-${index}`}>Option Name</Label>
+                                                <Input
+                                                    id={`option-name-${index}`}
+                                                    value={option.name}
+                                                    onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
+                                                    placeholder="e.g., Size"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`option-values-${index}`}>Option Values</Label>
+                                                <Input
+                                                    id={`option-values-${index}`}
+                                                    value={option.values.join(', ')}
+                                                    onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
+                                                    placeholder="e.g., Small, Medium, Large"
+                                                />
+                                                 <p className="text-xs text-muted-foreground">Separate values with a comma.</p>
+                                            </div>
+                                        </div>
+                                        <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6">
+                                            <X className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                            {productOptions.length < 3 && (
+                                <Button variant="outline" size="sm" onClick={addOption}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Add another option
+                                </Button>
+                            )}
                     </div>
                 )}
             </CardContent>
@@ -316,12 +347,12 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
                     <p><span className="font-semibold text-foreground">Type:</span> {template.product?.productType}</p>
                     <p><span className="font-semibold text-foreground">Category:</span> {template.product?.category || 'Not set'}</p>
                     <p><span className="font-semibold text-foreground">Variants:</span> {template.product?.hasVariants ? 'Yes' : 'No'}</p>
-                    {template.product?.hasVariants && template.product.optionNames && template.product.optionNames.length > 0 && (
+                    {template.product?.hasVariants && productOptions.length > 0 && (
                         <div>
                             <p className="font-semibold text-foreground">Options:</p>
                             <ul className="list-disc list-inside pl-4">
-                                {template.product.optionNames.filter(opt => opt).map((opt, i) => (
-                                    <li key={i}>{opt}</li>
+                                {productOptions.filter(opt => opt.name).map((opt, i) => (
+                                    <li key={i}>{opt.name}</li>
                                 ))}
                             </ul>
                         </div>
@@ -333,3 +364,5 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
     </div>
   );
 }
+
+    

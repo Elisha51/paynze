@@ -13,9 +13,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant, ProductImage } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -58,10 +58,44 @@ const emptyProduct: Product = {
   currency: 'UGX',
   isTaxable: false,
   hasVariants: false,
-  options: [],
+  options: [{ name: '', values: [] }],
   variants: [],
   wholesalePricing: [],
 };
+
+// Helper function to generate variants from options
+const generateVariants = (options: ProductOption[]): ProductVariant[] => {
+    if (options.length === 0 || options.every(opt => opt.values.length === 0)) {
+        return [];
+    }
+
+    let variants: Record<string, string>[] = [{}];
+
+    for (const option of options) {
+        if(option.name && option.values.length > 0) {
+            const newVariants: Record<string, string>[] = [];
+            for (const variant of variants) {
+                for (const value of option.values) {
+                    newVariants.push({
+                        ...variant,
+                        [option.name]: value,
+                    });
+                }
+            }
+            variants = newVariants;
+        }
+    }
+    
+    return variants.map((optionValues, index) => ({
+        id: `variant-${Date.now()}-${index}`,
+        optionValues,
+        price: undefined,
+        stockQuantity: 0,
+        sku: '',
+        imageIds: []
+    }));
+};
+
 
 export function ProductForm({ initialProduct }: { initialProduct?: Partial<Product> | null }) {
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
@@ -69,10 +103,32 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   const { toast } = useToast();
 
   useEffect(() => {
-    if (initialProduct) {
-        setProduct({ ...emptyProduct, ...initialProduct });
-    }
+    // When initialProduct changes, reset the form state
+    setProduct({ ...emptyProduct, ...initialProduct });
   }, [initialProduct]);
+  
+  useEffect(() => {
+    if (product.hasVariants) {
+        const newVariants = generateVariants(product.options);
+        // Preserve existing variant data where possible
+        const mergedVariants = newVariants.map(newVariant => {
+            const existingVariant = product.variants.find(oldVariant => {
+                return JSON.stringify(oldVariant.optionValues) === JSON.stringify(newVariant.optionValues);
+            });
+            return existingVariant ? { ...newVariant, ...existingVariant, id: newVariant.id } : newVariant;
+        });
+        setProduct(prev => ({ ...prev, variants: mergedVariants }));
+    } else {
+        // If not using variants, ensure there is a single default variant for stock tracking
+        if (product.variants.length === 0) {
+            setProduct(prev => ({
+                ...prev,
+                variants: [{ id: 'default-variant', optionValues: {}, stockQuantity: 0, price: prev.retailPrice }]
+            }));
+        }
+    }
+  }, [product.options, product.hasVariants]);
+
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -114,11 +170,12 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
             inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track'
         }));
     }
-     if (id === 'inventoryTracking') {
-        const trackStock = value !== 'Don\'t Track';
-        if (!trackStock) {
-            setProduct(prev => ({ ...prev, lowStockThreshold: undefined, variants: prev.variants.map(v => ({...v, stockQuantity: 0})) }));
-        }
+     if (id === 'inventoryTracking' && value === "Don't Track") {
+        setProduct(prev => ({ 
+            ...prev, 
+            lowStockThreshold: undefined, 
+            variants: prev.variants.map(v => ({...v, stockQuantity: 0})) 
+        }));
     }
   }
 
@@ -178,13 +235,15 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
       if (field === 'name') {
           updatedOptions[optionIndex].name = value;
       } else {
-          updatedOptions[optionIndex].values = value.split(',').map(v => v.trim());
+          updatedOptions[optionIndex].values = value.split(',').map(v => v.trim()).filter(Boolean);
       }
       setProduct(prev => ({ ...prev, options: updatedOptions }));
   };
 
   const addOption = () => {
-    setProduct(prev => ({ ...prev, options: [...prev.options, { name: '', values: [] }] }));
+    if (product.options.length < 3) {
+      setProduct(prev => ({ ...prev, options: [...prev.options, { name: '', values: [] }] }));
+    }
   };
 
   const removeOption = (optionIndex: number) => {
@@ -495,7 +554,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                 </div>
             </CardContent>
           </Card>
-
+          
           {product.productType === 'Physical' && (
             <>
             <Card>
@@ -546,9 +605,11 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                     </div>
                                 </Card>
                             ))}
-                             <Button variant="outline" size="sm" onClick={addOption}>
-                                <PlusCircle className="mr-2 h-4 w-4" /> Add another option
-                            </Button>
+                            {product.options.length < 3 && (
+                                <Button variant="outline" size="sm" onClick={addOption}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Add another option
+                                </Button>
+                            )}
                         </div>
                     )}
                 </CardContent>
@@ -581,7 +642,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                             <Input
                                                 type="number"
                                                 aria-label="Variant Price"
-                                                value={variant.price || ''}
+                                                value={variant.price ?? ''}
                                                 onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)}
                                                 placeholder={String(product.retailPrice)}
                                                 className="h-8 min-w-[100px]"
@@ -594,6 +655,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                                 value={variant.stockQuantity}
                                                 onChange={(e) => handleVariantChange(variant.id, 'stockQuantity', e.target.value)}
                                                 className="h-8 min-w-[80px]"
+                                                disabled={product.inventoryTracking === 'Don\'t Track'}
                                             />
                                         </TableCell>
                                         <TableCell>
@@ -608,7 +670,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                         <TableCell className="text-center">
                                         <Dialog>
                                                 <DialogTrigger asChild>
-                                                    <Button variant="outline" size="sm">
+                                                    <Button variant="outline" size="sm" disabled={uploadedImages.length === 0}>
                                                         <ImageIcon className="h-4 w-4 mr-2" />
                                                         {variant.imageIds?.length || 0}
                                                     </Button>
@@ -781,3 +843,5 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     </div>
   );
 }
+
+    
