@@ -1,27 +1,20 @@
 
 'use client';
 
-import { ArrowLeft, Plus, PlusCircle, Trash2, X } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, ProductImage, ProductVariant, WholesalePrice } from '@/lib/types';
+import type { Product, WholesalePrice } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -35,20 +28,17 @@ import Link from 'next/link';
 const emptyProduct: Product = {
   productType: 'Physical',
   name: '',
-  sku: `SKU-${Math.random().toString(36).substr(2, 9).toUpperCase()}`,
-  category: '',
-  description: '',
-  retailPrice: 0,
-  wholesalePricing: [],
-  stockQuantity: 0,
-  trackStock: true,
-  variants: [],
-  visibility: 'draft',
+  status: 'draft',
   images: [],
-  videoUrl: '',
-  discount: null,
+  trackStock: true,
+  stockQuantity: 0,
   requiresShipping: true,
-  weight: 0,
+  retailPrice: 0,
+  currency: 'UGX',
+  isTaxable: false,
+  hasVariants: false,
+  variants: [],
+  wholesalePricing: [],
 };
 
 export function ProductForm({ product: initialProduct }: { product?: Product }) {
@@ -67,24 +57,24 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
     setProduct((prev) => ({ ...prev, [id]: Number(value) || 0 }));
   };
 
-  const handleVisibilityChange = (value: Product['visibility']) => {
-    setProduct((prev) => ({ ...prev, visibility: value }));
+  const handleStatusChange = (value: Product['status']) => {
+    setProduct((prev) => ({ ...prev, status: value }));
   };
 
-  const handleFilesChange = (newFiles: (File | ProductImage)[]) => {
+  const handleFilesChange = (newFiles: (File | { url: string; id: string })[]) => {
     setProduct({ ...product, images: newFiles });
   };
   
   const handleAddWholesalePrice = () => {
     setProduct(prev => ({
         ...prev,
-        wholesalePricing: [...prev.wholesalePricing, { group: 'wholesale', price: 0 }]
+        wholesalePricing: [...prev.wholesalePricing, { customerGroup: 'wholesale', price: 0 }]
     }))
   }
 
   const handleWholesalePriceChange = (index: number, field: keyof WholesalePrice, value: string | number) => {
     const updatedPricing = [...product.wholesalePricing];
-    if (field === 'price') {
+    if (field === 'price' || field === 'minOrderQuantity') {
       updatedPricing[index][field] = Number(value);
     } else {
       updatedPricing[index][field] = value as string;
@@ -140,8 +130,8 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                 <Input id="name" value={product.name} onChange={handleInputChange} placeholder="e.g., Kitenge Fabric"/>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" value={product.description} onChange={handleInputChange} placeholder="A detailed description of the product." />
+                <Label htmlFor="longDescription">Description</Label>
+                <Textarea id="longDescription" value={product.longDescription} onChange={handleInputChange} placeholder="A detailed description of the product." />
               </div>
             </CardContent>
           </Card>
@@ -161,7 +151,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                 </div>
                  <div className="space-y-2">
                     <Label htmlFor="videoUrl">Video URL</Label>
-                    <Input id="videoUrl" value={product.videoUrl} onChange={handleInputChange} placeholder="e.g., https://www.youtube.com/watch?v=..."/>
+                    <Input id="videoUrl" value={product.videoUrl || ''} onChange={handleInputChange} placeholder="e.g., https://www.youtube.com/watch?v=..."/>
                     <p className="text-xs text-muted-foreground">Embed a single video from YouTube or Vimeo.</p>
                 </div>
             </CardContent>
@@ -173,7 +163,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
             </CardHeader>
             <CardContent className="space-y-4">
                  <div className="space-y-2">
-                    <Label htmlFor="retailPrice">Retail Price</Label>
+                    <Label htmlFor="retailPrice">Retail Price ({product.currency})</Label>
                     <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
                 </div>
                 <div className="space-y-2">
@@ -182,13 +172,14 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                         <div className="space-y-2">
                             {product.wholesalePricing.map((tier, index) => (
                                 <div key={index} className="flex items-center gap-2 p-2 border rounded-md">
-                                    <Select value={tier.group} onValueChange={(value) => handleWholesalePriceChange(index, 'group', value)}>
+                                    <Select value={tier.customerGroup} onValueChange={(value) => handleWholesalePriceChange(index, 'customerGroup', value)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select group" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="wholesale">Wholesale</SelectItem>
                                             <SelectItem value="retailer">Retailer</SelectItem>
+                                            <SelectItem value="vip">VIP</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Input 
@@ -220,7 +211,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                     <CardTitle>Status</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <Select value={product.visibility} onValueChange={handleVisibilityChange}>
+                    <Select value={product.status} onValueChange={handleStatusChange}>
                         <SelectTrigger>
                             <SelectValue placeholder="Set status" />
                         </SelectTrigger>
@@ -239,11 +230,11 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                 <CardContent className="space-y-4">
                      <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
-                        <Input id="category" value={product.category} onChange={handleInputChange} placeholder="e.g., Fabrics"/>
+                        <Input id="category" value={product.category || ''} onChange={handleInputChange} placeholder="e.g., Fabrics"/>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
-                        <Input id="sku" value={product.sku} onChange={handleInputChange}/>
+                        <Input id="sku" value={product.sku || ''} onChange={handleInputChange}/>
                     </div>
                 </CardContent>
             </Card>
@@ -257,4 +248,3 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
     </div>
   );
 }
-

@@ -104,12 +104,12 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'visibility',
+    accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
-      const visibility = row.getValue('visibility') as string;
-      const variant = visibility === 'draft' ? 'secondary' : visibility === 'archived' ? 'outline' : 'default';
-      const capitalizedVisibility = visibility.charAt(0).toUpperCase() + visibility.slice(1);
+      const status = row.getValue('status') as string;
+      const variant = status === 'draft' ? 'secondary' : status === 'archived' ? 'outline' : 'default';
+      const capitalizedVisibility = status.charAt(0).toUpperCase() + status.slice(1);
       return <Badge variant={variant}>{capitalizedVisibility}</Badge>;
     }
   },
@@ -130,7 +130,8 @@ const getColumns = (
       },
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue('retailPrice'));
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(amount);
+      const currency = row.original.currency;
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
@@ -173,7 +174,7 @@ const getColumns = (
                   </DropdownMenuItem>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                      Delete
+                      Archive
                     </DropdownMenuItem>
                   </AlertDialogTrigger>
                 </DropdownMenuContent>
@@ -189,7 +190,7 @@ const getColumns = (
                   <AlertDialogCancel>Cancel</AlertDialogCancel>
                   <AlertDialogAction
                     className="bg-destructive hover:bg-destructive/90"
-                    onClick={() => archiveProduct(product.sku)}
+                    onClick={() => product.sku && archiveProduct(product.sku)}
                   >
                     Archive
                   </AlertDialogAction>
@@ -218,7 +219,7 @@ export function ProductsTable({ data, setData, filter, cardTitle, cardDescriptio
   const archiveProduct = (sku: string) => {
     setData(currentData =>
       currentData.map(product =>
-        product.sku === sku ? { ...product, visibility: 'archived' } : product
+        product.sku === sku ? { ...product, status: 'archived' } : product
       )
     );
     toast({
@@ -228,12 +229,20 @@ export function ProductsTable({ data, setData, filter, cardTitle, cardDescriptio
   };
 
   const columns = React.useMemo(() => getColumns(archiveProduct), [archiveProduct]);
+  
+  const filteredData = data.filter(product => {
+      if (filter && filter.value) {
+          const values = filter.value.split(',');
+          // assuming filter.column is 'status' now instead of 'visibility'
+          return values.includes(product.status);
+      }
+      return true;
+  });
 
   return (
     <DataTable
         columns={columns}
-        data={data}
-        filter={filter}
+        data={filteredData}
         cardTitle={cardTitle}
         cardDescription={cardDescription}
     />

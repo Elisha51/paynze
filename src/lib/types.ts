@@ -6,38 +6,86 @@ export type ProductImage = {
 };
 
 export type WholesalePrice = {
-  group: 'wholesale' | 'retailer' | string;
+  customerGroup: 'wholesale' | 'retailer' | 'vip' | string;
   price: number;
+  minOrderQuantity?: number;
 }
 
 export type ProductVariant = {
-  id: string;
-  optionName: string;
-  value: string;
-  price: number; // Can be a price adjustment or absolute price
+  id: string; // e.g., 'variant-sm-red'
+  optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
+  price?: number; // Overrides the main product price
   stock: number;
-  imageIds: string[];
+  sku?: string; // e.g., 'TSHIRT-RED-SM'
+  barcode?: string;
+  weight?: number; // Overrides main product weight
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  imageId?: string; // ID of the primary image for this variant
 };
 
+
 export type Product = {
+  // I. Core Identity & Media
   productType: 'Physical' | 'Digital' | 'Service';
   name: string;
-  description?: string;
-  sku: string;
-  category: string;
-  retailPrice: number;
-  wholesalePricing: WholesalePrice[];
-  stockQuantity: number;
-  trackStock: boolean;
-  variants: ProductVariant[];
-  visibility: 'published' | 'draft' | 'archived';
-  images: (ProductImage | File)[]; // Allow for File objects during upload
+  shortDescription?: string;
+  longDescription?: string; // Rich text
+  status: 'draft' | 'published' | 'archived';
+  images: (ProductImage | File)[]; // Supports uploaded files or existing images
   videoUrl?: string;
-  discount: string | null;
+
+  // II. Inventory & Logistics
+  sku?: string;
+  barcode?: string; // GTIN, EAN, UPC
+  trackStock: boolean;
+  stockQuantity: number;
+  lowStockThreshold?: number;
   requiresShipping: boolean;
-  weight: number;
-  digitalFileUrl?: string;
+  weight?: number; // in kg
+  dimensions?: {
+    length: number;
+    width: number;
+    height: number;
+  };
+  digitalFileUrl?: string; // For digital products
+  downloadLimit?: number; // For digital products
+  serviceDuration?: string; // For service products, e.g., "1 hour", "Per Session"
+
+  // III. Pricing & Taxation
+  retailPrice: number;
+  currency: 'KES' | 'UGX' | 'TZS' | 'USD';
+  compareAtPrice?: number;
+  wholesalePricing: WholesalePrice[];
+  isTaxable: boolean;
+  taxClass?: string;
+  costPerItem?: number; // For profit tracking
+
+  // IV. Organization & Discovery
+  category?: string;
+  tags?: string[];
+  vendor?: string;
+  collections?: string[];
+  seo?: {
+    pageTitle?: string;
+    metaDescription?: string;
+    urlHandle?: string;
+  };
+
+  // V. Variants
+  hasVariants: boolean;
+  optionNames?: string[];
+  variants: ProductVariant[];
+
+  // VI. Configuration & Customization
+  templateId?: string; // ID of a saved product template
+  customFields?: { [key: string]: any };
+  productVisibility?: string[]; // e.g., 'Online Store', 'POS'
 };
+
 
 export type Order = {
     id: string;

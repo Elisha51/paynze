@@ -35,29 +35,13 @@ import { useSearch } from '@/context/search-context';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  filter?: {
-    column: string;
-    value: string;
-  };
   cardTitle: string;
   cardDescription: string;
 }
 
-// Custom filter function to handle comma-separated values
-const listFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
-    if (typeof filterValue !== 'string' || !filterValue) {
-        return true;
-    }
-    const values = filterValue.split(',');
-    const rowValue = row.getValue(columnId);
-    return values.includes(rowValue as string);
-};
-
-
 export function DataTable<TData, TValue>({
   columns,
   data,
-  filter,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -66,25 +50,9 @@ export function DataTable<TData, TValue>({
   const [rowSelection, setRowSelection] = React.useState({});
   const { searchQuery } = useSearch();
 
-  React.useEffect(() => {
-    if (filter) {
-        const currentGlobalFilter = columnFilters.find(f => f.id === 'global');
-        const newFilters = currentGlobalFilter ? [currentGlobalFilter] : [];
-        newFilters.push({ id: filter.column, value: filter.value });
-        setColumnFilters(newFilters);
-    } else {
-      // Clear filters if no filter is provided, preserving global filter
-      setColumnFilters(prev => prev.filter(f => f.id === 'global'));
-    }
-  }, [filter]);
-
-
   const table = useReactTable({
     data,
     columns,
-    filterFns: {
-        list: listFilterFn,
-    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
@@ -101,13 +69,6 @@ export function DataTable<TData, TValue>({
       globalFilter: searchQuery,
     },
     globalFilterFn: 'auto',
-    getColumn: (id: string) => {
-        const column = table.getAllColumns().find(c => c.id === id);
-        if (id === 'visibility' && column) {
-            column.filterFn = 'list';
-        }
-        return column;
-    }
   });
 
   return (

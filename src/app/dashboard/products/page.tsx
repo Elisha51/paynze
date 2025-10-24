@@ -47,7 +47,7 @@ export default function ProductsPage() {
             <ProductsTable
                 data={products}
                 setData={setProducts}
-                filter={{ column: 'visibility', value: 'published,draft' }}
+                filter={{ column: 'status', value: 'published,draft' }}
                 cardTitle='All Products'
                 cardDescription='Manage all your active and draft products.'
             />
@@ -56,7 +56,7 @@ export default function ProductsPage() {
             <ProductsTable 
                 data={products}
                 setData={setProducts}
-                filter={{ column: 'visibility', value: 'published' }}
+                filter={{ column: 'status', value: 'published' }}
                 cardTitle='Published Products'
                 cardDescription='View all products that are currently visible to customers.'
             />
@@ -65,7 +65,7 @@ export default function ProductsPage() {
             <ProductsTable
                 data={products}
                 setData={setProducts}
-                filter={{ column: 'visibility', value: 'draft' }}
+                filter={{ column: 'status', value: 'draft' }}
                 cardTitle='Draft Products'
                 cardDescription='View all products that are not yet published.'
             />
@@ -74,7 +74,7 @@ export default function ProductsPage() {
             <ProductsTable 
                 data={products}
                 setData={setProducts}
-                filter={{ column: 'visibility', value: 'archived' }}
+                filter={{ column: 'status', value: 'archived' }}
                 cardTitle='Archived Products'
                 cardDescription='View all products that have been archived.'
             />
