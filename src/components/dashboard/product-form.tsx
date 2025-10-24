@@ -176,7 +176,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
             requiresShipping: isPhysical,
             inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
             variants: isPhysical ? prev.variants : [],
-            options: isPhysical ? prev.options : [],
+            options: isPhysical ? prev.options : [{ name: '', values: [] }],
             hasVariants: isPhysical ? prev.hasVariants : false,
         }));
     }

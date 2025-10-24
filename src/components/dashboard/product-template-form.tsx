@@ -364,5 +364,3 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
     </div>
   );
 }
-
-    
