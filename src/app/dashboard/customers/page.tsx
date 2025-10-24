@@ -7,18 +7,26 @@ import {
   } from '@/components/ui/card';
   import { CustomersTable } from '@/components/dashboard/customers-table';
   import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+  import { Button } from '@/components/ui/button';
+  import { PlusCircle } from 'lucide-react';
   
   export default function CustomersPage() {
     return (
       <Tabs defaultValue="all">
-        <div className="flex items-center justify-between space-y-2">
+        <div className="space-y-2 mb-4">
             <h2 className="text-3xl font-bold tracking-tight font-headline">Customers</h2>
+        </div>
+        <div className="flex items-center justify-between">
+            <TabsList>
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="wholesale">Wholesale</TabsTrigger>
+                <TabsTrigger value="retailer">Retailer</TabsTrigger>
+            </TabsList>
             <div className="flex items-center space-x-2">
-                <TabsList>
-                    <TabsTrigger value="all">All</TabsTrigger>
-                    <TabsTrigger value="wholesale">Wholesale</TabsTrigger>
-                    <TabsTrigger value="retailer">Retailer</TabsTrigger>
-                </TabsList>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Customer
+                </Button>
             </div>
         </div>
         <TabsContent value="all">

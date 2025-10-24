@@ -33,52 +33,11 @@ export default function ProductsPage() {
 
   return (
     <>
-      <div className="flex items-center justify-between space-y-2">
-        <h2 className="text-3xl font-bold tracking-tight font-headline">Products</h2>
-        <div className="flex items-center space-x-2">
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Product
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-              <DialogHeader>
-                <DialogTitle>Add New Product</DialogTitle>
-                <DialogDescription>
-                  Fill in the details for your new product. Click save when you're done.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="name" className="text-right">
-                    Name
-                  </Label>
-                  <Input id="name" value={productName} onChange={(e) => setProductName(e.target.value)} className="col-span-3" placeholder="e.g. Kitenge Fabric" />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="category" className="text-right">
-                    Category
-                  </Label>
-                  <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="col-span-3" placeholder="e.g. Fabrics"/>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="description" className="text-right">
-                    Description
-                  </Label>
-                  <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" placeholder="A brief description of the product."/>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">Save Product</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
       <Tabs defaultValue="all">
-        <div className="flex items-center">
+        <div className="space-y-2 mb-4">
+          <h2 className="text-3xl font-bold tracking-tight font-headline">Products</h2>
+        </div>
+        <div className="flex items-center justify-between">
           <TabsList>
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="active">Active</TabsTrigger>
@@ -87,9 +46,51 @@ export default function ProductsPage() {
               Archived
             </TabsTrigger>
           </TabsList>
+          <div className="flex items-center space-x-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Product
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Product</DialogTitle>
+                  <DialogDescription>
+                    Fill in the details for your new product. Click save when you're done.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="name" className="text-right">
+                      Name
+                    </Label>
+                    <Input id="name" value={productName} onChange={(e) => setProductName(e.target.value)} className="col-span-3" placeholder="e.g. Kitenge Fabric" />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category" className="text-right">
+                      Category
+                    </Label>
+                    <Input id="category" value={category} onChange={(e) => setCategory(e.target.value)} className="col-span-3" placeholder="e.g. Fabrics"/>
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="description" className="text-right">
+                      Description
+                    </Label>
+                    <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" placeholder="A brief description of the product."/>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button type="submit">Save Product</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
+        
         <TabsContent value="all">
-          <Card>
+          <Card className="mt-4">
             <CardHeader>
               <CardTitle>All Products</CardTitle>
               <CardDescription>
