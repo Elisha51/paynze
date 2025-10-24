@@ -8,14 +8,16 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from './button';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import type { ProductImage } from '@/lib/types';
+
 
 interface FileUploaderProps {
-  files: (File | { url: string; id: string })[];
-  onFilesChange: (files: (File | { url: string; id: string })[]) => void;
+  files: (File | ProductImage)[];
+  onFilesChange: (files: (File | ProductImage)[]) => void;
   maxFiles?: number;
 }
 
-export function FileUploader({ files, onFilesChange, maxFiles = 5 }: FileUploaderProps) {
+export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUploaderProps) {
   const { toast } = useToast();
 
   const onDrop = useCallback(
@@ -74,7 +76,7 @@ export function FileUploader({ files, onFilesChange, maxFiles = 5 }: FileUploade
         </Button>
       </div>
     );
-  }), [files]);
+  }), [files, removeFile]);
 
   return (
     <div className="space-y-4">

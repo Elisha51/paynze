@@ -6,7 +6,7 @@ export type ProductImage = {
 };
 
 export type WholesalePrice = {
-  customerGroup: 'wholesale' | 'retailer' | 'vip' | string;
+  customerGroup: string;
   price: number;
   minOrderQuantity?: number;
 }
@@ -24,7 +24,7 @@ export type ProductVariant = {
     width: number;
     height: number;
   };
-  imageId?: string; // ID of the primary image for this variant
+  imageIds?: string[]; // IDs of the primary images for this variant
 };
 
 

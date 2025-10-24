@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -13,9 +13,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -33,6 +33,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+  DialogClose
+} from '@/components/ui/dialog';
+import Image from 'next/image';
+import { Checkbox } from '../ui/checkbox';
 
 const emptyProduct: Product = {
   productType: 'Physical',
@@ -70,14 +81,24 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
     setProduct((prev) => ({ ...prev, status: value }));
   };
 
-  const handleFilesChange = (newFiles: (File | { url: string; id: string })[]) => {
-    setProduct({ ...product, images: newFiles });
+  const handleFilesChange = (newFiles: (File | ProductImage)[]) => {
+    // Generate IDs for new File objects
+    const processedFiles = newFiles.map(file => {
+      if (file instanceof File && !(file as any).id) {
+        // This is a new file, give it an ID
+        const newFileWithId = file as any;
+        newFileWithId.id = `new-${Math.random().toString(36).substr(2, 9)}`;
+        return newFileWithId;
+      }
+      return file;
+    });
+    setProduct({ ...product, images: processedFiles as (ProductImage | File)[] });
   };
   
   const handleAddWholesalePrice = () => {
     setProduct(prev => ({
         ...prev,
-        wholesalePricing: [...(prev.wholesalePricing || []), { customerGroup: 'wholesale', price: 0, minOrderQuantity: 10 }]
+        wholesalePricing: [...(prev.wholesalePricing || []), { customerGroup: '', price: 0, minOrderQuantity: 10 }]
     }))
   }
 
@@ -118,6 +139,23 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
         })
     }));
   };
+  
+  const handleVariantImageSelect = (variantId: string, imageId: string, isSelected: boolean) => {
+    setProduct(prev => ({
+        ...prev,
+        variants: prev.variants.map(v => {
+            if (v.id === variantId) {
+                const imageIds = v.imageIds || [];
+                if (isSelected) {
+                    return { ...v, imageIds: [...imageIds, imageId] };
+                } else {
+                    return { ...v, imageIds: imageIds.filter(id => id !== imageId) };
+                }
+            }
+            return v;
+        })
+    }));
+  };
 
   const handleSave = () => {
     toast({
@@ -127,6 +165,9 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
     // In a real app, this would be a POST/PUT request to an API
     console.log('Saving product:', product);
   };
+  
+  const uploadedImages = useMemo(() => product.images.filter(img => 'url' in img || img instanceof File) as (ProductImage | File & { id: string, url?: string })[], [product.images]);
+
 
   return (
     <div className="space-y-6">
@@ -179,7 +220,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                     <FileUploader
                         files={product.images}
                         onFilesChange={handleFilesChange}
-                        maxFiles={5}
+                        maxFiles={15}
                     />
                 </div>
                  <div className="space-y-2">
@@ -217,16 +258,13 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                              </div>
                             {product.wholesalePricing.map((tier, index) => (
                                 <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
-                                    <Select value={tier.customerGroup} onValueChange={(value) => handleWholesalePriceChange(index, 'customerGroup', value)}>
-                                        <SelectTrigger aria-label="Customer Group">
-                                            <SelectValue placeholder="Select group" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="wholesale">Wholesale</SelectItem>
-                                            <SelectItem value="retailer">Retailer</SelectItem>
-                                            <SelectItem value="vip">VIP</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                    <Input
+                                        type="text"
+                                        aria-label="Customer Group"
+                                        value={tier.customerGroup}
+                                        onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
+                                        placeholder="e.g. Wholesale"
+                                    />
                                     <Input 
                                         type="number" 
                                         aria-label="Minimum Order Quantity"
@@ -270,6 +308,7 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                                 <TableHead className="w-[120px]">Price</TableHead>
                                 <TableHead className="w-[100px]">Stock</TableHead>
                                 <TableHead>SKU</TableHead>
+                                <TableHead className="text-center">Images</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -305,6 +344,54 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                                             placeholder="Variant SKU"
                                             className="h-8"
                                         />
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                       <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button variant="outline" size="sm">
+                                                    <ImageIcon className="h-4 w-4 mr-2" />
+                                                    {variant.imageIds?.length || 0}
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-2xl">
+                                                <DialogHeader>
+                                                    <DialogTitle>Manage Images for {Object.values(variant.optionValues).join(' / ')}</DialogTitle>
+                                                </DialogHeader>
+                                                <div className="grid grid-cols-4 gap-4 py-4 max-h-[50vh] overflow-y-auto">
+                                                    {uploadedImages.map((image) => {
+                                                        const imageId = 'id' in image ? image.id : '';
+                                                        const imageUrl = image instanceof File ? URL.createObjectURL(image) : image.url;
+                                                        const isSelected = variant.imageIds?.includes(imageId) ?? false;
+                                                        return (
+                                                            <div key={imageId} className="relative">
+                                                                <label htmlFor={`img-${variant.id}-${imageId}`} className="cursor-pointer">
+                                                                    <Image
+                                                                        src={imageUrl}
+                                                                        alt="Product image"
+                                                                        width={150}
+                                                                        height={150}
+                                                                        className="rounded-md object-cover aspect-square"
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                                                        <Checkbox
+                                                                            id={`img-${variant.id}-${imageId}`}
+                                                                            checked={isSelected}
+                                                                            onCheckedChange={(checked) => handleVariantImageSelect(variant.id, imageId, !!checked)}
+                                                                            className="h-6 w-6 border-white data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                                        />
+                                                                    </div>
+                                                                </label>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                                <DialogFooter>
+                                                    <DialogClose asChild>
+                                                        <Button>Done</Button>
+                                                    </DialogClose>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -355,5 +442,3 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
     </div>
   );
 }
-
-    
