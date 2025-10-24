@@ -6,6 +6,7 @@ import {
   ColumnDef,
 } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,6 @@ import { useToast } from '@/hooks/use-toast';
 
 const getColumns = (
   archiveProduct: (sku: string) => void,
-  onEdit: (product: Product) => void,
 ): ColumnDef<Product>[] => [
   {
     id: 'select',
@@ -64,17 +64,17 @@ const getColumns = (
     header: () => <div className="hidden">Image</div>,
     cell: ({ row }) => {
       const product = row.original;
-      const imageId = product.images[0] || 'product-placeholder';
-      const image = PlaceHolderImages.find((p) => p.id === imageId);
+      const imageUrl = (product.images[0] as { url: string })?.url;
+      
       return (
         <div className="w-[64px] h-[64px] hidden sm:table-cell">
           <Image
             alt={product.name}
             className="aspect-square rounded-md object-cover"
             height="64"
-            src={image?.imageUrl || `https://picsum.photos/seed/${product.sku}/64/64`}
+            src={imageUrl || `https://picsum.photos/seed/${product.sku}/64/64`}
             width="64"
-            data-ai-hint={image?.imageHint}
+            data-ai-hint="product image"
           />
         </div>
       );
@@ -97,7 +97,7 @@ const getColumns = (
       const product = row.original;
       return (
         <div className="flex flex-col">
-          <span className="font-medium">{product.name}</span>
+          <Link href={`/dashboard/products/${product.sku}`} className="font-medium hover:underline">{product.name}</Link>
           <span className="text-xs text-muted-foreground">{product.sku}</span>
         </div>
       )
@@ -168,7 +168,9 @@ const getColumns = (
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem onClick={() => onEdit(product)}>Edit</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/products/${product.sku}`}>Edit</Link>
+                  </DropdownMenuItem>
                   <AlertDialogTrigger asChild>
                     <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
                       Delete
@@ -202,7 +204,6 @@ const getColumns = (
 type ProductsTableProps = {
   data: Product[];
   setData: React.Dispatch<React.SetStateAction<Product[]>>;
-  onEdit: (product: Product) => void;
   filter?: {
     column: string;
     value: string;
@@ -211,7 +212,7 @@ type ProductsTableProps = {
   cardDescription: string;
 };
 
-export function ProductsTable({ data, setData, onEdit, filter, cardTitle, cardDescription }: ProductsTableProps) {
+export function ProductsTable({ data, setData, filter, cardTitle, cardDescription }: ProductsTableProps) {
   const { toast } = useToast();
   
   const archiveProduct = (sku: string) => {
@@ -226,7 +227,7 @@ export function ProductsTable({ data, setData, onEdit, filter, cardTitle, cardDe
     });
   };
 
-  const columns = React.useMemo(() => getColumns(archiveProduct, onEdit), [archiveProduct, onEdit]);
+  const columns = React.useMemo(() => getColumns(archiveProduct), [archiveProduct]);
 
   return (
     <DataTable
