@@ -1,3 +1,4 @@
+
 // src/context/onboarding-context.tsx
 'use client';
 
@@ -5,7 +6,7 @@ import React, { createContext, useContext, useState, ReactNode, useEffect } from
 import { useToast } from '@/hooks/use-toast';
 import { themes } from '@/lib/themes';
 
-type OnboardingFormData = {
+export type OnboardingFormData = {
   businessName: string;
   businessType: string;
   contactPhone: string;

@@ -25,6 +25,7 @@ import {
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
+import { type OnboardingFormData } from '@/context/onboarding-context';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -34,7 +35,11 @@ const menuItems = [
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ];
 
-export default function AppSidebar() {
+type AppSidebarProps = {
+    onboardingData: OnboardingFormData | null;
+}
+
+export default function AppSidebar({ onboardingData }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
 
@@ -44,7 +49,7 @@ export default function AppSidebar() {
             <Link href="/" className="flex items-center gap-2">
             <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
             <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">Paynze</h2>
+                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{onboardingData?.businessName || 'Paynze'}</h2>
             </div>
             </Link>
         </SidebarHeader>

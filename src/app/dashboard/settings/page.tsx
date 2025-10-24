@@ -1,3 +1,7 @@
+
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -5,8 +9,40 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
+import { OnboardingFormData } from '@/context/onboarding-context';
 
 export default function SettingsPage() {
+    const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+
+    useEffect(() => {
+        const data = localStorage.getItem('onboardingData');
+        if (data) {
+            setSettings(JSON.parse(data));
+        }
+    }, []);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (!settings) return;
+        const { id, value } = e.target;
+        setSettings(prev => prev ? { ...prev, [id]: value } : null);
+    };
+
+    const handleSwitchChange = (id: 'cod' | 'mobileMoney' | 'pickup', checked: boolean) => {
+        if (!settings) return;
+
+        if (id === 'pickup') {
+            setSettings(prev => prev ? { ...prev, delivery: { ...prev.delivery, [id]: checked } } : null);
+        } else {
+            setSettings(prev => prev ? { ...prev, paymentOptions: { ...prev.paymentOptions, [id]: checked } } : null);
+        }
+    };
+    
+    const handleDeliveryInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!settings) return;
+        const { id, value } = e.target;
+        setSettings(prev => prev ? { ...prev, delivery: { ...prev.delivery, [id]: value } } : null);
+    };
+
   return (
     <>
       <div className="space-y-2 mb-8">
@@ -32,18 +68,18 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="businessName">Business Name</Label>
-                <Input id="businessName" defaultValue="My Business" />
+                <Input id="businessName" value={settings?.businessName || ''} onChange={handleInputChange} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subdomain">Subdomain</Label>
                 <div className="flex items-center">
-                    <Input id="subdomain" defaultValue="my-store" />
+                    <Input id="subdomain" value={settings?.subdomain || ''} onChange={handleInputChange} />
                     <span className="ml-2 text-muted-foreground">.paynze.app</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="storeDescription">Store Description</Label>
-                <Textarea id="storeDescription" defaultValue="The best prices in town." />
+                <Textarea id="storeDescription" placeholder="A brief description of your store." />
               </div>
             </CardContent>
           </Card>
@@ -65,41 +101,24 @@ export default function SettingsPage() {
                       Accept cash payments upon delivery.
                     </span>
                   </Label>
-                  <Switch id="cod" defaultChecked />
+                  <Switch id="cod" checked={settings?.paymentOptions.cod} onCheckedChange={(c) => handleSwitchChange('cod', c)} />
                 </CardHeader>
               </Card>
                <Card>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                     <Label htmlFor="mpesa" className="flex flex-col space-y-1">
-                        <span>M-Pesa</span>
+                     <Label htmlFor="mobileMoney" className="flex flex-col space-y-1">
+                        <span>Mobile Money</span>
                         <span className="font-normal leading-snug text-muted-foreground">
-                            Accept payments via M-Pesa.
+                            Accept payments via M-Pesa, MTN, Airtel etc.
                         </span>
                      </Label>
-                     <Switch id="mpesa" defaultChecked />
+                     <Switch id="mobileMoney" checked={settings?.paymentOptions.mobileMoney} onCheckedChange={(c) => handleSwitchChange('mobileMoney', c)} />
                   </div>
                 </CardHeader>
-                <CardContent>
-                    <Label htmlFor="mpesaTill">M-Pesa Till Number</Label>
-                    <Input id="mpesaTill" defaultValue="123456" />
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="mtn" className="flex flex-col space-y-1">
-                            <span>MTN Mobile Money</span>
-                            <span className="font-normal leading-snug text-muted-foreground">
-                                Accept payments via MTN MoMo.
-                            </span>
-                        </Label>
-                        <Switch id="mtn" />
-                    </div>
-                </CardHeader>
-                <CardContent className="hidden">
-                    <Label htmlFor="mtnCode">MTN Merchant Code</Label>
-                    <Input id="mtnCode" placeholder="Enter your MTN Merchant Code" />
+                <CardContent className={!settings?.paymentOptions.mobileMoney ? 'hidden' : ''}>
+                    <Label htmlFor="mpesaTill">M-Pesa Till Number (Optional)</Label>
+                    <Input id="mpesaTill" placeholder="e.g. 123456" />
                 </CardContent>
               </Card>
             </CardContent>
@@ -122,11 +141,11 @@ export default function SettingsPage() {
                       Allow customers to pick up their orders from your location.
                     </span>
                   </Label>
-                  <Switch id="pickup" defaultChecked />
+                  <Switch id="pickup" checked={settings?.delivery.pickup} onCheckedChange={(c) => handleSwitchChange('pickup', c)} />
                 </CardHeader>
-                <CardContent>
-                  <Label htmlFor="pickupAddress">Pickup Address</Label>
-                  <Input id="pickupAddress" defaultValue="Shop 14, Kikuubo Lane, Kampala" />
+                <CardContent className={!settings?.delivery.pickup ? 'hidden' : ''}>
+                  <Label htmlFor="address">Pickup Address</Label>
+                  <Input id="address" value={settings?.delivery.address || ''} onChange={handleDeliveryInputChange} />
                 </CardContent>
               </Card>
               <Card>
@@ -138,12 +157,12 @@ export default function SettingsPage() {
                                 Charge a single rate for all deliveries.
                             </span>
                         </Label>
-                        <Switch id="flat-rate" defaultChecked />
+                        <Switch id="flat-rate" defaultChecked={!!settings?.delivery.deliveryFee} />
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <Label htmlFor="flatRateFee">Flat Rate Fee (UGX)</Label>
-                    <Input id="flatRateFee" type="number" defaultValue="10000" />
+                    <Label htmlFor="deliveryFee">Flat Rate Fee ({settings?.currency || '...'})</Label>
+                    <Input id="deliveryFee" type="number" value={settings?.delivery.deliveryFee || ''} onChange={handleDeliveryInputChange} />
                 </CardContent>
               </Card>
             </CardContent>
