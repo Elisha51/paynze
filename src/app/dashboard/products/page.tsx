@@ -146,7 +146,7 @@ export default function ProductsPage() {
 
   const tabs = [
       { value: 'all', label: 'All' },
-      { value: 'active', label: 'Active' },
+      { value: 'published', label: 'Published' },
       { value: 'draft', label: 'Draft' },
       { value: 'archived', label: 'Archived' },
   ];
@@ -175,13 +175,13 @@ export default function ProductsPage() {
                 cardDescription='Manage all your active and draft products.'
             />
         </DashboardPageLayout.TabContent>
-        <DashboardPageLayout.TabContent value="active">
+        <DashboardPageLayout.TabContent value="published">
             <ProductsTable 
                 data={products}
                 setData={setProducts}
                 onEdit={handleOpenDialog}
                 filter={{ column: 'visibility', value: 'published' }}
-                cardTitle='Active Products'
+                cardTitle='Published Products'
                 cardDescription='View all products that are currently visible to customers.'
             />
         </DashboardPageLayout.TabContent>
@@ -210,7 +210,7 @@ export default function ProductsPage() {
     <Dialog open={isDialogOpen} onOpenChange={handleDialogClose}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>{editingProduct?.name ? 'Edit Product' : 'Add New Product'}</DialogTitle>
+            <DialogTitle>{editingProduct?.name && editingProduct.sku ? 'Edit Product' : 'Add New Product'}</DialogTitle>
             <DialogDescription>
               Fill in the details for your product. You can save as a draft or publish immediately.
             </DialogDescription>

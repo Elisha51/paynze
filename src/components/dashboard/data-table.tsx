@@ -45,12 +45,12 @@ interface DataTableProps<TData, TValue> {
 
 // Custom filter function to handle comma-separated values
 const listFilterFn: FilterFn<any> = (row, columnId, filterValue) => {
-    if (typeof filterValue === 'string') {
-        const values = filterValue.split(',');
-        const rowValue = row.getValue(columnId);
-        return values.includes(rowValue);
+    if (typeof filterValue !== 'string' || !filterValue) {
+        return true;
     }
-    return true;
+    const values = filterValue.split(',');
+    const rowValue = row.getValue(columnId);
+    return values.includes(rowValue as string);
 };
 
 
@@ -68,13 +68,13 @@ export function DataTable<TData, TValue>({
 
   React.useEffect(() => {
     if (filter) {
-        setColumnFilters(prev => [
-            ...prev.filter(f => f.id !== filter.column), 
-            { id: filter.column, value: filter.value }
-        ]);
+        const currentGlobalFilter = columnFilters.find(f => f.id === 'global');
+        const newFilters = currentGlobalFilter ? [currentGlobalFilter] : [];
+        newFilters.push({ id: filter.column, value: filter.value });
+        setColumnFilters(newFilters);
     } else {
-      // Clear filters if no filter is provided
-      setColumnFilters([]);
+      // Clear filters if no filter is provided, preserving global filter
+      setColumnFilters(prev => prev.filter(f => f.id === 'global'));
     }
   }, [filter]);
 
@@ -103,8 +103,8 @@ export function DataTable<TData, TValue>({
     globalFilterFn: 'auto',
     getColumn: (id: string) => {
         const column = table.getAllColumns().find(c => c.id === id);
-        if (id === 'visibility') {
-            (column as any).filterFn = 'list';
+        if (id === 'visibility' && column) {
+            column.filterFn = 'list';
         }
         return column;
     }
