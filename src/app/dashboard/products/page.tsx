@@ -30,6 +30,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Product, ProductVariant, ProductImage } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { Stepper, Step } from '@/components/ui/stepper';
+import { FileUploader } from '@/components/ui/file-uploader';
 
 const emptyProduct: Product = {
     name: '',
@@ -117,8 +118,21 @@ export default function ProductsPage() {
   const handleSaveProduct = (publish: boolean) => {
     if (!editingProduct) return;
 
+    // This is a prototype, so we're not actually uploading files.
+    // We'll just create placeholder URLs for the new files.
+    const finalImages = editingProduct.images.map((img) => {
+      if (img instanceof File) {
+        return {
+          id: `img-${Date.now()}-${Math.random()}`,
+          url: URL.createObjectURL(img), // This is a temporary local URL
+        };
+      }
+      return img;
+    });
+
     const finalProduct: Product = {
       ...editingProduct,
+      images: finalImages as ProductImage[],
       visibility: publish ? 'published' : 'draft',
     };
 
@@ -153,28 +167,25 @@ export default function ProductsPage() {
   const nextStep = () => setCurrentStep(prev => (prev < steps.length -1) ? prev + 1 : prev);
   const prevStep = () => setCurrentStep(prev => (prev > 0) ? prev - 1 : prev);
 
-  const handleAddImage = () => {
-    const newImage: ProductImage = { id: `img-${Date.now()}`, url: '' };
-    setEditingProduct(prev => prev ? ({ ...prev, images: [...prev.images, newImage] }) : null);
-  };
+  const handleFilesChange = (newFiles: (File | ProductImage)[]) => {
+     if (!editingProduct) return;
 
-  const handleImageChange = (index: number, value: string) => {
-    if (!editingProduct) return;
-    const newImages = [...editingProduct.images];
-    newImages[index].url = value;
-    setEditingProduct({ ...editingProduct, images: newImages });
-  };
-  
-  const handleRemoveImage = (index: number) => {
-    if (!editingProduct) return;
-    const imageToRemove = editingProduct.images[index];
-    const newImages = editingProduct.images.filter((_, i) => i !== index);
-    const newVariants = editingProduct.variants.map(v => ({
-      ...v,
-      imageIds: v.imageIds.filter(id => id !== imageToRemove.id)
-    }));
-    setEditingProduct({ ...editingProduct, images: newImages, variants: newVariants });
-  };
+    const newImageIds = newFiles.map(file => 'id' in file ? file.id : `new-${file.name}`);
+
+    // Clean up variants that are linked to removed images
+    const updatedVariants = editingProduct.variants.map(variant => {
+        return {
+            ...variant,
+            imageIds: variant.imageIds.filter(id => newImageIds.includes(id))
+        };
+    });
+
+    setEditingProduct({
+        ...editingProduct,
+        images: newFiles,
+        variants: updatedVariants
+    });
+  }
 
   const handleAddVariant = () => {
     const newVariant: ProductVariant = { id: `var-${Date.now()}`, optionName: 'New Variant', value: '', price: 0, stock: 0, imageIds: [] };
@@ -321,29 +332,14 @@ export default function ProductsPage() {
                             onChange={handleInputChange}
                             placeholder="https://youtube.com/watch?v=..."
                         />
-                        <p className="text-xs text-muted-foreground mt-1">Embed a YouTube or Vimeo video for your product.</p>
+                        <p className="text-xs text-muted-foreground mt-1">Embed a YouTube or Vimeo video for your product. One video per product.</p>
                     </div>
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <Label className='flex items-center gap-2'><ImageIcon className="h-5 w-5" /> Product Images</Label>
-                            <Button variant="outline" size="sm" onClick={handleAddImage}>Add Image URL</Button>
-                        </div>
-                         <p className="text-xs text-muted-foreground -mt-2">Add one or more URLs for your product images. You can link these to specific variants in the next step.</p>
-                        <div className="space-y-2">
-                            {editingProduct.images.map((img, index) => (
-                            <div key={img.id} className="flex items-center gap-2">
-                                <Input 
-                                value={img.url} 
-                                onChange={(e) => handleImageChange(index, e.target.value)}
-                                placeholder="https://example.com/image.png"
-                                />
-                                <Button variant="ghost" size="icon" onClick={() => handleRemoveImage(index)}>
-                                <X className="h-4 w-4"/>
-                                </Button>
-                            </div>
-                            ))}
-                            {editingProduct.images.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No images added yet.</p>}
-                        </div>
+                        <FileUploader 
+                            files={editingProduct.images as (File | ProductImage)[]}
+                            onFilesChange={handleFilesChange}
+                            maxFiles={5}
+                        />
                     </div>
                 </div>
               )}
@@ -397,16 +393,23 @@ export default function ProductsPage() {
                                         <div className="space-y-2">
                                             <p className="font-medium text-sm">Link Images</p>
                                             <div className="space-y-1">
-                                                {editingProduct.images.map((image) => (
-                                                <div key={image.id} className="flex items-center space-x-2">
-                                                    <Checkbox
-                                                        id={`var-${index}-img-${image.id}`}
-                                                        checked={variant.imageIds.includes(image.id)}
-                                                        onCheckedChange={() => handleVariantImageToggle(index, image.id)}
-                                                    />
-                                                    <Label htmlFor={`var-${index}-img-${image.id}`} className="text-xs font-normal truncate">{image.url || 'Pasted Image'}</Label>
-                                                </div>
-                                                ))}
+                                                {editingProduct.images.map((image, imgIndex) => {
+                                                  const imageId = image instanceof File ? `new-${image.name}` : image.id;
+                                                  const imageUrl = image instanceof File ? URL.createObjectURL(image) : image.url;
+                                                  return (
+                                                    <div key={imageId} className="flex items-center space-x-2">
+                                                        <Checkbox
+                                                            id={`var-${index}-img-${imgIndex}`}
+                                                            checked={variant.imageIds.includes(imageId)}
+                                                            onCheckedChange={() => handleVariantImageToggle(index, imageId)}
+                                                        />
+                                                        <Label htmlFor={`var-${index}-img-${imgIndex}`} className="text-xs font-normal truncate flex items-center gap-2">
+                                                          <Image src={imageUrl} alt="preview" width={24} height={24} className="rounded-sm object-cover" />
+                                                          ...{image instanceof File ? image.name.slice(-20) : image.id.slice(-10)}
+                                                        </Label>
+                                                    </div>
+                                                  )
+                                                })}
                                             </div>
                                         </div>
                                     </PopoverContent>

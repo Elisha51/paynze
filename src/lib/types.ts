@@ -9,7 +9,7 @@ export type ProductVariant = {
   id: string;
   optionName: string;
   value: string;
-  price: number;
+  price: number; // Can be a price adjustment or absolute price
   stock: number;
   imageIds: string[];
 };
@@ -27,7 +27,7 @@ export type Product = {
   stockQuantity: number;
   variants: ProductVariant[];
   visibility: 'published' | 'draft' | 'archived';
-  images: ProductImage[];
+  images: (ProductImage | File)[]; // Allow for File objects during upload
   videoUrl?: string;
   discount: string | null;
 };
