@@ -15,7 +15,6 @@ export const products: Product[] = [
     barcode: '1234567890123',
     inventoryTracking: 'Track Quantity',
     unitOfMeasure: 'm',
-    stockQuantity: 100,
     lowStockThreshold: 10,
     requiresShipping: true,
     weight: 0.5,
@@ -40,10 +39,13 @@ export const products: Product[] = [
       urlHandle: 'colorful-kitenge-fabric',
     },
     hasVariants: true,
-    optionNames: ['Color', 'Pattern'],
+    options: [
+        { name: 'Color', values: ['Red', 'Blue'] },
+        { name: 'Pattern', values: ['Floral', 'Geometric'] }
+    ],
     variants: [
-      { id: 'var1', optionValues: { Color: 'Red', Pattern: 'Floral' }, price: 35000, stock: 50, sku: 'KIT-001-RF' },
-      { id: 'var2', optionValues: { Color: 'Blue', Pattern: 'Geometric' }, price: 35000, stock: 50, sku: 'KIT-001-BG' },
+      { id: 'var1', optionValues: { Color: 'Red', Pattern: 'Floral' }, price: 35000, stockQuantity: 50, sku: 'KIT-001-RF' },
+      { id: 'var2', optionValues: { Color: 'Blue', Pattern: 'Geometric' }, price: 35000, stockQuantity: 50, sku: 'KIT-001-BG' },
     ],
   },
   {
@@ -60,9 +62,9 @@ export const products: Product[] = [
     currency: 'KES',
     isTaxable: false,
     hasVariants: false,
+    options: [],
     variants: [],
     inventoryTracking: 'Don\'t Track',
-    stockQuantity: 9999,
     requiresShipping: false,
     wholesalePricing: [],
   },
@@ -73,9 +75,8 @@ export const products: Product[] = [
     shortDescription: 'Genuine leather shoes, handcrafted by skilled artisans. Durable, comfortable, and stylish for any occasion.',
     status: 'draft',
     images: [{ id: 'img3', url: `https://picsum.photos/seed/SHOE-002/400/400` }],
-    inventoryTracking: 'Track Quantity',
+    inventoryTracking: 'Track with Serial Numbers',
     unitOfMeasure: 'pair',
-    stockQuantity: 30,
     requiresShipping: true,
     weight: 1.2,
     retailPrice: 75000,
@@ -83,10 +84,21 @@ export const products: Product[] = [
     wholesalePricing: [{ customerGroup: 'wholesale', price: 65000 }],
     isTaxable: true,
     hasVariants: true,
-    optionNames: ['Size'],
+    options: [{ name: 'Size', values: ['42', '43'] }],
     variants: [
-      { id: 'var3', optionValues: { Size: '42' }, price: 75000, stock: 15, sku: 'SHOE-002-42' },
-      { id: 'var4', optionValues: { Size: '43' }, price: 75000, stock: 15, sku: 'SHOE-002-43' },
+      { 
+        id: 'var3', 
+        optionValues: { Size: '42' }, 
+        price: 75000, 
+        stockQuantity: 15, 
+        sku: 'SHOE-002-42',
+        inventoryItems: [
+          { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', location: 'Warehouse A'},
+          { id: 'inv-002', serialNumber: 'SN-SHOE-42-002', status: 'Available', location: 'Warehouse A'},
+          { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', location: 'Shipped'},
+        ]
+      },
+      { id: 'var4', optionValues: { Size: '43' }, price: 75000, stockQuantity: 15, sku: 'SHOE-002-43' },
     ],
   },
   {
@@ -102,9 +114,9 @@ export const products: Product[] = [
     currency: 'KES',
     isTaxable: true,
     hasVariants: false,
+    options: [],
     variants: [],
     inventoryTracking: 'Don\'t Track',
-    stockQuantity: 999,
     requiresShipping: false,
     wholesalePricing: [],
   }

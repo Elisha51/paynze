@@ -151,7 +151,14 @@ const getColumns = (
             </div>
         );
       },
-      cell: ({ row }) => <div className="text-right">{row.getValue('stockQuantity')}</div>
+      cell: ({ row }) => {
+        const product = row.original;
+        // Sum stock from all variants if they exist, otherwise use the first variant's stock (for non-variant products)
+        const totalStock = product.hasVariants 
+            ? product.variants.reduce((sum, v) => sum + v.stockQuantity, 0)
+            : product.variants[0]?.stockQuantity ?? 0;
+        return <div className="text-right">{totalStock}</div>;
+      }
   },
   {
     accessorKey: 'category',
@@ -240,7 +247,7 @@ export function ProductsTable({ data, setData }: ProductsTableProps) {
     });
   };
 
-  const columns = React.useMemo(() => getColumns(archiveProduct), [archiveProduct]);
+  const columns = React.useMemo(() => getColumns(archiveProduct), [setData]);
 
   return (
     <DataTable

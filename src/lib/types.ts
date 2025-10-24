@@ -11,11 +11,17 @@ export type WholesalePrice = {
   minOrderQuantity?: number;
 }
 
+export type InventoryItem = {
+  id: string; // e.g., 'inv-item-xyz'
+  serialNumber?: string;
+  status: 'Available' | 'Sold' | 'Reserved' | 'Damaged' | 'Returned';
+  location?: string; // e.g. 'Warehouse A, Shelf B-3'
+};
+
 export type ProductVariant = {
   id: string; // e.g., 'variant-sm-red'
   optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
   price?: number; // Overrides the main product price
-  stock: number;
   sku?: string; // e.g., 'TSHIRT-RED-SM'
   barcode?: string;
   weight?: number; // Overrides main product weight
@@ -25,6 +31,10 @@ export type ProductVariant = {
     height: number;
   };
   imageIds?: string[]; // IDs of the primary images for this variant
+  
+  // Inventory details move to the variant level
+  stockQuantity: number;
+  inventoryItems?: InventoryItem[]; // For serialized tracking
 };
 
 
@@ -42,9 +52,8 @@ export type Product = {
   sku?: string;
   barcode?: string; // GTIN, EAN, UPC
   inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | 'Don\'t Track';
-  stockQuantity: number;
   unitOfMeasure?: string;
-  lowStockThreshold?: number;
+  lowStockThreshold?: number; // overall threshold
   requiresShipping: boolean;
   weight?: number; // in kg
   dimensions?: {
@@ -78,7 +87,7 @@ export type Product = {
 
   // V. Variants
   hasVariants: boolean;
-  optionNames?: string[];
+  options: { name: string, values: string[] }[];
   variants: ProductVariant[];
 
   // VI. Configuration & Customization

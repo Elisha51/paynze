@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -53,12 +53,12 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
-  stockQuantity: 0,
   requiresShipping: true,
   retailPrice: 0,
   currency: 'UGX',
   isTaxable: false,
   hasVariants: false,
+  options: [],
   variants: [],
   wholesalePricing: [],
 };
@@ -117,7 +117,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
      if (id === 'inventoryTracking') {
         const trackStock = value !== 'Don\'t Track';
         if (!trackStock) {
-            setProduct(prev => ({ ...prev, stockQuantity: 0, lowStockThreshold: undefined }));
+            setProduct(prev => ({ ...prev, lowStockThreshold: undefined, variants: prev.variants.map(v => ({...v, stockQuantity: 0})) }));
         }
     }
   }
@@ -173,13 +173,33 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     }))
   }
 
+  const handleOptionChange = (optionIndex: number, field: 'name' | 'value', value: string) => {
+      const updatedOptions = [...product.options];
+      if (field === 'name') {
+          updatedOptions[optionIndex].name = value;
+      } else {
+          updatedOptions[optionIndex].values = value.split(',').map(v => v.trim());
+      }
+      setProduct(prev => ({ ...prev, options: updatedOptions }));
+  };
+
+  const addOption = () => {
+    setProduct(prev => ({ ...prev, options: [...prev.options, { name: '', values: [] }] }));
+  };
+
+  const removeOption = (optionIndex: number) => {
+    const updatedOptions = product.options.filter((_, i) => i !== optionIndex);
+    setProduct(prev => ({ ...prev, options: updatedOptions }));
+  };
+
+
   const handleVariantChange = (variantId: string, field: keyof ProductVariant, value: string | number) => {
     setProduct(prev => ({
         ...prev,
         variants: prev.variants.map(v => {
             if (v.id === variantId) {
                 const updatedVariant = { ...v };
-                if (field === 'price' || field === 'stock') {
+                if (field === 'price' || field === 'stockQuantity') {
                     updatedVariant[field] = Number(value);
                 } else {
                     updatedVariant[field] = value as string;
@@ -477,6 +497,170 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           </Card>
 
           {product.productType === 'Physical' && (
+            <>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Variants</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-start space-x-3">
+                        <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)}/>
+                        <div className="grid gap-1.5 leading-none">
+                            <Label htmlFor="hasVariants">This product has variants</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Offer different versions of this product, like sizes or colors.
+                            </p>
+                        </div>
+                    </div>
+
+                    {product.hasVariants && (
+                        <div className="space-y-4 pl-8 border-l">
+                            <h4 className="font-medium">Options</h4>
+                            {product.options.map((option, index) => (
+                                <Card key={index} className="p-4">
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1 space-y-2">
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`option-name-${index}`}>Option Name</Label>
+                                                <Input
+                                                    id={`option-name-${index}`}
+                                                    value={option.name}
+                                                    onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
+                                                    placeholder="e.g., Size"
+                                                />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`option-values-${index}`}>Option Values</Label>
+                                                <Input
+                                                    id={`option-values-${index}`}
+                                                    value={option.values.join(', ')}
+                                                    onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
+                                                    placeholder="e.g., Small, Medium, Large"
+                                                />
+                                                 <p className="text-xs text-muted-foreground">Separate values with a comma.</p>
+                                            </div>
+                                        </div>
+                                        <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6">
+                                            <X className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                             <Button variant="outline" size="sm" onClick={addOption}>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add another option
+                            </Button>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+            
+            {product.hasVariants && product.variants && product.variants.length > 0 && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Variant Details</CardTitle>
+                        <CardDescription>Manage price, stock, and SKU for each product combination.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="overflow-x-auto">
+                    <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Variant</TableHead>
+                                    <TableHead className="w-[120px]">Price</TableHead>
+                                    <TableHead className="w-[100px]">Stock</TableHead>
+                                    <TableHead>SKU</TableHead>
+                                    <TableHead className="text-center">Images</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {product.variants.map((variant) => (
+                                    <TableRow key={variant.id}>
+                                        <TableCell className="font-medium">
+                                            {Object.values(variant.optionValues).join(' / ')}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Input
+                                                type="number"
+                                                aria-label="Variant Price"
+                                                value={variant.price || ''}
+                                                onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)}
+                                                placeholder={String(product.retailPrice)}
+                                                className="h-8 min-w-[100px]"
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Input
+                                                type="number"
+                                                aria-label="Variant Stock"
+                                                value={variant.stockQuantity}
+                                                onChange={(e) => handleVariantChange(variant.id, 'stockQuantity', e.target.value)}
+                                                className="h-8 min-w-[80px]"
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Input
+                                                aria-label="Variant SKU"
+                                                value={variant.sku || ''}
+                                                onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)}
+                                                placeholder="Variant SKU"
+                                                className="h-8 min-w-[120px]"
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-center">
+                                        <Dialog>
+                                                <DialogTrigger asChild>
+                                                    <Button variant="outline" size="sm">
+                                                        <ImageIcon className="h-4 w-4 mr-2" />
+                                                        {variant.imageIds?.length || 0}
+                                                    </Button>
+                                                </DialogTrigger>
+                                                <DialogContent className="max-w-2xl">
+                                                    <DialogHeader>
+                                                        <DialogTitle>Manage Images for {Object.values(variant.optionValues).join(' / ')}</DialogTitle>
+                                                    </DialogHeader>
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 py-4 max-h-[50vh] overflow-y-auto">
+                                                        {uploadedImages.map((image) => {
+                                                            const imageId = 'id' in image ? image.id : '';
+                                                            const imageUrl = image instanceof File ? URL.createObjectURL(image) : image.url;
+                                                            const isSelected = variant.imageIds?.includes(imageId) ?? false;
+                                                            return (
+                                                                <div key={imageId} className="relative">
+                                                                    <label htmlFor={`img-${variant.id}-${imageId}`} className="cursor-pointer">
+                                                                        <Image
+                                                                            src={imageUrl}
+                                                                            alt="Product image"
+                                                                            width={150}
+                                                                            height={150}
+                                                                            className="rounded-md object-cover aspect-square"
+                                                                        />
+                                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                                                                            <Checkbox
+                                                                                id={`img-${variant.id}-${imageId}`}
+                                                                                checked={isSelected}
+                                                                                onCheckedChange={(checked) => handleVariantImageSelect(variant.id, imageId, !!checked)}
+                                                                                className="h-6 w-6 border-white data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                                                            />
+                                                                        </div>
+                                                                    </label>
+                                                                </div>
+                                                            )
+                                                        })}
+                                                    </div>
+                                                    <DialogFooter>
+                                                        <DialogClose asChild>
+                                                            <Button>Done</Button>
+                                                        </DialogClose>
+                                                    </DialogFooter>
+                                                </DialogContent>
+                                            </Dialog>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                    </Table>
+                    </CardContent>
+                </Card>
+            )}
+
             <Card>
                 <CardHeader>
                     <CardTitle>Inventory & Shipping</CardTitle>
@@ -506,7 +690,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                         </Select>
                      </div>
 
-                     {product.inventoryTracking !== 'Don\'t Track' && (
+                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && (
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pl-4 border-l-2">
                             <div className="space-y-2 md:col-span-1">
                                 <Label htmlFor="unitOfMeasure">Unit of Measure</Label>
@@ -514,7 +698,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                             </div>
                             <div className="space-y-2 md:col-span-1">
                                 <Label htmlFor="stockQuantity">Available Quantity</Label>
-                                <Input id="stockQuantity" type="number" value={product.stockQuantity} onChange={handleNumberChange} />
+                                <Input id="stockQuantity" type="number" value={product.variants[0]?.stockQuantity || 0} onChange={(e) => handleVariantChange(product.variants[0].id, 'stockQuantity', e.target.value)} />
                             </div>
                              <div className="space-y-2 md:col-span-1">
                                 <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
@@ -558,116 +742,8 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                      )}
                 </CardContent>
             </Card>
+            </>
           )}
-
-
-           {product.hasVariants && product.variants && product.variants.length > 0 && (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Variants</CardTitle>
-                    <CardDescription>Manage price, stock, and SKU for each product combination.</CardDescription>
-                </CardHeader>
-                <CardContent className="overflow-x-auto">
-                   <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Variant</TableHead>
-                                <TableHead className="w-[120px]">Price</TableHead>
-                                <TableHead className="w-[100px]">Stock</TableHead>
-                                <TableHead>SKU</TableHead>
-                                <TableHead className="text-center">Images</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {product.variants.map((variant) => (
-                                <TableRow key={variant.id}>
-                                    <TableCell className="font-medium">
-                                        {Object.values(variant.optionValues).join(' / ')}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Input
-                                            type="number"
-                                            aria-label="Variant Price"
-                                            value={variant.price || ''}
-                                            onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)}
-                                            placeholder={String(product.retailPrice)}
-                                            className="h-8 min-w-[100px]"
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Input
-                                            type="number"
-                                            aria-label="Variant Stock"
-                                            value={variant.stock}
-                                            onChange={(e) => handleVariantChange(variant.id, 'stock', e.target.value)}
-                                            className="h-8 min-w-[80px]"
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Input
-                                            aria-label="Variant SKU"
-                                            value={variant.sku || ''}
-                                            onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)}
-                                            placeholder="Variant SKU"
-                                            className="h-8 min-w-[120px]"
-                                        />
-                                    </TableCell>
-                                    <TableCell className="text-center">
-                                       <Dialog>
-                                            <DialogTrigger asChild>
-                                                <Button variant="outline" size="sm">
-                                                    <ImageIcon className="h-4 w-4 mr-2" />
-                                                    {variant.imageIds?.length || 0}
-                                                </Button>
-                                            </DialogTrigger>
-                                            <DialogContent className="max-w-2xl">
-                                                <DialogHeader>
-                                                    <DialogTitle>Manage Images for {Object.values(variant.optionValues).join(' / ')}</DialogTitle>
-                                                </DialogHeader>
-                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 py-4 max-h-[50vh] overflow-y-auto">
-                                                    {uploadedImages.map((image) => {
-                                                        const imageId = 'id' in image ? image.id : '';
-                                                        const imageUrl = image instanceof File ? URL.createObjectURL(image) : image.url;
-                                                        const isSelected = variant.imageIds?.includes(imageId) ?? false;
-                                                        return (
-                                                            <div key={imageId} className="relative">
-                                                                <label htmlFor={`img-${variant.id}-${imageId}`} className="cursor-pointer">
-                                                                    <Image
-                                                                        src={imageUrl}
-                                                                        alt="Product image"
-                                                                        width={150}
-                                                                        height={150}
-                                                                        className="rounded-md object-cover aspect-square"
-                                                                    />
-                                                                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                                        <Checkbox
-                                                                            id={`img-${variant.id}-${imageId}`}
-                                                                            checked={isSelected}
-                                                                            onCheckedChange={(checked) => handleVariantImageSelect(variant.id, imageId, !!checked)}
-                                                                            className="h-6 w-6 border-white data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                                                                        />
-                                                                    </div>
-                                                                </label>
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
-                                                <DialogFooter>
-                                                    <DialogClose asChild>
-                                                        <Button>Done</Button>
-                                                    </DialogClose>
-                                                </DialogFooter>
-                                            </DialogContent>
-                                        </Dialog>
-                                    </TableCell>
-                                </TableRow>
-                            ))}
-                        </TableBody>
-                   </Table>
-                </CardContent>
-            </Card>
-           )}
-
         </div>
 
         <div className="lg:col-span-1 space-y-6">
