@@ -17,9 +17,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { Product, InventoryItem, StockAdjustment } from '@/lib/types';
+import type { Product, InventoryItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Separator } from '../ui/separator';
+import { ProductDetailsAdjustStock } from './product-details-adjust-stock';
 
 function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     const variant = {
@@ -45,27 +45,6 @@ const adjustmentTypeColors = {
     'Manual Adjustment': 'text-purple-600',
     'Damage': 'text-yellow-600',
 };
-
-function StockAdjustmentRow({ adjustment }: { adjustment: StockAdjustment }) {
-    const quantityColor = adjustment.quantity > 0 ? 'text-green-600' : 'text-red-600';
-    const quantitySign = adjustment.quantity > 0 ? '+' : '';
-
-    return (
-        <TableRow>
-            <TableCell>{new Date(adjustment.date).toLocaleDateString()}</TableCell>
-            <TableCell>
-                <span className={cn('font-medium', adjustmentTypeColors[adjustment.type])}>
-                    {adjustment.type}
-                </span>
-            </TableCell>
-            <TableCell>{adjustment.channel || 'N/A'}</TableCell>
-            <TableCell className={cn('font-mono font-medium', quantityColor)}>
-                {quantitySign}{adjustment.quantity}
-            </TableCell>
-            <TableCell className="text-muted-foreground">{adjustment.reason || '–'}</TableCell>
-        </TableRow>
-    );
-}
 
 
 export function ProductDetailsInventory({ product }: { product: Product }) {
@@ -108,9 +87,12 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
     return (
         <div className="mt-4 space-y-6">
              <Card>
-                <CardHeader>
-                    <CardTitle>Inventory Summary</CardTitle>
-                    <CardDescription>Overall stock levels for "{product.name}".</CardDescription>
+                <CardHeader className="flex flex-row items-start justify-between">
+                    <div>
+                        <CardTitle>Inventory Summary</CardTitle>
+                        <CardDescription>Overall stock levels for "{product.name}".</CardDescription>
+                    </div>
+                    <ProductDetailsAdjustStock product={product} />
                 </CardHeader>
                 <CardContent>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">

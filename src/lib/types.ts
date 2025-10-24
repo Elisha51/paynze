@@ -24,7 +24,7 @@ export type StockAdjustment = {
     type: 'Initial Stock' | 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage';
     quantity: number; // Can be positive or negative
     reason?: string;
-    channel?: 'Online' | 'In-Store';
+    channel?: 'Online' | 'In-Store' | 'Manual';
 };
 
 export type ProductOption = {
