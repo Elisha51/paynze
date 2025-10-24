@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon } from 'lucide-react';
@@ -44,6 +45,7 @@ import {
 } from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
+import { RichTextEditor } from '../ui/rich-text-editor';
 
 const emptyProduct: Product = {
   productType: 'Physical',
@@ -70,6 +72,10 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
   ) => {
     const { id, value } = e.target;
     setProduct((prev) => ({ ...prev, [id]: value }));
+  };
+  
+  const handleDescriptionChange = (value: string) => {
+    setProduct(prev => ({ ...prev, longDescription: value }));
   };
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -204,8 +210,25 @@ export function ProductForm({ product: initialProduct }: { product?: Product }) 
                 <Input id="name" value={product.name} onChange={handleInputChange} placeholder="e.g., Kitenge Fabric"/>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="longDescription">Description</Label>
-                <Textarea id="longDescription" value={product.longDescription} onChange={handleInputChange} placeholder="A detailed description of the product." />
+                <Label htmlFor="shortDescription">Short Description (max 160 characters)</Label>
+                <Textarea 
+                  id="shortDescription" 
+                  value={product.shortDescription || ''} 
+                  onChange={handleInputChange} 
+                  placeholder="A brief summary for search results and category pages." 
+                  maxLength={160}
+                  className="min-h-[60px]"
+                />
+                 <p className="text-xs text-muted-foreground text-right">{product.shortDescription?.length || 0} / 160</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="longDescription">Detailed Description</Label>
+                 <RichTextEditor
+                  id="longDescription"
+                  value={product.longDescription || ''}
+                  onChange={handleDescriptionChange}
+                  placeholder="Use this space for features, benefits, and care instructions."
+                />
               </div>
             </CardContent>
           </Card>
