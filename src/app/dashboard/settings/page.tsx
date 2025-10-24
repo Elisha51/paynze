@@ -9,16 +9,26 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
-import { OnboardingFormData } from '@/context/onboarding-context';
+import type { OnboardingFormData } from '@/context/onboarding-context';
+import { LocationsTab } from '@/components/settings/locations-tab';
+import type { Location } from '@/lib/types';
+import { getLocations as fetchLocations } from '@/services/locations';
+
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [locations, setLocations] = useState<Location[]>([]);
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
         if (data) {
             setSettings(JSON.parse(data));
         }
+        async function loadLocations() {
+            const fetchedLocations = await fetchLocations();
+            setLocations(fetchedLocations);
+        }
+        loadLocations();
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -51,12 +61,13 @@ export default function SettingsPage() {
       <div className="space-y-2 mb-8">
         <h2 className="text-3xl font-bold tracking-tight font-headline">Settings</h2>
         <p className="text-muted-foreground">
-          Manage your store's settings, payment methods, and delivery options.
+          Manage your store's settings, locations, payment methods, and delivery options.
         </p>
       </div>
       <Tabs defaultValue="store" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="store">Store</TabsTrigger>
+          <TabsTrigger value="locations">Locations</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="delivery">Delivery</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
@@ -87,6 +98,9 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+        <TabsContent value="locations">
+            <LocationsTab locations={locations} setLocations={setLocations} />
         </TabsContent>
         <TabsContent value="payments">
           <Card>

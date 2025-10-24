@@ -213,3 +213,26 @@ export type PurchaseOrder = {
   totalCost: number;
   currency: 'UGX' | 'KES' | 'TZS' | 'USD';
 };
+
+
+// Settings Types
+export type Location = {
+  id: string;
+  name: string;
+  address: string;
+  isPickupLocation: boolean;
+  isDefault: boolean;
+};
+
+export type ShippingZone = {
+    id: string;
+    name: string;
+    countries: string[]; // e.g. ['UG', 'KE']
+    provinces?: string[]; // e.g. ['Central', 'Western']
+    cities?: string[]; // e.g. ['Kampala', 'Nairobi']
+    deliveryMethods: {
+        id: string;
+        name: string; // 'Flat Rate', 'Free Shipping'
+        price: number;
+    }[];
+};
