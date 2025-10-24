@@ -11,8 +11,8 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
-  title: 'AfriStore',
-  description: 'Your Business, Online in Minutes. The all-in-one e-commerce platform for East African merchants.',
+  title: 'Paynze',
+  description: 'Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants.',
 };
 
 export default function RootLayout({

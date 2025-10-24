@@ -23,42 +23,12 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
 import { useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
-import { Wand2 } from 'lucide-react';
 
 export default function ProductsPage() {
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { toast } = useToast();
-
-  const handleGenerateDescription = async () => {
-    if (!productName || !category) {
-      toast({
-        variant: "destructive",
-        title: "Missing Information",
-        description: "Please enter a product name and category to generate a description.",
-      });
-      return;
-    }
-    setIsGenerating(true);
-    try {
-      const result = await suggestProductDescription({ productName, category });
-      setDescription(result.description);
-    } catch (error) {
-      console.error(error);
-       toast({
-        variant: "destructive",
-        title: "Generation Failed",
-        description: "Could not generate a description. Please try again.",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
 
   return (
@@ -98,12 +68,6 @@ export default function ProductsPage() {
                     Description
                   </Label>
                   <Textarea id="description" value={description} onChange={(e) => setDescription(e.target.value)} className="col-span-3" placeholder="A brief description of the product."/>
-                </div>
-                <div className="col-start-2 col-span-3">
-                   <Button variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
-                      <Wand2 className="mr-2 h-4 w-4" />
-                      {isGenerating ? 'Generating...' : 'Suggest with AI'}
-                    </Button>
                 </div>
               </div>
               <DialogFooter>

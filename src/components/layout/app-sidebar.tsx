@@ -41,8 +41,8 @@ export default function AppSidebar() {
         <Link href="/dashboard" className="flex items-center gap-2">
           <ShoppingCart className="w-8 h-8 text-primary" />
           <div className="flex flex-col">
-            <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground">AfriStore</h2>
-            <p className="text-xs text-muted-foreground">Kato's Wholesalers</p>
+            <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground">Paynze</h2>
+            <p className="text-xs text-muted-foreground">My Store</p>
           </div>
         </Link>
       </SidebarHeader>

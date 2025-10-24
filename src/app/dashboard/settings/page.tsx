@@ -32,18 +32,18 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="businessName">Business Name</Label>
-                <Input id="businessName" defaultValue="Kato's Wholesalers" />
+                <Input id="businessName" defaultValue="My Business" />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subdomain">Subdomain</Label>
                 <div className="flex items-center">
-                    <Input id="subdomain" defaultValue="katos" />
-                    <span className="ml-2 text-muted-foreground">.africommerce.app</span>
+                    <Input id="subdomain" defaultValue="my-store" />
+                    <span className="ml-2 text-muted-foreground">.paynze.app</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="storeDescription">Store Description</Label>
-                <Textarea id="storeDescription" defaultValue="The best wholesale prices in Kampala." />
+                <Textarea id="storeDescription" defaultValue="The best prices in town." />
               </div>
             </CardContent>
           </Card>

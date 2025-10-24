@@ -47,7 +47,7 @@ export default function Home() {
         <div className="container flex h-14 items-center">
           <Link href="/" className="flex items-center space-x-2">
             <ShoppingCart className="h-6 w-6 text-primary" />
-            <span className="font-bold text-xl font-headline">AfriStore</span>
+            <span className="font-bold text-xl font-headline">Paynze</span>
           </Link>
           <nav className="ml-auto flex items-center space-x-2">
             <Button variant="ghost" asChild>
@@ -81,7 +81,7 @@ export default function Home() {
                     Your Business, Online in Minutes.
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    AfriStore is the all-in-one platform for East African merchants. Build your store, accept mobile money, manage customers, and grow your brand.
+                    Paynze is the all-in-one platform for merchants. Build your store, accept mobile money, manage customers, and grow your brand.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -100,10 +100,10 @@ export default function Home() {
               <div className="space-y-2">
                 <div className="inline-block rounded-lg bg-secondary px-3 py-1 text-sm">Key Features</div>
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl font-headline">
-                  Built for Commerce in East Africa
+                  Built for Commerce
                 </h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  We provide all the tools you need to succeed online, tailored for the local market.
+                  We provide all the tools you need to succeed online.
                 </p>
               </div>
             </div>
@@ -125,7 +125,7 @@ export default function Home() {
       </main>
 
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
-        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} AfriStore. All rights reserved.</p>
+        <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()} Paynze. All rights reserved.</p>
         <nav className="sm:ml-auto flex gap-4 sm:gap-6">
           <Link href="#" className="text-xs hover:underline underline-offset-4">
             Terms of Service
