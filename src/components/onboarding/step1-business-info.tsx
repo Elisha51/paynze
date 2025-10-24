@@ -20,7 +20,7 @@ export default function Step1BusinessInfo() {
   };
 
   return (
-    <Card>
+    <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Business Information</CardTitle>
         <CardDescription>Tell us a bit about your business.</CardDescription>

@@ -30,12 +30,15 @@ function OnboardingWizard() {
           <h1 className="text-3xl font-bold font-headline">{titles[step]}</h1>
           <Progress value={progress} className="w-full h-2 mt-4 max-w-md mx-auto" />
         </div>
+        
+        <div className="flex items-start justify-center">
+            {step === 1 && <Step1BusinessInfo />}
+            {step === 2 && <Step2StoreSetup />}
+            {step === 3 && <Step3Preferences />}
+            {step === 4 && <Step4Theme />}
+            {step === 5 && <Step5Confirmation />}
+        </div>
 
-        {step === 1 && <Step1BusinessInfo />}
-        {step === 2 && <Step2StoreSetup />}
-        {step === 3 && <Step3Preferences />}
-        {step === 4 && <Step4Theme />}
-        {step === 5 && <Step5Confirmation />}
       </div>
     </OnboardingLayout>
   );

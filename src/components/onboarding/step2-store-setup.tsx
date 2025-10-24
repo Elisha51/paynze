@@ -1,4 +1,3 @@
-
 // src/components/onboarding/step2-store-setup.tsx
 'use client';
 import { useState } from 'react';
@@ -38,7 +37,7 @@ export default function Step2StoreSetup() {
   };
 
   return (
-    <Card>
+    <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Store Setup</CardTitle>
         <CardDescription>Configure your online store settings.</CardDescription>
