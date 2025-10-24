@@ -18,6 +18,14 @@ export type InventoryItem = {
   location?: string; // e.g. 'Warehouse A, Shelf B-3'
 };
 
+export type StockAdjustment = {
+    id: string;
+    date: string;
+    type: 'Initial Stock' | 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage';
+    quantity: number; // Can be positive or negative
+    reason?: string;
+};
+
 export type ProductOption = {
   name: string;
   values: string[];
@@ -45,6 +53,7 @@ export type ProductVariant = {
     damaged: number;
   };
   inventoryItems?: InventoryItem[]; // For serialized tracking
+  stockAdjustments?: StockAdjustment[]; // For history tracking
 };
 
 
