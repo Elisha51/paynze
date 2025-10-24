@@ -1,13 +1,20 @@
 'use client';
 
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { salesData } from '@/lib/data';
-import { ChartTooltipContent } from '@/components/ui/chart';
+import { ChartTooltipContent, ChartContainer, type ChartConfig } from '@/components/ui/chart';
+
+const chartConfig = {
+  total: {
+    label: 'Sales',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig;
 
 export function OverviewChart() {
   return (
-    <ResponsiveContainer width="100%" height={350}>
-      <BarChart data={salesData}>
+    <ChartContainer config={chartConfig} className="w-full h-full">
+      <BarChart data={salesData} accessibilityLayer>
         <XAxis
           dataKey="name"
           stroke="#888888"
@@ -28,6 +35,6 @@ export function OverviewChart() {
         />
         <Bar dataKey="total" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
       </BarChart>
-    </ResponsiveContainer>
+    </ChartContainer>
   );
 }
