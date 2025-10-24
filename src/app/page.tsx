@@ -71,7 +71,7 @@ export default function Home() {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-20 md:py-24 lg:py-32 bg-gray-900 text-white">
+        <section className="w-full py-20 md:py-24 lg:py-32 bg-[#0d1428] text-white">
           <div className="container px-4 md:px-6">
             <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
               <div className="space-y-6">
@@ -238,7 +238,7 @@ export default function Home() {
           <Link href="#" className="text-xs hover:underline underline-offset-4">
             Privacy
           </Link>
-          <Link href="#" className="text-xs hover:underline underline-offset-4">
+          <Link href="#" className="text-xs hover-underline underline-offset-4">
             Terms
           </Link>
         </nav>
