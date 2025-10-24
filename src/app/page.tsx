@@ -212,7 +212,7 @@ export default function Home() {
                             <CardContent className="p-6">
                                 <p className="text-muted-foreground mb-4">"{t.quote}"</p>
                                 <div className="flex items-center gap-4">
-                                    <img src={t.avatar} alt={t.name} className="w-12 h-12 rounded-full" />
+                                    <Image src={t.avatar} alt={t.name} width={48} height={48} className="w-12 h-12 rounded-full" />
                                     <div>
                                         <p className="font-semibold">{t.name}</p>
                                         <p className="text-sm text-muted-foreground">{t.role}</p>
@@ -238,7 +238,7 @@ export default function Home() {
           <Link href="#" className="text-xs hover:underline underline-offset-4">
             Privacy
           </Link>
-          <Link href="#" className="text-xs hover-underline underline-offset-4">
+          <Link href="#" className="text-xs hover:underline underline-offset-4">
             Terms
           </Link>
         </nav>
@@ -246,5 +246,3 @@ export default function Home() {
     </div>
   );
 }
-
-    

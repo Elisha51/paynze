@@ -241,7 +241,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
+        <Button variant="outline" size="icon" asChild className="hidden md:inline-flex">
           <Link href="/dashboard/products">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back to Products</span>
@@ -251,8 +251,8 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           <h1 className="text-2xl font-bold tracking-tight">
             {initialProduct?.sku ? `Edit Product` : 'Add New Product'}
           </h1>
-          <p className="text-muted-foreground">
-            {initialProduct?.sku ? `Editing "${initialProduct.name}"` : 'Fill in the details below to create a new product.'}
+          <p className="text-muted-foreground text-sm">
+            {initialProduct?.sku ? `Editing "${initialProduct.name}"` : 'Fill in the details below.'}
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
@@ -407,33 +407,66 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                     <h4 className="font-medium text-sm">Wholesale Pricing</h4>
                     {product.wholesalePricing && product.wholesalePricing.length > 0 && (
                         <div className="space-y-2">
-                             <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                             <div className="hidden sm:grid grid-cols-4 gap-2 items-center">
                                 <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
                                 <Label className="text-xs font-medium text-muted-foreground">Min. Quantity</Label>
                                 <Label className="text-xs font-medium text-muted-foreground">Price</Label>
                              </div>
                             {product.wholesalePricing.map((tier, index) => (
-                                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-center">
+                                <div key={index} className="grid grid-cols-1 sm:grid-cols-4 gap-2 items-start sm:items-center">
+                                    <div className='space-y-1 sm:hidden'>
+                                        <Label className="text-xs font-medium text-muted-foreground">Customer Group</Label>
+                                        <Input
+                                            type="text"
+                                            aria-label="Customer Group"
+                                            value={tier.customerGroup}
+                                            onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
+                                            placeholder="e.g. Wholesale"
+                                        />
+                                    </div>
                                     <Input
                                         type="text"
                                         aria-label="Customer Group"
                                         value={tier.customerGroup}
                                         onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
                                         placeholder="e.g. Wholesale"
+                                        className="hidden sm:block"
                                     />
+                                    <div className='space-y-1 sm:hidden'>
+                                        <Label className="text-xs font-medium text-muted-foreground">Min. Quantity</Label>
+                                        <Input 
+                                            type="number" 
+                                            aria-label="Minimum Order Quantity"
+                                            value={tier.minOrderQuantity} 
+                                            onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
+                                            placeholder="Min. Quantity"
+                                        />
+                                    </div>
                                     <Input 
                                         type="number" 
                                         aria-label="Minimum Order Quantity"
                                         value={tier.minOrderQuantity} 
                                         onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
                                         placeholder="Min. Quantity"
+                                        className="hidden sm:block"
                                     />
-                                    <Input 
+                                    <div className='space-y-1 sm:hidden'>
+                                        <Label className="text-xs font-medium text-muted-foreground">Price</Label>
+                                        <Input 
+                                            type="number" 
+                                            aria-label="Price per item"
+                                            value={tier.price} 
+                                            onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
+                                            placeholder="Price per item"
+                                        />
+                                    </div>
+                                     <Input 
                                         type="number" 
                                         aria-label="Price per item"
                                         value={tier.price} 
                                         onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
                                         placeholder="Price per item"
+                                        className="hidden sm:block"
                                     />
                                     <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="justify-self-end" aria-label="Remove wholesale tier">
                                         <Trash2 className="h-4 w-4 text-destructive" />
@@ -492,10 +525,24 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                             </div>
                              <div className="space-y-2">
                                 <Label>Dimensions (cm)</Label>
-                                <div className="grid grid-cols-3 gap-2">
-                                     <Input id="dimensions.length" type="number" placeholder="Length" />
-                                     <Input id="dimensions.width" type="number" placeholder="Width" />
-                                     <Input id="dimensions.height" type="number" placeholder="Height" />
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                     <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Length</Label>
+                                        <Input id="dimensions.length" type="number" placeholder="Length" />
+                                     </div>
+                                      <Input id="dimensions.length" type="number" placeholder="Length" className="hidden sm:block" />
+
+                                      <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Width</Label>
+                                        <Input id="dimensions.width" type="number" placeholder="Width" />
+                                     </div>
+                                     <Input id="dimensions.width" type="number" placeholder="Width" className="hidden sm:block" />
+
+                                     <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Height</Label>
+                                        <Input id="dimensions.height" type="number" placeholder="Height" />
+                                     </div>
+                                     <Input id="dimensions.height" type="number" placeholder="Height" className="hidden sm:block" />
                                 </div>
                             </div>
                         </div>
@@ -511,7 +558,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                     <CardTitle>Variants</CardTitle>
                     <CardDescription>Manage price, stock, and SKU for each product combination.</CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="overflow-x-auto">
                    <Table>
                         <TableHeader>
                             <TableRow>
@@ -535,7 +582,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                             value={variant.price || ''}
                                             onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)}
                                             placeholder={String(product.retailPrice)}
-                                            className="h-8"
+                                            className="h-8 min-w-[100px]"
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -544,7 +591,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                             aria-label="Variant Stock"
                                             value={variant.stock}
                                             onChange={(e) => handleVariantChange(variant.id, 'stock', e.target.value)}
-                                            className="h-8"
+                                            className="h-8 min-w-[80px]"
                                         />
                                     </TableCell>
                                     <TableCell>
@@ -553,7 +600,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                             value={variant.sku || ''}
                                             onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)}
                                             placeholder="Variant SKU"
-                                            className="h-8"
+                                            className="h-8 min-w-[120px]"
                                         />
                                     </TableCell>
                                     <TableCell className="text-center">
@@ -568,7 +615,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                                 <DialogHeader>
                                                     <DialogTitle>Manage Images for {Object.values(variant.optionValues).join(' / ')}</DialogTitle>
                                                 </DialogHeader>
-                                                <div className="grid grid-cols-4 gap-4 py-4 max-h-[50vh] overflow-y-auto">
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 py-4 max-h-[50vh] overflow-y-auto">
                                                     {uploadedImages.map((image) => {
                                                         const imageId = 'id' in image ? image.id : '';
                                                         const imageUrl = image instanceof File ? URL.createObjectURL(image) : image.url;

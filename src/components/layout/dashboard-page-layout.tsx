@@ -64,21 +64,21 @@ export function DashboardPageLayout({ title, tabs, cta, children }: DashboardPag
         <h2 className="text-3xl font-bold tracking-tight font-headline">{title}</h2>
       </div>
       <Tabs defaultValue={tabs[0].value}>
-        <div className="flex items-center justify-between">
-          <TabsList>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <TabsList className="overflow-x-auto w-full justify-start md:w-auto">
             {tabs.map((tab) => (
               <TabsTrigger key={tab.value} value={tab.value} className={tab.className}>
                 {tab.label}
               </TabsTrigger>
             ))}
           </TabsList>
-          <div className="flex items-center space-x-2">
-            <div className="relative">
+          <div className="flex w-full md:w-auto items-center space-x-2">
+            <div className="relative flex-1 md:flex-initial">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 type="search"
                 placeholder={`Search ${title.toLowerCase()}...`}
-                className="w-full appearance-none bg-background pl-8 shadow-none md:w-[200px] lg:w-[300px]"
+                className="w-full appearance-none bg-background pl-8 shadow-none md:w-auto lg:w-[300px]"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />

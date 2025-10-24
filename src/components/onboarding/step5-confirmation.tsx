@@ -112,5 +112,3 @@ export default function Step5Confirmation() {
     </div>
   );
 }
-
-    

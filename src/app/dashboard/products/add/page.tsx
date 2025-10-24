@@ -57,10 +57,12 @@ export default function AddProductPage() {
         return (
             <div className="space-y-6">
                 <div className="flex items-center gap-4">
-                    <Link href="/dashboard/products" className="p-2 rounded-md hover:bg-muted">
-                        <ArrowLeft className="h-5 w-5" />
-                        <span className="sr-only">Back to Products</span>
-                    </Link>
+                    <Button variant="outline" size="icon" className="h-8 w-8 md:hidden" asChild>
+                        <Link href="/dashboard/products">
+                            <ArrowLeft className="h-4 w-4" />
+                            <span className="sr-only">Back to Products</span>
+                        </Link>
+                    </Button>
                     <div>
                         <h1 className="text-2xl font-bold tracking-tight">Add New Product</h1>
                         <p className="text-muted-foreground">Start with a template or from scratch.</p>
@@ -72,7 +74,7 @@ export default function AddProductPage() {
                         <CardTitle>Choose a Template</CardTitle>
                         <CardDescription>Select a pre-configured template to get started quickly, or begin with a blank slate.</CardDescription>
                     </CardHeader>
-                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                          <Card 
                             className="cursor-pointer hover:border-primary transition-colors flex flex-col items-center justify-center text-center p-4"
                             onClick={startFromScratch}

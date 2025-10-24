@@ -27,7 +27,7 @@ export default function DashboardLayout({
       <SidebarProvider>
         <div className="flex min-h-screen w-full">
           <AppSidebar onboardingData={onboardingData} />
-          <div className="flex flex-col w-full">
+          <div className="flex flex-col w-full overflow-x-hidden">
             <AppHeader onboardingData={onboardingData} />
             <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
               {children}
