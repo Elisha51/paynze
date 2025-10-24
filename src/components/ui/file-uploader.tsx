@@ -61,15 +61,17 @@ export function FileUploader({ files, onFilesChange, maxFiles = 15 }: FileUpload
   };
 
   const previews = useMemo(() => files.map((file, index) => {
-    const isImage = file.type.startsWith('image/');
+    const isImage = file instanceof File && file.type.startsWith('image/');
     const url = file instanceof File ? URL.createObjectURL(file) : (file as ProductImage).url;
+    const name = file instanceof File ? file.name : 'Image';
+    
     return (
       <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border">
-        {isImage ? (
+        {isImage || !(file instanceof File) ? (
             <Image src={url} alt="File preview" fill className="object-cover" />
         ) : (
             <div className="flex flex-col items-center justify-center h-full bg-muted p-2">
-                <p className="text-xs text-center break-all">{file.name}</p>
+                <p className="text-xs text-center break-all">{name}</p>
             </div>
         )}
         <Button
