@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 import { themes } from '@/lib/themes';
 
 export type OnboardingFormData = {
-  plan?: 'Free' | 'Premium';
+  plan: 'Free' | 'Premium';
   businessName: string;
   businessType: string;
   contactPhone: string;

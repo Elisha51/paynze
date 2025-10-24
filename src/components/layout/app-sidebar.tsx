@@ -61,8 +61,12 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
     // In a real app, this would come from user auth state
     const data = localStorage.getItem('onboardingData');
     if (data) {
-      const parsedData = JSON.parse(data);
-      setIsPremium(parsedData.plan === 'Premium');
+      try {
+        const parsedData = JSON.parse(data);
+        setIsPremium(parsedData.plan === 'Premium');
+      } catch (e) {
+        console.error("Failed to parse onboarding data:", e);
+      }
     }
   }, []);
 
