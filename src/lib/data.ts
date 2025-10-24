@@ -124,7 +124,7 @@ export const products: Product[] = [
         sku: 'SHOE-002-42',
         status: 'Low Stock',
         stockByLocation: [
-            { locationName: 'Downtown Store', stock: { onHand: 4, available: 2, reserved: 1, damaged: 1 } }
+            { locationName: 'Downtown Store', stock: { onHand: 5, available: 2, reserved: 1, damaged: 1 } }
         ],
         inventoryItems: [
           { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', locationName: 'Downtown Store'},
@@ -132,6 +132,7 @@ export const products: Product[] = [
           { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', locationName: 'Shipped'},
           { id: 'inv-004', serialNumber: 'SN-SHOE-42-004', status: 'Damaged', locationName: 'Downtown Store'},
           { id: 'inv-005', serialNumber: 'SN-SHOE-42-005', status: 'Reserved', locationName: 'Order #ORD-015'},
+          { id: 'inv-006', serialNumber: 'SN-SHOE-42-006', status: 'Returned', locationName: 'Downtown Store'},
         ]
       },
       { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stockByLocation: [

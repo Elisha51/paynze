@@ -38,7 +38,7 @@ function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     return <Badge variant={variant} className={cn(color)}>{status}</Badge>
 }
 
-const adjustmentTypeColors = {
+const adjustmentTypeColors: { [key in Product['variants'][0]['stockAdjustments'][0]['type']]: string } = {
     'Initial Stock': 'text-blue-600',
     'Sale': 'text-red-600',
     'Return': 'text-green-600',
