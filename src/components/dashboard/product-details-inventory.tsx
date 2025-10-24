@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/table"
 import type { Product, InventoryItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Separator } from '../ui/separator';
 
 function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     const variant = {
@@ -71,17 +72,34 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
     
     const allStockAdjustments = product.hasVariants 
         ? product.variants.flatMap(v => (v.stockAdjustments || []).map(adj => ({ ...adj, variant: v }))) 
-        : product.variants[0]?.stockAdjustments || [];
+        : (product.variants[0]?.stockAdjustments || []);
 
     allStockAdjustments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
     const totalStock = product.variants.reduce((acc, v) => {
-        acc.onHand += v.stock.onHand;
-        acc.available += v.stock.available;
-        acc.reserved += v.stock.reserved;
-        acc.damaged += v.stock.damaged;
+        v.stockByLocation.forEach(locStock => {
+            acc.onHand += locStock.stock.onHand;
+            acc.available += locStock.stock.available;
+            acc.reserved += locStock.stock.reserved;
+            acc.damaged += locStock.stock.damaged;
+        });
         return acc;
     }, { onHand: 0, available: 0, reserved: 0, damaged: 0 });
+
+    const stockByLocation = product.variants.reduce((acc, v) => {
+        const variantName = product.hasVariants ? Object.values(v.optionValues).join(' / ') : 'Default';
+        v.stockByLocation.forEach(locStock => {
+            if (!acc[locStock.locationName]) {
+                acc[locStock.locationName] = [];
+            }
+            acc[locStock.locationName].push({
+                variantName,
+                ...locStock.stock
+            });
+        });
+        return acc;
+    }, {} as Record<string, { variantName: string; onHand: number; available: number; reserved: number; damaged: number; }[]>);
+
 
     return (
         <div className="mt-4 space-y-6">
@@ -89,7 +107,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div>
                         <CardTitle>Inventory Summary</CardTitle>
-                        <CardDescription>Overall stock levels for "{product.name}".</CardDescription>
+                        <CardDescription>Overall stock levels for "{product.name}" across all locations.</CardDescription>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -111,6 +129,45 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                             <p className="text-2xl font-bold text-red-600">{totalStock.damaged}</p>
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Stock by Location</CardTitle>
+                    <CardDescription>View inventory levels for each warehouse and store.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {Object.keys(stockByLocation).length > 0 ? Object.entries(stockByLocation).map(([locationName, stocks], index) => (
+                        <div key={locationName}>
+                            <h3 className="font-semibold mb-2">{locationName}</h3>
+                             <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Variant</TableHead>
+                                        <TableHead className="text-right">On Hand</TableHead>
+                                        <TableHead className="text-right">Available</TableHead>
+                                        <TableHead className="text-right">Reserved</TableHead>
+                                        <TableHead className="text-right">Damaged</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {stocks.map(s => (
+                                        <TableRow key={s.variantName}>
+                                            <TableCell className="font-medium">{s.variantName}</TableCell>
+                                            <TableCell className="text-right">{s.onHand}</TableCell>
+                                            <TableCell className="text-right text-green-600 font-bold">{s.available}</TableCell>
+                                            <TableCell className="text-right text-orange-600">{s.reserved}</TableCell>
+                                            <TableCell className="text-right text-red-600">{s.damaged}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {index < Object.keys(stockByLocation).length - 1 && <Separator className="my-4" />}
+                        </div>
+                    )) : (
+                        <p className="text-sm text-muted-foreground text-center py-8">No stock recorded at any location.</p>
+                    )}
                 </CardContent>
             </Card>
 
@@ -136,7 +193,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                         <TableCell className="font-mono">{item.serialNumber || 'N/A'}</TableCell>
                                         {product.hasVariants && <TableCell>{item.variant ? Object.values(item.variant.optionValues).join(' / ') : 'Default'}</TableCell>}
                                         <TableCell><InventoryStatusBadge status={item.status} /></TableCell>
-                                        <TableCell>{item.location || '-'}</TableCell>
+                                        <TableCell>{item.locationName || '-'}</TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>

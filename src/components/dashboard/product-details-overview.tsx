@@ -44,6 +44,13 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
     }
   }
 
+  const totalAvailableStock = (variant: Product['variants'][0]) => {
+      return variant.stockByLocation?.reduce((sum, loc) => sum + loc.stock.available, 0) || 0;
+  }
+  const totalOnHandStock = (variant: Product['variants'][0]) => {
+      return variant.stockByLocation?.reduce((sum, loc) => sum + loc.stock.onHand, 0) || 0;
+  }
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
         <div className="lg:col-span-2 space-y-6">
@@ -171,10 +178,10 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                                         {variant.sku || '-'}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {variant.stock?.onHand}
+                                        {totalOnHandStock(variant)}
                                     </TableCell>
                                     <TableCell className="text-right text-primary font-bold">
-                                        {variant.stock?.available}
+                                        {totalAvailableStock(variant)}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -240,7 +247,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                     {product.inventoryTracking !== 'Don\'t Track' && product.variants.length > 0 && !product.hasVariants && (
                         <div>
                             <h3 className="font-medium text-sm text-muted-foreground">Stock On Hand</h3>
-                            <p>{product.variants[0]?.stock?.onHand || 0} {product.unitOfMeasure || 'units'}</p>
+                            <p>{totalOnHandStock(product.variants[0])} {product.unitOfMeasure || 'units'}</p>
                         </div>
                     )}
                     {product.requiresShipping && (

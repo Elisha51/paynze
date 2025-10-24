@@ -28,9 +28,12 @@ import { Move } from 'lucide-react';
 
 type AdjustmentType = 'Manual Adjustment' | 'Initial Stock' | 'Damage' | 'Return';
 
+const mockLocations = ['Main Warehouse', 'Downtown Store']; // In a real app, this would come from a service/API
+
 export function ProductDetailsAdjustStock({ product }: { product: Product }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(product.hasVariants ? null : product.variants[0]?.id);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [adjustmentType, setAdjustmentType] = useState<AdjustmentType>('Manual Adjustment');
   const [quantity, setQuantity] = useState<number>(0);
   const [reason, setReason] = useState('');
@@ -42,6 +45,14 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
             variant: 'destructive',
             title: 'No variant selected',
             description: 'Please select a variant to adjust stock for.',
+        });
+        return;
+    }
+    if (!selectedLocation) {
+        toast({
+            variant: 'destructive',
+            title: 'No location selected',
+            description: 'Please select a location.',
         });
         return;
     }
@@ -58,6 +69,7 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
     // This is a simulation, in a real app you'd dispatch an action or call an API.
     console.log({
         variantId: selectedVariantId,
+        location: selectedLocation,
         type: adjustmentType,
         quantity,
         reason,
@@ -65,12 +77,13 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
     
     toast({
         title: 'Stock Adjusted',
-        description: `Successfully adjusted stock for the selected variant.`,
+        description: `Successfully adjusted stock for the selected variant at ${selectedLocation}.`,
     });
     
     // Reset form and close dialog
     setIsOpen(false);
     setSelectedVariantId(product.hasVariants ? null : product.variants[0]?.id);
+    setSelectedLocation(null);
     setAdjustmentType('Manual Adjustment');
     setQuantity(0);
     setReason('');
@@ -86,11 +99,11 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
       <DialogTrigger asChild>
         <Button variant="outline"><Move className="mr-2 h-4 w-4" /> Adjust Stock</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Adjust Stock</DialogTitle>
           <DialogDescription>
-            Manually change stock levels and add a reason for the adjustment.
+            Manually change stock levels for a specific location.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
@@ -111,6 +124,21 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
               </Select>
             </div>
           )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="location" className="text-right">
+                Location
+            </Label>
+            <Select onValueChange={setSelectedLocation} value={selectedLocation || undefined}>
+                <SelectTrigger id="location" className="col-span-3">
+                    <SelectValue placeholder="Select a location" />
+                </SelectTrigger>
+                <SelectContent>
+                    {mockLocations.map(loc => (
+                        <SelectItem key={loc} value={loc}>{loc}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+          </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="adjustmentType" className="text-right">
               Type

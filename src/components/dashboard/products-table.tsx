@@ -138,7 +138,7 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'stock.available',
+    accessorKey: 'stock',
     header: ({ column }) => {
         return (
             <div className="text-right">
@@ -154,10 +154,9 @@ const getColumns = (
       },
       cell: ({ row }) => {
         const product = row.original;
-        // Sum stock from all variants if they exist, otherwise use the first variant's stock (for non-variant products)
-        const totalStock = product.hasVariants 
-            ? product.variants.reduce((sum, v) => sum + v.stock.available, 0)
-            : product.variants[0]?.stock.available ?? 0;
+        // Sum stock from all variants and locations
+        const totalStock = product.variants.reduce((sum, v) => 
+            sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.available, 0) || 0), 0);
         return <div className="text-right">{totalStock}</div>;
       }
   },

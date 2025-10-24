@@ -45,25 +45,31 @@ export const products: Product[] = [
         { name: 'Pattern', values: ['Floral', 'Geometric'] }
     ],
     variants: [
-      { 
-        id: 'var1', 
-        optionValues: { Color: 'Red', Pattern: 'Floral' }, 
-        price: 35000, 
-        sku: 'KIT-001-RF', 
+      {
+        id: 'var1',
+        optionValues: { Color: 'Red', Pattern: 'Floral' },
+        price: 35000,
+        sku: 'KIT-001-RF',
         status: 'In Stock',
-        stock: { onHand: 50, available: 48, reserved: 2, damaged: 0 },
+        stockByLocation: [
+          { locationName: 'Main Warehouse', stock: { onHand: 30, available: 28, reserved: 2, damaged: 0 } },
+          { locationName: 'Downtown Store', stock: { onHand: 20, available: 20, reserved: 0, damaged: 0 } }
+        ],
         stockAdjustments: [
             { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import' },
             { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' }
         ]
       },
-      { 
-        id: 'var2', 
-        optionValues: { Color: 'Blue', Pattern: 'Geometric' }, 
-        price: 35000, 
+      {
+        id: 'var2',
+        optionValues: { Color: 'Blue', Pattern: 'Geometric' },
+        price: 35000,
         sku: 'KIT-001-BG',
         status: 'In Stock',
-        stock: { onHand: 30, available: 25, reserved: 5, damaged: 0 },
+        stockByLocation: [
+            { locationName: 'Main Warehouse', stock: { onHand: 20, available: 15, reserved: 5, damaged: 0 } },
+            { locationName: 'Downtown Store', stock: { onHand: 10, available: 10, reserved: 0, damaged: 0 } }
+        ],
         stockAdjustments: [
             { id: 'adj-003', date: '2023-01-15', type: 'Initial Stock', quantity: 30, reason: 'Initial import' },
             { id: 'adj-004', date: '2023-02-22', type: 'Sale', quantity: -5, reason: 'Order #ORD-011', channel: 'In-Store' }
@@ -111,22 +117,26 @@ export const products: Product[] = [
     hasVariants: true,
     options: [{ name: 'Size', values: ['42', '43'] }],
     variants: [
-      { 
-        id: 'var3', 
-        optionValues: { Size: '42' }, 
-        price: 75000, 
+      {
+        id: 'var3',
+        optionValues: { Size: '42' },
+        price: 75000,
         sku: 'SHOE-002-42',
         status: 'Low Stock',
-        stock: { onHand: 4, available: 2, reserved: 1, damaged: 1 },
+        stockByLocation: [
+            { locationName: 'Downtown Store', stock: { onHand: 4, available: 2, reserved: 1, damaged: 1 } }
+        ],
         inventoryItems: [
-          { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', location: 'Warehouse A'},
-          { id: 'inv-002', serialNumber: 'SN-SHOE-42-002', status: 'Available', location: 'Warehouse A'},
-          { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', location: 'Shipped'},
-          { id: 'inv-004', serialNumber: 'SN-SHOE-42-004', status: 'Damaged', location: 'Warehouse A'},
-          { id: 'inv-005', serialNumber: 'SN-SHOE-42-005', status: 'Reserved', location: 'Order #ORD-015'},
+          { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', locationName: 'Downtown Store'},
+          { id: 'inv-002', serialNumber: 'SN-SHOE-42-002', status: 'Available', locationName: 'Downtown Store'},
+          { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', locationName: 'Shipped'},
+          { id: 'inv-004', serialNumber: 'SN-SHOE-42-004', status: 'Damaged', locationName: 'Downtown Store'},
+          { id: 'inv-005', serialNumber: 'SN-SHOE-42-005', status: 'Reserved', locationName: 'Order #ORD-015'},
         ]
       },
-      { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0 } },
+      { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stockByLocation: [
+          { locationName: 'Downtown Store', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0 } }
+      ] },
     ],
   },
   {
@@ -151,7 +161,7 @@ export const products: Product[] = [
   }
 ];
 
-  
+
 export const orders: Order[] = [
     { id: 'ORD-001', customer: 'Olivia Martin', email: 'olivia.martin@email.com', date: '2023-02-15', status: 'Delivered', total: 'KES 75,000', paymentMethod: 'Mobile Money' },
     { id: 'ORD-002', customer: 'Jackson Lee', email: 'jackson.lee@email.com', date: '2023-02-14', status: 'Delivered', total: 'KES 35,000', paymentMethod: 'Cash on Delivery' },

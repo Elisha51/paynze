@@ -11,11 +11,21 @@ export type WholesalePrice = {
   minOrderQuantity?: number;
 }
 
+export type InventoryLocationStock = {
+  locationName: string;
+  stock: {
+    onHand: number;
+    available: number;
+    reserved: number;
+    damaged: number;
+  };
+};
+
 export type InventoryItem = {
   id: string; // e.g., 'inv-item-xyz'
   serialNumber?: string;
   status: 'Available' | 'Sold' | 'Reserved' | 'Damaged' | 'Returned';
-  location?: string; // e.g. 'Warehouse A, Shelf B-3'
+  locationName?: string; // e.g. 'Warehouse A, Shelf B-3'
 };
 
 export type StockAdjustment = {
@@ -48,12 +58,7 @@ export type ProductVariant = {
   
   // Inventory details
   status: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
-  stock: {
-    onHand: number;
-    available: number;
-    reserved: number;
-    damaged: number;
-  };
+  stockByLocation: InventoryLocationStock[];
   inventoryItems?: InventoryItem[]; // For serialized tracking
   stockAdjustments?: StockAdjustment[]; // For history tracking
 };

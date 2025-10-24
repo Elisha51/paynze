@@ -51,6 +51,7 @@ import { Separator } from '../ui/separator';
 import type { OnboardingFormData } from '@/context/onboarding-context';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
+const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
 
 const emptyProduct: Product = {
   productType: 'Physical',
@@ -99,7 +100,7 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
         price: undefined,
         sku: '',
         imageIds: [],
-        stock: { ...defaultStock },
+        stockByLocation: defaultStockByLocation,
     }));
 };
 
@@ -136,7 +137,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         if (product.variants.length === 0) {
             setProduct(prev => ({
                 ...prev,
-                variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stock: { ...defaultStock }, price: prev.retailPrice }]
+                variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prev.retailPrice }]
             }));
         }
     }
@@ -194,7 +195,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
             ...prev, 
             inventoryTracking: value as Product['inventoryTracking'],
             lowStockThreshold: undefined, 
-            variants: prev.variants.map(v => ({...v, stock: {...defaultStock}})) 
+            variants: prev.variants.map(v => ({...v, stockByLocation: []})) 
         }));
     }
   }
@@ -285,22 +286,33 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   };
 
 
-  const handleVariantStockChange = (variantId: string, field: keyof ProductVariant['stock'], value: string) => {
+  const handleVariantStockChange = (variantId: string, locationName: string, value: string) => {
     setProduct(prev => ({
         ...prev,
         variants: prev.variants.map(v => {
             if (v.id === variantId) {
-                const newStock = { ...v.stock, [field]: Number(value) || 0 };
-                // Recalculate available stock
-                newStock.available = newStock.onHand - newStock.reserved - newStock.damaged;
-                return { ...v, stock: newStock };
+                const newStockByLocation = [...v.stockByLocation];
+                const locIndex = newStockByLocation.findIndex(loc => loc.locationName === locationName);
+                
+                if (locIndex !== -1) {
+                    const newStock = { ...newStockByLocation[locIndex].stock, onHand: Number(value) || 0 };
+                    newStock.available = newStock.onHand - newStock.reserved - newStock.damaged;
+                    newStockByLocation[locIndex] = { ...newStockByLocation[locIndex], stock: newStock };
+                } else {
+                    // This case should ideally not happen if locations are managed properly
+                    const newStock = { ...defaultStock, onHand: Number(value) || 0 };
+                    newStock.available = newStock.onHand;
+                    newStockByLocation.push({ locationName, stock: newStock });
+                }
+
+                return { ...v, stockByLocation: newStockByLocation };
             }
             return v;
         })
     }));
   };
 
-  const handleVariantChange = (variantId: string, field: keyof Omit<ProductVariant, 'stock'>, value: string | number) => {
+  const handleVariantChange = (variantId: string, field: keyof Omit<ProductVariant, 'stockByLocation'>, value: string | number) => {
     setProduct(prev => ({
         ...prev,
         variants: prev.variants.map(v => {
@@ -383,6 +395,8 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
 
+  const singleVariantOnHand = product.variants[0]?.stockByLocation[0]?.stock.onHand || 0;
+  const singleVariantAvailable = product.variants[0]?.stockByLocation[0]?.stock.available || 0;
 
   return (
     <div className="space-y-6">
@@ -676,9 +690,9 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                     <TableHead>Variant</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead>Price</TableHead>
-                                    <TableHead>On Hand</TableHead>
-                                    <TableHead className="text-center">Available</TableHead>
                                     <TableHead>SKU</TableHead>
+                                    <TableHead>On Hand (Main)</TableHead>
+                                    <TableHead className="text-center">Available (Main)</TableHead>
                                     <TableHead className="text-center">Images</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -715,25 +729,25 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                         </TableCell>
                                         <TableCell>
                                             <Input
-                                                type="number"
-                                                aria-label="Variant On Hand Stock"
-                                                value={variant.stock.onHand}
-                                                onChange={(e) => handleVariantStockChange(variant.id, 'onHand', e.target.value)}
-                                                className="h-8 w-20"
-                                                disabled={product.inventoryTracking === 'Don\'t Track'}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-center text-muted-foreground">
-                                          {variant.stock.available}
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input
                                                 aria-label="Variant SKU"
                                                 value={variant.sku || ''}
                                                 onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)}
                                                 placeholder="Variant SKU"
                                                 className="h-8 min-w-[120px]"
                                             />
+                                        </TableCell>
+                                         <TableCell>
+                                            <Input
+                                                type="number"
+                                                aria-label="Variant On Hand Stock"
+                                                value={variant.stockByLocation[0]?.stock.onHand || 0}
+                                                onChange={(e) => handleVariantStockChange(variant.id, 'Main Warehouse', e.target.value)}
+                                                className="h-8 w-20"
+                                                disabled={product.inventoryTracking === 'Don\'t Track'}
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-center text-muted-foreground">
+                                          {variant.stockByLocation[0]?.stock.available || 0}
                                         </TableCell>
                                         <TableCell className="text-center">
                                         <Dialog>
@@ -824,13 +838,13 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
                             <div className="space-y-2">
                                 <Label htmlFor="onHand">On Hand Quantity</Label>
-                                <Input id="onHand" type="number" value={product.variants[0]?.stock?.onHand || 0} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'onHand', e.target.value)} />
+                                <Input id="onHand" type="number" value={singleVariantOnHand} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
                                 <p className="text-xs text-muted-foreground">Total physical stock.</p>
                             </div>
                             <div className="space-y-2">
                                 <Label>Available for Sale</Label>
                                 <div className="h-10 flex items-center px-3 text-sm text-muted-foreground">
-                                    {product.variants[0]?.stock?.available || 0}
+                                    {singleVariantAvailable}
                                 </div>
                             </div>
                             {settings?.inventory?.enableLowStockAlerts && (
