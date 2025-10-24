@@ -6,8 +6,7 @@ import { getProductTemplates } from '@/services/templates';
 import { useState, useEffect } from 'react';
 import type { ProductTemplate } from '@/lib/types';
 
-export default function EditProductTemplatePage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function EditProductTemplatePage({ params: { id } }: { params: { id: string } }) {
   const [template, setTemplate] = useState<ProductTemplate | null>(null);
 
   useEffect(() => {
@@ -27,5 +26,3 @@ export default function EditProductTemplatePage({ params }: { params: { id: stri
 
   return <ProductTemplateForm initialTemplate={template} />;
 }
-
-    
