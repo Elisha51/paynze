@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -42,7 +43,7 @@ export default function SettingsPage() {
         // Mock initial shipping zones
         setShippingZones([
             { id: 'zone-1', name: 'Kampala Metro', countries: ['UG'], cities: ['Kampala'], deliveryMethods: [{ id: 'dm-1', name: 'Flat Rate', price: 10000 }] },
-            { id: 'zone-2', name: 'Nationwide', countries: ['UG'], deliveryMethods: [{ id: 'dm-2', name: 'Flat Rate', price: 25000 }] }
+            { id: 'zone-2', name: 'Nationwide', countries: ['UG'], cities: [], deliveryMethods: [{ id: 'dm-2', name: 'Flat Rate', price: 25000 }] }
         ]);
     }, []);
 
@@ -76,6 +77,7 @@ export default function SettingsPage() {
             id: `zone_${Date.now()}`,
             name: 'New Zone',
             countries: [],
+            cities: [],
             deliveryMethods: [{ id: `dm_${Date.now()}`, name: 'Flat Rate', price: 0 }]
         };
         setShippingZones(prev => [...prev, newZone]);
@@ -232,7 +234,9 @@ export default function SettingsPage() {
                                         value={zone.name}
                                         onChange={(e) => handleZoneChange(zone.id, 'name', e.target.value)}
                                     />
-                                    <p className="text-sm text-muted-foreground">Applies to: {zone.cities.join(', ')}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Applies to: {zone.cities && zone.cities.length > 0 ? zone.cities.join(', ') : 'All cities in selected countries'}
+                                    </p>
                                  </div>
                                   <Button variant="ghost" size="icon" onClick={() => handleRemoveZone(zone.id)}>
                                     <Trash2 className="h-4 w-4 text-destructive" />
