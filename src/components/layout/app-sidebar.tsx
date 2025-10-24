@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
   SidebarFooter,
+  SidebarRail,
 } from '@/components/ui/sidebar';
 import {
   LayoutDashboard,
@@ -19,10 +20,8 @@ import {
   Settings,
   LifeBuoy,
   LogOut,
-  Badge,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '../ui/button';
+import { Badge } from '@/components/ui/badge';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -36,7 +35,8 @@ export default function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar variant="sidebar" collapsible="icon" className="border-r hidden md:flex">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r">
+      <SidebarRail />
       <SidebarHeader className="p-4">
         <Link href="/dashboard" className="flex items-center gap-2">
           <ShoppingCart className="w-8 h-8 text-primary" />
