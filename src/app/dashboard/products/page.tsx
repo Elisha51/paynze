@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Sparkles, X, Trash2 } from 'lucide-react';
+import { PlusCircle, Sparkles, X, Trash2, Video, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,6 +10,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,7 +27,7 @@ import { ProductsTable } from '@/components/dashboard/products-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, ProductVariant } from '@/lib/types';
+import type { Product, ProductVariant, ProductImage } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { Stepper, Step } from '@/components/ui/stepper';
 
@@ -33,6 +42,7 @@ const emptyProduct: Product = {
     variants: [],
     visibility: 'draft',
     images: [],
+    videoUrl: '',
     discount: null,
 };
 
@@ -144,28 +154,34 @@ export default function ProductsPage() {
   const prevStep = () => setCurrentStep(prev => (prev > 0) ? prev - 1 : prev);
 
   const handleAddImage = () => {
-    setEditingProduct(prev => prev ? ({ ...prev, images: [...prev.images, ''] }) : null);
+    const newImage: ProductImage = { id: `img-${Date.now()}`, url: '' };
+    setEditingProduct(prev => prev ? ({ ...prev, images: [...prev.images, newImage] }) : null);
   };
 
   const handleImageChange = (index: number, value: string) => {
     if (!editingProduct) return;
     const newImages = [...editingProduct.images];
-    newImages[index] = value;
+    newImages[index].url = value;
     setEditingProduct({ ...editingProduct, images: newImages });
   };
   
   const handleRemoveImage = (index: number) => {
     if (!editingProduct) return;
+    const imageToRemove = editingProduct.images[index];
     const newImages = editingProduct.images.filter((_, i) => i !== index);
-    setEditingProduct({ ...editingProduct, images: newImages });
+    const newVariants = editingProduct.variants.map(v => ({
+      ...v,
+      imageIds: v.imageIds.filter(id => id !== imageToRemove.id)
+    }));
+    setEditingProduct({ ...editingProduct, images: newImages, variants: newVariants });
   };
 
   const handleAddVariant = () => {
-    const newVariant: ProductVariant = { optionName: 'New Variant', value: '', price: 0, stock: 0 };
+    const newVariant: ProductVariant = { id: `var-${Date.now()}`, optionName: 'New Variant', value: '', price: 0, stock: 0, imageIds: [] };
     setEditingProduct(prev => prev ? ({ ...prev, variants: [...prev.variants, newVariant] }) : null);
   };
   
-  const handleVariantChange = (index: number, field: keyof ProductVariant, value: string | number) => {
+  const handleVariantChange = (index: number, field: keyof Omit<ProductVariant, 'id' | 'imageIds'>, value: string | number) => {
     if (!editingProduct) return;
     const newVariants = [...editingProduct.variants];
     (newVariants[index] as any)[field] = value;
@@ -175,6 +191,20 @@ export default function ProductsPage() {
   const handleRemoveVariant = (index: number) => {
     if (!editingProduct) return;
     const newVariants = editingProduct.variants.filter((_, i) => i !== index);
+    setEditingProduct({ ...editingProduct, variants: newVariants });
+  };
+
+  const handleVariantImageToggle = (variantIndex: number, imageId: string) => {
+    if (!editingProduct) return;
+    const newVariants = [...editingProduct.variants];
+    const variant = newVariants[variantIndex];
+    const imageIndex = variant.imageIds.indexOf(imageId);
+
+    if (imageIndex > -1) {
+      variant.imageIds.splice(imageIndex, 1);
+    } else {
+      variant.imageIds.push(imageId);
+    }
     setEditingProduct({ ...editingProduct, variants: newVariants });
   };
 
@@ -282,26 +312,39 @@ export default function ProductsPage() {
               )}
 
               {currentStep === 1 && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <Label>Product Images</Label>
-                    <Button variant="outline" size="sm" onClick={handleAddImage}>Add Image URL</Button>
-                  </div>
-                  <div className="space-y-2">
-                    {editingProduct.images.map((img, index) => (
-                      <div key={index} className="flex items-center gap-2">
+                <div className="space-y-6">
+                    <div>
+                        <Label htmlFor="videoUrl" className='flex items-center gap-2 mb-2'><Video className="h-5 w-5"/> Video URL (Optional)</Label>
                         <Input 
-                          value={img} 
-                          onChange={(e) => handleImageChange(index, e.target.value)}
-                          placeholder="https://example.com/image.png"
+                            id="videoUrl" 
+                            value={editingProduct.videoUrl || ''}
+                            onChange={handleInputChange}
+                            placeholder="https://youtube.com/watch?v=..."
                         />
-                        <Button variant="ghost" size="icon" onClick={() => handleRemoveImage(index)}>
-                          <X className="h-4 w-4"/>
-                        </Button>
-                      </div>
-                    ))}
-                    {editingProduct.images.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No images added yet.</p>}
-                  </div>
+                        <p className="text-xs text-muted-foreground mt-1">Embed a YouTube or Vimeo video for your product.</p>
+                    </div>
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <Label className='flex items-center gap-2'><ImageIcon className="h-5 w-5" /> Product Images</Label>
+                            <Button variant="outline" size="sm" onClick={handleAddImage}>Add Image URL</Button>
+                        </div>
+                         <p className="text-xs text-muted-foreground -mt-2">Add one or more URLs for your product images. You can link these to specific variants in the next step.</p>
+                        <div className="space-y-2">
+                            {editingProduct.images.map((img, index) => (
+                            <div key={img.id} className="flex items-center gap-2">
+                                <Input 
+                                value={img.url} 
+                                onChange={(e) => handleImageChange(index, e.target.value)}
+                                placeholder="https://example.com/image.png"
+                                />
+                                <Button variant="ghost" size="icon" onClick={() => handleRemoveImage(index)}>
+                                <X className="h-4 w-4"/>
+                                </Button>
+                            </div>
+                            ))}
+                            {editingProduct.images.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">No images added yet.</p>}
+                        </div>
+                    </div>
                 </div>
               )}
 
@@ -326,24 +369,49 @@ export default function ProductsPage() {
                   </div>
                    <div className="space-y-4">
                     {editingProduct.variants.map((variant, index) => (
-                        <div key={index} className="grid grid-cols-12 gap-2 items-end border p-3 rounded-md">
-                            <div className="col-span-3 space-y-1">
+                        <div key={variant.id} className="grid grid-cols-12 gap-2 items-end border p-3 rounded-md">
+                            <div className="col-span-12 sm:col-span-3 space-y-1">
                                 <Label htmlFor={`variant-name-${index}`} className="text-xs">Type</Label>
                                 <Input id={`variant-name-${index}`} value={variant.optionName} onChange={(e) => handleVariantChange(index, 'optionName', e.target.value)} placeholder="e.g. Color" />
                             </div>
-                             <div className="col-span-3 space-y-1">
+                             <div className="col-span-12 sm:col-span-3 space-y-1">
                                 <Label htmlFor={`variant-value-${index}`} className="text-xs">Value</Label>
                                 <Input id={`variant-value-${index}`} value={variant.value} onChange={(e) => handleVariantChange(index, 'value', e.target.value)} placeholder="e.g. Red" />
                             </div>
-                            <div className="col-span-2 space-y-1">
-                                <Label htmlFor={`variant-price-${index}`} className="text-xs">Price</Label>
+                            <div className="col-span-6 sm:col-span-2 space-y-1">
+                                <Label htmlFor={`variant-price-${index}`} className="text-xs">Price Adj.</Label>
                                 <Input id={`variant-price-${index}`} type="number" value={variant.price} onChange={(e) => handleVariantChange(index, 'price', Number(e.target.value))} />
                             </div>
-                            <div className="col-span-2 space-y-1">
+                            <div className="col-span-6 sm:col-span-2 space-y-1">
                                 <Label htmlFor={`variant-stock-${index}`} className="text-xs">Stock</Label>
                                 <Input id={`variant-stock-${index}`} type="number" value={variant.stock} onChange={(e) => handleVariantChange(index, 'stock', Number(e.target.value))} />
                             </div>
-                            <div className="col-span-2">
+                            <div className="col-span-12 sm:col-span-2 flex items-end gap-2">
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" size="icon" disabled={editingProduct.images.length === 0}>
+                                            <ImageIcon className="h-4 w-4" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-60">
+                                        <div className="space-y-2">
+                                            <p className="font-medium text-sm">Link Images</p>
+                                            <div className="space-y-1">
+                                                {editingProduct.images.map((image) => (
+                                                <div key={image.id} className="flex items-center space-x-2">
+                                                    <Checkbox
+                                                        id={`var-${index}-img-${image.id}`}
+                                                        checked={variant.imageIds.includes(image.id)}
+                                                        onCheckedChange={() => handleVariantImageToggle(index, image.id)}
+                                                    />
+                                                    <Label htmlFor={`var-${index}-img-${image.id}`} className="text-xs font-normal truncate">{image.url || 'Pasted Image'}</Label>
+                                                </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
+
                                 <Button variant="destructive" size="icon" onClick={() => handleRemoveVariant(index)}>
                                     <Trash2 className="h-4 w-4"/>
                                 </Button>

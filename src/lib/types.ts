@@ -1,10 +1,17 @@
 
 
+export type ProductImage = {
+  id: string;
+  url: string;
+};
+
 export type ProductVariant = {
+  id: string;
   optionName: string;
   value: string;
   price: number;
   stock: number;
+  imageIds: string[];
 };
 
 export type Product = {
@@ -20,7 +27,8 @@ export type Product = {
   stockQuantity: number;
   variants: ProductVariant[];
   visibility: 'published' | 'draft' | 'archived';
-  images: string[];
+  images: ProductImage[];
+  videoUrl?: string;
   discount: string | null;
 };
 
