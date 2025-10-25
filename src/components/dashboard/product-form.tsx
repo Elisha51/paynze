@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category, Supplier } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -53,6 +53,7 @@ import type { OnboardingFormData } from '@/context/onboarding-context';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { getCategories } from '@/services/categories';
 import { addProduct, updateProduct } from '@/services/products';
+import { getSuppliers } from '@/services/procurement';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -115,6 +116,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -128,11 +130,15 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         setSettings(JSON.parse(data));
     }
 
-    async function loadCategories() {
-        const fetchedCategories = await getCategories();
+    async function loadData() {
+        const [fetchedCategories, fetchedSuppliers] = await Promise.all([
+            getCategories(),
+            getSuppliers(),
+        ]);
         setCategories(fetchedCategories);
+        setSuppliers(fetchedSuppliers);
     }
-    loadCategories();
+    loadData();
   }, [initialProduct]);
   
   useEffect(() => {
@@ -1038,6 +1044,19 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                             <SelectContent>
                                 {categories.map(cat => (
                                     <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="vendor">Supplier</Label>
+                        <Select value={product.vendor} onValueChange={(v) => handleSelectChange('vendor', v)}>
+                            <SelectTrigger id="vendor">
+                                <SelectValue placeholder="Select a supplier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {suppliers.map(sup => (
+                                    <SelectItem key={sup.id} value={sup.name}>{sup.name}</SelectItem>
                                 ))}
                             </SelectContent>
                         </Select>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import {
@@ -222,6 +223,10 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                     <div>
                         <h3 className="font-medium text-sm text-muted-foreground">Category</h3>
                         <p>{product.category || '-'}</p>
+                    </div>
+                    <div>
+                        <h3 className="font-medium text-sm text-muted-foreground">Supplier</h3>
+                        <p>{product.vendor || '-'}</p>
                     </div>
                 </CardContent>
             </Card>
