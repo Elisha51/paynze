@@ -308,6 +308,9 @@ export type AssignableAttribute = {
 }
 
 export type CommissionRule = {
+    id: string;
+    name: string;
+    trigger: 'On Order Paid' | 'On Order Delivered';
     type: 'Fixed Amount' | 'Percentage of Sale';
     rate: number;
 }
@@ -329,6 +332,14 @@ export type Payout = {
     currency: string;
 };
 
+export type Bonus = {
+    id: string;
+    date: string;
+    reason: string;
+    amount: number;
+    awardedBy: string; // Staff ID of the admin who awarded the bonus
+};
+
 export type Staff = {
   id: string;
   name: string;
@@ -347,6 +358,7 @@ export type Staff = {
   totalCommission?: number; // For tracking earned commission
   currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
   payoutHistory?: Payout[];
+  bonuses?: Bonus[];
   // Dynamic attributes based on role
   attributes?: {
     [key: string]: PerformanceTarget | string[] | string | number | boolean | Date;

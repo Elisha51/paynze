@@ -27,7 +27,8 @@ let roles: Role[] = [
       staff: { view: true, create: true, edit: true, delete: true },
       settings: { view: true, edit: true },
     },
-    assignableAttributes: []
+    assignableAttributes: [],
+    commissionRules: [],
   },
   {
     name: 'Sales Agent',
@@ -39,10 +40,9 @@ let roles: Role[] = [
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
     },
-    commission: {
-        type: 'Percentage of Sale',
-        rate: 5,
-    },
+    commissionRules: [
+        { id: 'sales-1', name: 'Standard Sales Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 5 }
+    ],
     assignableAttributes: [
         { key: 'salesTarget', label: 'Monthly Sales Target', type: 'kpi' },
         { key: 'assignedRegions', label: 'Sales Regions', type: 'tags' },
@@ -57,10 +57,9 @@ let roles: Role[] = [
       dashboard: { view: true },
       orders: { view: true, create: false, edit: true, delete: false },
     },
-    commission: {
-        type: 'Fixed Amount',
-        rate: 1500,
-    },
+    commissionRules: [
+        { id: 'delivery-1', name: 'Per-Delivery Fee', trigger: 'On Order Delivered', type: 'Fixed Amount', rate: 1500 }
+    ],
     assignableAttributes: [
         { key: 'deliveryTarget', label: 'Daily Delivery Target', type: 'kpi' },
         { key: 'deliveryZones', label: 'Delivery Zones', type: 'tags' },
@@ -77,7 +76,8 @@ let roles: Role[] = [
       finances: { view: true, create: true, edit: true, delete: true },
       procurement: { view: true, create: true, edit: true, delete: false },
     },
-    assignableAttributes: []
+    assignableAttributes: [],
+    commissionRules: [],
   },
 ];
 
