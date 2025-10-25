@@ -30,13 +30,17 @@ export default function ProductsPage() {
   }, []);
 
   const tabs = [
+      { value: 'products', label: 'All Products' },
+      { value: 'categories', label: 'Categories' },
+      { value: 'reports', label: 'Reports', className: 'flex items-center gap-2' },
+  ];
+  
+  const filterTabs = [
       { value: 'all', label: 'All' },
       { value: 'published', label: 'Published' },
       { value: 'draft', label: 'Draft' },
       { value: 'archived', label: 'Archived' },
-      { value: 'categories', label: 'Categories' },
-      { value: 'reports', label: 'Reports', className: 'flex items-center gap-2' },
-  ];
+  ]
 
   const cta = (
      <DropdownMenu>
@@ -73,33 +77,39 @@ export default function ProductsPage() {
         tabs={tabs}
         cta={cta}
     >
-        <DashboardPageLayout.TabContent value="all">
-            <ProductsTable
-                data={allProducts}
-                setData={setProducts}
-            />
+        <DashboardPageLayout.TabContent value="products">
+            <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue='all'>
+                 <DashboardPageLayout.TabContent value="all">
+                    <ProductsTable
+                        data={allProducts}
+                        setData={setProducts}
+                    />
+                </DashboardPageLayout.TabContent>
+                <DashboardPageLayout.TabContent value="published">
+                    <ProductsTable 
+                        data={publishedProducts}
+                        setData={setProducts}
+                    />
+                </DashboardPageLayout.TabContent>
+                <DashboardPageLayout.TabContent value="draft">
+                    <ProductsTable
+                        data={draftProducts}
+                        setData={setProducts}
+                    />
+                </DashboardPageLayout.TabContent>
+                <DashboardPageLayout.TabContent value="archived">
+                    <ProductsTable 
+                        data={archivedProducts}
+                        setData={setProducts}
+                    />
+                </DashboardPageLayout.TabContent>
+            </DashboardPageLayout.FilterTabs>
         </DashboardPageLayout.TabContent>
-        <DashboardPageLayout.TabContent value="published">
-            <ProductsTable 
-                data={publishedProducts}
-                setData={setProducts}
-            />
-        </DashboardPageLayout.TabContent>
-        <DashboardPageLayout.TabContent value="draft">
-            <ProductsTable
-                data={draftProducts}
-                setData={setProducts}
-            />
-        </DashboardPageLayout.TabContent>
-        <DashboardPageLayout.TabContent value="archived">
-            <ProductsTable 
-                data={archivedProducts}
-                setData={setProducts}
-            />
-        </DashboardPageLayout.TabContent>
+
         <DashboardPageLayout.TabContent value="categories">
             <CategoriesTab />
         </DashboardPageLayout.TabContent>
+        
         <DashboardPageLayout.TabContent value="reports">
             <ProductPerformanceReport products={products} />
         </DashboardPageLayout.TabContent>

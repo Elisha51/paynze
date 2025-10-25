@@ -7,8 +7,7 @@ import { CustomersTable } from '@/components/dashboard/customers-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function CustomersPage() {
-
-  const tabs = [
+  const filterTabs = [
     { value: 'all', label: 'All' },
     { value: 'wholesale', label: 'Wholesale' },
     { value: 'retailer', label: 'Retailer' },
@@ -24,29 +23,32 @@ export default function CustomersPage() {
   return (
     <DashboardPageLayout
       title="Customers"
-      tabs={tabs}
       cta={cta}
     >
-      <DashboardPageLayout.TabContent value="all">
-        <CustomersTable
-          cardTitle="All Customers"
-          cardDescription="View, manage, and communicate with your customers."
-        />
-      </DashboardPageLayout.TabContent>
-      <DashboardPageLayout.TabContent value="wholesale">
-        <CustomersTable
-          filter={{ column: 'customerGroup', value: 'wholesale' }}
-          cardTitle="Wholesale Customers"
-          cardDescription="View, manage, and communicate with your wholesale customers."
-        />
-      </DashboardPageLayout.TabContent>
-      <DashboardPageLayout.TabContent value="retailer">
-        <CustomersTable
-          filter={{ column: 'customerGroup', value: 'retailer' }}
-          cardTitle="Retail Customers"
-          cardDescription="View, manage, and communicate with your retail customers."
-        />
-      </DashboardPageLayout.TabContent>
+      <DashboardPageLayout.Content>
+          <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="all">
+            <DashboardPageLayout.TabContent value="all">
+                <CustomersTable
+                cardTitle="All Customers"
+                cardDescription="View, manage, and communicate with your customers."
+                />
+            </DashboardPageLayout.TabContent>
+            <DashboardPageLayout.TabContent value="wholesale">
+                <CustomersTable
+                filter={{ column: 'customerGroup', value: 'wholesale' }}
+                cardTitle="Wholesale Customers"
+                cardDescription="View, manage, and communicate with your wholesale customers."
+                />
+            </DashboardPageLayout.TabContent>
+            <DashboardPageLayout.TabContent value="retailer">
+                <CustomersTable
+                filter={{ column: 'customerGroup', value: 'retailer' }}
+                cardTitle="Retail Customers"
+                cardDescription="View, manage, and communicate with your retail customers."
+                />
+            </DashboardPageLayout.TabContent>
+          </DashboardPageLayout.FilterTabs>
+      </DashboardPageLayout.Content>
     </DashboardPageLayout>
   );
 }
