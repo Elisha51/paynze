@@ -3,6 +3,7 @@
 
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -298,7 +299,7 @@ export type AttributeType = 'kpi' | 'tags' | 'string' | 'number' | 'boolean' | '
 
 export type AssignableAttribute = {
     key: string; // e.g. 'salesTarget', 'deliveryZones'
-    label: string; // e.g. 'Sales Target', 'Delivery Zones'
+    label: string; // eg. 'Sales Target', 'Delivery Zones'
     type: AttributeType;
 }
 
@@ -318,6 +319,7 @@ export type Staff = {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   avatarUrl?: string;
   role: StaffRoleName;
   status: 'Active' | 'Inactive';

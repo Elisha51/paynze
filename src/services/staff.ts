@@ -3,6 +3,7 @@
 
 
 
+
 import type { Staff, Order } from '@/lib/types';
 import { format, subDays } from 'date-fns';
 import { getOrders } from './orders';
@@ -17,6 +18,7 @@ async function initializeStaff() {
         id: 'staff-001', 
         name: 'John Doe', 
         email: 'john@example.com', 
+        phone: '+256772123456',
         avatarUrl: 'https://picsum.photos/seed/john-doe/100/100',
         role: 'Admin', 
         status: 'Active', 
@@ -31,6 +33,7 @@ async function initializeStaff() {
         id: 'staff-002', 
         name: 'Jane Smith', 
         email: 'jane@example.com', 
+        phone: '+254712345678',
         avatarUrl: 'https://picsum.photos/seed/jane-smith/100/100',
         role: 'Sales Agent', 
         status: 'Active', 
@@ -49,6 +52,7 @@ async function initializeStaff() {
         id: 'staff-003', 
         name: 'Peter Jones', 
         email: 'peter@example.com', 
+        phone: '+256782987654',
         avatarUrl: 'https://picsum.photos/seed/peter-jones/100/100',
         role: 'Delivery Rider', 
         status: 'Active', 
@@ -67,6 +71,7 @@ async function initializeStaff() {
         id: 'staff-004', 
         name: 'Mary Anne', 
         email: 'mary@example.com', 
+        phone: '+255765432109',
         avatarUrl: 'https://picsum.photos/seed/mary-anne/100/100',
         role: 'Finance Manager', 
         status: 'Active', 
@@ -78,6 +83,7 @@ async function initializeStaff() {
         id: 'staff-005', 
         name: 'Chris Green', 
         email: 'chris@example.com', 
+        phone: '+254709876543',
         avatarUrl: 'https://picsum.photos/seed/chris-green/100/100',
         role: 'Sales Agent', 
         status: 'Inactive', 

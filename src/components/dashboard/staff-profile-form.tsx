@@ -10,18 +10,17 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials } from '@/lib/utils';
-import { updateStaff } from '@/services/staff';
 import { useRouter } from 'next/navigation';
 
 type StaffProfileFormProps = {
     staff: Staff;
     onSave: (updatedStaff: Staff) => Promise<void>;
+    onCancel: () => void;
 };
 
-export function StaffProfileForm({ staff, onSave }: StaffProfileFormProps) {
+export function StaffProfileForm({ staff, onSave, onCancel }: StaffProfileFormProps) {
     const [formData, setFormData] = useState(staff);
     const { toast } = useToast();
-    const router = useRouter();
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -35,6 +34,7 @@ export function StaffProfileForm({ staff, onSave }: StaffProfileFormProps) {
                 title: "Profile Updated",
                 description: "Your profile information has been saved.",
             });
+            onCancel(); // Go back to view mode
         } catch(e) {
              toast({
                 variant: 'destructive',
@@ -56,7 +56,7 @@ export function StaffProfileForm({ staff, onSave }: StaffProfileFormProps) {
                         <AvatarImage src={formData.avatarUrl} alt={formData.name} />
                         <AvatarFallback>{getInitials(formData.name)}</AvatarFallback>
                     </Avatar>
-                    <div className="space-y-2">
+                    <div className="space-y-2 flex-1">
                         <Label htmlFor="avatarUrl">Profile Picture URL</Label>
                         <Input id="avatarUrl" value={formData.avatarUrl || ''} onChange={handleInputChange} />
                     </div>
@@ -69,12 +69,18 @@ export function StaffProfileForm({ staff, onSave }: StaffProfileFormProps) {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" value={formData.email} onChange={handleInputChange} />
+                        <Input id="email" type="email" value={formData.email} onChange={handleInputChange} disabled />
                     </div>
                 </div>
-                 <Button onClick={handleSaveChanges}>Save Changes</Button>
+                 <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number</Label>
+                    <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} />
+                </div>
+                <div className="flex gap-2">
+                    <Button onClick={handleSaveChanges}>Save Changes</Button>
+                    <Button variant="outline" onClick={onCancel}>Cancel</Button>
+                </div>
             </CardContent>
         </Card>
     )
 }
-
