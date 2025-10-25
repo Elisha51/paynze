@@ -95,6 +95,7 @@ export default function MyProfilePage() {
                             staff={staffMember}
                             onSave={handleProfileUpdate}
                             onCancel={() => setIsEditing(false)}
+                            isSelfEditing={true}
                         />
                     ) : (
                         <ProfileView 

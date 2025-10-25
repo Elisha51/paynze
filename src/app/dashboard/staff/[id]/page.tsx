@@ -236,6 +236,7 @@ export default function ViewStaffPage() {
   }).filter(Boolean) : [];
   const hasAttributes = assignedAttributes.length > 0;
   const isPendingVerification = staffMember.status === 'Pending Verification';
+  const hasDocuments = staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0;
 
   return (
     <div className="space-y-6">
@@ -292,18 +293,7 @@ export default function ViewStaffPage() {
                   <CardTitle>Verification Required</CardTitle>
                   <CardDescription>Review the submitted documents and approve or reject this staff member.</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                  <h4 className="font-semibold text-sm">Submitted Documents</h4>
-                  <div className="flex flex-wrap gap-4">
-                      {staffMember.verificationDocuments?.map(doc => (
-                          <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
-                              <FileText className="h-5 w-5 text-primary"/>
-                              <span className="text-sm font-medium">{doc.name}</span>
-                          </a>
-                      ))}
-                  </div>
-              </CardContent>
-              <CardFooter className="flex justify-end gap-2">
+              <CardContent className="flex justify-end gap-2">
                 <AlertDialog>
                     <AlertDialogTrigger asChild>
                         <Button variant="destructive">
@@ -332,7 +322,7 @@ export default function ViewStaffPage() {
                     <CheckCircle className="mr-2 h-4 w-4" />
                     Approve
                 </Button>
-              </CardFooter>
+              </CardContent>
           </Card>
       )}
       
@@ -355,8 +345,26 @@ export default function ViewStaffPage() {
                     </CardContent>
                 </Card>
             )}
+
+             {hasDocuments && (
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Verification Documents</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex flex-wrap gap-4">
+                            {staffMember.verificationDocuments?.map(doc => (
+                                <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
+                                    <FileText className="h-5 w-5 text-primary"/>
+                                    <span className="text-sm font-medium">{doc.name}</span>
+                                </a>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
             
-            {!showAssignedOrders && !hasAttributes && !isPendingVerification && (
+            {!showAssignedOrders && !hasAttributes && !isPendingVerification && !hasDocuments && (
                  <Card>
                     <CardContent>
                         <EmptyState 
@@ -395,4 +403,3 @@ export default function ViewStaffPage() {
     </div>
   );
 }
-

@@ -20,9 +20,10 @@ type StaffProfileFormProps = {
     staff: Staff;
     onSave: (updatedStaff: Staff) => Promise<void>;
     onCancel: () => void;
+    isSelfEditing?: boolean;
 };
 
-export function StaffProfileForm({ staff, onSave, onCancel }: StaffProfileFormProps) {
+export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = false }: StaffProfileFormProps) {
     const [formData, setFormData] = useState(staff);
     const { toast } = useToast();
     const [imageToCrop, setImageToCrop] = useState<string | null>(null);
@@ -42,6 +43,12 @@ export function StaffProfileForm({ staff, onSave, onCancel }: StaffProfileFormPr
             reader.readAsDataURL(files[0]);
         }
     };
+
+    const handleVerificationDocsChange = (files: File[]) => {
+        // This is a simulation. In a real app, you'd upload these files and get URLs.
+        const newDocs = files.map(file => ({ name: file.name, url: URL.createObjectURL(file) }));
+        setFormData(prev => ({ ...prev, verificationDocuments: [...(prev.verificationDocuments || []), ...newDocs] }));
+    }
     
     const handleCropComplete = async () => {
         if (!imageToCrop || !crop || !crop.width || !crop.height) return;
@@ -126,13 +133,31 @@ export function StaffProfileForm({ staff, onSave, onCancel }: StaffProfileFormPr
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="email">Email Address</Label>
-                            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} disabled />
+                            <Input id="email" type="email" value={formData.email} onChange={handleInputChange} disabled={isSelfEditing} />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
                         <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} />
                     </div>
+                    
+                    {isSelfEditing && (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Verification Documents</CardTitle>
+                                <CardDescription>Upload documents to verify your identity (e.g., National ID, Driver's License).</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <FileUploader
+                                    files={formData.verificationDocuments || []}
+                                    onFilesChange={handleVerificationDocsChange}
+                                    maxFiles={5}
+                                    accept={{ 'application/pdf': ['.pdf'], 'image/*': ['.jpeg', '.jpg', '.png'] }}
+                                />
+                            </CardContent>
+                        </Card>
+                    )}
+
                     <div className="flex gap-2">
                         <Button onClick={handleSaveChanges}>Save Changes</Button>
                         <Button variant="outline" onClick={onCancel}>Cancel</Button>
