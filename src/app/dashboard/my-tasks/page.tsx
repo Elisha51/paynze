@@ -12,6 +12,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Button } from '@/components/ui/button';
+import { Edit } from 'lucide-react';
 
 // Assuming the logged-in user is staff-003 for demonstration
 const LOGGED_IN_STAFF_ID = 'staff-003';
@@ -61,8 +63,8 @@ export default function MyTasksPage() {
                 getRoles()
             ]);
             
-            setStaffMember(staffData || null);
             if (staffData) {
+                setStaffMember(staffData);
                 const staffRole = allRoles.find(r => r.name === staffData.role);
                 setRole(staffRole || null);
             }
@@ -75,7 +77,10 @@ export default function MyTasksPage() {
     if (loading || !staffMember || !role) {
         return (
             <div className="space-y-6">
-                <Skeleton className="h-10 w-64" />
+                 <div className="flex items-center justify-between">
+                    <Skeleton className="h-10 w-64" />
+                    <Skeleton className="h-10 w-32" />
+                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Skeleton className="h-48" />
                     <Skeleton className="h-48" />
@@ -91,9 +96,17 @@ export default function MyTasksPage() {
 
     return (
         <div className="space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">My Tasks & Performance</h1>
-                <p className="text-muted-foreground">Here's an overview of your current assignments and goals.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">My Tasks & Performance</h1>
+                    <p className="text-muted-foreground">Here's an overview of your current assignments and goals.</p>
+                </div>
+                <Button asChild variant="outline">
+                    <Link href="/dashboard/my-profile/edit">
+                        <Edit className="mr-2 h-4 w-4"/>
+                        Edit Profile
+                    </Link>
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
