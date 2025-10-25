@@ -284,6 +284,14 @@ export default function ViewStaffPage() {
                             icon={<Award className="h-12 w-12 text-primary" />}
                             title="No Tasks or Attributes"
                             description="This staff member currently has no assigned orders or role-specific attributes to display."
+                            cta={(
+                                <Button asChild>
+                                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Edit Profile & Attributes
+                                    </Link>
+                                </Button>
+                            )}
                         />
                     </CardContent>
                 </Card>
