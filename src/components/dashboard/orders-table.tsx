@@ -50,6 +50,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { updateOrder, updateProductStock } from '@/services/orders';
 
+// Simulate a logged-in user for accountability
+const LOGGED_IN_STAFF = { id: 'staff-003', name: 'Peter Jones' };
 
 function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
     const { toast } = useToast();
@@ -77,14 +79,17 @@ function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { or
 
     const handleFulfill = async () => {
         const newStatus = newStatusMap[action];
-        
+        const updates: Partial<Order> = { status: newStatus };
+
         if (action === 'deliver' || action === 'pickup') {
+            updates.fulfilledByStaffId = LOGGED_IN_STAFF.id;
+            updates.fulfilledByStaffName = LOGGED_IN_STAFF.name;
             for (const item of order.items) {
                 await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${order.id}`);
             }
         }
         
-        const updatedOrder = await updateOrder(order.id, { status: newStatus });
+        const updatedOrder = await updateOrder(order.id, updates);
 
         onUpdate(updatedOrder);
         toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${newStatus}.`});

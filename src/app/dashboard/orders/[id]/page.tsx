@@ -45,6 +45,9 @@ const paymentStatusVariantMap: { [key in Order['paymentStatus']]: 'default' | 's
     'Unpaid': 'destructive',
 };
 
+// Simulate a logged-in user for accountability
+const LOGGED_IN_STAFF = { id: 'staff-003', name: 'Peter Jones' };
+
 export default function ViewOrderPage() {
   const params = useParams();
   const id = params.id as string;
@@ -75,11 +78,21 @@ export default function ViewOrderPage() {
     
     // Fulfill order and deduct stock
     if (status === 'Delivered' || status === 'Picked Up') {
+        updates.fulfilledByStaffId = LOGGED_IN_STAFF.id;
+        updates.fulfilledByStaffName = LOGGED_IN_STAFF.name;
         for (const item of order.items) {
            await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${order.id}`);
         }
     }
     
+    if (status === 'Cancelled' && order.paymentStatus === 'Paid') {
+        // Here you would also trigger a refund process
+        toast({
+            title: 'Action Required',
+            description: 'Order cancelled. Remember to process a refund for the customer.',
+        });
+    }
+
     const updatedOrder = await updateOrder(order.id, updates);
     
     setOrder(updatedOrder);
