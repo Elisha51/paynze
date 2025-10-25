@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { Customer } from '@/lib/types';
-import { getCustomers } from '@/services/customers';
 import { DataTable } from './data-table';
 import Link from 'next/link';
 
@@ -158,28 +157,29 @@ const columns: ColumnDef<Customer>[] = [
 ];
 
 type CustomersTableProps = {
+  customers: Customer[];
+  isLoading: boolean;
   filter?: {
     column: string;
     value: string;
   };
 };
 
-export function CustomersTable({ filter }: CustomersTableProps) {
+export function CustomersTable({ customers, isLoading, filter }: CustomersTableProps) {
   const [data, setData] = React.useState<Customer[]>([]);
 
   React.useEffect(() => {
-    async function loadCustomers() {
-      const fetchedCustomers = await getCustomers();
-      setData(fetchedCustomers);
+    if (filter) {
+      setData(customers.filter(item => (item as any)[filter.column] === filter.value));
+    } else {
+      setData(customers);
     }
-    loadCustomers();
-  }, []);
+  }, [customers, filter]);
 
   return (
     <DataTable
       columns={columns}
       data={data}
-      filter={filter}
     />
   );
 }

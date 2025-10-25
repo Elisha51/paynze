@@ -18,7 +18,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { Order } from '@/lib/types';
-import { getOrders } from '@/services/orders';
 import { DataTable } from './data-table';
 
 
@@ -160,28 +159,29 @@ const columns: ColumnDef<Order>[] = [
 ];
 
 type OrdersTableProps = {
+  orders: Order[];
+  isLoading: boolean;
   filter?: {
     column: string;
     value: string;
   };
 };
 
-export function OrdersTable({ filter }: OrdersTableProps) {
+export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>([]);
 
   React.useEffect(() => {
-    async function loadOrders() {
-      const fetchedOrders = await getOrders();
-      setData(fetchedOrders);
+    if (filter) {
+      setData(orders.filter(item => (item as any)[filter.column] === filter.value));
+    } else {
+      setData(orders);
     }
-    loadOrders();
-  }, []);
+  }, [orders, filter]);
 
   return (
     <DataTable
       columns={columns}
       data={data}
-      filter={filter}
     />
   );
 }
