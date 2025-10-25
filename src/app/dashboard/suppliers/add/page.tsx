@@ -12,8 +12,20 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { useEffect, useState } from 'react';
+import { getCountryList } from '@/services/countries';
 
 export default function AddSupplierPage() {
+  const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+
+  useEffect(() => {
+    async function loadCountries() {
+        const countryList = await getCountryList();
+        setCountries(countryList);
+    }
+    loadCountries();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -57,7 +69,17 @@ export default function AddSupplierPage() {
           </div>
            <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
-              <Input id="phone" type="tel" placeholder="e.g., +256 772 111 222" />
+              <div className="flex items-center gap-2">
+                <Select defaultValue="+256">
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Code" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Input id="phone" type="tel" placeholder="772 111 222" />
+              </div>
           </div>
           <div className="space-y-2">
               <Label htmlFor="address">Address</Label>

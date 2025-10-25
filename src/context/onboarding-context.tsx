@@ -10,6 +10,7 @@ export type OnboardingFormData = {
   businessName: string;
   businessType: string;
   contactPhone: string;
+  country: string;
   subdomain: string;
   currency: string;
   language: string;
@@ -43,6 +44,7 @@ const initialFormData: OnboardingFormData = {
   businessName: '',
   businessType: 'Retailer',
   contactPhone: '',
+  country: 'Uganda',
   subdomain: '',
   currency: 'UGX',
   language: 'English',

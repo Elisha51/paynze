@@ -19,8 +19,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { getCountryList } from '@/services/countries';
 
 export default function AddCustomerPage() {
+  const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+
+  useEffect(() => {
+    async function loadCountries() {
+        const countryList = await getCountryList();
+        setCountries(countryList);
+    }
+    loadCountries();
+  }, []);
+
 
   return (
     <div className="space-y-6">
@@ -66,7 +78,17 @@ export default function AddCustomerPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
-                <Input id="phone" type="tel" placeholder="e.g., +254 712 345 678" />
+                 <div className="flex items-center gap-2">
+                    <Select defaultValue="+254">
+                    <SelectTrigger className="w-[120px]">
+                        <SelectValue placeholder="Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                    </SelectContent>
+                    </Select>
+                    <Input id="phone" type="tel" placeholder="712 345 678" />
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -87,8 +109,15 @@ export default function AddCustomerPage() {
                         <Input id="city" placeholder="e.g., Nairobi"/>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="country">Country</Label>
-                        <Input id="country" placeholder="e.g., Kenya"/>
+                       <Label htmlFor="country">Country</Label>
+                        <Select>
+                            <SelectTrigger id="country">
+                                <SelectValue placeholder="Select a country" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
                     </div>
                  </div>
             </CardContent>
