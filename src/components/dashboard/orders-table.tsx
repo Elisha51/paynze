@@ -334,9 +334,10 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
     header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
       const order = row.original;
-      const isUnpaid = order.paymentStatus === 'Unpaid';
-      const isPaid = order.paymentStatus === 'Paid' && order.status === 'Paid';
+      const isAwaitingPayment = order.status === 'Awaiting Payment';
+      const isPaid = order.status === 'Paid';
       const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
+      const { toast } = useToast();
 
       const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
         const updates: Partial<Order> = { status };
@@ -348,7 +349,6 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
         toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${status}.`});
       }
 
-      const { toast } = useToast();
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
@@ -366,7 +366,7 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
                             <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                         </DropdownMenuItem>
 
-                         {isUnpaid && (
+                         {isAwaitingPayment && (
                             <DropdownMenuItem onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</DropdownMenuItem>
                         )}
                         {isPaid && order.fulfillmentMethod === 'Delivery' && (
