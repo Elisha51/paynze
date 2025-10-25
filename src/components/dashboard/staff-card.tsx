@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -6,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
 export function StaffCard({ member }: { member: Staff }) {
   const getInitials = (name: string) => {
@@ -31,9 +33,12 @@ export function StaffCard({ member }: { member: Staff }) {
                 member.onlineStatus === 'Online' ? 'bg-green-500' : 'bg-gray-400'
             )}></span>
           </div>
-          <div className="flex-1">
+          <div className="flex-1 overflow-hidden">
             <p className="font-semibold truncate">{member.name}</p>
             <p className="text-sm text-muted-foreground">{member.role}</p>
+            {member.status === 'Pending Verification' && (
+                <Badge variant="secondary" className="mt-1">Pending</Badge>
+            )}
           </div>
         </CardContent>
       </Card>

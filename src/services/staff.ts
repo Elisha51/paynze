@@ -1,4 +1,5 @@
 
+
 import type { Staff, Order } from '@/lib/types';
 import { format, subDays } from 'date-fns';
 import { getOrders } from './orders';
@@ -56,7 +57,7 @@ async function initializeStaff() {
         assignedOrders: allOrders.filter(o => o.assignedStaffId === 'staff-003'),
         completionRate: 95.2,
         attributes: {
-          deliveryTarget: { goal: 20, current: 18 },
+          deliveryTarget: { current: 18, goal: 20 },
           deliveryZones: ['Kampala Central', 'Makindye'],
           vehicleId: 'UBA 123X',
           lastInspectionDate: subDays(new Date(), 15),
@@ -86,6 +87,22 @@ async function initializeStaff() {
         onlineStatus: 'Offline',
         assignedOrders: [],
       },
+       { 
+        id: 'staff-006', 
+        name: 'Aisha Omar', 
+        email: 'aisha@example.com', 
+        phone: '+254701234567',
+        avatarUrl: 'https://picsum.photos/seed/aisha-omar/100/100',
+        role: 'Delivery Rider', 
+        status: 'Pending Verification', 
+        verificationDocuments: [
+            { name: 'National_ID.pdf', url: '#' },
+            { name: 'Drivers_License.pdf', url: '#' },
+        ],
+        lastLogin: undefined,
+        onlineStatus: 'Offline',
+        assignedOrders: [],
+      },
     ];
 }
 
@@ -104,8 +121,15 @@ export async function getStaffOrders(staffId: string): Promise<Order[]> {
 
 export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {
   await new Promise(resolve => setTimeout(resolve, 300));
-  const newMember: Staff = { ...member, id: `staff-${Date.now()}` };
-  staff.push(newMember);
+  const newMember: Staff = { 
+      ...member, 
+      id: `staff-${Date.now()}`,
+      verificationDocuments: member.status === 'Pending Verification' ? [
+        { name: 'National_ID.pdf', url: '#' },
+        { name: 'Drivers_License.pdf', url: '#' },
+      ] : [],
+    };
+  staff.unshift(newMember);
   return newMember;
 }
 

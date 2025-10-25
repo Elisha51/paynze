@@ -324,7 +324,9 @@ export type Staff = {
   phone?: string;
   avatarUrl?: string;
   role: StaffRoleName;
-  status: 'Active' | 'Inactive';
+  status: 'Active' | 'Inactive' | 'Pending Verification';
+  rejectionReason?: string;
+  verificationDocuments?: { name: string; url: string }[];
   lastLogin?: string;
   onlineStatus?: 'Online' | 'Offline';
   assignedOrders?: Order[];
@@ -349,3 +351,4 @@ export type Transaction = {
     category: 'Sales' | 'Inventory' | 'Utilities' | 'Salaries' | 'Marketing' | 'Other';
     status: 'Cleared' | 'Pending' | 'Reconciled';
 };
+

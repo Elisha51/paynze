@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PlusCircle } from 'lucide-react';
@@ -37,7 +38,7 @@ const emptyStaff: Omit<Staff, 'id'> = {
   name: '',
   email: '',
   role: 'Sales Agent',
-  status: 'Active',
+  status: 'Pending Verification',
 };
 
 export default function StaffPage() {
@@ -46,7 +47,7 @@ export default function StaffPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('team');
-  const [newStaffMember, setNewStaffMember] = React.useState(emptyStaff);
+  const [newStaffMember, setNewStaffMember] = React.useState<Partial<Staff>>(emptyStaff);
   const [addMode, setAddMode] = React.useState<'invite' | 'manual'>('invite');
   const { toast } = useToast();
 
@@ -81,7 +82,14 @@ export default function StaffPage() {
         return;
     }
 
-    await serviceAddStaff(newStaffMember);
+    const staffToAdd: Omit<Staff, 'id'> = {
+        name: newStaffMember.name || '',
+        email: newStaffMember.email,
+        role: newStaffMember.role || 'Sales Agent',
+        status: addMode === 'manual' ? 'Pending Verification' : 'Active', // Or some 'Invited' status
+    };
+
+    await serviceAddStaff(staffToAdd);
     toast({ title: addMode === 'invite' ? 'Invitation Sent' : 'Staff Member Added'});
     setIsAddOpen(false);
     setNewStaffMember(emptyStaff);
@@ -132,7 +140,7 @@ export default function StaffPage() {
                 </div>
             ) : (
                 <div className="space-y-4 py-4">
-                     <p className="text-sm text-muted-foreground">Create a profile and set a temporary password for the new staff member.</p>
+                     <p className="text-sm text-muted-foreground">Create a profile and set a temporary password for the new staff member. They will require verification before they can log in.</p>
                     <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
                         <Input id="name" value={newStaffMember.name} onChange={handleInputChange} />

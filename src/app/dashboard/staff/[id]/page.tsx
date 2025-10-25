@@ -3,12 +3,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle } from 'lucide-react';
 import Link from 'next/link';
 import type { Staff, Order, Role, AssignableAttribute } from '@/lib/types';
-import { getStaff, getStaffOrders } from '@/services/staff';
+import { getStaff, getStaffOrders, updateStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import {
   Card,
@@ -33,6 +33,10 @@ import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { EmptyState } from '@/components/ui/empty-state';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
 
 const orderColumns: ColumnDef<Order>[] = [
@@ -125,11 +129,14 @@ const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttri
 
 export default function ViewStaffPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
+  const { toast } = useToast();
   const [staffMember, setStaffMember] = useState<Staff | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [rejectionReason, setRejectionReason] = useState('');
   
   const getInitials = (name: string) => {
     if (!name) return '??';
@@ -140,29 +147,45 @@ export default function ViewStaffPage() {
     return name.substring(0, 2).toUpperCase();
   };
 
-  useEffect(() => {
-    async function loadData() {
-        if (!id) return;
-        setLoading(true);
-        const [staffData, allRoles] = await Promise.all([
-            getStaff().then(staffList => staffList.find(s => s.id === id)),
-            getRoles()
-        ]);
-        
-        setStaffMember(staffData || null);
-        if (staffData) {
-            const staffRole = allRoles.find(r => r.name === staffData.role);
-            setRole(staffRole || null);
-            // Only fetch orders if the role has permission to view them
-            if (staffRole?.permissions.orders.view) {
-                const orderData = await getStaffOrders(id);
-                setAssignedOrders(orderData);
-            }
+  const loadData = async () => {
+    if (!id) return;
+    setLoading(true);
+    const [staffData, allRoles] = await Promise.all([
+        getStaff().then(staffList => staffList.find(s => s.id === id)),
+        getRoles()
+    ]);
+    
+    setStaffMember(staffData || null);
+    if (staffData) {
+        const staffRole = allRoles.find(r => r.name === staffData.role);
+        setRole(staffRole || null);
+        if (staffRole?.permissions.orders.view) {
+            const orderData = await getStaffOrders(id);
+            setAssignedOrders(orderData);
         }
-        setLoading(false);
     }
+    setLoading(false);
+  }
+
+  useEffect(() => {
     loadData();
   }, [id]);
+
+  const handleVerification = async (action: 'approve' | 'reject') => {
+      if (!staffMember) return;
+
+      let updatedStaff: Staff | null = null;
+
+      if (action === 'approve') {
+          updatedStaff = await updateStaff({ ...staffMember, status: 'Active' });
+          toast({ title: 'Staff Member Approved', description: `${staffMember.name} is now an active staff member.`});
+      } else {
+          updatedStaff = await updateStaff({ ...staffMember, status: 'Inactive', rejectionReason });
+           toast({ variant: 'destructive', title: 'Staff Member Rejected', description: `${staffMember.name}'s application has been rejected.`});
+      }
+      setStaffMember(updatedStaff);
+  }
+
 
   if (loading) {
     return (
@@ -207,7 +230,12 @@ export default function ViewStaffPage() {
   }
   
   const showAssignedOrders = role?.permissions.orders.view;
-  const hasAttributes = staffMember.attributes && Object.keys(staffMember.attributes).length > 0 && role?.assignableAttributes && role.assignableAttributes.length > 0;
+  const assignedAttributes = staffMember.attributes ? Object.entries(staffMember.attributes).map(([key, value]) => {
+      const attributeDefinition = role?.assignableAttributes?.find(attr => attr.key === key);
+      return attributeDefinition ? { definition: attributeDefinition, value } : null;
+  }).filter(Boolean) : [];
+  const hasAttributes = assignedAttributes.length > 0;
+  const isPendingVerification = staffMember.status === 'Pending Verification';
 
   return (
     <div className="space-y-6">
@@ -228,6 +256,7 @@ export default function ViewStaffPage() {
           </h1>
           <p className="text-muted-foreground text-sm flex items-center gap-2">
             {staffMember.role}
+             <Badge variant={staffMember.status === 'Active' ? 'default' : staffMember.status === 'Pending Verification' ? 'secondary' : 'destructive'} className="capitalize">{staffMember.status}</Badge>
             <span className={cn(
                 "h-2 w-2 rounded-full",
                 staffMember.onlineStatus === 'Online' ? 'bg-green-500' : 'bg-gray-400'
@@ -256,6 +285,56 @@ export default function ViewStaffPage() {
             </DropdownMenu>
         </div>
       </div>
+
+      {isPendingVerification && (
+          <Card className="border-yellow-400 bg-yellow-50">
+              <CardHeader>
+                  <CardTitle>Verification Required</CardTitle>
+                  <CardDescription>Review the submitted documents and approve or reject this staff member.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                  <h4 className="font-semibold text-sm">Submitted Documents</h4>
+                  <div className="flex flex-wrap gap-4">
+                      {staffMember.verificationDocuments?.map(doc => (
+                          <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
+                              <FileText className="h-5 w-5 text-primary"/>
+                              <span className="text-sm font-medium">{doc.name}</span>
+                          </a>
+                      ))}
+                  </div>
+              </CardContent>
+              <CardFooter className="flex justify-end gap-2">
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="destructive">
+                            <XCircle className="mr-2 h-4 w-4" />
+                            Reject
+                        </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Reject Staff Member</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                Please provide a reason for rejecting {staffMember.name}. This will be recorded for administrative purposes.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <div className="py-4">
+                            <Label htmlFor="rejectionReason">Rejection Reason</Label>
+                            <Textarea id="rejectionReason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
+                        </div>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleVerification('reject')} disabled={!rejectionReason}>Confirm Rejection</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+                <Button onClick={() => handleVerification('approve')}>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Approve
+                </Button>
+              </CardFooter>
+          </Card>
+      )}
       
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className={cn("space-y-6", hasAttributes || showAssignedOrders ? 'lg:col-span-2' : 'lg:col-span-3')}>
@@ -277,14 +356,14 @@ export default function ViewStaffPage() {
                 </Card>
             )}
             
-            {!showAssignedOrders && !hasAttributes && (
+            {!showAssignedOrders && !hasAttributes && !isPendingVerification && (
                  <Card>
                     <CardContent>
                         <EmptyState 
                             icon={<Award className="h-12 w-12 text-primary" />}
                             title="No Tasks or Attributes"
                             description="This staff member currently has no assigned orders or role-specific attributes to display."
-                            cta={(
+                             cta={(
                                 <Button asChild>
                                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
                                         <Edit className="mr-2 h-4 w-4" />
@@ -300,15 +379,13 @@ export default function ViewStaffPage() {
 
         {hasAttributes && (
             <div className="lg:col-span-1 space-y-6">
-                {staffMember.attributes && Object.entries(staffMember.attributes).map(([key, value]) => {
-                    const attributeDefinition = role?.assignableAttributes?.find(attr => attr.key === key);
-                    if (!attributeDefinition) return null;
-
+                {assignedAttributes.map((attr) => {
+                    if (!attr) return null;
                     return (
                         <DynamicAttributeCard 
-                            key={key}
-                            attribute={attributeDefinition}
-                            value={value}
+                            key={attr.definition.key}
+                            attribute={attr.definition}
+                            value={attr.value}
                         />
                     );
                 })}
@@ -318,3 +395,4 @@ export default function ViewStaffPage() {
     </div>
   );
 }
+
