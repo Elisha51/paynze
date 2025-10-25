@@ -142,9 +142,8 @@ export default function ViewStaffPage() {
     async function loadData() {
         if (!id) return;
         setLoading(true);
-        const [staffData, orderData, allRoles] = await Promise.all([
+        const [staffData, allRoles] = await Promise.all([
             getStaff().then(staffList => staffList.find(s => s.id === id)),
-            getStaffOrders(id),
             getRoles()
         ]);
         
@@ -152,8 +151,12 @@ export default function ViewStaffPage() {
         if (staffData) {
             const staffRole = allRoles.find(r => r.name === staffData.role);
             setRole(staffRole || null);
+            // Only fetch orders if the role has permission to view them
+            if (staffRole?.permissions.orders.view) {
+                const orderData = await getStaffOrders(id);
+                setAssignedOrders(orderData);
+            }
         }
-        setAssignedOrders(orderData);
         setLoading(false);
     }
     loadData();
@@ -200,6 +203,9 @@ export default function ViewStaffPage() {
         </div>
     )
   }
+  
+  const showAssignedOrders = role?.permissions.orders.view && assignedOrders.length > 0;
+  const hasAttributes = staffMember.attributes && Object.keys(staffMember.attributes).length > 0 && role?.assignableAttributes && role.assignableAttributes.length > 0;
 
   return (
     <div className="space-y-6">
@@ -250,38 +256,50 @@ export default function ViewStaffPage() {
       </div>
       
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-6">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <List className="h-5 w-5 text-primary"/>
-                        Assigned Orders
-                    </CardTitle>
-                    <CardDescription>Current orders assigned to {staffMember.name}.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <DataTable
-                      columns={orderColumns}
-                      data={assignedOrders}
-                    />
-                </CardContent>
-            </Card>
+        <div className={cn("space-y-6", hasAttributes || showAssignedOrders ? 'lg:col-span-2' : 'lg:col-span-3')}>
+            {showAssignedOrders && (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <List className="h-5 w-5 text-primary"/>
+                            Assigned Orders
+                        </CardTitle>
+                        <CardDescription>Current orders assigned to {staffMember.name}.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <DataTable
+                          columns={orderColumns}
+                          data={assignedOrders}
+                        />
+                    </CardContent>
+                </Card>
+            )}
+            
+            {!showAssignedOrders && !hasAttributes && (
+                <Card>
+                    <CardContent className="p-12 text-center">
+                        <p className="text-muted-foreground">This staff member has no specific tasks or attributes to display.</p>
+                    </CardContent>
+                </Card>
+            )}
         </div>
 
-        <div className="lg:col-span-1 space-y-6">
-            {staffMember.attributes && role?.assignableAttributes && Object.entries(staffMember.attributes).map(([key, value]) => {
-                const attributeDefinition = role.assignableAttributes?.find(attr => attr.key === key);
-                if (!attributeDefinition) return null;
+        {hasAttributes && (
+            <div className="lg:col-span-1 space-y-6">
+                {staffMember.attributes && Object.entries(staffMember.attributes).map(([key, value]) => {
+                    const attributeDefinition = role?.assignableAttributes?.find(attr => attr.key === key);
+                    if (!attributeDefinition) return null;
 
-                return (
-                    <DynamicAttributeCard 
-                        key={key}
-                        attribute={attributeDefinition}
-                        value={value}
-                    />
-                );
-            })}
-        </div>
+                    return (
+                        <DynamicAttributeCard 
+                            key={key}
+                            attribute={attributeDefinition}
+                            value={value}
+                        />
+                    );
+                })}
+            </div>
+        )}
       </div>
     </div>
   );
