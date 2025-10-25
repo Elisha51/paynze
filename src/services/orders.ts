@@ -47,6 +47,16 @@ export async function getOrders(): Promise<Order[]> {
               channel: 'Online' as const,
           }
       }
+      if (order.id === 'ORD-003') { // Make one explicitly unassigned
+         return {
+            ...order,
+            status: 'Paid' as const,
+            paymentStatus: 'Paid' as const,
+            fulfillmentMethod: 'Delivery' as const,
+            assignedStaffId: undefined,
+            assignedStaffName: undefined,
+         }
+      }
       return {
           ...order,
           channel: index % 2 === 0 ? 'Online' : 'Manual' as const,

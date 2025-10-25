@@ -4,10 +4,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle, Truck } from 'lucide-react';
 import Link from 'next/link';
 import type { Staff, Order, Role, AssignableAttribute } from '@/lib/types';
-import { getStaff, getStaffOrders, updateStaff } from '@/services/staff';
+import { getStaff, updateStaff } from '@/services/staff';
+import { getOrders, updateOrder } from '@/services/orders';
 import { getRoles } from '@/services/roles';
 import {
   Card,
@@ -126,6 +127,31 @@ const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttri
     );
 };
 
+const UnassignedOrders = ({ orders, staffMember, onAssign }: { orders: Order[], staffMember: Staff, onAssign: (orderId: string) => void }) => {
+    return (
+        <div className="space-y-4">
+            <div className="text-center">
+                <h3 className="font-semibold">Assign Pending Deliveries</h3>
+                <p className="text-sm text-muted-foreground">This staff member has no assigned orders. Assign one of the pending orders below.</p>
+            </div>
+            <ul className="divide-y divide-border rounded-md border">
+                {orders.map(order => (
+                    <li key={order.id} className="flex items-center justify-between p-3">
+                        <div className="space-y-1">
+                             <Link href={`/dashboard/orders/${order.id}`} className="font-medium hover:underline text-sm">{order.id}</Link>
+                             <p className="text-xs text-muted-foreground">To: {order.customerName} - {format(new Date(order.date), 'PPP')}</p>
+                        </div>
+                        <Button size="sm" onClick={() => onAssign(order.id)}>
+                            <Truck className="mr-2 h-4 w-4" />
+                            Assign to {staffMember.name.split(' ')[0]}
+                        </Button>
+                    </li>
+                ))}
+            </ul>
+        </div>
+    )
+}
+
 
 export default function ViewStaffPage() {
   const params = useParams();
@@ -134,7 +160,7 @@ export default function ViewStaffPage() {
   const { toast } = useToast();
   const [staffMember, setStaffMember] = useState<Staff | null>(null);
   const [role, setRole] = useState<Role | null>(null);
-  const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [rejectionReason, setRejectionReason] = useState('');
   
@@ -150,19 +176,17 @@ export default function ViewStaffPage() {
   const loadData = async () => {
     if (!id) return;
     setLoading(true);
-    const [staffData, allRoles] = await Promise.all([
+    const [staffData, allRoles, fetchedOrders] = await Promise.all([
         getStaff().then(staffList => staffList.find(s => s.id === id)),
-        getRoles()
+        getRoles(),
+        getOrders(),
     ]);
     
+    setAllOrders(fetchedOrders);
     setStaffMember(staffData || null);
     if (staffData) {
         const staffRole = allRoles.find(r => r.name === staffData.role);
         setRole(staffRole || null);
-        if (staffRole?.permissions.orders.view) {
-            const orderData = await getStaffOrders(id);
-            setAssignedOrders(orderData);
-        }
     }
     setLoading(false);
   }
@@ -185,8 +209,18 @@ export default function ViewStaffPage() {
       }
       setStaffMember(updatedStaff);
   };
-
-
+  
+  const handleAssignOrder = async (orderId: string) => {
+      if (!staffMember) return;
+      const updatedOrder = await updateOrder(orderId, {
+          assignedStaffId: staffMember.id,
+          assignedStaffName: staffMember.name,
+          status: 'Shipped',
+      });
+      setAllOrders(prev => prev.map(o => o.id === orderId ? updatedOrder : o));
+      toast({ title: "Order Assigned", description: `Order ${orderId} assigned to ${staffMember.name}.` });
+  }
+  
   if (loading) {
     return (
       <div className="space-y-6">
@@ -239,6 +273,10 @@ export default function ViewStaffPage() {
   const isPendingVerification = staffMember.status === 'Pending Verification';
   const hasDocuments = staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0;
   const hasSchedule = staffMember.schedule && staffMember.schedule.length > 0;
+  
+  const assignedOrders = allOrders.filter(o => o.assignedStaffId === staffMember.id);
+  const unassignedDeliveryOrders = allOrders.filter(o => o.status === 'Paid' && o.fulfillmentMethod === 'Delivery' && !o.assignedStaffId);
+
 
   return (
     <div className="space-y-6">
@@ -291,10 +329,13 @@ export default function ViewStaffPage() {
 
       {isPendingVerification && (
           <Card className="border-yellow-400 bg-yellow-50">
-              <CardHeader className="flex-row items-center justify-between">
-                <div className="space-y-1">
-                    <CardTitle>Verification Required</CardTitle>
-                    <CardDescription>Approve or reject this staff member after reviewing their documents.</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between p-4">
+                <div className="flex items-center gap-4">
+                     <CheckCircle className="h-6 w-6 text-yellow-600" />
+                    <div className="space-y-0">
+                        <CardTitle className="text-base">Verification Required</CardTitle>
+                        <CardDescription className="text-sm">Approve or reject this staff member after reviewing their documents.</CardDescription>
+                    </div>
                 </div>
                 <div className="flex gap-2">
                     <AlertDialog>
@@ -350,6 +391,16 @@ export default function ViewStaffPage() {
                         <DataTable
                           columns={orderColumns}
                           data={assignedOrders}
+                          emptyState={{
+                            icon: Truck,
+                            title: `No Orders Assigned to ${staffMember.name.split(' ')[0]}`,
+                            description: unassignedDeliveryOrders.length > 0 
+                                ? "You can assign one of the pending orders below."
+                                : "There are currently no unassigned orders ready for delivery.",
+                            cta: unassignedDeliveryOrders.length > 0 
+                                ? <UnassignedOrders orders={unassignedDeliveryOrders} staffMember={staffMember} onAssign={handleAssignOrder} />
+                                : undefined,
+                          }}
                         />
                     </CardContent>
                 </Card>
@@ -425,5 +476,3 @@ export default function ViewStaffPage() {
     </div>
   );
 }
-
-    
