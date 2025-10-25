@@ -179,11 +179,11 @@ const getColumns = (
   {
     id: 'actions',
     enableHiding: false,
-    header: () => <div className="sr-only">Actions</div>,
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className="relative bg-background text-right">
+          <div className="relative bg-background text-right sticky right-0">
             <AlertDialog>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

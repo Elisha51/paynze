@@ -79,9 +79,9 @@ const columns: ColumnDef<Transaction>[] = [
     },
     {
         id: 'actions',
-        header: () => <div className="sr-only">Actions</div>,
+        header: () => <div className="text-right">Actions</div>,
         cell: () => (
-          <div className="relative bg-background text-right">
+          <div className="relative bg-background text-right sticky right-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>

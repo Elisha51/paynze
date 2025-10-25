@@ -60,11 +60,11 @@ const getColumns = (
   {
     id: 'actions',
     enableHiding: false,
-    header: () => <div className="sr-only">Actions</div>,
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => {
         const category = row.original;
       return (
-        <div className="relative bg-background text-right">
+        <div className="relative bg-background text-right sticky right-0">
             <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0">
