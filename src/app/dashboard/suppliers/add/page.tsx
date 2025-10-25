@@ -1,6 +1,6 @@
 
 'use client';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Check, ChevronsUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -15,23 +15,45 @@ import Link from 'next/link';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
 import { getCountryList } from '@/services/countries';
+import { getProducts } from '@/services/products';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import type { Product } from '@/lib/types';
+
 
 export default function AddSupplierPage() {
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
   useEffect(() => {
-    async function loadCountries() {
-        const countryList = await getCountryList();
+    async function loadData() {
+        const [countryList, productList] = await Promise.all([
+            getCountryList(),
+            getProducts()
+        ]);
         setCountries(countryList);
+        setProducts(productList);
     }
-    loadCountries();
+    loadData();
   }, []);
+
+  const handleProductSelect = (productSku: string) => {
+    setSelectedProducts(prev => {
+        const newSelection = prev.includes(productSku)
+            ? prev.filter(sku => sku !== productSku)
+            : [...prev, productSku];
+        return newSelection;
+    });
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/suppliers">
+          <Link href="/dashboard/procurement">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Link>
@@ -84,6 +106,62 @@ export default function AddSupplierPage() {
           <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Textarea id="address" placeholder="e.g., 123 Textile Road, Kampala" />
+          </div>
+           <div className="space-y-2">
+              <Label>Products Supplied</Label>
+               <Popover>
+                  <PopoverTrigger asChild>
+                      <Button
+                          variant="outline"
+                          role="combobox"
+                          className="w-full justify-between"
+                      >
+                          <span className="truncate">
+                              {selectedProducts.length > 0 
+                                  ? `${selectedProducts.length} selected`
+                                  : "Select products..."
+                              }
+                          </span>
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                      <Command>
+                          <CommandInput placeholder="Search products..." />
+                          <CommandEmpty>No products found.</CommandEmpty>
+                          <CommandGroup>
+                              {products.map((product) => (
+                              <CommandItem
+                                  key={product.sku}
+                                  value={product.name}
+                                  onSelect={() => handleProductSelect(product.sku || '')}
+                              >
+                                  <Check
+                                  className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selectedProducts.includes(product.sku || '') ? "opacity-100" : "opacity-0"
+                                  )}
+                                  />
+                                  {product.name}
+                              </CommandItem>
+                              ))}
+                          </CommandGroup>
+                      </Command>
+                  </PopoverContent>
+              </Popover>
+               <div className="flex flex-wrap gap-1 pt-1">
+                {selectedProducts.map(sku => {
+                  const product = products.find(p => p.sku === sku);
+                  return product ? (
+                      <Badge key={sku} variant="secondary" className="flex items-center gap-1">
+                      {product.name}
+                      <button onClick={() => handleProductSelect(sku)} className="rounded-full hover:bg-muted-foreground/20">
+                          <X className="h-3 w-3"/>
+                      </button>
+                      </Badge>
+                  ) : null;
+                })}
+              </div>
           </div>
         </CardContent>
       </Card>

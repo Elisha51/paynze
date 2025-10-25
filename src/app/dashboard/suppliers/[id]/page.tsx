@@ -5,8 +5,9 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MoreVertical, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
-import type { Supplier, PurchaseOrder } from '@/lib/types';
+import type { Supplier, PurchaseOrder, Product } from '@/lib/types';
 import { getSupplierById, getPurchaseOrdersBySupplierId } from '@/services/procurement';
+import { getProducts } from '@/services/products';
 import {
   Card,
   CardContent,
@@ -62,22 +63,27 @@ export default function ViewSupplierPage() {
   const id = params.id as string;
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
         if (!id) return;
         setLoading(true);
-        const [fetchedSupplier, fetchedPOs] = await Promise.all([
+        const [fetchedSupplier, fetchedPOs, fetchedProducts] = await Promise.all([
             getSupplierById(id),
-            getPurchaseOrdersBySupplierId(id)
+            getPurchaseOrdersBySupplierId(id),
+            getProducts()
         ]);
         setSupplier(fetchedSupplier || null);
         setPurchaseOrders(fetchedPOs);
+        setProducts(fetchedProducts);
         setLoading(false);
     }
     loadData();
   }, [id]);
+
+  const suppliedProducts = products.filter(p => supplier?.productsSupplied.includes(p.sku || ''));
 
   if (loading) {
     return (
@@ -113,9 +119,9 @@ export default function ViewSupplierPage() {
             <h1 className="text-2xl font-bold">Supplier not found</h1>
             <p className="text-muted-foreground">The supplier you are looking for does not exist.</p>
             <Button asChild className="mt-4">
-                <Link href="/dashboard/suppliers">
+                <Link href="/dashboard/procurement">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Suppliers
+                    Back to Procurement
                 </Link>
             </Button>
         </div>
@@ -132,9 +138,9 @@ export default function ViewSupplierPage() {
     <div className="space-y-6">
        <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/suppliers">
+          <Link href="/dashboard/procurement">
             <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Suppliers</span>
+            <span className="sr-only">Back to Procurement</span>
           </Link>
         </Button>
         <div className="flex-1">
@@ -184,6 +190,26 @@ export default function ViewSupplierPage() {
                     />
                 </CardContent>
             </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Supplied Products</CardTitle>
+                    <CardDescription>Products that are sourced from this supplier.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    {suppliedProducts.length > 0 ? (
+                        <ul className="divide-y divide-border">
+                            {suppliedProducts.map(product => (
+                                <li key={product.sku} className="py-2">
+                                    <Link href={`/dashboard/products/${product.sku}`} className="font-medium hover:underline">{product.name}</Link>
+                                    <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No products are currently linked to this supplier.</p>
+                    )}
+                </CardContent>
+            </Card>
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -199,7 +225,7 @@ export default function ViewSupplierPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Total Orders</span>
                         <span className="font-semibold">{purchaseOrders.length}</span>
-                     </div>
+                      </div>
                 </CardContent>
             </Card>
 
