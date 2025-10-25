@@ -24,6 +24,7 @@ const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: bool
     const filterTabs = [
         { value: 'all', label: 'All' },
         { value: 'pending', label: 'Awaiting Payment' },
+        { value: 'paid', label: 'Paid' },
         { value: 'ready-for-pickup', label: 'Ready for Pickup' },
         { value: 'unassigned', label: 'Unassigned Delivery' },
         { value: 'assigned', label: 'Assigned for Delivery' },
@@ -44,6 +45,13 @@ const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: bool
                     orders={orders}
                     isLoading={isLoading}
                     filter={{ column: 'status', value: 'Awaiting Payment' }}
+                />
+            </DashboardPageLayout.TabContent>
+             <DashboardPageLayout.TabContent value="paid">
+                <OrdersTable
+                    orders={orders}
+                    isLoading={isLoading}
+                    filter={{ column: 'status', value: 'Paid' }}
                 />
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="ready-for-pickup">

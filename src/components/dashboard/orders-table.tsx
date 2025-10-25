@@ -175,7 +175,7 @@ function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Orde
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
-  Paid: 'secondary',
+  Paid: 'default',
   'Ready for Pickup': 'outline',
   Shipped: 'outline',
   Delivered: 'default',
@@ -334,9 +334,8 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
     header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
       const order = row.original;
-      const isPaid = order.paymentStatus === 'Paid';
       const isUnpaid = order.paymentStatus === 'Unpaid';
-      const isPendingFulfillment = (order.status === 'Paid' || order.status === 'Awaiting Payment') && isPaid;
+      const isPaid = order.paymentStatus === 'Paid' && order.status === 'Paid';
       const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
 
       const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
@@ -370,13 +369,15 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
                          {isUnpaid && (
                             <DropdownMenuItem onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</DropdownMenuItem>
                         )}
-                        {isPendingFulfillment && order.fulfillmentMethod === 'Delivery' && (
+                        {isPaid && order.fulfillmentMethod === 'Delivery' && (
                             <AssignOrderDialog order={order} onUpdate={onUpdate} asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
                             </AssignOrderDialog>
                         )}
-                        {isPendingFulfillment && order.fulfillmentMethod === 'Pickup' && (
-                            <DropdownMenuItem onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</DropdownMenuItem>
+                        {isPaid && order.fulfillmentMethod === 'Pickup' && (
+                             <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Ready for Pickup</DropdownMenuItem>
+                            </FulfillOrderDialog>
                         )}
                         {order.status === 'Ready for Pickup' && (
                              <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} asChild>
