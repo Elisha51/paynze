@@ -24,6 +24,7 @@ async function initializeStaff() {
         completionRate: 100,
         totalSales: 550000,
         currency: 'UGX',
+        totalCommission: 0,
       },
       { 
         id: 'staff-002', 
@@ -38,6 +39,7 @@ async function initializeStaff() {
         assignedOrders: [],
         totalSales: 125000,
         currency: 'KES',
+        totalCommission: 6250,
         attributes: {
           salesTarget: { goal: 500000, current: 125000 },
           assignedRegions: ['Nairobi', 'Mombasa'],
@@ -63,6 +65,8 @@ async function initializeStaff() {
         onlineStatus: 'Offline',
         assignedOrders: allOrders.filter(o => o.assignedStaffId === 'staff-003'),
         completionRate: 95.2,
+        currency: 'UGX',
+        totalCommission: 4500,
         attributes: {
           deliveryTarget: { current: 18, goal: 20 },
           deliveryZones: ['Kampala Central', 'Makindye'],
@@ -81,6 +85,8 @@ async function initializeStaff() {
         lastLogin: format(new Date(), 'yyyy-MM-dd HH:mm'),
         onlineStatus: 'Online',
         assignedOrders: [],
+        currency: 'TZS',
+        totalCommission: 0,
       },
        { 
         id: 'staff-005', 
@@ -93,6 +99,8 @@ async function initializeStaff() {
         lastLogin: '2024-06-01 10:00',
         onlineStatus: 'Offline',
         assignedOrders: [],
+        currency: 'KES',
+        totalCommission: 0,
       },
        { 
         id: 'staff-006', 
@@ -102,6 +110,7 @@ async function initializeStaff() {
         avatarUrl: 'https://picsum.photos/seed/aisha-omar/100/100',
         role: 'Delivery Rider', 
         status: 'Pending Verification', 
+        rejectionReason: '',
         verificationDocuments: [
             { name: 'National_ID.pdf', url: '#' },
             { name: 'Drivers_License.pdf', url: '#' },
@@ -109,6 +118,8 @@ async function initializeStaff() {
         lastLogin: undefined,
         onlineStatus: 'Offline',
         assignedOrders: [],
+        currency: 'KES',
+        totalCommission: 0,
       },
     ];
 }

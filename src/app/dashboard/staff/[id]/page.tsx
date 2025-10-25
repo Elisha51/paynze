@@ -5,7 +5,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle, Truck, Activity } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle, Truck, Activity, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import type { Staff, Order, Role, AssignableAttribute } from '@/lib/types';
 import { getStaff, updateStaff } from '@/services/staff';
@@ -32,7 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format, subDays } from 'date-fns';
+import { format } from 'date-fns';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
@@ -285,7 +285,9 @@ export default function ViewStaffPage() {
   
   const assignedOrders = allOrders.filter(o => o.assignedStaffId === staffMember.id);
   const unassignedDeliveryOrders = allOrders.filter(o => o.status === 'Paid' && o.fulfillmentMethod === 'Delivery' && !o.assignedStaffId);
-
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  }
 
   return (
     <div className="space-y-6">
@@ -343,7 +345,7 @@ export default function ViewStaffPage() {
                      <CheckCircle className="h-5 w-5 text-yellow-600" />
                     <div>
                         <CardTitle className="text-base">Verification Required</CardTitle>
-                        <CardDescription className="text-xs">Approve or reject this staff member after reviewing their documents.</CardDescription>
+                        <CardDescription className="text-xs">Review documents and approve or reject this applicant.</CardDescription>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -383,7 +385,7 @@ export default function ViewStaffPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          {hasAttributes && <TabsTrigger value="performance">Performance & Attributes</TabsTrigger>}
+          {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance & Attributes</TabsTrigger>}
           <TabsTrigger value="details">Documents & Details</TabsTrigger>
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
@@ -440,7 +442,23 @@ export default function ViewStaffPage() {
                 </Card>
             )}
         </TabsContent>
-        <TabsContent value="performance" className="mt-6">
+        <TabsContent value="performance" className="mt-6 space-y-6">
+            {staffMember.totalCommission && staffMember.currency && (
+                 <Card>
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                           <DollarSign className="h-5 w-5 text-primary"/>
+                           Performance Summary
+                        </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-sm">
+                            <span className="text-muted-foreground">Total Commission Earned: </span>
+                            <span className="font-bold text-lg">{formatCurrency(staffMember.totalCommission, staffMember.currency)}</span>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {assignedAttributes.map((attr) => {
                 if (!attr) return null;

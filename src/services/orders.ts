@@ -4,6 +4,7 @@ import { products, orders as mockOrders } from '@/lib/data';
 import type { Order, Product, Staff } from '@/lib/types';
 import { updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
+import { getRoles } from './roles';
 
 let orders: Order[] = [...mockOrders];
 
@@ -99,25 +100,46 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
       }
   }
 
-  // If a staff member fulfilled the order, update their performance metrics
-  if (updates.status === 'Delivered' && updates.fulfilledByStaffId) {
-    const allStaff = await getStaff();
-    const staffMember = allStaff.find(s => s.id === updates.fulfilledByStaffId);
+  // If a staff member fulfilled the order, update their performance metrics and commission
+  if (updates.status === 'Delivered' || updates.status === 'Picked Up') {
+    const staffId = updates.fulfilledByStaffId || originalOrder?.fulfilledByStaffId;
+    if (staffId) {
+        const allStaff = await getStaff();
+        const staffMember = allStaff.find(s => s.id === staffId);
+        
+        if (staffMember) {
+            const allRoles = await getRoles();
+            const staffRole = allRoles.find(r => r.name === staffMember.role);
+            let staffMemberWasUpdated = false;
 
-    if (staffMember && staffMember.role === 'Delivery Rider') {
-        const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number; goal: number } | undefined;
-        if (deliveryTarget) {
-            const newAttributes = {
-                ...staffMember.attributes,
-                deliveryTarget: {
-                    ...deliveryTarget,
-                    current: deliveryTarget.current + 1,
-                },
-            };
-            await updateStaff({ ...staffMember, attributes: newAttributes });
+            // Update KPIs
+            if (staffRole?.name === 'Delivery Rider' && staffMember.attributes?.deliveryTarget) {
+                const deliveryTarget = staffMember.attributes.deliveryTarget as { current: number; goal: number };
+                staffMember.attributes.deliveryTarget = { ...deliveryTarget, current: deliveryTarget.current + 1 };
+                staffMemberWasUpdated = true;
+            }
+
+            // Calculate and add commission
+            if (staffRole?.commission && staffRole.commission.rate > 0) {
+                let earnedCommission = 0;
+                if (staffRole.commission.type === 'Fixed Amount') {
+                    earnedCommission = staffRole.commission.rate;
+                } else if (staffRole.commission.type === 'Percentage of Sale') {
+                    const orderToCalc = { ...originalOrder, ...updates };
+                    earnedCommission = orderToCalc.total * (staffRole.commission.rate / 100);
+                }
+                
+                staffMember.totalCommission = (staffMember.totalCommission || 0) + earnedCommission;
+                staffMemberWasUpdated = true;
+            }
+
+            if (staffMemberWasUpdated) {
+                await updateStaff(staffMember);
+            }
         }
     }
   }
+
 
   orders = orders.map(order => {
     if (order.id === orderId) {

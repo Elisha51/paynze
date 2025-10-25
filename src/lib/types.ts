@@ -344,6 +344,7 @@ export type Staff = {
   assignedOrders?: Order[];
   completionRate?: number; // e.g., 98.5
   totalSales?: number; // For sales agents
+  totalCommission?: number; // For tracking earned commission
   currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
   // Dynamic attributes based on role
   attributes?: {
