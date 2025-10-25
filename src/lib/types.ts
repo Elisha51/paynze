@@ -18,6 +18,7 @@ export type InventoryLocationStock = {
     available: number;
     reserved: number;
     damaged: number;
+    sold: number;
   };
 };
 
@@ -27,6 +28,7 @@ export type InventoryItem = {
   status: 'Available' | 'Sold' | 'Reserved' | 'Damaged' | 'Returned';
   locationName?: string; // e.g. 'Warehouse A, Shelf B-3'
   variant?: ProductVariant; // Back-reference to the variant
+  soldDate?: string;
 };
 
 export type StockAdjustment = {

@@ -52,8 +52,8 @@ export const products: Product[] = [
         sku: 'KIT-001-RF',
         status: 'In Stock',
         stockByLocation: [
-          { locationName: 'Main Warehouse', stock: { onHand: 30, available: 28, reserved: 2, damaged: 0 } },
-          { locationName: 'Downtown Store', stock: { onHand: 20, available: 20, reserved: 0, damaged: 0 } }
+          { locationName: 'Main Warehouse', stock: { onHand: 30, available: 28, reserved: 2, damaged: 0, sold: 17 } },
+          { locationName: 'Downtown Store', stock: { onHand: 20, available: 20, reserved: 0, damaged: 0, sold: 0 } }
         ],
         stockAdjustments: [
             { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import', channel: 'Manual' },
@@ -69,8 +69,8 @@ export const products: Product[] = [
         sku: 'KIT-001-BG',
         status: 'In Stock',
         stockByLocation: [
-            { locationName: 'Main Warehouse', stock: { onHand: 20, available: 15, reserved: 5, damaged: 0 } },
-            { locationName: 'Downtown Store', stock: { onHand: 10, available: 10, reserved: 0, damaged: 0 } }
+            { locationName: 'Main Warehouse', stock: { onHand: 20, available: 15, reserved: 5, damaged: 0, sold: 5 } },
+            { locationName: 'Downtown Store', stock: { onHand: 10, available: 10, reserved: 0, damaged: 0, sold: 0 } }
         ],
         stockAdjustments: [
             { id: 'adj-003', date: '2023-01-15', type: 'Initial Stock', quantity: 30, reason: 'Initial import', channel: 'Manual' },
@@ -126,12 +126,12 @@ export const products: Product[] = [
         sku: 'SHOE-002-42',
         status: 'Low Stock',
         stockByLocation: [
-            { locationName: 'Downtown Store', stock: { onHand: 5, available: 2, reserved: 1, damaged: 1 } }
+            { locationName: 'Downtown Store', stock: { onHand: 5, available: 2, reserved: 1, damaged: 1, sold: 1 } }
         ],
         inventoryItems: [
           { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', locationName: 'Downtown Store'},
           { id: 'inv-002', serialNumber: 'SN-SHOE-42-002', status: 'Available', locationName: 'Downtown Store'},
-          { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', locationName: 'Shipped'},
+          { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', locationName: 'Shipped', soldDate: '2023-03-01' },
           { id: 'inv-004', serialNumber: 'SN-SHOE-42-004', status: 'Damaged', locationName: 'Downtown Store'},
           { id: 'inv-005', serialNumber: 'SN-SHOE-42-005', status: 'Reserved', locationName: 'Order #ORD-015'},
           { id: 'inv-006', serialNumber: 'SN-SHOE-42-006', status: 'Returned', locationName: 'Downtown Store'},
@@ -141,7 +141,7 @@ export const products: Product[] = [
         ]
       },
       { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stockByLocation: [
-          { locationName: 'Downtown Store', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0 } }
+          { locationName: 'Downtown Store', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0, sold: 0 } }
       ] },
     ],
   },

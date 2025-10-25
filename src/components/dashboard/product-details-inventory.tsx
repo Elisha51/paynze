@@ -2,6 +2,7 @@
 
 'use client';
 
+import { useState, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -21,6 +22,13 @@ import {
 import type { Product, InventoryItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
+import { addDays, format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Calendar as CalendarIcon, ShoppingBasket, PackageCheck, Ban, Truck } from 'lucide-react';
+import { Calendar } from '../ui/calendar';
 
 function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     const variant = {
@@ -50,6 +58,10 @@ const adjustmentTypeColors: { [key in Product['variants'][0]['stockAdjustments']
 
 export function ProductDetailsInventory({ product }: { product: Product }) {
     const isSerialized = product.inventoryTracking === 'Track with Serial Numbers';
+    const [date, setDate] = useState<DateRange | undefined>({
+        from: addDays(new Date(), -29),
+        to: new Date(),
+    });
 
     if (product.inventoryTracking === "Don't Track") {
         return (
@@ -65,45 +77,144 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
             </Card>
         );
     }
-    
-    // Aggregate inventory items and adjustments from all variants
-    const allInventoryItems = product.variants.flatMap(v => 
-        (v.inventoryItems || []).map(item => ({...item, variant: v}))
-    );
-    
-    const allStockAdjustments = product.hasVariants 
-        ? product.variants.flatMap(v => (v.stockAdjustments || []).map(adj => ({ ...adj, variant: v }))) 
-        : (product.variants[0]?.stockAdjustments || []);
 
-    allStockAdjustments.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    const totalStock = product.variants.reduce((acc, v) => {
-        v.stockByLocation.forEach(locStock => {
-            acc.onHand += locStock.stock.onHand;
-            acc.available += locStock.stock.available;
-            acc.reserved += locStock.stock.reserved;
-            acc.damaged += locStock.stock.damaged;
+    const {
+        allInventoryItems,
+        allStockAdjustments,
+        totalStock,
+        stockByLocation
+    } = useMemo(() => {
+        const filteredStockAdjustments = (product.variants || []).flatMap(v => 
+            (v.stockAdjustments || []).map(adj => ({...adj, variant: v}))
+        ).filter(adj => {
+            const adjDate = new Date(adj.date);
+            return (!date?.from || adjDate >= date.from) && (!date?.to || adjDate <= date.to);
+        }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        
+        const filteredInventoryItems = (product.variants || []).flatMap(v => 
+            (v.inventoryItems || []).map(item => ({...item, variant: v}))
+        ).filter(item => {
+            if (item.status !== 'Sold' || !item.soldDate) return true; // always show non-sold items
+            const soldDate = new Date(item.soldDate);
+            return (!date?.from || soldDate >= date.from) && (!date?.to || soldDate <= date.to);
         });
-        return acc;
-    }, { onHand: 0, available: 0, reserved: 0, damaged: 0 });
 
-    const stockByLocation = product.variants.reduce((acc, v) => {
-        const variantName = product.hasVariants ? Object.values(v.optionValues).join(' / ') : 'Default';
-        v.stockByLocation.forEach(locStock => {
-            if (!acc[locStock.locationName]) {
-                acc[locStock.locationName] = [];
-            }
-            acc[locStock.locationName].push({
-                variantName,
-                ...locStock.stock
+        const currentTotalStock = product.variants.reduce((acc, v) => {
+            v.stockByLocation.forEach(locStock => {
+                acc.onHand += locStock.stock.onHand;
+                acc.available += locStock.stock.available;
+                acc.reserved += locStock.stock.reserved;
+                acc.damaged += locStock.stock.damaged;
             });
-        });
-        return acc;
-    }, {} as Record<string, { variantName: string; onHand: number; available: number; reserved: number; damaged: number; }[]>);
+            return acc;
+        }, { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 });
+
+        const soldInPeriod = filteredStockAdjustments
+            .filter(adj => adj.type === 'Sale')
+            .reduce((sum, adj) => sum + Math.abs(adj.quantity), 0);
+            
+        currentTotalStock.sold = soldInPeriod;
+        
+        const currentLocationStock = product.variants.reduce((acc, v) => {
+            const variantName = product.hasVariants ? Object.values(v.optionValues).join(' / ') : 'Default';
+            v.stockByLocation.forEach(locStock => {
+                if (!acc[locStock.locationName]) {
+                    acc[locStock.locationName] = [];
+                }
+                const soldForVariantInLoc = filteredStockAdjustments
+                    .filter(adj => adj.type === 'Sale' && adj.variant.id === v.id) // This is a simplification
+                    .reduce((sum, adj) => sum + Math.abs(adj.quantity), 0);
+
+                acc[locStock.locationName].push({
+                    variantName,
+                    ...locStock.stock,
+                    sold: soldForVariantInLoc,
+                });
+            });
+            return acc;
+        }, {} as Record<string, ({ variantName: string; sold: number; } & Product['variants'][0]['stockByLocation'][0]['stock'])[]>);
+
+        return {
+            allInventoryItems: filteredInventoryItems,
+            allStockAdjustments: filteredStockAdjustments,
+            totalStock: currentTotalStock,
+            stockByLocation: currentLocationStock
+        }
+
+    }, [product, date]);
+    
+    const handlePresetChange = (value: string) => {
+        const now = new Date();
+        switch (value) {
+          case 'today':
+            setDate({ from: now, to: now });
+            break;
+          case 'last-7':
+            setDate({ from: addDays(now, -6), to: now });
+            break;
+          case 'last-30':
+            setDate({ from: addDays(now, -29), to: now });
+            break;
+          case 'ytd':
+            setDate({ from: new Date(now.getFullYear(), 0, 1), to: now });
+            break;
+          default:
+            setDate(undefined);
+        }
+    };
 
 
     return (
         <div className="mt-4 space-y-6">
+             <div className="flex justify-end items-center gap-2">
+                <Select onValueChange={handlePresetChange} defaultValue="last-30">
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Select a preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="last-7">Last 7 days</SelectItem>
+                        <SelectItem value="last-30">Last 30 days</SelectItem>
+                        <SelectItem value="ytd">Year to date</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "w-[300px] justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date?.from ? (
+                        date.to ? (
+                            <>
+                            {format(date.from, "LLL dd, y")} -{" "}
+                            {format(date.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(date.from, "LLL dd, y")
+                        )
+                        ) : (
+                        <span>Pick a date</span>
+                        )}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={date?.from}
+                        selected={date}
+                        onSelect={setDate}
+                        numberOfMonths={2}
+                    />
+                    </PopoverContent>
+                </Popover>
+            </div>
              <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div>
@@ -112,23 +223,42 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                     </div>
                 </CardHeader>
                 <CardContent>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                        <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">On Hand</p>
-                            <p className="text-2xl font-bold">{totalStock.onHand}</p>
-                        </div>
-                        <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">Available</p>
-                            <p className="text-2xl font-bold text-green-600">{totalStock.available}</p>
-                        </div>
-                        <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">Reserved</p>
-                            <p className="text-2xl font-bold text-orange-600">{totalStock.reserved}</p>
-                        </div>
-                         <div className="p-4 bg-muted rounded-lg">
-                            <p className="text-sm text-muted-foreground">Damaged</p>
-                            <p className="text-2xl font-bold text-red-600">{totalStock.damaged}</p>
-                        </div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                        <Card className="text-center">
+                            <CardHeader className="p-4"><PackageCheck className="mx-auto h-6 w-6 text-muted-foreground" /></CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <p className="text-sm text-muted-foreground">On Hand</p>
+                                <p className="text-2xl font-bold">{totalStock.onHand}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="text-center">
+                             <CardHeader className="p-4"><ShoppingBasket className="mx-auto h-6 w-6 text-muted-foreground" /></CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <p className="text-sm text-muted-foreground">Available</p>
+                                <p className="text-2xl font-bold text-green-600">{totalStock.available}</p>
+                            </CardContent>
+                        </Card>
+                         <Card className="text-center">
+                             <CardHeader className="p-4"><Truck className="mx-auto h-6 w-6 text-muted-foreground" /></CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <p className="text-sm text-muted-foreground">Reserved</p>
+                                <p className="text-2xl font-bold text-orange-600">{totalStock.reserved}</p>
+                            </CardContent>
+                        </Card>
+                         <Card className="text-center">
+                             <CardHeader className="p-4"><Ban className="mx-auto h-6 w-6 text-muted-foreground" /></CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <p className="text-sm text-muted-foreground">Damaged</p>
+                                <p className="text-2xl font-bold text-red-600">{totalStock.damaged}</p>
+                            </CardContent>
+                        </Card>
+                        <Card className="text-center">
+                             <CardHeader className="p-4"><CalendarIcon className="mx-auto h-6 w-6 text-muted-foreground" /></CardHeader>
+                            <CardContent className="p-4 pt-0">
+                                <p className="text-sm text-muted-foreground">Sold ({date?.from ? `${format(date.from, 'LLL d')} - ${date.to ? format(date.to, 'LLL d') : '...'}` : 'All Time'})</p>
+                                <p className="text-2xl font-bold text-blue-600">{totalStock.sold}</p>
+                            </CardContent>
+                        </Card>
                     </div>
                 </CardContent>
             </Card>
@@ -150,6 +280,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                         <TableHead className="text-right">Available</TableHead>
                                         <TableHead className="text-right">Reserved</TableHead>
                                         <TableHead className="text-right">Damaged</TableHead>
+                                        <TableHead className="text-right">Sold</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -160,6 +291,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                             <TableCell className="text-right text-green-600 font-bold">{s.available}</TableCell>
                                             <TableCell className="text-right text-orange-600">{s.reserved}</TableCell>
                                             <TableCell className="text-right text-red-600">{s.damaged}</TableCell>
+                                            <TableCell className="text-right text-blue-600">{s.sold}</TableCell>
                                         </TableRow>
                                     ))}
                                 </TableBody>
@@ -176,7 +308,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                 <Card>
                     <CardHeader>
                         <CardTitle>Serialized Items</CardTitle>
-                        <CardDescription>Track each individual item by its serial number and status.</CardDescription>
+                        <CardDescription>Track each individual item by its serial number and status for the selected period.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -186,6 +318,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                     {product.hasVariants && <TableHead>Variant</TableHead>}
                                     <TableHead>Status</TableHead>
                                     <TableHead>Location</TableHead>
+                                    <TableHead>Date</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -195,11 +328,12 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                         {product.hasVariants && <TableCell>{item.variant ? Object.values(item.variant.optionValues).join(' / ') : 'Default'}</TableCell>}
                                         <TableCell><InventoryStatusBadge status={item.status} /></TableCell>
                                         <TableCell>{item.locationName || '-'}</TableCell>
+                                        <TableCell>{item.soldDate ? new Date(item.soldDate).toLocaleDateString() : '-'}</TableCell>
                                     </TableRow>
                                 )) : (
                                     <TableRow>
-                                        <TableCell colSpan={product.hasVariants ? 4 : 3} className="text-center h-24">
-                                            No serialized items for this product yet.
+                                        <TableCell colSpan={product.hasVariants ? 5 : 4} className="text-center h-24">
+                                            No serialized items found for the selected period.
                                         </TableCell>
                                     </TableRow>
                                 )}
@@ -211,7 +345,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                  <Card>
                     <CardHeader>
                         <CardTitle>Stock History</CardTitle>
-                        <CardDescription>A log of all inventory adjustments for this product.</CardDescription>
+                        <CardDescription>A log of all inventory adjustments for this product for the selected period.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         <Table>
@@ -241,7 +375,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                                 }) : (
                                     <TableRow>
                                         <TableCell colSpan={product.hasVariants ? 6 : 5} className="text-center h-24">
-                                            No stock history available for this product.
+                                            No stock history available for the selected period.
                                         </TableCell>
                                     </TableRow>
                                 )}
