@@ -42,7 +42,14 @@ async function initializeStaff() {
           salesTarget: { goal: 500000, current: 125000 },
           assignedRegions: ['Nairobi', 'Mombasa'],
           isKeyAccountManager: true,
-        }
+        },
+        schedule: [
+          { day: 'Monday', startTime: '09:00', endTime: '17:00' },
+          { day: 'Tuesday', startTime: '09:00', endTime: '17:00' },
+          { day: 'Wednesday', startTime: '09:00', endTime: '17:00' },
+          { day: 'Thursday', startTime: '09:00', endTime: '17:00' },
+          { day: 'Friday', startTime: '09:00', endTime: '17:00' },
+        ]
       },
       { 
         id: 'staff-003', 

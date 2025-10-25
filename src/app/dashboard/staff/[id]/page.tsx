@@ -37,6 +37,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { StaffScheduleCard } from '@/components/dashboard/staff-schedule-card';
 
 
 const orderColumns: ColumnDef<Order>[] = [
@@ -237,6 +238,7 @@ export default function ViewStaffPage() {
   const hasAttributes = assignedAttributes.length > 0;
   const isPendingVerification = staffMember.status === 'Pending Verification';
   const hasDocuments = staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0;
+  const hasSchedule = staffMember.schedule && staffMember.schedule.length > 0;
 
   return (
     <div className="space-y-6">
@@ -346,6 +348,10 @@ export default function ViewStaffPage() {
                 </Card>
             )}
 
+            {hasSchedule && (
+                <StaffScheduleCard schedule={staffMember.schedule || []} />
+            )}
+
              {hasDocuments && (
                 <Card>
                     <CardHeader>
@@ -364,13 +370,13 @@ export default function ViewStaffPage() {
                 </Card>
             )}
             
-            {!showAssignedOrders && !hasAttributes && !isPendingVerification && !hasDocuments && (
+            {!showAssignedOrders && !hasAttributes && !hasSchedule && !isPendingVerification && !hasDocuments && (
                  <Card>
                     <CardContent>
                         <EmptyState 
                             icon={<Award className="h-12 w-12 text-primary" />}
                             title="No Tasks or Attributes"
-                            description="This staff member currently has no assigned orders or role-specific attributes to display."
+                            description="This staff member currently has no assigned orders, schedule, or role-specific attributes to display."
                              cta={(
                                 <Button asChild>
                                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>

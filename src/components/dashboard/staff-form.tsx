@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, CalendarIcon, X, FileText } from 'lucide-react';
+import { ArrowLeft, Save, CalendarIcon, X, FileText, Clock, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -20,9 +21,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { StaffProfileForm } from './staff-profile-form'; // Re-use the form for core details
 import { updateStaff, getStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
-import type { Staff, Role, AssignableAttribute } from '@/lib/types';
+import type { Staff, Role, AssignableAttribute, Shift } from '@/lib/types';
 import { FileUploader } from '../ui/file-uploader';
 import { Badge } from '../ui/badge';
+import { Separator } from '../ui/separator';
 
 
 const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any, value: any, onChange: (key: string, value: any) => void }) => {
@@ -112,6 +114,8 @@ const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any,
     return null;
 }
 
+const daysOfWeek: Shift['day'][] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
 
 export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     const router = useRouter();
@@ -135,8 +139,6 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     }
     
     const handleCoreInfoSave = async (updatedStaff: Staff) => {
-        // This function is passed to the StaffProfileForm.
-        // It updates the state here in the main form.
         setStaffMember(updatedStaff);
     };
 
@@ -145,7 +147,7 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
             setStaffMember({
                 ...staffMember,
                 role: roleName,
-                attributes: {}, // Reset attributes when role changes
+                attributes: {}, 
             });
         }
     }
@@ -182,6 +184,35 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     
     const removeDocument = (docName: string) => {
         setStaffMember(prev => prev ? ({ ...prev, verificationDocuments: prev.verificationDocuments?.filter(d => d.name !== docName) }) : null);
+    }
+
+    const handleShiftChange = (day: Shift['day'], field: 'startTime' | 'endTime', value: string) => {
+        if (staffMember) {
+            const newSchedule = [...(staffMember.schedule || [])];
+            let shift = newSchedule.find(s => s.day === day);
+
+            if (shift) {
+                shift[field] = value;
+            } else {
+                newSchedule.push({ day, startTime: '', endTime: '', [field]: value });
+            }
+
+            setStaffMember({ ...staffMember, schedule: newSchedule });
+        }
+    }
+
+    const toggleDay = (day: Shift['day'], checked: boolean) => {
+         if (staffMember) {
+            let newSchedule = [...(staffMember.schedule || [])];
+            if (checked) {
+                if (!newSchedule.some(s => s.day === day)) {
+                    newSchedule.push({ day, startTime: '09:00', endTime: '17:00' });
+                }
+            } else {
+                newSchedule = newSchedule.filter(s => s.day !== day);
+            }
+            setStaffMember({ ...staffMember, schedule: newSchedule });
+        }
     }
 
 
@@ -227,6 +258,42 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
                             </SelectContent>
                         </Select>
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Weekly Schedule</CardTitle>
+                    <CardDescription>Set the working hours for this staff member.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {daysOfWeek.map(day => {
+                        const shift = staffMember?.schedule?.find(s => s.day === day);
+                        const isEnabled = !!shift;
+                        return (
+                             <div key={day} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center space-x-2">
+                                        <Switch id={`switch-${day}`} checked={isEnabled} onCheckedChange={(c) => toggleDay(day, c)} />
+                                        <Label htmlFor={`switch-${day}`} className="font-semibold">{day}</Label>
+                                    </div>
+                                </div>
+                                {isEnabled && (
+                                     <div className="grid grid-cols-2 gap-4 pl-8">
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`start-${day}`} className="text-xs">Start Time</Label>
+                                            <Input id={`start-${day}`} type="time" value={shift.startTime} onChange={(e) => handleShiftChange(day, 'startTime', e.target.value)} />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`end-${day}`} className="text-xs">End Time</Label>
+                                            <Input id={`end-${day}`} type="time" value={shift.endTime} onChange={(e) => handleShiftChange(day, 'endTime', e.target.value)} />
+                                        </div>
+                                    </div>
+                                )}
+                                <Separator />
+                            </div>
+                        )
+                    })}
                 </CardContent>
             </Card>
 

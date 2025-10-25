@@ -317,6 +317,12 @@ export type PerformanceTarget = {
     current: number;
 }
 
+export type Shift = {
+  day: 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday' | 'Sunday';
+  startTime: string;
+  endTime: string;
+}
+
 export type Staff = {
   id: string;
   name: string;
@@ -336,7 +342,8 @@ export type Staff = {
   // Dynamic attributes based on role
   attributes?: {
     [key: string]: PerformanceTarget | string[] | string | number | boolean | Date;
-  }
+  },
+  schedule?: Shift[];
 };
 
 
