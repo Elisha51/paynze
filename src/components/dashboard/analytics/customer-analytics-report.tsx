@@ -11,9 +11,16 @@ import {
 import { Users, UserPlus, Repeat, UserCheck } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { ChartTooltipContent } from '@/components/ui/chart';
+import { ChartTooltipContent, ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { DataTable } from '@/components/dashboard/data-table';
 import { customersColumns } from './report-columns';
+
+const chartConfig = {
+  customers: {
+    label: 'Customers',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig;
 
 export function CustomerAnalyticsReport({ customers, dateRange }: { customers: Customer[], dateRange?: DateRange }) {
 
@@ -102,29 +109,29 @@ export function CustomerAnalyticsReport({ customers, dateRange }: { customers: C
           <CardTitle>Customer Acquisition</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={chartData}>
-                    <XAxis
-                        dataKey="date"
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                    />
-                    <YAxis
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        allowDecimals={false}
-                    />
-                    <Tooltip
-                        cursor={false}
-                        content={<ChartTooltipContent indicator="dot" />}
-                    />
-                    <Bar dataKey="customers" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-            </ResponsiveContainer>
+            <ChartContainer config={chartConfig}>
+              <BarChart data={chartData}>
+                  <XAxis
+                      dataKey="date"
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                  />
+                  <YAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                  />
+                  <Tooltip
+                      cursor={false}
+                      content={<ChartTooltipContent indicator="dot" />}
+                  />
+                  <Bar dataKey="customers" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
         </CardContent>
       </Card>
       <Card>

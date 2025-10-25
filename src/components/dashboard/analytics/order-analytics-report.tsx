@@ -132,32 +132,32 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
           <CardTitle>Sales Trend</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData}>
-                    <XAxis
-                        dataKey="date"
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                    />
-                    <YAxis
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => formatCurrencyForChart(value)}
-                    />
-                    <Tooltip
-                        cursor={false}
-                        content={<ChartTooltipContent
-                            formatter={(value) => formatCurrency(value as number)}
-                            indicator="dot"
-                        />}
-                    />
-                    <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-            </ResponsiveContainer>
+            <ChartContainer config={chartConfig}>
+              <BarChart data={chartData}>
+                  <XAxis
+                      dataKey="date"
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                  />
+                  <YAxis
+                      stroke="#888888"
+                      fontSize={12}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => formatCurrencyForChart(value)}
+                  />
+                  <Tooltip
+                      cursor={false}
+                      content={<ChartTooltipContent
+                          formatter={(value) => formatCurrency(value as number)}
+                          indicator="dot"
+                      />}
+                  />
+                  <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ChartContainer>
         </CardContent>
       </Card>
       

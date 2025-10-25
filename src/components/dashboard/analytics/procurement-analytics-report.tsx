@@ -11,9 +11,16 @@ import {
 import { DollarSign, ShoppingCart, Truck, TrendingUp } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { ChartTooltipContent } from '@/components/ui/chart';
+import { ChartTooltipContent, ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { DataTable } from '@/components/dashboard/data-table';
 import { purchaseOrdersColumns } from './report-columns';
+
+const chartConfig = {
+  spend: {
+    label: 'Spend',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig;
 
 export function ProcurementAnalyticsReport({ purchaseOrders, dateRange }: { purchaseOrders: PurchaseOrder[], dateRange?: DateRange }) {
 
@@ -127,32 +134,32 @@ export function ProcurementAnalyticsReport({ purchaseOrders, dateRange }: { purc
           <CardTitle>Procurement Spend</CardTitle>
         </CardHeader>
         <CardContent className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-                 <BarChart data={chartData}>
-                    <XAxis
-                        dataKey="date"
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                    />
-                    <YAxis
-                        stroke="#888888"
-                        fontSize={12}
-                        tickLine={false}
-                        axisLine={false}
-                        tickFormatter={(value) => formatCurrencyForChart(value)}
-                    />
-                    <Tooltip
-                        cursor={false}
-                        content={<ChartTooltipContent
-                            formatter={(value) => formatCurrency(value as number)}
-                            indicator="dot"
-                        />}
-                    />
-                    <Bar dataKey="spend" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                </BarChart>
-            </ResponsiveContainer>
+          <ChartContainer config={chartConfig}>
+            <BarChart data={chartData}>
+                <XAxis
+                    dataKey="date"
+                    stroke="#888888"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                />
+                <YAxis
+                    stroke="#888888"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => formatCurrencyForChart(value)}
+                />
+                <Tooltip
+                    cursor={false}
+                    content={<ChartTooltipContent
+                        formatter={(value) => formatCurrency(value as number)}
+                        indicator="dot"
+                    />}
+                />
+                <Bar dataKey="spend" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ChartContainer>
         </CardContent>
       </Card>
       <Card>
