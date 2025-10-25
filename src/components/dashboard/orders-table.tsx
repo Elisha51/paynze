@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, User, Truck, Store } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, User, Truck, Store, PackageCheck } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -36,8 +36,70 @@ import type { Staff } from '@/lib/types';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials } from '@/lib/utils';
+import { updateOrder, updateProductStock } from '@/services/orders';
 
-function AssignOrderDialog({ order }: { order: Order }) {
+
+function FulfillOrderDialog({ order, action, onUpdate }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void }) {
+    const { toast } = useToast();
+
+    const titles = {
+        deliver: 'Mark as Delivered',
+        pickup: 'Mark as Picked Up',
+        ship: 'Mark as Shipped',
+        ready: 'Mark as Ready for Pickup'
+    };
+
+    const descriptions = {
+        deliver: `This will mark order #${order.id} as 'Delivered' and update inventory. This action cannot be undone.`,
+        pickup: `This will mark order #${order.id} as 'Picked Up' and update inventory. This action cannot be undone.`,
+        ship: `This will mark order #${order.id} as 'Shipped'. Inventory will not be adjusted until the order is delivered.`,
+        ready: `This will mark order #${order.id} as 'Ready for Pickup'.`
+    };
+    
+    const newStatusMap = {
+        deliver: 'Delivered',
+        pickup: 'Picked Up',
+        ship: 'Shipped',
+        ready: 'Ready for Pickup',
+    } as const;
+
+    const handleFulfill = async () => {
+        const newStatus = newStatusMap[action];
+        const updatedOrder = await updateOrder(order.id, { status: newStatus });
+        
+        if (action === 'deliver' || action === 'pickup') {
+            // Adjust stock for each item in the order
+            await Promise.all(order.items.map(item => 
+                updateProductStock(item.sku, -item.quantity, 'Sale', `Order #${order.id}`)
+            ));
+        }
+
+        onUpdate(updatedOrder);
+        toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${newStatus}.`});
+    }
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 h-9 w-full justify-start">
+                    {titles[action]}
+                </div>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>{titles[action]}</DialogTitle>
+                    <DialogDescription>{descriptions[action]}</DialogDescription>
+                </DialogHeader>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <DialogClose asChild><Button onClick={handleFulfill}>Confirm</Button></DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+function AssignOrderDialog({ order, onUpdate }: { order: Order, onUpdate: (updatedOrder: Order) => void }) {
     const { toast } = useToast();
     const [staff, setStaff] = React.useState<Staff[]>([]);
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
@@ -52,20 +114,28 @@ function AssignOrderDialog({ order }: { order: Order }) {
         loadStaff();
     }, []);
 
-    const handleAssign = () => {
+    const handleAssign = async () => {
         if (!selectedStaffId) {
             toast({ variant: 'destructive', title: 'Please select a staff member.' });
             return;
         }
-        // Simulate assignment
-        console.log(`Assigning order ${order.id} to staff ${selectedStaffId}`);
-        toast({ title: 'Order Assigned', description: `Order ${order.id} has been assigned.` });
+        const selectedStaffMember = staff.find(s => s.id === selectedStaffId);
+        if (!selectedStaffMember) return;
+        
+        const updatedOrder = await updateOrder(order.id, { 
+            assignedStaffId: selectedStaffId, 
+            assignedStaffName: selectedStaffMember.name,
+            status: 'Shipped', // Or another appropriate status
+        });
+
+        onUpdate(updatedOrder);
+        toast({ title: 'Order Assigned', description: `Order ${order.id} has been assigned to ${selectedStaffMember.name}.` });
     }
 
     return (
          <Dialog>
             <DialogTrigger asChild>
-                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 h-9 w-full justify-start">
                     Assign
                 </div>
             </DialogTrigger>
@@ -108,7 +178,7 @@ const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'o
 };
 
 
-const columns: ColumnDef<Order>[] = [
+const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -255,26 +325,31 @@ const columns: ColumnDef<Order>[] = [
   },
   {
     id: 'actions',
-    enableHiding: false,
-    header: () => <div className="text-right">Actions</div>,
+    header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
+      const order = row.original;
+      const canAssign = order.fulfillmentMethod === 'Delivery' && !order.assignedStaffId && (order.status === 'Paid' || order.status === 'Pending');
+      const canReadyForPickup = order.fulfillmentMethod === 'Pickup' && (order.status === 'Paid' || order.status === 'Pending');
+
       return (
         <div className="relative bg-background text-right sticky right-0">
             <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/orders/${row.original.id}`}>View Details</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
-                <AssignOrderDialog order={row.original} />
-            </DropdownMenuContent>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
+                    </DropdownMenuItem>
+                    {canAssign && <AssignOrderDialog order={order} onUpdate={onUpdate} />}
+                    {canReadyForPickup && <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} />}
+                    {order.status === 'Shipped' && <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} />}
+                    {order.status === 'Ready for Pickup' && <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} />}
+                </DropdownMenuContent>
             </DropdownMenu>
         </div>
       );
@@ -324,6 +399,14 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
       setData(orders);
     }
   }, [orders, filter]);
+
+  const handleUpdate = (updatedOrder: Order) => {
+    const updateFunc = (d: Order[]) => d.map(o => o.id === updatedOrder.id ? updatedOrder : o);
+    setData(updateFunc);
+    // In a real app, you would also update the parent `orders` state
+  };
+  
+  const columns = React.useMemo(() => getColumns(handleUpdate), []);
 
   return (
     <DataTable

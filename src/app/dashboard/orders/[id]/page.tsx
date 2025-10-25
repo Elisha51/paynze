@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,7 +7,7 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Copy, Store, PackageCheck } from 'lucide-react';
 import Link from 'next/link';
-import { getOrderById } from '@/services/orders';
+import { getOrderById, updateOrder, updateProductStock } from '@/services/orders';
 import type { Order } from '@/lib/types';
 import {
   Card,
@@ -26,6 +27,7 @@ import { Separator } from "@/components/ui/separator"
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/hooks/use-toast';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   Pending: 'secondary',
@@ -42,18 +44,38 @@ export default function ViewOrderPage() {
   const id = params.id as string;
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const loadOrder = async () => {
+    if (id) {
+        setLoading(true);
+        const fetchedOrder = await getOrderById(id);
+        setOrder(fetchedOrder || null);
+        setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (id) {
-        async function loadOrder() {
-            setLoading(true);
-            const fetchedOrder = await getOrderById(id);
-            setOrder(fetchedOrder || null);
-            setLoading(false);
-        }
-        loadOrder();
-    }
+    loadOrder();
   }, [id]);
+
+  const handleUpdateStatus = async (status: Order['status']) => {
+    if (!order) return;
+    
+    const updatedOrder = await updateOrder(order.id, { status });
+    
+    if (status === 'Delivered' || status === 'Picked Up') {
+        await Promise.all(order.items.map(item => 
+            updateProductStock(item.sku, -item.quantity, 'Sale', `Order #${order.id}`)
+        ));
+    }
+    
+    setOrder(updatedOrder);
+    toast({
+        title: `Order #${order.id} Updated`,
+        description: `Status changed to ${status}.`
+    });
+  };
   
   if (loading) {
     return (
@@ -104,6 +126,9 @@ export default function ViewOrderPage() {
 
   const statusVariant = statusVariantMap[order.status] || 'secondary';
 
+  const canMarkAsDelivered = order.status === 'Shipped';
+  const canMarkAsPickedUp = order.status === 'Ready for Pickup';
+
   return (
     <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
         <div className="mx-auto grid max-w-6xl flex-1 auto-rows-max gap-4">
@@ -121,8 +146,8 @@ export default function ViewOrderPage() {
                 {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                {order.fulfillmentMethod === 'Delivery' && <Button variant="outline" size="sm">Mark as Delivered</Button>}
-                {order.fulfillmentMethod === 'Pickup' && <Button variant="outline" size="sm">Mark as Picked Up</Button>}
+                {canMarkAsDelivered && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Delivered')}>Mark as Delivered</Button>}
+                {canMarkAsPickedUp && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Picked Up')}>Mark as Picked Up</Button>}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="h-8 w-8">

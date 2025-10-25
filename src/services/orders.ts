@@ -1,7 +1,8 @@
 
 
-import { orders as mockOrders } from '@/lib/data';
-import type { Order } from '@/lib/types';
+import { products, orders as mockOrders } from '@/lib/data';
+import type { Order, Product } from '@/lib/types';
+import { updateProduct } from './products';
 
 let orders: Order[] = [...mockOrders];
 
@@ -57,4 +58,58 @@ export async function getOrderById(orderId: string): Promise<Order | undefined> 
   await new Promise(resolve => setTimeout(resolve, 300));
   const allOrders = await getOrders();
   return allOrders.find(order => order.id === orderId);
+}
+
+
+export async function updateOrder(orderId: string, updates: Partial<Order>): Promise<Order> {
+  await new Promise(resolve => setTimeout(resolve, 200));
+  let updatedOrder: Order | undefined;
+  orders = orders.map(order => {
+    if (order.id === orderId) {
+      updatedOrder = { ...order, ...updates };
+      return updatedOrder;
+    }
+    return order;
+  });
+  if (!updatedOrder) {
+    throw new Error('Order not found');
+  }
+  return updatedOrder;
+}
+
+export async function updateProductStock(sku: string, quantityChange: number, type: 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage', reason: string) {
+    let productToUpdate = products.find(p => p.sku === sku || p.variants.some(v => v.sku === sku));
+
+    if (!productToUpdate) {
+        console.warn(`Product with SKU ${sku} not found for stock adjustment.`);
+        return;
+    }
+
+    const newAdjustment = {
+        id: `adj-${Date.now()}`,
+        date: new Date().toISOString(),
+        type,
+        quantity: quantityChange,
+        reason,
+        channel: 'Manual' as const
+    };
+
+    const variantIndex = productToUpdate.variants.findIndex(v => v.sku === sku);
+    if (variantIndex > -1) {
+        const variant = productToUpdate.variants[variantIndex];
+        if (!variant.stockAdjustments) {
+            variant.stockAdjustments = [];
+        }
+        variant.stockAdjustments.push(newAdjustment);
+
+        // This is a simplification. In a real app, you'd find the correct location.
+        if (variant.stockByLocation && variant.stockByLocation.length > 0) {
+            variant.stockByLocation[0].stock.onHand += quantityChange;
+            variant.stockByLocation[0].stock.available += quantityChange;
+        }
+
+        productToUpdate.variants[variantIndex] = variant;
+    }
+
+    await updateProduct(productToUpdate);
 }
