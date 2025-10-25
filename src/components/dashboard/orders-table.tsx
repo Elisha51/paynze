@@ -77,13 +77,14 @@ function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { or
 
     const handleFulfill = async () => {
         const newStatus = newStatusMap[action];
-        const updatedOrder = await updateOrder(order.id, { status: newStatus });
         
         if (action === 'deliver' || action === 'pickup') {
-            await Promise.all(order.items.map(item => 
-                updateProductStock(item.sku, -item.quantity, 'Sale', `Order #${order.id}`)
-            ));
+            for (const item of order.items) {
+                await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${order.id}`);
+            }
         }
+        
+        const updatedOrder = await updateOrder(order.id, { status: newStatus });
 
         onUpdate(updatedOrder);
         toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${newStatus}.`});

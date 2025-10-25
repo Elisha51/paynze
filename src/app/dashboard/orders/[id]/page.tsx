@@ -32,7 +32,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
-  Paid: 'secondary',
+  Paid: 'default',
   'Ready for Pickup': 'outline',
   Shipped: 'outline',
   Delivered: 'default',
@@ -73,13 +73,14 @@ export default function ViewOrderPage() {
       updates.paymentStatus = paymentStatus;
     }
     
-    const updatedOrder = await updateOrder(order.id, updates);
-    
+    // Fulfill order and deduct stock
     if (status === 'Delivered' || status === 'Picked Up') {
-        await Promise.all(order.items.map(item => 
-            updateProductStock(item.sku, -item.quantity, 'Sale', `Order #${order.id}`)
-        ));
+        for (const item of order.items) {
+           await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${order.id}`);
+        }
     }
+    
+    const updatedOrder = await updateOrder(order.id, updates);
     
     setOrder(updatedOrder);
     toast({
