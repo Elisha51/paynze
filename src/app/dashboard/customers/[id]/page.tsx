@@ -63,37 +63,49 @@ export default function ViewCustomerPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [classification, setClassification] = useState<ClassifyCustomerOutput | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isClassifying, setIsClassifying] = useState(false);
 
   useEffect(() => {
     async function loadData() {
         if (!id) return;
         setLoading(true);
         const fetchedCustomer = await getCustomerById(id);
-        if (fetchedCustomer) {
-            setCustomer(fetchedCustomer);
-
-            if (fetchedCustomer.orders && fetchedCustomer.orders.length > 0) {
-                 const purchaseHistory = fetchedCustomer.orders.flatMap(order => 
-                    order.items.map(item => ({
-                        productId: item.sku,
-                        quantity: item.quantity,
-                        price: item.price,
-                        category: item.category || 'Unknown',
-                        timestamp: order.date,
-                    }))
-                );
-
-                const classificationResult = await classifyCustomer({
-                    customerId: fetchedCustomer.id,
-                    purchaseHistory: purchaseHistory,
-                });
-                setClassification(classificationResult);
-            }
-        }
+        setCustomer(fetchedCustomer || null);
         setLoading(false);
     }
     loadData();
   }, [id]);
+
+  useEffect(() => {
+      async function runClassification() {
+          if (customer && customer.orders && customer.orders.length > 0) {
+              setIsClassifying(true);
+              const purchaseHistory = customer.orders.flatMap(order => 
+                  order.items.map(item => ({
+                      productId: item.sku,
+                      quantity: item.quantity,
+                      price: item.price,
+                      category: item.category || 'Unknown',
+                      timestamp: order.date,
+                  }))
+              );
+
+              try {
+                const classificationResult = await classifyCustomer({
+                    customerId: customer.id,
+                    purchaseHistory: purchaseHistory,
+                });
+                setClassification(classificationResult);
+              } catch (error) {
+                console.error("Failed to classify customer:", error);
+                // Optionally set an error state to show in the UI
+              } finally {
+                setIsClassifying(false);
+              }
+          }
+      }
+      runClassification();
+  }, [customer]);
 
   if (loading) {
     return (
@@ -246,7 +258,13 @@ export default function ViewCustomerPage() {
                     <CardDescription>AI-powered classification based on purchase history.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    {classification ? (
+                    {isClassifying ? (
+                        <div className="space-y-2">
+                            <Skeleton className="h-6 w-24 rounded-full" />
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-4/5" />
+                        </div>
+                    ) : classification ? (
                         <div className="space-y-2">
                             <Badge variant="secondary" className="text-base">{classification.customerGroup}</Badge>
                             <p className="text-sm text-muted-foreground">{classification.reason}</p>
@@ -261,5 +279,3 @@ export default function ViewCustomerPage() {
     </div>
   );
 }
-
-    
