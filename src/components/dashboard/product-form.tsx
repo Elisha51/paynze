@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
@@ -51,6 +52,7 @@ import { Separator } from '../ui/separator';
 import type { OnboardingFormData } from '@/context/onboarding-context';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { getCategories } from '@/services/categories';
+import { addProduct, updateProduct } from '@/services/products';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -110,9 +112,12 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
 export function ProductForm({ initialProduct }: { initialProduct?: Partial<Product> | null }) {
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
+
 
   useEffect(() => {
     // When initialProduct changes, reset the form state
@@ -404,12 +409,33 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     }
   };
 
-  const handleSave = () => {
-    toast({
-      title: 'Product Saved',
-      description: `${product.name} has been updated successfully.`,
-    });
-    console.log('Saving product:', product);
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+        let savedProduct;
+        if (initialProduct?.sku) {
+            savedProduct = await updateProduct(product);
+             toast({
+                title: 'Product Updated',
+                description: `${savedProduct.name} has been updated successfully.`,
+            });
+        } else {
+            savedProduct = await addProduct(product);
+             toast({
+                title: 'Product Created',
+                description: `${savedProduct.name} has been created successfully.`,
+            });
+        }
+        router.push(`/dashboard/products/${savedProduct.sku}`);
+    } catch (error) {
+        toast({
+            variant: 'destructive',
+            title: 'Save Failed',
+            description: 'There was an error saving the product.',
+        });
+    } finally {
+        setIsSaving(false);
+    }
   };
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
@@ -435,9 +461,9 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={isSaving}>
               <Save className="mr-2 h-4 w-4" />
-              Save Product
+              {isSaving ? 'Saving...' : 'Save Product'}
             </Button>
         </div>
       </div>

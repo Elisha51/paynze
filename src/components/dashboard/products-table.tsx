@@ -34,6 +34,8 @@ import {
 import type { Product } from '@/lib/types';
 import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
+import { deleteProduct } from '@/services/products';
+
 
 const getColumns = (
   archiveProduct: (sku: string) => void,
@@ -235,16 +237,35 @@ type ProductsTableProps = {
 export function ProductsTable({ data, setData }: ProductsTableProps) {
   const { toast } = useToast();
   
-  const archiveProduct = (sku: string) => {
+  const archiveProduct = async (sku: string) => {
+    // Optimistically update the UI
     setData(currentData =>
       currentData.map(product =>
         product.sku === sku ? { ...product, status: 'archived' } : product
       )
     );
-    toast({
-        title: "Product Archived",
-        description: "The product has been moved to the archive.",
-    });
+
+    try {
+        // In a real app, you might call a service to update the backend
+        // For now, we simulate this. The service function could be `updateProductStatus`
+        // await updateProductStatus(sku, 'archived');
+        toast({
+            title: "Product Archived",
+            description: "The product has been moved to the archive.",
+        });
+    } catch (error) {
+        // If the backend update fails, revert the UI change
+        setData(currentData =>
+            currentData.map(product =>
+                product.sku === sku ? { ...product, status: 'published' } : product // or original status
+            )
+        );
+        toast({
+            variant: "destructive",
+            title: "Archive Failed",
+            description: "Could not archive the product. Please try again.",
+        });
+    }
   };
 
   const columns = React.useMemo(() => getColumns(archiveProduct), [setData]);
