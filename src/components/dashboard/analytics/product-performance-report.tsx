@@ -12,20 +12,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowUpDown, DollarSign, Package, TrendingUp, ShoppingBasket, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowUpDown, DollarSign, Package, TrendingUp, ShoppingBasket } from 'lucide-react';
 import Link from 'next/link';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
-import { addDays, format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
+
 
 type ReportRow = {
   productId: string;
@@ -92,11 +82,7 @@ const getColumns = (currency: string): ColumnDef<ReportRow>[] => [
   },
 ];
 
-export function ProductPerformanceReport({ products }: { products: Product[] }) {
-  const [date, setDate] = useState<DateRange | undefined>({
-    from: addDays(new Date(), -29),
-    to: new Date(),
-  });
+export function ProductPerformanceReport({ products, dateRange }: { products: Product[], dateRange?: DateRange }) {
 
   const reportData = useMemo(() => {
     const data: ReportRow[] = [];
@@ -107,8 +93,8 @@ export function ProductPerformanceReport({ products }: { products: Product[] }) 
                     .filter(adj => {
                         const adjDate = new Date(adj.date);
                         return adj.type === 'Sale' &&
-                               (!date?.from || adjDate >= date.from) &&
-                               (!date?.to || adjDate <= date.to);
+                               (!dateRange?.from || adjDate >= dateRange.from) &&
+                               (!dateRange?.to || adjDate <= dateRange.to);
                     });
 
                 if (salesAdjustments.length > 0) {
@@ -134,8 +120,8 @@ export function ProductPerformanceReport({ products }: { products: Product[] }) 
                     .filter(adj => {
                         const adjDate = new Date(adj.date);
                         return adj.type === 'Sale' &&
-                               (!date?.from || adjDate >= date.from) &&
-                               (!date?.to || adjDate <= date.to);
+                               (!dateRange?.from || adjDate >= dateRange.from) &&
+                               (!dateRange?.to || adjDate <= dateRange.to);
                     });
                 if (salesAdjustments.length > 0) {
                     const unitsSold = salesAdjustments.reduce((sum, adj) => sum + Math.abs(adj.quantity), 0);
@@ -155,7 +141,7 @@ export function ProductPerformanceReport({ products }: { products: Product[] }) 
        }
     });
     return data;
-  }, [products, date]);
+  }, [products, dateRange]);
 
   const summaryMetrics = useMemo(() => {
     if (reportData.length === 0) {
@@ -180,79 +166,9 @@ export function ProductPerformanceReport({ products }: { products: Product[] }) 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: summaryMetrics.currency || 'UGX' }).format(amount);
   };
-  
-  const handlePresetChange = (value: string) => {
-    const now = new Date();
-    switch (value) {
-      case 'today':
-        setDate({ from: now, to: now });
-        break;
-      case 'last-7':
-        setDate({ from: addDays(now, -6), to: now });
-        break;
-      case 'last-30':
-        setDate({ from: addDays(now, -29), to: now });
-        break;
-      case 'ytd':
-        setDate({ from: new Date(now.getFullYear(), 0, 1), to: now });
-        break;
-      default:
-        setDate(undefined);
-    }
-  };
 
   return (
     <div className="space-y-4">
-        <div className="flex justify-end items-center gap-2">
-            <Select onValueChange={handlePresetChange} defaultValue="last-30">
-                <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Select a preset" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="last-7">Last 7 days</SelectItem>
-                    <SelectItem value="last-30">Last 30 days</SelectItem>
-                    <SelectItem value="ytd">Year to date</SelectItem>
-                </SelectContent>
-            </Select>
-            <Popover>
-                <PopoverTrigger asChild>
-                <Button
-                    id="date"
-                    variant={"outline"}
-                    className={cn(
-                    "w-[300px] justify-start text-left font-normal",
-                    !date && "text-muted-foreground"
-                    )}
-                >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date?.from ? (
-                    date.to ? (
-                        <>
-                        {format(date.from, "LLL dd, y")} -{" "}
-                        {format(date.to, "LLL dd, y")}
-                        </>
-                    ) : (
-                        format(date.from, "LLL dd, y")
-                    )
-                    ) : (
-                    <span>Pick a date</span>
-                    )}
-                </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                    initialFocus
-                    mode="range"
-                    defaultMonth={date?.from}
-                    selected={date}
-                    onSelect={setDate}
-                    numberOfMonths={2}
-                />
-                </PopoverContent>
-            </Popover>
-        </div>
-
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
