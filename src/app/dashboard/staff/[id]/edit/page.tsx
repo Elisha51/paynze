@@ -3,11 +3,11 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import type { Staff, Role } from '@/lib/types';
+import type { Staff, Role, AttributeType } from '@/lib/types';
 import { getStaff, updateStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, CalendarIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -15,9 +15,15 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any, value: any, onChange: (key: string, value: any) => void }) => {
-    const { key, label, type } = attribute;
+    const { key, type } = attribute;
 
     if (type === 'kpi') {
         return (
@@ -45,6 +51,45 @@ const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any,
             </div>
         );
     }
+    
+    if (type === 'string') {
+        return <Input id={key} value={value || ''} onChange={(e) => onChange(key, e.target.value)} />
+    }
+    
+    if (type === 'number') {
+        return <Input id={key} type="number" value={value || ''} onChange={(e) => onChange(key, Number(e.target.value))} />
+    }
+
+    if (type === 'boolean') {
+        return <Switch id={key} checked={!!value} onCheckedChange={(c) => onChange(key, c)} />
+    }
+
+    if (type === 'date') {
+        return (
+             <Popover>
+                <PopoverTrigger asChild>
+                    <Button
+                    variant={"outline"}
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !value && "text-muted-foreground"
+                    )}
+                    >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {value ? format(new Date(value), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                    <Calendar
+                        mode="single"
+                        selected={value ? new Date(value) : undefined}
+                        onSelect={(date) => onChange(key, date)}
+                        initialFocus
+                    />
+                </PopoverContent>
+            </Popover>
+        )
+    }
 
     if (type === 'tags' || type === 'list') {
         return (
@@ -70,27 +115,42 @@ export default function EditStaffPage() {
     const id = params.id as string;
 
     const [staffMember, setStaffMember] = useState<Staff | null>(null);
-    const [role, setRole] = useState<Role | null>(null);
+    const [allRoles, setAllRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const selectedRole = allRoles.find(r => r.name === staffMember?.role);
 
     useEffect(() => {
         async function loadData() {
             if (!id) return;
             setLoading(true);
-            const [staffData, allRoles] = await Promise.all([
+            const [staffData, rolesData] = await Promise.all([
                 getStaff().then(list => list.find(s => s.id === id)),
                 getRoles(),
             ]);
 
-            if (staffData) {
-                setStaffMember(staffData);
-                const staffRole = allRoles.find(r => r.name === staffData.role);
-                setRole(staffRole || null);
-            }
+            setStaffMember(staffData || null);
+            setAllRoles(rolesData);
             setLoading(false);
         }
         loadData();
     }, [id]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!staffMember) return;
+        const { id, value } = e.target;
+        setStaffMember({...staffMember, [id]: value });
+    }
+    
+    const handleRoleChange = (roleName: Staff['role']) => {
+        if (staffMember) {
+            setStaffMember({
+                ...staffMember,
+                role: roleName,
+                attributes: {}, // Reset attributes when role changes
+            });
+        }
+    }
 
     const handleAttributeChange = (key: string, value: any) => {
         if (staffMember) {
@@ -127,10 +187,9 @@ export default function EditStaffPage() {
         );
     }
     
-    if (!staffMember || !role) {
+    if (!staffMember) {
         return <div>Staff member or role not found.</div>;
     }
-
 
     return (
         <div className="space-y-6">
@@ -153,16 +212,49 @@ export default function EditStaffPage() {
                 </div>
             </div>
 
-            {role.assignableAttributes && role.assignableAttributes.length > 0 && (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Core Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input id="name" value={staffMember.name} onChange={handleInputChange} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email</Label>
+                            <Input id="email" type="email" value={staffMember.email} onChange={handleInputChange} />
+                        </div>
+                    </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Phone</Label>
+                            <Input id="phone" type="tel" value={staffMember.phone || ''} onChange={handleInputChange} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="role">Role</Label>
+                             <Select value={staffMember.role} onValueChange={handleRoleChange}>
+                                <SelectTrigger id="role"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                                <SelectContent>
+                                    {allRoles.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {selectedRole?.assignableAttributes && selectedRole.assignableAttributes.length > 0 && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Manage Attributes</CardTitle>
                         <CardDescription>
-                            Set and update the custom attributes for this staff member based on their role.
+                            Set and update the custom attributes for the <span className="font-semibold">{selectedRole.name}</span> role.
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        {role.assignableAttributes.map(attr => (
+                        {selectedRole.assignableAttributes.map(attr => (
                             <div key={attr.key} className="space-y-2">
                                 <Label htmlFor={attr.key} className="font-semibold">{attr.label}</Label>
                                 <DynamicAttributeInput
@@ -176,13 +268,6 @@ export default function EditStaffPage() {
                 </Card>
             )}
 
-            {!role.assignableAttributes || role.assignableAttributes.length === 0 && (
-                 <Card>
-                    <CardContent className="p-8 text-center text-muted-foreground">
-                        This role has no custom attributes to manage.
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
 }

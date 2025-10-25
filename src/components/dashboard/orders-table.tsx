@@ -20,6 +20,80 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Order } from '@/lib/types';
 import { DataTable } from './data-table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
+import { getStaff } from '@/services/staff';
+import type { Staff } from '@/lib/types';
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
+
+function AssignOrderDialog({ order }: { order: Order }) {
+    const { toast } = useToast();
+    const [staff, setStaff] = React.useState<Staff[]>([]);
+    const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        async function loadStaff() {
+            const allStaff = await getStaff();
+            // Filter for roles that can be assigned orders, e.g., Delivery Rider
+            const assignableStaff = allStaff.filter(s => s.role === 'Delivery Rider');
+            setStaff(assignableStaff);
+        }
+        loadStaff();
+    }, []);
+
+    const handleAssign = () => {
+        if (!selectedStaffId) {
+            toast({ variant: 'destructive', title: 'Please select a staff member.' });
+            return;
+        }
+        // Simulate assignment
+        console.log(`Assigning order ${order.id} to staff ${selectedStaffId}`);
+        toast({ title: 'Order Assigned', description: `Order ${order.id} has been assigned.` });
+    }
+
+    return (
+         <Dialog>
+            <DialogTrigger asChild>
+                <div className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50">
+                    Assign
+                </div>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Assign Order #{order.id}</DialogTitle>
+                    <DialogDescription>Select a staff member to assign this order to.</DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                    <Select onValueChange={setSelectedStaffId}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Select a staff member..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {staff.map(s => (
+                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.role})</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <DialogClose asChild>
+                        <Button onClick={handleAssign}>Assign Order</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 
 const columns: ColumnDef<Order>[] = [
@@ -152,6 +226,7 @@ const columns: ColumnDef<Order>[] = [
                 <Link href={`/dashboard/orders/${row.original.id}`}>View Details</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
+            <AssignOrderDialog order={row.original} />
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -186,3 +261,4 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
     />
   );
 }
+
