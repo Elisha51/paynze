@@ -1,5 +1,7 @@
 
+
 import type { Role, Permissions } from '@/lib/types';
+import { subDays } from 'date-fns';
 
 const defaultPermissions: Permissions = {
   dashboard: { view: true },
@@ -40,7 +42,8 @@ let roles: Role[] = [
     },
     assignableAttributes: [
         { key: 'salesTarget', label: 'Monthly Sales Target', type: 'kpi' },
-        { key: 'assignedRegions', label: 'Sales Regions', type: 'tags' }
+        { key: 'assignedRegions', label: 'Sales Regions', type: 'tags' },
+        { key: 'isKeyAccountManager', label: 'Is Key Account Manager', type: 'boolean' }
     ]
   },
   {
@@ -53,7 +56,9 @@ let roles: Role[] = [
     },
     assignableAttributes: [
         { key: 'deliveryTarget', label: 'Daily Delivery Target', type: 'kpi' },
-        { key: 'deliveryZones', label: 'Delivery Zones', type: 'tags' }
+        { key: 'deliveryZones', label: 'Delivery Zones', type: 'tags' },
+        { key: 'vehicleId', label: 'Vehicle ID', type: 'string' },
+        { key: 'lastInspectionDate', label: 'Last Vehicle Inspection', type: 'date' }
     ]
   },
   {

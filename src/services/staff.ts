@@ -2,8 +2,9 @@
 
 
 
+
 import type { Staff, Order } from '@/lib/types';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { getOrders } from './orders';
 
 let staff: Staff[] = [];
@@ -40,7 +41,8 @@ async function initializeStaff() {
         currency: 'KES',
         attributes: {
           salesTarget: { goal: 500000, current: 125000 },
-          assignedRegions: ['Nairobi', 'Mombasa']
+          assignedRegions: ['Nairobi', 'Mombasa'],
+          isKeyAccountManager: true,
         }
       },
       { 
@@ -56,7 +58,9 @@ async function initializeStaff() {
         completionRate: 95.2,
         attributes: {
           deliveryTarget: { goal: 20, current: 18 },
-          deliveryZones: ['Kampala Central', 'Makindye']
+          deliveryZones: ['Kampala Central', 'Makindye'],
+          vehicleId: 'UBA 123X',
+          lastInspectionDate: subDays(new Date(), 15),
         }
       },
       { 

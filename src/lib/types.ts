@@ -2,6 +2,7 @@
 
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -293,10 +294,12 @@ export type Permissions = {
   settings: { view: boolean; edit: boolean };
 };
 
+export type AttributeType = 'kpi' | 'tags' | 'string' | 'number' | 'boolean' | 'date';
+
 export type AssignableAttribute = {
     key: string; // e.g. 'salesTarget', 'deliveryZones'
     label: string; // e.g. 'Sales Target', 'Delivery Zones'
-    type: 'kpi' | 'tags' | 'list';
+    type: AttributeType;
 }
 
 export type Role = {
@@ -326,7 +329,7 @@ export type Staff = {
   currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
   // Dynamic attributes based on role
   attributes?: {
-    [key: string]: PerformanceTarget | string[];
+    [key: string]: PerformanceTarget | string[] | string | number | boolean | Date;
   }
 };
 

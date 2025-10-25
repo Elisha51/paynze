@@ -1,11 +1,12 @@
 
+
 'use client';
 
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
-import type { Role, Permissions, CrudPermissions, AssignableAttribute, StaffRoleName } from '@/lib/types';
+import type { Role, Permissions, CrudPermissions, AssignableAttribute, StaffRoleName, AttributeType } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -132,7 +133,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
     setRoles(prevRoles => 
         prevRoles.map(role => {
             if (role.name === roleName) {
-                const newAttributes = [...(role.assignableAttributes || []), { key: '', label: '', type: 'tags' }];
+                const newAttributes = [...(role.assignableAttributes || []), { key: '', label: '', type: 'string' }];
                 return { ...role, assignableAttributes: newAttributes };
             }
             return role;
@@ -243,6 +244,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                     </div>
                                     <Separator />
                                     <h4 className="font-bold text-base">Custom Attributes</h4>
+                                    <p className="text-sm text-muted-foreground">Define custom data fields for staff members with this role. These fields will appear on their profile and can be used for tracking, assignments, or information.</p>
                                     <div className="space-y-4">
                                         {(role.assignableAttributes || []).map((attr, index) => (
                                             <Card key={index} className="p-4">
@@ -264,6 +266,10 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                                             <SelectContent>
                                                                 <SelectItem value="kpi">KPI / Target</SelectItem>
                                                                 <SelectItem value="tags">Tags / List</SelectItem>
+                                                                <SelectItem value="string">Text</SelectItem>
+                                                                <SelectItem value="number">Number</SelectItem>
+                                                                <SelectItem value="date">Date</SelectItem>
+                                                                <SelectItem value="boolean">Yes/No (Boolean)</SelectItem>
                                                             </SelectContent>
                                                         </Select>
                                                     </div>
