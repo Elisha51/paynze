@@ -22,13 +22,9 @@ import {
 import type { Product, InventoryItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, ShoppingBasket, PackageCheck, Ban, Truck } from 'lucide-react';
-import { Calendar } from '../ui/calendar';
+import { ShoppingBasket, PackageCheck, Ban, Truck, Calendar as CalendarIcon } from 'lucide-react';
 
 function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     const variant = {
@@ -55,14 +51,14 @@ const adjustmentTypeColors: { [key in Product['variants'][0]['stockAdjustments']
     'Damage': 'text-yellow-600',
 };
 
+type ProductDetailsInventoryProps = {
+    product: Product;
+    dateRange?: DateRange;
+};
 
-export function ProductDetailsInventory({ product }: { product: Product }) {
+export function ProductDetailsInventory({ product, dateRange: date }: ProductDetailsInventoryProps) {
     const isSerialized = product.inventoryTracking === 'Track with Serial Numbers';
-    const [date, setDate] = useState<DateRange | undefined>({
-        from: addDays(new Date(), -29),
-        to: new Date(),
-    });
-
+    
     if (product.inventoryTracking === "Don't Track") {
         return (
             <Card className="mt-4">
@@ -87,6 +83,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
         const filteredStockAdjustments = (product.variants || []).flatMap(v => 
             (v.stockAdjustments || []).map(adj => ({...adj, variant: v}))
         ).filter(adj => {
+            if (!date) return true; // Show all if no date range
             const adjDate = new Date(adj.date);
             return (!date?.from || adjDate >= date.from) && (!date?.to || adjDate <= date.to);
         }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -95,6 +92,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
             (v.inventoryItems || []).map(item => ({...item, variant: v}))
         ).filter(item => {
             if (item.status !== 'Sold' || !item.soldDate) return true; // always show non-sold items
+            if (!date) return true; // show all if no date range
             const soldDate = new Date(item.soldDate);
             return (!date?.from || soldDate >= date.from) && (!date?.to || soldDate <= date.to);
         });
@@ -143,78 +141,8 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
 
     }, [product, date]);
     
-    const handlePresetChange = (value: string) => {
-        const now = new Date();
-        switch (value) {
-          case 'today':
-            setDate({ from: now, to: now });
-            break;
-          case 'last-7':
-            setDate({ from: addDays(now, -6), to: now });
-            break;
-          case 'last-30':
-            setDate({ from: addDays(now, -29), to: now });
-            break;
-          case 'ytd':
-            setDate({ from: new Date(now.getFullYear(), 0, 1), to: now });
-            break;
-          default:
-            setDate(undefined);
-        }
-    };
-
-
     return (
-        <div className="mt-4 space-y-6">
-             <div className="flex justify-end items-center gap-2">
-                <Select onValueChange={handlePresetChange} defaultValue="last-30">
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select a preset" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="last-7">Last 7 days</SelectItem>
-                        <SelectItem value="last-30">Last 30 days</SelectItem>
-                        <SelectItem value="ytd">Year to date</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        id="date"
-                        variant={"outline"}
-                        className={cn(
-                        "w-[300px] justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date?.from ? (
-                        date.to ? (
-                            <>
-                            {format(date.from, "LLL dd, y")} -{" "}
-                            {format(date.to, "LLL dd, y")}
-                            </>
-                        ) : (
-                            format(date.from, "LLL dd, y")
-                        )
-                        ) : (
-                        <span>Pick a date</span>
-                        )}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={setDate}
-                        numberOfMonths={2}
-                    />
-                    </PopoverContent>
-                </Popover>
-            </div>
+        <div className="space-y-6">
              <Card>
                 <CardHeader className="flex flex-row items-start justify-between">
                     <div>
