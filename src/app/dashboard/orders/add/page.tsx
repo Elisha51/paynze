@@ -205,28 +205,30 @@ export default function AddOrderPage() {
                 <CardContent className="space-y-4">
                     <div className='space-y-2'>
                         <Label htmlFor="paymentMethod">Payment Method</Label>
-                        <Select defaultValue="cod">
+                        <Select defaultValue="Cash on Delivery">
                             <SelectTrigger id="paymentMethod">
                                 <SelectValue placeholder="Select method" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="cod">Cash on Delivery</SelectItem>
-                                <SelectItem value="mobile_money">Mobile Money</SelectItem>
+                                <SelectItem value="Cash on Delivery">Cash on Delivery</SelectItem>
+                                <SelectItem value="Mobile Money">Mobile Money</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className='space-y-2'>
                         <Label htmlFor="orderStatus">Order Status</Label>
-                        <Select defaultValue="pending">
+                        <Select defaultValue="Pending">
                             <SelectTrigger id="orderStatus">
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="pending">Pending</SelectItem>
-                                <SelectItem value="paid">Paid</SelectItem>
-                                <SelectItem value="shipped">Shipped</SelectItem>
-                                <SelectItem value="delivered">Delivered</SelectItem>
-                                <SelectItem value="cancelled">Cancelled</SelectItem>
+                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Paid">Paid</SelectItem>
+                                <SelectItem value="Ready for Pickup">Ready for Pickup</SelectItem>
+                                <SelectItem value="Shipped">Shipped</SelectItem>
+                                <SelectItem value="Delivered">Delivered</SelectItem>
+                                <SelectItem value="Picked Up">Picked Up</SelectItem>
+                                <SelectItem value="Cancelled">Cancelled</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
