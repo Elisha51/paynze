@@ -23,7 +23,6 @@ import {
   LogOut,
   ChevronLeft,
   FileText,
-  Building,
   Truck,
 } from 'lucide-react';
 import { Button } from '../ui/button';
@@ -39,8 +38,7 @@ const menuItems = [
 ];
 
 const premiumMenuItems = [
-  { href: '/dashboard/suppliers', label: 'Suppliers', icon: Building, plan: 'Premium' },
-  { href: '/dashboard/purchase-orders', label: 'Purchase Orders', icon: Truck, plan: 'Premium' },
+  { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, plan: 'Premium' },
 ];
 
 const bottomMenuItems = [
