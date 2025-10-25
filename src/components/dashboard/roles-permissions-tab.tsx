@@ -24,6 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Badge } from '../ui/badge';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -173,13 +174,20 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                   </DialogTrigger>
               </CardHeader>
               <CardContent>
-                <Accordion type="single" collapsible className="w-full" defaultValue={roles[0]?.name}>
+                <Accordion type="multiple" className="w-full">
                     {roles.map(role => (
                         <AccordionItem value={role.name} key={role.name}>
                             <AccordionTrigger>
-                                <div className="text-left">
-                                    <h3 className="font-semibold text-lg">{role.name}</h3>
-                                    <p className="text-sm text-muted-foreground">{role.description}</p>
+                                <div className="flex-1 flex justify-between items-center pr-4">
+                                    <div className="text-left">
+                                        <h3 className="font-semibold text-lg">{role.name}</h3>
+                                        <p className="text-sm text-muted-foreground">{role.description}</p>
+                                    </div>
+                                    {role.assignableAttributes && role.assignableAttributes.length > 0 && (
+                                        <Badge variant="secondary">
+                                            {role.assignableAttributes.length} Attribute{role.assignableAttributes.length > 1 ? 's' : ''}
+                                        </Badge>
+                                    )}
                                 </div>
                             </AccordionTrigger>
                              <AccordionContent>
@@ -305,3 +313,5 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
     </>
   );
 }
+
+    
