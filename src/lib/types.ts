@@ -1,5 +1,4 @@
 
-
 export type ProductImage = {
   id: string;
   url: string;
@@ -160,14 +159,35 @@ export type SmsTemplate = {
   message: string; // Can contain variables like {{orderId}}
 };
 
+export type OrderItem = {
+    sku: string;
+    name: string;
+    quantity: number;
+    price: number;
+    imageUrl?: string;
+    category?: string;
+}
+
 export type Order = {
     id: string;
-    customer: string;
-    email: string;
+    customerId: string;
+    customerName: string;
+    customerEmail: string;
     date: string;
     status: 'Pending' | 'Paid' | 'Shipped' | 'Delivered' | 'Cancelled';
-    total: string;
+    items: OrderItem[];
+    total: number;
+    currency: 'KES' | 'UGX' | 'TZS' | 'USD';
+    shippingAddress: {
+        street: string;
+        city: string;
+        postalCode: string;
+        country: string;
+    };
     paymentMethod: 'Mobile Money' | 'Cash on Delivery';
+    paymentStatus: 'Paid' | 'Unpaid';
+    shippingCost?: number;
+    taxes?: number;
 };
 
 export type Customer = {
@@ -176,15 +196,11 @@ export type Customer = {
     email: string;
     phone: string;
     customerGroup: 'default' | 'Wholesaler' | 'Retailer';
-    lastOrder: string;
-    totalSpend: string;
-    purchaseHistory: {
-        productId: string;
-        quantity: number;
-        price: number;
-        category: string;
-        timestamp: string;
-    }[];
+    lastOrderDate: string;
+    totalSpend: number;
+    currency: 'KES' | 'UGX' | 'TZS' | 'USD';
+    createdAt?: string;
+    orders?: Order[];
 };
 
 export type RecentSale = {

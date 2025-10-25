@@ -18,6 +18,7 @@ import {
 import type { Customer } from '@/lib/types';
 import { getCustomers } from '@/services/customers';
 import { DataTable } from './data-table';
+import Link from 'next/link';
 
 
 const columns: ColumnDef<Customer>[] = [
@@ -56,6 +57,14 @@ const columns: ColumnDef<Customer>[] = [
           </Button>
         );
       },
+    cell: ({ row }) => {
+        const customer = row.original;
+        return (
+             <Link href={`/dashboard/customers/${customer.id}`} className="font-medium hover:underline">
+                {customer.name}
+            </Link>
+        )
+    }
   },
   {
     accessorKey: 'email',
@@ -76,7 +85,7 @@ const columns: ColumnDef<Customer>[] = [
     cell: ({ row }) => <Badge variant="outline">{row.getValue('customerGroup')}</Badge>,
   },
   {
-    accessorKey: 'lastOrder',
+    accessorKey: 'lastOrderDate',
     header: ({ column }) => {
         return (
           <Button
@@ -104,12 +113,17 @@ const columns: ColumnDef<Customer>[] = [
           </div>
         );
       },
-    cell: ({ row }) => <div className="text-right font-medium">{row.getValue('totalSpend')}</div>,
+    cell: ({ row }) => {
+      const customer = row.original;
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: customer.currency }).format(customer.totalSpend);
+      return <div className="text-right font-medium">{formatted}</div>
+    },
   },
   {
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
+      const customer = row.original;
       return (
         <div className="text-right">
         <DropdownMenu>
@@ -121,6 +135,12 @@ const columns: ColumnDef<Customer>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuItem asChild>
+                <Link href={`/dashboard/customers/${customer.id}`}>
+                    <Info className="mr-2 h-4 w-4" />
+                    View Details
+                </Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Send via WhatsApp
@@ -128,10 +148,6 @@ const columns: ColumnDef<Customer>[] = [
             <DropdownMenuItem>
                 <Phone className="mr-2 h-4 w-4" />
                 Send via SMS
-            </DropdownMenuItem>
-            <DropdownMenuItem>
-                <Info className="mr-2 h-4 w-4" />
-                View Details
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -146,11 +162,9 @@ type CustomersTableProps = {
     column: string;
     value: string;
   };
-  cardTitle: string;
-  cardDescription: string;
 };
 
-export function CustomersTable({ filter, cardTitle, cardDescription }: CustomersTableProps) {
+export function CustomersTable({ filter }: CustomersTableProps) {
   const [data, setData] = React.useState<Customer[]>([]);
 
   React.useEffect(() => {

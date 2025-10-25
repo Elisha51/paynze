@@ -5,6 +5,7 @@ import {
   ColumnDef,
 } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -57,10 +58,14 @@ const columns: ColumnDef<Order>[] = [
           </Button>
         );
       },
-    cell: ({ row }) => <div className="font-medium">{row.getValue('id')}</div>,
+    cell: ({ row }) => (
+        <Link href={`/dashboard/orders/${row.original.id}`} className="font-medium hover:underline">
+            {row.getValue('id')}
+        </Link>
+    ),
   },
   {
-    accessorKey: 'customer',
+    accessorKey: 'customerName',
     header: ({ column }) => {
         return (
           <Button
@@ -72,10 +77,14 @@ const columns: ColumnDef<Order>[] = [
           </Button>
         );
       },
-  },
-  {
-    accessorKey: 'email',
-    header: 'Email',
+    cell: ({ row }) => {
+        const order = row.original;
+        return (
+             <Link href={`/dashboard/customers/${order.customerId}`} className="font-medium hover:underline">
+                {order.customerName}
+            </Link>
+        )
+    }
   },
   {
     accessorKey: 'date',
@@ -120,7 +129,9 @@ const columns: ColumnDef<Order>[] = [
         );
       },
     cell: ({ row }) => {
-      return <div className="text-right font-medium">{row.getValue('total')}</div>;
+      const order = row.original;
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total);
+      return <div className="text-right font-medium">{formatted}</div>;
     },
   },
   {
@@ -137,7 +148,9 @@ const columns: ColumnDef<Order>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>View Details</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href={`/dashboard/orders/${row.original.id}`}>View Details</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -151,11 +164,9 @@ type OrdersTableProps = {
     column: string;
     value: string;
   };
-  cardTitle: string;
-  cardDescription: string;
 };
 
-export function OrdersTable({ filter, cardTitle, cardDescription }: OrdersTableProps) {
+export function OrdersTable({ filter }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>([]);
 
   React.useEffect(() => {

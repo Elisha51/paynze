@@ -1,5 +1,9 @@
-import { orders } from '@/lib/data';
+
+import { orders as mockOrders } from '@/lib/data';
 import type { Order } from '@/lib/types';
+
+let orders: Order[] = [...mockOrders];
+
 
 // In a real app, this would fetch from an API.
 // const apiBaseUrl = config.apiBaseUrl;
@@ -10,5 +14,10 @@ import type { Order } from '@/lib/types';
 export async function getOrders(): Promise<Order[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  return orders;
+  return [...orders];
+}
+
+export async function getOrderById(orderId: string): Promise<Order | undefined> {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return orders.find(order => order.id === orderId);
 }

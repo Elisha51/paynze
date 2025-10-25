@@ -169,19 +169,42 @@ export const products: Product[] = [
 
 
 export const orders: Order[] = [
-    { id: 'ORD-001', customer: 'Olivia Martin', email: 'olivia.martin@email.com', date: '2023-02-15', status: 'Delivered', total: 'KES 75,000', paymentMethod: 'Mobile Money' },
-    { id: 'ORD-002', customer: 'Jackson Lee', email: 'jackson.lee@email.com', date: '2023-02-14', status: 'Delivered', total: 'KES 35,000', paymentMethod: 'Cash on Delivery' },
-    { id: 'ORD-003', customer: 'Isabella Nguyen', email: 'isabella.nguyen@email.com', date: '2023-02-13', status: 'Shipped', total: 'KES 25,000', paymentMethod: 'Mobile Money' },
-    { id: 'ORD-004', customer: 'William Kim', email: 'will@email.com', date: '2023-02-12', status: 'Paid', total: 'KES 150,000', paymentMethod: 'Mobile Money' },
-    { id: 'ORD-005', customer: 'Sofia Davis', email: 'sofia.davis@email.com', date: '2023-02-11', status: 'Pending', total: 'KES 18,000', paymentMethod: 'Cash on Delivery' },
+    { 
+        id: 'ORD-001', 
+        customerId: 'cust-02',
+        customerName: 'Olivia Smith',
+        customerEmail: 'olivia@example.com',
+        date: '2023-02-10', 
+        status: 'Delivered', 
+        items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000 }],
+        total: 75000, 
+        currency: 'UGX',
+        shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+        paymentMethod: 'Mobile Money',
+        paymentStatus: 'Paid',
+    },
+    { 
+        id: 'ORD-002', 
+        customerId: 'cust-01',
+        customerName: 'Liam Johnson', 
+        customerEmail: 'liam@example.com', 
+        date: '2023-02-14', 
+        status: 'Delivered', 
+        items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 1, price: 35000, category: 'Fabrics' }],
+        total: 35000,
+        currency: 'UGX',
+        shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+        paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'Unpaid'
+    },
 ];
 
 export const customers: Customer[] = [
-    { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'wholesale', lastOrder: '2023-01-23', totalSpend: 'KES 250,000', purchaseHistory: [{productId: 'prod-01', quantity: 5, price: 32000, category: 'Fabrics', timestamp: '2023-01-23T10:00:00Z'}] },
-    { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', customerGroup: 'retailer', lastOrder: '2023-02-10', totalSpend: 'KES 75,000', purchaseHistory: [{productId: 'prod-02', quantity: 1, price: 75000, category: 'Footwear', timestamp: '2023-02-10T14:30:00Z'}] },
-    { id: 'cust-03', name: 'Noah Williams', email: 'noah@example.com', phone: '+254734567890', customerGroup: 'default', lastOrder: '2023-03-05', totalSpend: 'KES 15,000', purchaseHistory: [{productId: 'prod-04', quantity: 1, price: 15000, category: 'Groceries', timestamp: '2023-03-05T09:00:00Z'}]},
-    { id: 'cust-04', name: 'Emma Brown', email: 'emma@example.com', phone: '+254745678901', customerGroup: 'retailer', lastOrder: '2023-03-15', totalSpend: 'KES 43,000', purchaseHistory: [{productId: 'prod-03', quantity: 1, price: 25000, category: 'Homeware', timestamp: '2023-03-15T11:00:00Z'}, {productId: 'prod-05', quantity: 1, price: 18000, category: 'Accessories', timestamp: '2023-03-15T11:00:00Z'}]},
-    { id: 'cust-05', name: 'James Jones', email: 'james@example.com', phone: '+254756789012', customerGroup: 'default', lastOrder: '2023-03-20', totalSpend: 'KES 36,000', purchaseHistory: [{productId: 'prod-05', quantity: 2, price: 18000, category: 'Accessories', timestamp: '2023-03-20T16:00:00Z'}]},
+    { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'Wholesaler', lastOrderDate: '2023-01-23', totalSpend: 250000, currency: 'KES', createdAt: '2022-11-15' },
+    { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', customerGroup: 'Retailer', lastOrderDate: '2023-02-10', totalSpend: 75000, currency: 'UGX', createdAt: '2023-01-20' },
+    { id: 'cust-03', name: 'Noah Williams', email: 'noah@example.com', phone: '+254734567890', customerGroup: 'default', lastOrderDate: '2023-03-05', totalSpend: 15000, currency: 'KES', createdAt: '2023-03-01' },
+    { id: 'cust-04', name: 'Emma Brown', email: 'emma@example.com', phone: '+254745678901', customerGroup: 'Retailer', lastOrderDate: '2023-03-15', totalSpend: 43000, currency: 'UGX', createdAt: '2023-03-10' },
+    { id: 'cust-05', name: 'James Jones', email: 'james@example.com', phone: '+254756789012', customerGroup: 'default', lastOrderDate: '2023-03-20', totalSpend: 36000, currency: 'UGX', createdAt: '2023-03-18' },
 ];
 
 
