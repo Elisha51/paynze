@@ -40,6 +40,11 @@ const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'o
   Cancelled: 'destructive',
 };
 
+const paymentStatusVariantMap: { [key in Order['paymentStatus']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
+    'Paid': 'default',
+    'Unpaid': 'destructive',
+};
+
 export default function ViewOrderPage() {
   const params = useParams();
   const id = params.id as string;
@@ -359,7 +364,7 @@ export default function ViewOrderPage() {
                             <div className="flex items-center gap-2">
                                 <Badge variant="outline">{order.paymentMethod}</Badge>
                                 <span>-</span>
-                                <Badge variant={order.paymentStatus === 'Paid' ? 'secondary' : 'destructive'}>{order.paymentStatus}</Badge>
+                                <Badge variant={paymentStatusVariantMap[order.paymentStatus]}>{order.paymentStatus}</Badge>
                             </div>
                         </div>
                     </CardContent>
