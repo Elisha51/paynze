@@ -5,9 +5,6 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
-import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,10 +12,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DataTable } from '@/components/dashboard/data-table';
 import type { Staff, Role } from '@/lib/types';
 import { getStaff, addStaff as serviceAddStaff } from '@/services/staff';
-import Link from 'next/link';
 import { RolesPermissionsTab } from '@/components/dashboard/roles-permissions-tab';
 import {
   Dialog,
@@ -41,57 +36,9 @@ import {
 } from '@/components/ui/select';
 import { getRoles } from '@/services/roles';
 import { useToast } from '@/hooks/use-toast';
-import { StaffWidget } from '@/components/dashboard/staff-widget';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-
-const getColumns: (openEditDialog: (staff: Staff) => void) => ColumnDef<Staff>[] = (openEditDialog) => [
-  { accessorKey: 'name', header: 'Name',
-    cell: ({row}) => {
-        const staffMember = row.original;
-        return (
-            <Link href={`/dashboard/staff/${staffMember.id}`} className="font-medium hover:underline">
-                {staffMember.name}
-            </Link>
-        )
-    }
-  },
-  { accessorKey: 'email', header: 'Email' },
-  { 
-    accessorKey: 'role', 
-    header: 'Role',
-    cell: ({ row }) => <Badge variant="outline">{row.getValue('role')}</Badge>
-  },
-  {
-    accessorKey: 'lastLogin',
-    header: 'Last Login',
-  },
-  { 
-    accessorKey: 'status', 
-    header: 'Status',
-    cell: ({ row }) => <Badge variant={row.getValue('status') === 'Active' ? 'default' : 'secondary'}>{row.getValue('status')}</Badge>
-  },
-  {
-    id: 'actions',
-    cell: ({ row }) => {
-      const staffMember = row.original;
-      return (
-        <div className="text-right">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem asChild><Link href={`/dashboard/staff/${staffMember.id}`}>View Profile</Link></DropdownMenuItem>
-              <DropdownMenuItem onClick={() => openEditDialog(staffMember)}>Edit Details</DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">Deactivate</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
-    }
-  },
-];
+import { StaffCard } from '@/components/dashboard/staff-card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const emptyStaff: Omit<Staff, 'id'> = {
   name: '',
@@ -105,7 +52,6 @@ export default function StaffPage() {
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
-  const [editingStaff, setEditingStaff] = React.useState<Staff | null>(null);
   const [newStaffMember, setNewStaffMember] = React.useState(emptyStaff);
   const [addMode, setAddMode] = React.useState<'invite' | 'manual'>('invite');
   const { toast } = useToast();
@@ -154,14 +100,6 @@ export default function StaffPage() {
       { value: 'permissions', label: 'Roles & Permissions' },
       { value: 'reports', label: 'Reports' },
   ];
-
-  const openEditDialog = (staffMember: Staff) => {
-    // This would open another dialog to edit, similar to the add one.
-    // For brevity, we're not implementing the full edit dialog here.
-    toast({ title: "Edit functionality coming soon!" });
-  }
-
-  const columns = React.useMemo(() => getColumns(openEditDialog), []);
 
   const cta = (
      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -231,10 +169,27 @@ export default function StaffPage() {
   return (
     <DashboardPageLayout title="Staff Management" tabs={mainTabs} cta={cta}>
         <DashboardPageLayout.TabContent value="team">
-            <div className="space-y-6">
-                <StaffWidget staff={staff} isLoading={isLoading} />
-                <DataTable columns={columns} data={staff} />
-            </div>
+            {isLoading ? (
+                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {[...Array(8)].map((_, i) => (
+                        <Card key={i}>
+                            <CardContent className="p-4 flex items-center gap-4">
+                                <Skeleton className="h-12 w-12 rounded-full" />
+                                <div className="space-y-2">
+                                    <Skeleton className="h-4 w-24" />
+                                    <Skeleton className="h-3 w-16" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))}
+                 </div>
+            ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {staff.map(member => (
+                        <StaffCard key={member.id} member={member} />
+                    ))}
+                </div>
+            )}
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="permissions">
             <RolesPermissionsTab roles={roles} setRoles={setRoles} />

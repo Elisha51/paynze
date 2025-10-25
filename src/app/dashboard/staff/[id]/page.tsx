@@ -28,6 +28,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+
 
 const orderColumns: ColumnDef<Order>[] = [
     {
@@ -65,6 +67,15 @@ export default function ViewStaffPage() {
   const [staffMember, setStaffMember] = useState<Staff | null>(null);
   const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const getInitials = (name: string) => {
+    if (!name) return '??';
+    const names = name.split(' ');
+    if (names.length > 1) {
+      return names[0][0] + names[1][0];
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -86,7 +97,11 @@ export default function ViewStaffPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-9 w-9" />
-          <Skeleton className="h-10 w-48" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-16 w-16 rounded-full" />
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-32" />
+          </div>
           <div className="ml-auto flex items-center gap-2">
             <Skeleton className="h-10 w-20" />
             <Skeleton className="h-10 w-10" />
@@ -128,6 +143,10 @@ export default function ViewStaffPage() {
             <span className="sr-only">Back to Staff</span>
           </Link>
         </Button>
+         <Avatar className="h-16 w-16">
+            <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
+            <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
+        </Avatar>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">
             {staffMember.name}
@@ -227,4 +246,3 @@ export default function ViewStaffPage() {
     </div>
   );
 }
-

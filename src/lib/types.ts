@@ -309,6 +309,7 @@ export type Staff = {
   id: string;
   name: string;
   email: string;
+  avatarUrl?: string;
   role: StaffRole;
   status: 'Active' | 'Inactive';
   lastLogin?: string;
