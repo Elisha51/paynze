@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, User, PackageCheck } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, User, Truck, Store } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -225,7 +225,7 @@ const columns: ColumnDef<Order>[] = [
                     <AvatarFallback>{getInitials(staffName)}</AvatarFallback>
                 </Avatar>
                 <span className="font-medium">{staffName}</span>
-                {isPickup && <PackageCheck className="h-4 w-4 text-muted-foreground" title="Pickup" />}
+                {isPickup ? <Store className="h-4 w-4 text-muted-foreground" title="Pickup" /> : <Truck className="h-4 w-4 text-muted-foreground" title="Delivery" />}
             </Link>
         )
     }
@@ -296,20 +296,23 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
     if (filter) {
       let filteredData = orders;
 
+      // Apply secondary filter first if it exists
       if (filter.secondaryColumn && filter.secondaryValue) {
           filteredData = filteredData.filter(item => (item as any)[filter.secondaryColumn!] === filter.secondaryValue);
       }
-
+      
+      // Apply primary filter
       if (filter.value) {
         if (Array.isArray(filter.value)) {
             filteredData = filteredData.filter(item => (filter.value as string[]).includes((item as any)[filter.column]));
         } else {
             filteredData = filteredData.filter(item => (item as any)[filter.column] === filter.value);
         }
-      } else if (filter.exists === true) {
-        filteredData = filteredData.filter(item => !!(item as any)[filter.column]);
-      } else if (filter.exists === false) {
-        filteredData = filteredData.filter(item => !(item as any)[filter.column]);
+      } else if (typeof filter.exists !== 'undefined') {
+        filteredData = filteredData.filter(item => {
+          const hasProperty = Object.prototype.hasOwnProperty.call(item, filter.column) && (item as any)[filter.column] !== null && (item as any)[filter.column] !== undefined;
+          return filter.exists ? hasProperty : !hasProperty;
+        });
       }
       setData(filteredData);
     } else {

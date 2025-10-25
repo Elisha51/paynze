@@ -26,15 +26,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter
 } from "@/components/ui/table"
 import { getCustomers } from '@/services/customers';
 import { getProducts } from '@/services/products';
-import type { Customer, Product } from '@/lib/types';
+import type { Customer, Product, OrderItem } from '@/lib/types';
 import { useEffect, useState } from 'react';
+import { Separator } from '@/components/ui/separator';
+
+type NewOrderItem = Partial<OrderItem> & { id: number };
 
 export default function AddOrderPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [items, setItems] = useState<NewOrderItem[]>([{ id: Date.now(), quantity: 1 }]);
+  const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -47,6 +53,40 @@ export default function AddOrderPage() {
     }
     fetchData();
   }, []);
+  
+  const handleItemChange = (itemId: number, field: keyof OrderItem, value: any) => {
+    setItems(prevItems => prevItems.map(item => {
+        if (item.id === itemId) {
+            const updatedItem = { ...item, [field]: value };
+            if (field === 'sku') {
+                const product = products.find(p => p.sku === value);
+                if (product) {
+                    updatedItem.name = product.name;
+                    updatedItem.price = product.retailPrice;
+                }
+            }
+            return updatedItem;
+        }
+        return item;
+    }));
+  };
+
+  const addItem = () => {
+    setItems(prev => [...prev, { id: Date.now(), quantity: 1 }]);
+  };
+
+  const removeItem = (itemId: number) => {
+    setItems(prev => prev.filter(item => item.id !== itemId));
+  };
+  
+  const subtotal = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
+  const tax = subtotal * 0.18; // Example tax rate
+  const total = subtotal + tax;
+
+  const formatCurrency = (amount: number) => {
+    const currency = products.find(p => p.sku === items[0]?.sku)?.currency || 'UGX';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  }
 
   return (
     <div className="space-y-6">
@@ -87,30 +127,53 @@ export default function AddOrderPage() {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        <TableRow>
-                            <TableCell>
-                                <Select>
-                                    <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
-                                    <SelectContent>
-                                        {products.map(p => <SelectItem key={p.sku} value={p.sku || ''}>{p.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </TableCell>
-                            <TableCell>
-                                <Input type="number" defaultValue="1" className="w-20" />
-                            </TableCell>
-                             <TableCell>KES 35,000</TableCell>
-                            <TableCell>KES 35,000</TableCell>
-                            <TableCell className="text-right">
-                                <Button variant="ghost" size="icon"><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                            </TableCell>
-                        </TableRow>
+                        {items.map(item => (
+                            <TableRow key={item.id}>
+                                <TableCell>
+                                    <Select onValueChange={(v) => handleItemChange(item.id, 'sku', v)} value={item.sku}>
+                                        <SelectTrigger><SelectValue placeholder="Select a product" /></SelectTrigger>
+                                        <SelectContent>
+                                            {products.map(p => <SelectItem key={p.sku} value={p.sku || ''}>{p.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </TableCell>
+                                <TableCell>
+                                    <Input 
+                                      type="number" 
+                                      value={item.quantity} 
+                                      onChange={(e) => handleItemChange(item.id, 'quantity', Number(e.target.value))} 
+                                      className="w-20" 
+                                      min="1"
+                                    />
+                                </TableCell>
+                                <TableCell>{item.price ? formatCurrency(item.price) : '-'}</TableCell>
+                                <TableCell>{item.price && item.quantity ? formatCurrency(item.price * item.quantity) : '-'}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button variant="ghost" size="icon" onClick={() => removeItem(item.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                                </TableCell>
+                            </TableRow>
+                        ))}
                     </TableBody>
                 </Table>
-                <Button variant="outline" className="mt-4">
+                <Button variant="outline" className="mt-4" onClick={addItem}>
                     <PlusCircle className="mr-2 h-4 w-4"/>
                     Add Item
                 </Button>
+                <Separator className="my-4" />
+                <div className="w-full sm:w-1/2 ml-auto space-y-2">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>{formatCurrency(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Taxes (18%)</span>
+                        <span>{formatCurrency(tax)}</span>
+                    </div>
+                    <div className="flex justify-between font-bold text-lg">
+                        <span>Total</span>
+                        <span>{formatCurrency(total)}</span>
+                    </div>
+                </div>
             </CardContent>
           </Card>
 
@@ -124,7 +187,7 @@ export default function AddOrderPage() {
                 <CardContent className="space-y-4">
                     <div className='space-y-2'>
                         <Label htmlFor="customer">Select Customer</Label>
-                        <Select>
+                        <Select onValueChange={setSelectedCustomer} value={selectedCustomer || undefined}>
                             <SelectTrigger id="customer">
                                 <SelectValue placeholder="Select a customer" />
                             </SelectTrigger>

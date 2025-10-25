@@ -25,8 +25,8 @@ const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: bool
         { value: 'all', label: 'All' },
         { value: 'pending', label: 'Awaiting Payment' },
         { value: 'ready-for-pickup', label: 'Ready for Pickup' },
-        { value: 'unassigned', label: 'Unassigned' },
-        { value: 'assigned', label: 'Assigned' },
+        { value: 'unassigned', label: 'Unassigned Delivery' },
+        { value: 'assigned', label: 'Assigned for Delivery' },
         { value: 'delivered', label: 'Delivered' },
         { value: 'picked-up', label: 'Picked Up' },
         { value: 'cancelled', label: 'Cancelled' },
@@ -64,7 +64,7 @@ const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: bool
                 <OrdersTable
                     orders={orders}
                     isLoading={isLoading}
-                    filter={{ column: 'assignedStaffId', exists: true }}
+                    filter={{ column: 'assignedStaffId', exists: true, secondaryColumn: 'fulfillmentMethod', secondaryValue: 'Delivery' }}
                 />
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="delivered">

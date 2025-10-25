@@ -27,6 +27,16 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
+const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
+  Pending: 'secondary',
+  Paid: 'secondary',
+  'Ready for Pickup': 'outline',
+  Shipped: 'outline',
+  Delivered: 'default',
+  'Picked Up': 'default',
+  Cancelled: 'destructive',
+};
+
 export default function ViewOrderPage() {
   const params = useParams();
   const id = params.id as string;
@@ -92,15 +102,7 @@ export default function ViewOrderPage() {
   const taxes = order.taxes || 0;
   const total = subtotal + shipping + taxes;
 
-  const statusVariant = {
-      Pending: 'secondary',
-      Paid: 'default',
-      'Ready for Pickup': 'outline',
-      Shipped: 'outline',
-      Delivered: 'default',
-      'Picked Up': 'default',
-      Cancelled: 'destructive',
-  }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
+  const statusVariant = statusVariantMap[order.status] || 'secondary';
 
   return (
     <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -212,7 +214,7 @@ export default function ViewOrderPage() {
                         {order.fulfilledByStaffName ? (
                             <div className="flex items-center justify-between">
                                 <span className="text-muted-foreground flex items-center gap-2">
-                                    <PackageCheck className="h-4 w-4" />
+                                    {order.fulfillmentMethod === 'Pickup' ? <Store className="h-4 w-4" /> : <Truck className="h-4 w-4" />}
                                     {order.status === 'Picked Up' ? 'Picked up by Customer, handled by' : 'Delivered by'}
                                 </span>
                                 <Link href={`/dashboard/staff/${order.fulfilledByStaffId}`} className="font-semibold hover:underline">

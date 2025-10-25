@@ -3,9 +3,6 @@
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearch } from '@/context/search-context';
@@ -45,7 +42,7 @@ const FilterTabs = ({ filterTabs, defaultValue, children }: { filterTabs: Tab[],
         <Card>
             <Tabs defaultValue={defaultValue}>
                 <CardHeader>
-                    <TabsList className="flex flex-wrap h-auto">
+                    <TabsList className="flex-wrap h-auto justify-start">
                         {filterTabs.map(tab => (
                             <TabsTrigger key={tab.value} value={tab.value} className={tab.className}>
                                 {tab.label}
