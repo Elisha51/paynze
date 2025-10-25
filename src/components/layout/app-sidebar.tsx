@@ -26,7 +26,6 @@ import {
   FileText,
   Truck,
   Landmark,
-  ClipboardList,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -45,10 +44,6 @@ const menuItems = [
 const premiumMenuItems = [
     { href: '/dashboard/finances', label: 'Finances', icon: Landmark, plan: 'Premium' },
     { href: '/dashboard/staff', label: 'Staff', icon: Users, plan: 'Premium' },
-];
-
-const selfServiceMenuItems = [
-    { href: '/dashboard/my-tasks', label: 'My Tasks', icon: ClipboardList }
 ];
 
 const bottomMenuItems = [
@@ -109,24 +104,6 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
                 </Link>
                 </SidebarMenuItem>
              ))}
-             <SidebarMenuItem className="mt-4 border-t border-sidebar-border pt-4">
-                 <h4 className={cn("px-2 text-xs font-semibold text-muted-foreground/80 tracking-wider uppercase transition-all duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                    Self Service
-                </h4>
-             </SidebarMenuItem>
-              {selfServiceMenuItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
-                    <SidebarMenuButton
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={item.label}
-                    >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    <span className="flex-1">{item.label}</span>
-                    </SidebarMenuButton>
-                </Link>
-                </SidebarMenuItem>
-            ))}
             </SidebarMenu>
         </SidebarContent>
 

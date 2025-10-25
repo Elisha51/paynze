@@ -49,6 +49,9 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>{onboardingData?.businessName || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
+           <DropdownMenuItem asChild><Link href="/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
+          <DropdownMenuItem asChild><Link href="/dashboard/my-profile/edit">My Profile</Link></DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
