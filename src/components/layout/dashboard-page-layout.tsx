@@ -3,6 +3,7 @@
 import {
   Card,
   CardContent,
+  CardHeader,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearch } from '@/context/search-context';
