@@ -1,6 +1,7 @@
 
 'use client';
 import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag } from 'lucide-react';
 import Link from 'next/link';
@@ -56,8 +57,9 @@ const orderColumns: ColumnDef<Order>[] = [
     }
 ];
 
-export default function ViewCustomerPage({ params }: { params: { id: string } }) {
-  const { id } = params;
+export default function ViewCustomerPage() {
+  const params = useParams();
+  const id = params.id as string;
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [classification, setClassification] = useState<ClassifyCustomerOutput | null>(null);
   const [loading, setLoading] = useState(true);
@@ -194,7 +196,10 @@ export default function ViewCustomerPage({ params }: { params: { id: string } })
                     <CardDescription>A complete log of all orders placed by this customer.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <DataTable columns={orderColumns} data={customer.orders || []} />
+                    <DataTable
+                      columns={orderColumns}
+                      data={customer.orders || []}
+                    />
                 </CardContent>
             </Card>
         </div>
@@ -256,3 +261,5 @@ export default function ViewCustomerPage({ params }: { params: { id: string } })
     </div>
   );
 }
+
+    

@@ -1,13 +1,17 @@
 
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, ChevronLeft, ChevronRight, File, ListFilter, Truck, Copy } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Copy } from 'lucide-react';
 import Link from 'next/link';
 import { getOrderById } from '@/services/orders';
+import type { Order } from '@/lib/types';
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -18,18 +22,51 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {
-    Pagination,
-    PaginationContent,
-    PaginationItem,
-} from "@/components/ui/pagination"
 import { Separator } from "@/components/ui/separator"
 import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
-export default async function ViewOrderPage({ params }: { params: { id: string } }) {
-  const { id } = params;
-  const order = await getOrderById(id);
+export default function ViewOrderPage() {
+  const params = useParams();
+  const id = params.id as string;
+  const [order, setOrder] = useState<Order | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+        async function loadOrder() {
+            setLoading(true);
+            const fetchedOrder = await getOrderById(id);
+            setOrder(fetchedOrder || null);
+            setLoading(false);
+        }
+        loadOrder();
+    }
+  }, [id]);
+  
+  if (loading) {
+    return (
+        <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+            <div className="mx-auto grid max-w-6xl flex-1 auto-rows-max gap-4">
+                 <div className="flex items-center gap-4">
+                    <Skeleton className="h-7 w-7" />
+                    <Skeleton className="h-7 w-32" />
+                    <Skeleton className="h-6 w-20 rounded-full sm:inline-flex" />
+                 </div>
+                 <div className="grid gap-4 md:grid-cols-[1fr_250px] lg:grid-cols-3 lg:gap-8">
+                    <div className="grid auto-rows-max items-start gap-4 lg:col-span-2 lg:gap-8">
+                         <Skeleton className="h-96 w-full" />
+                    </div>
+                    <div className="grid auto-rows-max items-start gap-4 lg:gap-8">
+                        <Skeleton className="h-64 w-full" />
+                    </div>
+                 </div>
+            </div>
+        </div>
+    )
+  }
+
 
   if (!order) {
     return (
@@ -213,3 +250,5 @@ export default async function ViewOrderPage({ params }: { params: { id: string }
     </div>
   );
 }
+
+    
