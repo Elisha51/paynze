@@ -59,7 +59,7 @@ async function initializeStaff() {
         avatarUrl: 'https://picsum.photos/seed/peter-jones/100/100',
         role: 'Delivery Rider', 
         status: 'Active', 
-        lastLogin: '2023-05-10 14:00',
+        lastLogin: format(subDays(new Date(), 2), 'yyyy-MM-dd HH:mm'),
         onlineStatus: 'Offline',
         assignedOrders: allOrders.filter(o => o.assignedStaffId === 'staff-003'),
         completionRate: 95.2,

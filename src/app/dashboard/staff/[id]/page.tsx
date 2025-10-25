@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle, Truck } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle, Truck, Activity } from 'lucide-react';
 import Link from 'next/link';
 import type { Staff, Order, Role, AssignableAttribute } from '@/lib/types';
 import { getStaff, updateStaff } from '@/services/staff';
@@ -31,7 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { EmptyState } from '@/components/ui/empty-state';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Label } from '@/components/ui/label';
@@ -151,6 +152,14 @@ const UnassignedOrders = ({ orders, staffMember, onAssign }: { orders: Order[], 
         </div>
     )
 }
+
+const mockActivity = [
+    { time: '2 hours ago', action: 'Approved Order #ORD-002 for pickup.' },
+    { time: '4 hours ago', action: 'Updated their profile information.' },
+    { time: '1 day ago', action: 'Viewed the customer report for the last 30 days.' },
+    { time: '2 days ago', action: 'Assigned Order #ORD-011 for delivery.' },
+    { time: '2 days ago', action: `Logged in from IP address 192.168.1.1` },
+]
 
 
 export default function ViewStaffPage() {
@@ -328,13 +337,13 @@ export default function ViewStaffPage() {
       </div>
 
       {isPendingVerification && (
-          <Card className="border-yellow-400 bg-yellow-50">
+         <Card className="border-yellow-400 bg-yellow-50">
               <CardHeader className="flex flex-row items-center justify-between p-4">
-                <div className="flex items-center gap-4">
-                     <CheckCircle className="h-6 w-6 text-yellow-600" />
-                    <div className="space-y-0">
+                <div className="flex items-center gap-3">
+                     <CheckCircle className="h-5 w-5 text-yellow-600" />
+                    <div>
                         <CardTitle className="text-base">Verification Required</CardTitle>
-                        <CardDescription className="text-sm">Approve or reject this staff member after reviewing their documents.</CardDescription>
+                        <CardDescription className="text-xs">Approve or reject this staff member after reviewing their documents.</CardDescription>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -376,6 +385,7 @@ export default function ViewStaffPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           {hasAttributes && <TabsTrigger value="performance">Performance & Attributes</TabsTrigger>}
           <TabsTrigger value="details">Documents & Details</TabsTrigger>
+          <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6 space-y-6">
             {showAssignedOrders && (
@@ -469,7 +479,34 @@ export default function ViewStaffPage() {
               <CardContent className="space-y-2 text-sm">
                 <p><strong>Email:</strong> {staffMember.email}</p>
                 <p><strong>Phone:</strong> {staffMember.phone}</p>
+                 <p className="pt-2"><strong>Last Login:</strong> {staffMember.lastLogin ? format(new Date(staffMember.lastLogin), 'PPP p') : 'Never'}</p>
               </CardContent>
+            </Card>
+        </TabsContent>
+         <TabsContent value="activity" className="mt-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary" />
+                        Activity Log
+                    </CardTitle>
+                    <CardDescription>A log of recent actions taken by this staff member.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <div className="space-y-4">
+                        {mockActivity.map((item, index) => (
+                            <div key={index} className="flex items-start gap-4">
+                                <div className="text-right w-24 flex-shrink-0">
+                                    <p className="text-sm text-muted-foreground">{item.time}</p>
+                                </div>
+                                <div className="relative">
+                                    <span className="absolute left-[-13px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background"></span>
+                                </div>
+                                <p className="flex-1 text-sm">{item.action}</p>
+                            </div>
+                        ))}
+                    </div>
+                </CardContent>
             </Card>
         </TabsContent>
       </Tabs>
