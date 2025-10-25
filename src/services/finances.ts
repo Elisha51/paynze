@@ -10,7 +10,7 @@ let transactions: Transaction[] = [
 
 export async function getTransactions(): Promise<Transaction[]> {
     await new Promise(resolve => setTimeout(resolve, 400));
-    return [...transactions];
+    return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function addTransaction(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
