@@ -250,4 +250,3 @@ export type ShippingZone = {
         price: number;
     }[];
 };
-

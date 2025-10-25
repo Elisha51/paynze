@@ -56,7 +56,7 @@ export const products: Product[] = [
           { locationName: 'Downtown Store', stock: { onHand: 20, available: 20, reserved: 0, damaged: 0 } }
         ],
         stockAdjustments: [
-            { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import' },
+            { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import', channel: 'Manual' },
             { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' },
             { id: 'adj-005', date: '2023-03-01', type: 'Sale', quantity: -5, reason: 'Order #ORD-012', channel: 'Online' },
             { id: 'adj-006', date: '2023-03-10', type: 'Sale', quantity: -10, reason: 'Order #ORD-014', channel: 'In-Store' },
@@ -73,7 +73,7 @@ export const products: Product[] = [
             { locationName: 'Downtown Store', stock: { onHand: 10, available: 10, reserved: 0, damaged: 0 } }
         ],
         stockAdjustments: [
-            { id: 'adj-003', date: '2023-01-15', type: 'Initial Stock', quantity: 30, reason: 'Initial import' },
+            { id: 'adj-003', date: '2023-01-15', type: 'Initial Stock', quantity: 30, reason: 'Initial import', channel: 'Manual' },
             { id: 'adj-004', date: '2023-02-22', type: 'Sale', quantity: -5, reason: 'Order #ORD-011', channel: 'In-Store' }
         ]
       },
@@ -207,4 +207,3 @@ export const salesData: SalesData[] = [
     { name: 'Nov', total: Math.floor(Math.random() * 5000) + 1000 },
     { name: 'Dec', total: Math.floor(Math.random() * 5000) + 1000 },
 ];
-
