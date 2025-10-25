@@ -255,7 +255,7 @@ export function ProductDetailsInventory({ product }: { product: Product }) {
                         <Card className="text-center">
                              <CardHeader className="p-4"><CalendarIcon className="mx-auto h-6 w-6 text-muted-foreground" /></CardHeader>
                             <CardContent className="p-4 pt-0">
-                                <p className="text-sm text-muted-foreground">Sold ({date?.from ? `${format(date.from, 'LLL d')} - ${date.to ? format(date.to, 'LLL d') : '...'}` : 'All Time'})</p>
+                                <p className="text-sm text-muted-foreground">Sold</p>
                                 <p className="text-2xl font-bold text-blue-600">{totalStock.sold}</p>
                             </CardContent>
                         </Card>
