@@ -21,6 +21,7 @@ import {
 import type { PurchaseOrder } from '@/lib/types';
 import { getPurchaseOrders } from '@/services/procurement';
 import { DataTable } from '@/components/dashboard/data-table';
+import Link from 'next/link';
 
 
 const columns: ColumnDef<PurchaseOrder>[] = [
@@ -151,9 +152,11 @@ export default function PurchaseOrdersPage() {
   ];
 
   const cta = (
-    <Button>
-      <PlusCircle className="mr-2 h-4 w-4" />
-      Create Purchase Order
+    <Button asChild>
+      <Link href="/dashboard/purchase-orders/add">
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Create Purchase Order
+      </Link>
     </Button>
   );
 

@@ -5,6 +5,7 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { OrdersTable } from '@/components/dashboard/orders-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import Link from 'next/link';
 
 
 export default function OrdersPage() {
@@ -17,9 +18,11 @@ export default function OrdersPage() {
   ];
 
   const cta = (
-    <Button>
-      <PlusCircle className="mr-2 h-4 w-4" />
-      Create Order
+    <Button asChild>
+      <Link href="/dashboard/orders/add">
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Create Order
+      </Link>
     </Button>
   );
 

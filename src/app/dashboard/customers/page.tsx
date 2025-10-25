@@ -5,6 +5,7 @@ import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CustomersTable } from '@/components/dashboard/customers-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import Link from 'next/link';
 
 export default function CustomersPage() {
   const filterTabs = [
@@ -14,9 +15,11 @@ export default function CustomersPage() {
   ];
 
   const cta = (
-    <Button>
-      <PlusCircle className="mr-2 h-4 w-4" />
-      Add Customer
+    <Button asChild>
+      <Link href="/dashboard/customers/add">
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Add Customer
+      </Link>
     </Button>
   );
 

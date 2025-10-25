@@ -20,6 +20,7 @@ import type { Supplier } from '@/lib/types';
 import { getSuppliers } from '@/services/procurement';
 import { DataTable } from '@/components/dashboard/data-table';
 import { Card, CardContent } from '@/components/ui/card';
+import Link from 'next/link';
 
 
 const columns: ColumnDef<Supplier>[] = [
@@ -40,6 +41,18 @@ const columns: ColumnDef<Supplier>[] = [
             <div className="flex flex-col">
                 <span>{supplier.email}</span>
                 <span className="text-muted-foreground">{supplier.phone}</span>
+            </div>
+        )
+    }
+  },
+    {
+    accessorKey: 'productsSupplied',
+    header: 'Products',
+    cell: ({ row }) => {
+        const products = row.original.productsSupplied;
+        return (
+            <div className="flex flex-col">
+                <span className="font-medium">{products.length} product(s)</span>
             </div>
         )
     }
@@ -93,9 +106,11 @@ function SuppliersTable() {
 export default function SuppliersPage() {
 
   const cta = (
-    <Button>
-      <PlusCircle className="mr-2 h-4 w-4" />
-      Add Supplier
+    <Button asChild>
+      <Link href="/dashboard/suppliers/add">
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Add Supplier
+      </Link>
     </Button>
   );
 
