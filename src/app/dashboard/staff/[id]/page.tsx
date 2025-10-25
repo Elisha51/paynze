@@ -269,13 +269,18 @@ export default function ViewStaffPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-            {role?.assignableAttributes && role.assignableAttributes.map(attr => (
-                <DynamicAttributeCard 
-                    key={attr.key}
-                    attribute={attr}
-                    value={staffMember.attributes?.[attr.key]}
-                />
-            ))}
+            {staffMember.attributes && role?.assignableAttributes && Object.entries(staffMember.attributes).map(([key, value]) => {
+                const attributeDefinition = role.assignableAttributes?.find(attr => attr.key === key);
+                if (!attributeDefinition) return null;
+
+                return (
+                    <DynamicAttributeCard 
+                        key={key}
+                        attribute={attributeDefinition}
+                        value={value}
+                    />
+                );
+            })}
         </div>
       </div>
     </div>
