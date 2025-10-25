@@ -102,7 +102,7 @@ export default function MyTasksPage() {
                     <p className="text-muted-foreground">Here's an overview of your current assignments and goals.</p>
                 </div>
                 <Button asChild variant="outline">
-                    <Link href="/dashboard/my-profile/edit">
+                    <Link href="/dashboard/my-profile">
                         <Edit className="mr-2 h-4 w-4"/>
                         Edit Profile
                     </Link>

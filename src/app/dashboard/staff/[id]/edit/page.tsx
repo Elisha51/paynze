@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import type { Staff, Role, AttributeType } from '@/lib/types';
+import type { Staff, Role } from '@/lib/types';
 import { getStaff, updateStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import { Button } from '@/components/ui/button';
@@ -23,7 +23,9 @@ import { cn } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any, value: any, onChange: (key: string, value: any) => void }) => {
-    const { key, type } = attribute;
+    const { key } = attribute;
+
+    const type = attribute.type as Role['assignableAttributes'][0]['type'];
 
     if (type === 'kpi') {
         return (
@@ -271,4 +273,3 @@ export default function EditStaffPage() {
         </div>
     );
 }
-

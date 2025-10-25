@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight } from 'lucide-react';
 import Link from 'next/link';
 import type { Staff, Order, Role, AssignableAttribute } from '@/lib/types';
 import { getStaff, getStaffOrders } from '@/services/staff';
@@ -30,6 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { format } from 'date-fns';
 
 
 const orderColumns: ColumnDef<Order>[] = [
@@ -67,6 +68,10 @@ const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttri
         kpi: Target,
         tags: MapPin,
         list: List,
+        string: Type,
+        number: Hash,
+        boolean: ToggleRight,
+        date: Calendar,
     };
     const Icon = iconMap[attribute.type] || Award;
 
@@ -90,15 +95,25 @@ const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttri
                         </div>
                     </div>
                 )}
-                {attribute.type === 'tags' && Array.isArray(value) && (
+                {attribute.type === 'tags' && Array.isArray(value) && value.length > 0 && (
                      <div className="flex flex-wrap gap-2">
                         {value.map(tag => (
                             <Badge key={tag} variant="secondary">{tag}</Badge>
                         ))}
                     </div>
                 )}
+                 {(attribute.type === 'string' || attribute.type === 'number') && value && (
+                     <p className="text-lg font-medium">{value}</p>
+                 )}
+                 {attribute.type === 'boolean' && typeof value === 'boolean' && (
+                     <Badge variant={value ? 'default' : 'secondary'}>{value ? 'Yes' : 'No'}</Badge>
+                 )}
+                 {attribute.type === 'date' && value && (
+                     <p className="text-lg font-medium">{format(new Date(value), 'PPP')}</p>
+                 )}
+
                 {(!value || (Array.isArray(value) && value.length === 0)) && (
-                    <p className="text-sm text-muted-foreground text-center py-4">No {attribute.label.toLowerCase()} assigned.</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">No value assigned.</p>
                 )}
             </CardContent>
         </Card>

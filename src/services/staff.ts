@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import type { Staff, Order } from '@/lib/types';
 import { format, subDays } from 'date-fns';
 import { getOrders } from './orders';
@@ -58,7 +53,7 @@ async function initializeStaff() {
         status: 'Active', 
         lastLogin: '2023-05-10 14:00',
         onlineStatus: 'Offline',
-        assignedOrders: allOrders.slice(0, 1),
+        assignedOrders: allOrders.filter(o => o.assignedStaffId === 'staff-003'),
         completionRate: 95.2,
         attributes: {
           deliveryTarget: { goal: 20, current: 18 },
@@ -103,8 +98,8 @@ export async function getStaff(): Promise<Staff[]> {
 
 export async function getStaffOrders(staffId: string): Promise<Order[]> {
     await new Promise(resolve => setTimeout(resolve, 200));
-    const member = staff.find(s => s.id === staffId);
-    return member?.assignedOrders || [];
+    const allOrders = await getOrders();
+    return allOrders.filter(o => o.assignedStaffId === staffId);
 }
 
 export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {

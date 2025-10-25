@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -303,7 +302,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
               <div className="space-y-4 py-4">
                   <div className="space-y-2">
                       <Label htmlFor="name">Role Name</Label>
-                      <Input id="name" placeholder="e.g., Warehouse Manager" value={newRole.name} onChange={(e) => setNewRole({...newRole, name: e.target.value})} />
+                      <Input id="name" placeholder="e.g., Warehouse Manager" value={newRole.name} onChange={(e) => setNewRole({...newRole, name: e.target.value as StaffRoleName})} />
                   </div>
                   <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
@@ -319,5 +318,3 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
     </>
   );
 }
-
-    
