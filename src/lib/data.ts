@@ -31,7 +31,7 @@ export const products: Product[] = [
     costPerItem: 25000,
     category: 'Fabrics',
     tags: ['kitenge', 'african print', 'cotton'],
-    vendor: 'Local Weavers Co.',
+    supplierIds: ['SUP-001'],
     collections: ['New Arrivals'],
     productVisibility: ['Online Store', 'POS'],
     seo: {
@@ -118,6 +118,7 @@ export const products: Product[] = [
     productVisibility: ['POS'],
     hasVariants: true,
     options: [{ name: 'Size', values: ['42', '43'] }],
+    supplierIds: ['SUP-002'],
     variants: [
       {
         id: 'var3',

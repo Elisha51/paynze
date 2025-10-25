@@ -7,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -36,6 +35,7 @@ import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
 
 export default function AddPurchaseOrderPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
@@ -59,7 +59,7 @@ export default function AddPurchaseOrderPage() {
     <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/purchase-orders">
+          <Link href="/dashboard/procurement">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
           </Link>
@@ -78,6 +78,24 @@ export default function AddPurchaseOrderPage() {
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Supplier</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div className='space-y-2'>
+                        <Label htmlFor="supplier" className="text-base">Select a supplier to begin</Label>
+                        <Select>
+                            <SelectTrigger id="supplier">
+                                <SelectValue placeholder="Select a supplier" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </CardContent>
+            </Card>
           <Card>
             <CardHeader>
               <CardTitle>Items to Order</CardTitle>
@@ -125,24 +143,6 @@ export default function AddPurchaseOrderPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Supplier</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className='space-y-2'>
-                        <Label htmlFor="supplier">Select Supplier</Label>
-                        <Select>
-                            <SelectTrigger id="supplier">
-                                <SelectValue placeholder="Select a supplier" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
              <Card>
                 <CardHeader>
                     <CardTitle>Order Details</CardTitle>

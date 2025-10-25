@@ -2,7 +2,7 @@
 
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -54,8 +54,12 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { getCategories } from '@/services/categories';
 import { addProduct, updateProduct } from '@/services/products';
 import { getSuppliers } from '@/services/procurement';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
-const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0 };
+const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
 
 const emptyProduct: Product = {
@@ -73,6 +77,7 @@ const emptyProduct: Product = {
   variants: [],
   wholesalePricing: [],
   productVisibility: ['Online Store'],
+  supplierIds: [],
 };
 
 // Helper function to generate variants from options
@@ -443,6 +448,16 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
         setIsSaving(false);
     }
   };
+
+  const handleSupplierSelect = (supplierId: string) => {
+    setProduct(prev => {
+        const currentIds = prev.supplierIds || [];
+        const newIds = currentIds.includes(supplierId) 
+            ? currentIds.filter(id => id !== supplierId)
+            : [...currentIds, supplierId];
+        return { ...prev, supplierIds: newIds };
+    });
+  }
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
 
@@ -1037,7 +1052,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                 <CardContent className="space-y-4">
                      <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
-                        <Select value={product.category} onValueChange={(v) => handleSelectChange('category', v)}>
+                        <Select value={product.category} onValueChange={(v) => setProduct(p => ({...p, category: v}))}>
                             <SelectTrigger id="category">
                                 <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
@@ -1049,17 +1064,60 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                         </Select>
                     </div>
                      <div className="space-y-2">
-                        <Label htmlFor="vendor">Supplier</Label>
-                        <Select value={product.vendor} onValueChange={(v) => handleSelectChange('vendor', v)}>
-                            <SelectTrigger id="vendor">
-                                <SelectValue placeholder="Select a supplier" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {suppliers.map(sup => (
-                                    <SelectItem key={sup.id} value={sup.name}>{sup.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <Label>Suppliers</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-full justify-between"
+                                >
+                                    <span className="truncate">
+                                        {product.supplierIds && product.supplierIds.length > 0 
+                                            ? `${product.supplierIds.length} selected`
+                                            : "Select suppliers..."
+                                        }
+                                    </span>
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search suppliers..." />
+                                    <CommandEmpty>No suppliers found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {suppliers.map((supplier) => (
+                                        <CommandItem
+                                            key={supplier.id}
+                                            value={supplier.name}
+                                            onSelect={() => handleSupplierSelect(supplier.id)}
+                                        >
+                                            <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                (product.supplierIds || []).includes(supplier.id) ? "opacity-100" : "opacity-0"
+                                            )}
+                                            />
+                                            {supplier.name}
+                                        </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                         <div className="flex flex-wrap gap-1 pt-1">
+                          {(product.supplierIds || []).map(id => {
+                            const supplier = suppliers.find(s => s.id === id);
+                            return supplier ? (
+                               <Badge key={id} variant="secondary" className="flex items-center gap-1">
+                                {supplier.name}
+                                <button onClick={() => handleSupplierSelect(id)} className="rounded-full hover:bg-muted-foreground/20">
+                                    <X className="h-3 w-3"/>
+                                </button>
+                               </Badge>
+                            ) : null;
+                          })}
+                        </div>
                     </div>
                 </CardContent>
             </Card>

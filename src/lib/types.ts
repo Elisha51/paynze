@@ -111,7 +111,7 @@ export type Product = {
   // IV. Organization & Discovery
   category?: string;
   tags?: string[];
-  vendor?: string;
+  supplierIds?: string[];
   collections?: string[];
   productVisibility?: ('Online Store' | 'POS')[]; // e.g., ['Online Store', 'POS']
   seo?: {

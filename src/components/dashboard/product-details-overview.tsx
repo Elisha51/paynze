@@ -22,10 +22,27 @@ import Image from 'next/image';
 import type { Product } from '@/lib/types';
 import { Remarkable } from 'remarkable';
 import { Laptop, Store } from 'lucide-react';
+import { useMemo } from 'react';
+import { getSuppliers } from '@/services/procurement';
+import type { Supplier } from '@/lib/types';
+import Link from 'next/link';
 
 const md = new Remarkable();
 
 export function ProductDetailsOverview({ product }: { product: Product }) {
+  const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
+
+  React.useEffect(() => {
+    async function loadSuppliers() {
+      const fetchedSuppliers = await getSuppliers();
+      setSuppliers(fetchedSuppliers);
+    }
+    loadSuppliers();
+  }, []);
+
+  const productSuppliers = useMemo(() => {
+    return (product.supplierIds || []).map(id => suppliers.find(s => s.id === id)).filter(Boolean) as Supplier[];
+  }, [product.supplierIds, suppliers]);
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
@@ -225,8 +242,14 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                         <p>{product.category || '-'}</p>
                     </div>
                     <div>
-                        <h3 className="font-medium text-sm text-muted-foreground">Supplier</h3>
-                        <p>{product.vendor || '-'}</p>
+                        <h3 className="font-medium text-sm text-muted-foreground">Suppliers</h3>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                            {productSuppliers.length > 0 ? productSuppliers.map(sup => (
+                                <Badge key={sup.id} variant="secondary" asChild>
+                                    <Link href={`/dashboard/suppliers/${sup.id}`}>{sup.name}</Link>
+                                </Badge>
+                            )) : <p>-</p>}
+                        </div>
                     </div>
                 </CardContent>
             </Card>
