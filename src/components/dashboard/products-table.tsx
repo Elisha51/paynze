@@ -114,7 +114,7 @@ const getColumns = (
       const status = row.getValue('status') as string;
       const variant = status === 'draft' ? 'secondary' : status === 'archived' ? 'outline' : 'default';
       const capitalizedVisibility = status.charAt(0).toUpperCase() + status.slice(1);
-      return <Badge variant={variant}>{capitalizedVisibility}</Badge>;
+      return <div className="whitespace-nowrap"><Badge variant={variant}>{capitalizedVisibility}</Badge></div>;
     }
   },
   {
