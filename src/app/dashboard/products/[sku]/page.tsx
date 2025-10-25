@@ -50,7 +50,9 @@ export default async function ViewProductPage({ params }: { params: { sku: strin
                     Edit
                 </Link>
             </Button>
-            <ProductDetailsAdjustStock product={product} />
+            {product.inventoryTracking !== "Don't Track" && (
+              <ProductDetailsAdjustStock product={product} />
+            )}
         </div>
       </div>
 

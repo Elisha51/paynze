@@ -123,7 +123,7 @@ export function ProductDetails({ product }: { product: Product }) {
         </TabsContent>
         <TabsContent value="inventory">
           <ProductDetailsInventory product={product} dateRange={date} />
-        </TabsContent>
+        </Tabs-content>
       </Tabs>
     </TooltipProvider>
   );

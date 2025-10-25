@@ -98,7 +98,7 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
         });
 
         const currentTotalStock = product.variants.reduce((acc, v) => {
-            v.stockByLocation.forEach(locStock => {
+            (v.stockByLocation || []).forEach(locStock => {
                 acc.onHand += locStock.stock.onHand;
                 acc.available += locStock.stock.available;
                 acc.reserved += locStock.stock.reserved;
@@ -115,7 +115,7 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
         
         const currentLocationStock = product.variants.reduce((acc, v) => {
             const variantName = product.hasVariants ? Object.values(v.optionValues).join(' / ') : 'Default';
-            v.stockByLocation.forEach(locStock => {
+            (v.stockByLocation || []).forEach(locStock => {
                 if (!acc[locStock.locationName]) {
                     acc[locStock.locationName] = [];
                 }

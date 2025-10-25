@@ -1,13 +1,12 @@
 
-
 'use client';
 
+import React from 'react';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -19,12 +18,11 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Image from 'next/image';
-import type { Product } from '@/lib/types';
+import type { Product, Supplier } from '@/lib/types';
 import { Remarkable } from 'remarkable';
 import { Laptop, Store } from 'lucide-react';
 import { useMemo } from 'react';
 import { getSuppliers } from '@/services/procurement';
-import type { Supplier } from '@/lib/types';
 import Link from 'next/link';
 
 const md = new Remarkable();
@@ -70,7 +68,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-4">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
         <Card>
             <CardHeader>
@@ -166,7 +164,6 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
             <Card>
                 <CardHeader>
                     <CardTitle>Variants</CardTitle>
-                    <CardDescription>Price and stock for each product combination.</CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                 <Table>

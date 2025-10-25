@@ -88,13 +88,13 @@ export function ProductPerformanceReport({ products, dateRange }: { products: Pr
     const data: ReportRow[] = [];
     products.forEach(product => {
        if (product.hasVariants) {
-            product.variants.forEach(variant => {
+            (product.variants || []).forEach(variant => {
                 const salesAdjustments = (variant.stockAdjustments || [])
                     .filter(adj => {
+                        if (adj.type !== 'Sale') return false;
+                        if (!dateRange?.from) return true;
                         const adjDate = new Date(adj.date);
-                        return adj.type === 'Sale' &&
-                               (!dateRange?.from || adjDate >= dateRange.from) &&
-                               (!dateRange?.to || adjDate <= dateRange.to);
+                        return adjDate >= dateRange.from && adjDate <= (dateRange.to || new Date());
                     });
 
                 if (salesAdjustments.length > 0) {
@@ -114,14 +114,14 @@ export function ProductPerformanceReport({ products, dateRange }: { products: Pr
                 }
             });
        } else {
-           const variant = product.variants[0];
+           const variant = product.variants?.[0];
            if (variant) {
                 const salesAdjustments = (variant.stockAdjustments || [])
                     .filter(adj => {
+                        if (adj.type !== 'Sale') return false;
+                        if (!dateRange?.from) return true;
                         const adjDate = new Date(adj.date);
-                        return adj.type === 'Sale' &&
-                               (!dateRange?.from || adjDate >= dateRange.from) &&
-                               (!dateRange?.to || adjDate <= dateRange.to);
+                        return adjDate >= dateRange.from && adjDate <= (dateRange.to || new Date());
                     });
                 if (salesAdjustments.length > 0) {
                     const unitsSold = salesAdjustments.reduce((sum, adj) => sum + Math.abs(adj.quantity), 0);
