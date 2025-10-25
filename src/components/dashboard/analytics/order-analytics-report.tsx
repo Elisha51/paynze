@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { DollarSign, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, PieChart, Cell } from 'recharts';
 import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ordersColumns } from './report-columns';
@@ -20,6 +20,18 @@ const chartConfig = {
     label: 'Sales',
     color: 'hsl(var(--primary))',
   },
+  Online: {
+    label: 'Online',
+    color: 'hsl(var(--chart-1))',
+  },
+  Manual: {
+    label: 'Manual',
+    color: 'hsl(var(--chart-2))',
+  },
+  POS: {
+    label: 'POS',
+    color: 'hsl(var(--chart-3))'
+  }
 } satisfies ChartConfig;
 
 export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], dateRange?: DateRange }) {
@@ -32,13 +44,14 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
     });
   }, [orders, dateRange]);
 
-  const { summaryMetrics, chartData } = useMemo(() => {
+  const { summaryMetrics, chartData, channelData } = useMemo(() => {
     const currency = reportData.length > 0 ? reportData[0].currency : 'UGX';
     
     if (reportData.length === 0) {
       return { 
         summaryMetrics: { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, newCustomers: 0, currency },
-        chartData: []
+        chartData: [],
+        channelData: []
       };
     }
     const totalRevenue = reportData.reduce((sum, row) => sum + row.total, 0);
@@ -60,6 +73,19 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
         sales: salesByDate[date]
     })).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    const salesByChannel: {[key: string]: { name: string, value: number, fill: string }} = {};
+    reportData.forEach(order => {
+        const channel = order.channel || 'Unknown';
+        if (!salesByChannel[channel]) {
+            salesByChannel[channel] = { 
+                name: channel, 
+                value: 0,
+                fill: `var(--color-${channel})`
+            };
+        }
+        salesByChannel[channel].value += order.total;
+    });
+
     return {
       summaryMetrics: {
         totalRevenue,
@@ -68,7 +94,8 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
         newCustomers,
         currency,
       },
-      chartData: formattedChartData
+      chartData: formattedChartData,
+      channelData: Object.values(salesByChannel),
     };
   }, [reportData]);
 
@@ -81,6 +108,8 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
     if (value >= 1000) return `${formatCurrency(value / 1000)}k`;
     return formatCurrency(value);
   }
+  
+  const showChannelBreakdown = channelData.length > 1;
 
   return (
     <div className="space-y-6">
@@ -127,39 +156,72 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
         </Card>
       </div>
 
-       <Card>
-        <CardHeader>
-          <CardTitle>Sales Trend</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[300px] w-full">
-            <ChartContainer config={chartConfig}>
-              <BarChart data={chartData}>
-                  <XAxis
-                      dataKey="date"
-                      stroke="#888888"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                  />
-                  <YAxis
-                      stroke="#888888"
-                      fontSize={12}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(value) => formatCurrencyForChart(value)}
-                  />
-                  <Tooltip
-                      cursor={false}
-                      content={<ChartTooltipContent
-                          formatter={(value) => formatCurrency(value as number)}
-                          indicator="dot"
-                      />}
-                  />
-                  <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ChartContainer>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        <Card className={showChannelBreakdown ? "lg:col-span-3" : "lg:col-span-5"}>
+            <CardHeader>
+            <CardTitle>Sales Trend</CardTitle>
+            </CardHeader>
+            <CardContent className="h-[300px] w-full">
+                <ChartContainer config={chartConfig}>
+                <BarChart data={chartData}>
+                    <XAxis
+                        dataKey="date"
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                    />
+                    <YAxis
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => formatCurrencyForChart(value)}
+                    />
+                    <Tooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
+                            formatter={(value) => formatCurrency(value as number)}
+                            indicator="dot"
+                        />}
+                    />
+                    <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+                </ChartContainer>
+            </CardContent>
+        </Card>
+        {showChannelBreakdown && (
+            <Card className="lg:col-span-2">
+                <CardHeader>
+                    <CardTitle>Sales by Channel</CardTitle>
+                </CardHeader>
+                <CardContent className="h-[300px] w-full flex items-center justify-center">
+                    <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full">
+                        <PieChart>
+                            <Tooltip
+                                cursor={false}
+                                content={<ChartTooltipContent
+                                    hideLabel
+                                    formatter={(value) => formatCurrency(value as number)}
+                                />}
+                            />
+                            <Pie
+                                data={channelData}
+                                dataKey="value"
+                                nameKey="name"
+                                innerRadius={60}
+                                strokeWidth={5}
+                            >
+                                {channelData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.fill} />
+                                ))}
+                            </Pie>
+                        </PieChart>
+                    </ChartContainer>
+                </CardContent>
+            </Card>
+        )}
+      </div>
       
       <Card>
         <CardHeader>
