@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -214,9 +213,11 @@ export default function ViewStaffPage() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
+            <Button variant="outline" asChild>
+                <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                </Link>
             </Button>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>

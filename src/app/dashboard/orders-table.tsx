@@ -152,6 +152,7 @@ const columns: ColumnDef<Order>[] = [
                 <Link href={`/dashboard/orders/${row.original.id}`}>View Details</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
+            <DropdownMenuItem>Assign</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -160,40 +161,29 @@ const columns: ColumnDef<Order>[] = [
 ];
 
 type OrdersTableProps = {
-  cardTitle: string;
-  cardDescription: string;
+  orders: Order[];
+  isLoading: boolean;
   filter?: {
     column: string;
     value: string;
   };
 };
 
-export function OrdersTable({ cardTitle, cardDescription, filter }: OrdersTableProps) {
+export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>([]);
-  const [allData, setAllData] = React.useState<Order[]>([]);
-
-  React.useEffect(() => {
-    async function loadOrders() {
-      const fetchedOrders = await getOrders();
-      setAllData(fetchedOrders);
-    }
-    loadOrders();
-  }, []);
 
   React.useEffect(() => {
     if (filter) {
-      setData(allData.filter(item => (item as any)[filter.column] === filter.value));
+      setData(orders.filter(item => (item as any)[filter.column] === filter.value));
     } else {
-      setData(allData);
+      setData(orders);
     }
-  }, [allData, filter]);
+  }, [orders, filter]);
 
   return (
     <DataTable
       columns={columns}
       data={data}
-      cardTitle={cardTitle}
-      cardDescription={cardDescription}
     />
   );
 }

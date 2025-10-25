@@ -1,6 +1,7 @@
 
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -306,8 +307,6 @@ export type Role = {
 };
 
 export type PerformanceTarget = {
-    id: string;
-    name: string; // e.g. 'Monthly Sales', 'Orders Fulfilled'
     goal: number;
     current: number;
 }
@@ -327,7 +326,7 @@ export type Staff = {
   currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
   // Dynamic attributes based on role
   attributes?: {
-    [key: string]: any; // e.g. { salesTarget: { goal: 50, current: 25 }, deliveryZones: ['Kampala', 'Wakiso'] }
+    [key: string]: PerformanceTarget | string[];
   }
 };
 
