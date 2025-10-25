@@ -35,17 +35,11 @@ import { useSearch } from '@/context/search-context';
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  filter?: {
-    column: string;
-    value?: string;
-    excludeValue?: string;
-  };
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
-  filter,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -54,19 +48,8 @@ export function DataTable<TData, TValue>({
   const [rowSelection, setRowSelection] = React.useState({});
   const { searchQuery } = useSearch();
 
-  const filteredData = React.useMemo(() => {
-    if (!filter) return data;
-    if (filter.value) {
-      return data.filter(item => (item as any)[filter.column] === filter.value);
-    }
-    if (filter.excludeValue) {
-      return data.filter(item => (item as any)[filter.column] !== filter.excludeValue);
-    }
-    return data;
-  }, [data, filter]);
-
   const table = useReactTable({
-    data: filteredData,
+    data: data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
