@@ -27,6 +27,14 @@ const columns: ColumnDef<Supplier>[] = [
   {
     accessorKey: 'name',
     header: 'Supplier Name',
+    cell: ({ row }) => {
+        const supplier = row.original;
+        return (
+             <Link href={`/dashboard/suppliers/${supplier.id}`} className="font-medium hover:underline">
+                {supplier.name}
+            </Link>
+        )
+    }
   },
   {
     accessorKey: 'contactName',
@@ -61,6 +69,7 @@ const columns: ColumnDef<Supplier>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
+      const supplier = row.original;
       return (
         <div className="text-right">
         <DropdownMenu>
@@ -72,7 +81,9 @@ const columns: ColumnDef<Supplier>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>View Details</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href={`/dashboard/suppliers/${supplier.id}`}>View Details</Link>
+            </DropdownMenuItem>
             <DropdownMenuItem>Edit Supplier</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -28,10 +28,26 @@ const columns: ColumnDef<PurchaseOrder>[] = [
   {
     accessorKey: 'id',
     header: 'Order ID',
+    cell: ({ row }) => {
+        const po = row.original;
+        return (
+             <Link href={`/dashboard/purchase-orders/${po.id}`} className="font-medium hover:underline">
+                {po.id}
+            </Link>
+        )
+    }
   },
   {
     accessorKey: 'supplierName',
     header: 'Supplier',
+     cell: ({ row }) => {
+        const po = row.original;
+        return (
+             <Link href={`/dashboard/suppliers/${po.supplierId}`} className="font-medium hover:underline">
+                {po.supplierName}
+            </Link>
+        )
+    }
   },
   {
     accessorKey: 'orderDate',
@@ -86,6 +102,7 @@ const columns: ColumnDef<PurchaseOrder>[] = [
     id: 'actions',
     enableHiding: false,
     cell: ({ row }) => {
+      const po = row.original;
       return (
         <div className="text-right">
             <DropdownMenu>
@@ -97,7 +114,9 @@ const columns: ColumnDef<PurchaseOrder>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>View Details</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/purchase-orders/${po.id}`}>View Details</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem>Mark as Received</DropdownMenuItem>
             </DropdownMenuContent>
             </DropdownMenu>

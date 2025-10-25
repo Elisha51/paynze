@@ -57,8 +57,24 @@ export async function getSuppliers(): Promise<Supplier[]> {
   return suppliers;
 }
 
+export async function getSupplierById(id: string): Promise<Supplier | undefined> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return suppliers.find(s => s.id === id);
+}
+
 export async function getPurchaseOrders(): Promise<PurchaseOrder[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
   return purchaseOrders;
+}
+
+
+export async function getPurchaseOrdersBySupplierId(supplierId: string): Promise<PurchaseOrder[]> {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  return purchaseOrders.filter(po => po.supplierId === supplierId);
+}
+
+export async function getPurchaseOrderById(id: string): Promise<PurchaseOrder | undefined> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    return purchaseOrders.find(po => po.id === id);
 }
