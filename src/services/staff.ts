@@ -5,9 +5,10 @@ import { format } from 'date-fns';
 import { getOrders } from './orders';
 
 let staff: Staff[] = [];
+let allOrders: Order[] = [];
 
 async function initializeStaff() {
-    const orders = await getOrders();
+    allOrders = await getOrders();
     staff = [
       { 
         id: 'staff-001', 
@@ -21,6 +22,11 @@ async function initializeStaff() {
         completionRate: 100,
         totalSales: 550000,
         currency: 'UGX',
+        targets: [
+            { id: 't-1', name: 'Monthly Sales', goal: 1000000, current: 550000 },
+            { id: 't-2', name: 'Team Growth', goal: 5, current: 4 },
+        ],
+        zones: ['National']
       },
       { 
         id: 'staff-002', 
@@ -32,7 +38,11 @@ async function initializeStaff() {
         onlineStatus: 'Online',
         assignedOrders: [],
         totalSales: 125000,
-        currency: 'KES'
+        currency: 'KES',
+        targets: [
+            { id: 't-3', name: 'New Customers', goal: 10, current: 7 },
+        ],
+        zones: ['Nairobi', 'Mombasa']
       },
       { 
         id: 'staff-003', 
@@ -42,8 +52,12 @@ async function initializeStaff() {
         status: 'Active', 
         lastLogin: '2023-05-10 14:00',
         onlineStatus: 'Offline',
-        assignedOrders: orders.slice(0, 1),
+        assignedOrders: allOrders.slice(0, 1),
         completionRate: 95.2,
+        targets: [
+            { id: 't-4', name: 'On-time Deliveries', goal: 50, current: 48 },
+        ],
+        zones: ['Kampala Central']
       },
       { 
         id: 'staff-004', 
@@ -63,6 +77,12 @@ initializeStaff();
 export async function getStaff(): Promise<Staff[]> {
   await new Promise(resolve => setTimeout(resolve, 300));
   return [...staff];
+}
+
+export async function getStaffOrders(staffId: string): Promise<Order[]> {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const member = staff.find(s => s.id === staffId);
+    return member?.assignedOrders || [];
 }
 
 export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {

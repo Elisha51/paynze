@@ -298,6 +298,13 @@ export type Role = {
   permissions: Permissions;
 };
 
+export type PerformanceTarget = {
+    id: string;
+    name: string; // e.g. 'Monthly Sales', 'Orders Fulfilled'
+    goal: number;
+    current: number;
+}
+
 export type Staff = {
   id: string;
   name: string;
@@ -310,6 +317,8 @@ export type Staff = {
   completionRate?: number; // e.g., 98.5
   totalSales?: number; // For sales agents
   currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
+  targets?: PerformanceTarget[];
+  zones?: string[]; // e.g. ['Kampala Central', 'Wakiso']
 };
 
 

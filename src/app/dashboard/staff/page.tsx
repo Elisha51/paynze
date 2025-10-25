@@ -42,9 +42,19 @@ import {
 import { getRoles } from '@/services/roles';
 import { useToast } from '@/hooks/use-toast';
 import { StaffWidget } from '@/components/dashboard/staff-widget';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
-const columns: ColumnDef<Staff>[] = [
-  { accessorKey: 'name', header: 'Name' },
+const getColumns: (openEditDialog: (staff: Staff) => void) => ColumnDef<Staff>[] = (openEditDialog) => [
+  { accessorKey: 'name', header: 'Name',
+    cell: ({row}) => {
+        const staffMember = row.original;
+        return (
+            <Link href={`/dashboard/staff/${staffMember.id}`} className="font-medium hover:underline">
+                {staffMember.name}
+            </Link>
+        )
+    }
+  },
   { accessorKey: 'email', header: 'Email' },
   { 
     accessorKey: 'role', 
@@ -72,8 +82,8 @@ const columns: ColumnDef<Staff>[] = [
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-              <DropdownMenuItem asChild><Link href={`/dashboard/staff/${staffMember.id}/edit`}>Edit Details</Link></DropdownMenuItem>
-              <DropdownMenuItem>View Performance</DropdownMenuItem>
+              <DropdownMenuItem asChild><Link href={`/dashboard/staff/${staffMember.id}`}>View Profile</Link></DropdownMenuItem>
+              <DropdownMenuItem onClick={() => openEditDialog(staffMember)}>Edit Details</DropdownMenuItem>
               <DropdownMenuItem className="text-destructive">Deactivate</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -95,6 +105,7 @@ export default function StaffPage() {
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
+  const [editingStaff, setEditingStaff] = React.useState<Staff | null>(null);
   const [newStaffMember, setNewStaffMember] = React.useState(emptyStaff);
   const [addMode, setAddMode] = React.useState<'invite' | 'manual'>('invite');
   const { toast } = useToast();
@@ -141,7 +152,16 @@ export default function StaffPage() {
   const mainTabs = [
       { value: 'team', label: 'Your Team' },
       { value: 'permissions', label: 'Roles & Permissions' },
+      { value: 'reports', label: 'Reports' },
   ];
+
+  const openEditDialog = (staffMember: Staff) => {
+    // This would open another dialog to edit, similar to the add one.
+    // For brevity, we're not implementing the full edit dialog here.
+    toast({ title: "Edit functionality coming soon!" });
+  }
+
+  const columns = React.useMemo(() => getColumns(openEditDialog), []);
 
   const cta = (
      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
@@ -218,6 +238,17 @@ export default function StaffPage() {
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="permissions">
             <RolesPermissionsTab roles={roles} setRoles={setRoles} />
+        </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.TabContent value="reports">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Staff Performance Reports</CardTitle>
+                    <CardDescription>Analyze performance metrics for your team members.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-center text-muted-foreground py-12">Detailed staff reports coming soon.</p>
+                </CardContent>
+            </Card>
         </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );

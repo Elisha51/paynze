@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreVertical, User, ShoppingCart, CheckCircle, Target, DollarSign, List, FileText } from 'lucide-react';
+import { MoreVertical, User, ShoppingCart, CheckCircle, Target, DollarSign, List, FileText, ArrowRight } from 'lucide-react';
 import type { Staff, Order } from '@/lib/types';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -102,7 +102,7 @@ const StaffCard = ({ member }: { member: Staff }) => {
   return (
     <>
       <Card
-        className="flex flex-col"
+        className="flex flex-col cursor-pointer transition-all hover:shadow-md hover:-translate-y-1"
         onClick={() => setIsModalOpen(true)}
       >
         <CardHeader className="flex-row items-start justify-between gap-4 pb-2">
@@ -135,6 +135,7 @@ const StaffCard = ({ member }: { member: Staff }) => {
 };
 
 export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: boolean }) {
+  const staffToShow = staff.slice(0, 3);
   if (isLoading) {
     return (
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -158,9 +159,18 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {staff.map(member => (
+      {staffToShow.map(member => (
         <StaffCard key={member.id} member={member} />
       ))}
+      {staff.length > 3 && (
+        <Card className="flex flex-col items-center justify-center text-center bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
+            <CardContent className="p-6">
+                 <ArrowRight className="h-8 w-8 text-muted-foreground mb-2" />
+                 <h3 className="font-semibold">View All Staff</h3>
+                 <p className="text-sm text-muted-foreground">See the full list below</p>
+            </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
