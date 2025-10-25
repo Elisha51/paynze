@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -28,6 +27,7 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
@@ -59,10 +59,15 @@ export default function ViewOrderPage() {
     loadOrder();
   }, [id]);
 
-  const handleUpdateStatus = async (status: Order['status']) => {
+  const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
     if (!order) return;
     
-    const updatedOrder = await updateOrder(order.id, { status });
+    const updates: Partial<Order> = { status };
+    if (paymentStatus) {
+      updates.paymentStatus = paymentStatus;
+    }
+    
+    const updatedOrder = await updateOrder(order.id, updates);
     
     if (status === 'Delivered' || status === 'Picked Up') {
         await Promise.all(order.items.map(item => 
@@ -129,6 +134,8 @@ export default function ViewOrderPage() {
   const canMarkAsDelivered = order.status === 'Shipped';
   const canMarkAsPickedUp = order.status === 'Ready for Pickup';
   const canReadyForPickup = order.status === 'Paid' && order.fulfillmentMethod === 'Pickup';
+  const canBePaid = order.paymentStatus === 'Unpaid';
+  const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
 
   return (
     <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -147,6 +154,7 @@ export default function ViewOrderPage() {
                 {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
+                {canBePaid && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</Button>}
                 {canReadyForPickup && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</Button>}
                 {canMarkAsDelivered && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Delivered')}>Mark as Delivered</Button>}
                 {canMarkAsPickedUp && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Picked Up')}>Mark as Picked Up</Button>}
@@ -160,8 +168,35 @@ export default function ViewOrderPage() {
                     <DropdownMenuContent align="end">
                     <DropdownMenuItem>Edit Order</DropdownMenuItem>
                     <DropdownMenuItem>Export</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>Cancel Order</DropdownMenuItem>
+                    {canBeCancelled && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                Cancel Order
+                            </DropdownMenuItem>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will cancel order #{order.id}. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Back</AlertDialogCancel>
+                              <AlertDialogAction
+                                className="bg-destructive hover:bg-destructive/90"
+                                onClick={() => handleUpdateStatus('Cancelled')}
+                              >
+                                Cancel Order
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </>
+                    )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>

@@ -17,6 +17,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import type { Order } from '@/lib/types';
 import { DataTable } from './data-table';
@@ -30,6 +31,17 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useToast } from '@/hooks/use-toast';
 import { getStaff } from '@/services/staff';
 import type { Staff } from '@/lib/types';
@@ -323,50 +335,90 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
     cell: ({ row }) => {
       const order = row.original;
       const isPaid = order.paymentStatus === 'Paid';
+      const isUnpaid = order.paymentStatus === 'Unpaid';
       const isPendingFulfillment = (order.status === 'Paid' || order.status === 'Awaiting Payment') && isPaid;
-      
-      const primaryAction = null;
+      const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
+
+      const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
+        const updates: Partial<Order> = { status };
+        if (paymentStatus) {
+            updates.paymentStatus = paymentStatus;
+        }
+        const updatedOrder = await updateOrder(order.id, updates);
+        onUpdate(updatedOrder);
+        toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${status}.`});
+      }
+
+      const { toast } = useToast();
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
-            {primaryAction}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
-                    </DropdownMenuItem>
+            <AlertDialog>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
+                        </DropdownMenuItem>
 
-                    {isPendingFulfillment && order.fulfillmentMethod === 'Delivery' && (
-                        <AssignOrderDialog order={order} onUpdate={onUpdate} asChild>
-                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
-                        </AssignOrderDialog>
-                    )}
-                    {isPendingFulfillment && order.fulfillmentMethod === 'Pickup' && (
-                         <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Ready for Pickup</DropdownMenuItem>
-                         </FulfillOrderDialog>
-                    )}
-                     {order.status === 'Ready for Pickup' && (
-                        <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
-                        </FulfillOrderDialog>
-                     )}
-                     {order.status === 'Shipped' && (
-                        <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} asChild>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Delivered</DropdownMenuItem>
-                        </FulfillOrderDialog>
-                     )}
-                    
-                    <DropdownMenuItem>Cancel Order</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+                         {isUnpaid && (
+                            <DropdownMenuItem onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</DropdownMenuItem>
+                        )}
+                        {isPendingFulfillment && order.fulfillmentMethod === 'Delivery' && (
+                            <AssignOrderDialog order={order} onUpdate={onUpdate} asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
+                            </AssignOrderDialog>
+                        )}
+                        {isPendingFulfillment && order.fulfillmentMethod === 'Pickup' && (
+                            <DropdownMenuItem onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</DropdownMenuItem>
+                        )}
+                        {order.status === 'Ready for Pickup' && (
+                             <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
+                            </FulfillOrderDialog>
+                        )}
+                        {order.status === 'Shipped' && (
+                            <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Delivered</DropdownMenuItem>
+                            </FulfillOrderDialog>
+                        )}
+                        
+                        {canBeCancelled && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                    Cancel Order
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                          </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                        This will cancel order #{order.id}. This action cannot be undone.
+                    </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                    <AlertDialogCancel>Back</AlertDialogCancel>
+                    <AlertDialogAction
+                        className="bg-destructive hover:bg-destructive/90"
+                        onClick={() => handleUpdateStatus('Cancelled')}
+                    >
+                        Cancel Order
+                    </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
       );
     },
