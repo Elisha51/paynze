@@ -44,6 +44,7 @@ export default function AddOrderPage() {
   const [items, setItems] = useState<NewOrderItem[]>([{ id: Date.now(), quantity: 1 }]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
   const [paymentMethod, setPaymentMethod] = useState<Order['paymentMethod']>('Cash on Delivery');
+  const [fulfillmentMethod, setFulfillmentMethod] = useState<Order['fulfillmentMethod']>('Delivery');
   const [orderStatus, setOrderStatus] = useState<Order['status']>('Awaiting Payment');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -120,7 +121,7 @@ export default function AddOrderPage() {
       customerEmail: customer.email,
       date: format(new Date(), 'yyyy-MM-dd'),
       status: orderStatus,
-      fulfillmentMethod: 'Delivery', // Default, can be changed later
+      fulfillmentMethod: fulfillmentMethod,
       channel: 'Manual',
       items: items as OrderItem[],
       total,
@@ -262,6 +263,18 @@ export default function AddOrderPage() {
                     <CardTitle>Order Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                     <div className='space-y-2'>
+                        <Label htmlFor="fulfillmentMethod">Fulfillment Method</Label>
+                        <Select value={fulfillmentMethod} onValueChange={(v: Order['fulfillmentMethod']) => setFulfillmentMethod(v)}>
+                            <SelectTrigger id="fulfillmentMethod">
+                                <SelectValue placeholder="Select method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Delivery">Delivery</SelectItem>
+                                <SelectItem value="Pickup">Pickup</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <div className='space-y-2'>
                         <Label htmlFor="paymentMethod">Payment Method</Label>
                         <Select value={paymentMethod} onValueChange={(v: Order['paymentMethod']) => setPaymentMethod(v)}>
