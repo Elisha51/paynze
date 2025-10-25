@@ -106,17 +106,32 @@ const columns: ColumnDef<PurchaseOrder>[] = [
   },
 ];
 
+type PurchaseOrdersTableProps = {
+    filter?: {
+        column: string;
+        value: string;
+    };
+};
 
-function PurchaseOrdersTable() {
+function PurchaseOrdersTable({ filter }: PurchaseOrdersTableProps) {
   const [data, setData] = React.useState<PurchaseOrder[]>([]);
+  const [allData, setAllData] = React.useState<PurchaseOrder[]>([]);
 
   React.useEffect(() => {
     async function loadData() {
       const fetchedData = await getPurchaseOrders();
-      setData(fetchedData);
+      setAllData(fetchedData);
     }
     loadData();
   }, []);
+
+  React.useEffect(() => {
+    if (filter) {
+      setData(allData.filter(item => (item as any)[filter.column] === filter.value));
+    } else {
+      setData(allData);
+    }
+  }, [allData, filter]);
 
   return (
     <DataTable
@@ -129,8 +144,8 @@ function PurchaseOrdersTable() {
 
 export default function PurchaseOrdersPage() {
 
-  const tabs = [
-    { value: 'all', label: 'All Purchase Orders' },
+  const filterTabs = [
+    { value: 'all', label: 'All' },
     { value: 'sent', label: 'Sent' },
     { value: 'received', label: 'Received' },
   ];
@@ -145,12 +160,21 @@ export default function PurchaseOrdersPage() {
   return (
     <DashboardPageLayout
       title="Purchase Orders"
-      tabs={tabs}
       cta={cta}
     >
-      <DashboardPageLayout.TabContent value="all">
-        <PurchaseOrdersTable />
-      </DashboardPageLayout.TabContent>
+      <DashboardPageLayout.Content>
+          <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="all">
+            <DashboardPageLayout.TabContent value="all">
+                <PurchaseOrdersTable />
+            </DashboardPageLayout.TabContent>
+             <DashboardPageLayout.TabContent value="sent">
+                <PurchaseOrdersTable filter={{ column: 'status', value: 'Sent' }} />
+            </DashboardPageLayout.TabContent>
+             <DashboardPageLayout.TabContent value="received">
+                <PurchaseOrdersTable filter={{ column: 'status', value: 'Received' }} />
+            </DashboardPageLayout.TabContent>
+          </DashboardPageLayout.FilterTabs>
+      </DashboardPageLayout.Content>
     </DashboardPageLayout>
   );
 }

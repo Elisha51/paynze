@@ -19,6 +19,7 @@ import {
 import type { Supplier } from '@/lib/types';
 import { getSuppliers } from '@/services/procurement';
 import { DataTable } from '@/components/dashboard/data-table';
+import { Card, CardContent } from '@/components/ui/card';
 
 
 const columns: ColumnDef<Supplier>[] = [
@@ -91,10 +92,6 @@ function SuppliersTable() {
 
 export default function SuppliersPage() {
 
-  const tabs = [
-    { value: 'all', label: 'All Suppliers' },
-  ];
-
   const cta = (
     <Button>
       <PlusCircle className="mr-2 h-4 w-4" />
@@ -105,12 +102,15 @@ export default function SuppliersPage() {
   return (
     <DashboardPageLayout
       title="Suppliers"
-      tabs={tabs}
       cta={cta}
     >
-      <DashboardPageLayout.TabContent value="all">
-        <SuppliersTable />
-      </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.Content>
+            <Card>
+                <CardContent className="pt-6">
+                    <SuppliersTable />
+                </CardContent>
+            </Card>
+        </DashboardPageLayout.Content>
     </DashboardPageLayout>
   );
 }
