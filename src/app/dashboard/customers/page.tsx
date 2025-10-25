@@ -23,6 +23,7 @@ import React from 'react';
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('customers');
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
@@ -83,6 +84,8 @@ export default function CustomersPage() {
       title="Customers"
       tabs={mainTabs}
       cta={cta}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
     >
       <DashboardPageLayout.TabContent value="customers">
           <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="all">

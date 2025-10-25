@@ -2,8 +2,8 @@
 'use client';
 import {
   Card,
-  CardContent,
   CardHeader,
+  CardContent,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearch } from '@/context/search-context';
@@ -17,6 +17,8 @@ type DashboardPageLayoutProps = {
   tabs?: Tab[];
   cta: React.ReactNode;
   children: React.ReactNode;
+  activeTab?: string;
+  onTabChange?: (value: string) => void;
 };
 
 // Main content container
@@ -67,13 +69,15 @@ const TabContent = ({ value, children }: { value: string, children: React.ReactN
 TabContent.displayName = 'TabContent';
 
 
-export function DashboardPageLayout({ title, tabs, cta, children }: DashboardPageLayoutProps) {
+export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onTabChange }: DashboardPageLayoutProps) {
   const { searchQuery, setSearchQuery } = useSearch();
 
   const MainTabsWrapper = ({ children }: { children: React.ReactNode }) => {
     if (tabs && tabs.length > 0) {
+        const defaultValue = tabs[0].value;
+        const value = activeTab || defaultValue;
         return (
-            <Tabs defaultValue={tabs[0].value}>
+            <Tabs defaultValue={defaultValue} value={value} onValueChange={onTabChange}>
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <TabsList className="overflow-x-auto w-full justify-start md:w-auto">
                         {tabs.map((tab) => (

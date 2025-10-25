@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PlusCircle } from 'lucide-react';
@@ -46,6 +45,7 @@ export default function StaffPage() {
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState('team');
   const [newStaffMember, setNewStaffMember] = React.useState(emptyStaff);
   const [addMode, setAddMode] = React.useState<'invite' | 'manual'>('invite');
   const { toast } = useToast();
@@ -161,7 +161,13 @@ export default function StaffPage() {
   );
 
   return (
-    <DashboardPageLayout title="Staff Management" tabs={mainTabs} cta={cta}>
+    <DashboardPageLayout 
+        title="Staff Management" 
+        tabs={mainTabs} 
+        cta={cta} 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+    >
         <DashboardPageLayout.TabContent value="team">
             {isLoading ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

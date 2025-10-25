@@ -35,6 +35,7 @@ import { cn } from '@/lib/utils';
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('products');
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
@@ -112,6 +113,8 @@ export default function ProductsPage() {
         title="Products"
         tabs={tabs}
         cta={cta}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
     >
         <DashboardPageLayout.TabContent value="products">
             <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue='all'>

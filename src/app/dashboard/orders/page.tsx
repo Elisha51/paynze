@@ -3,7 +3,6 @@
 
 import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { OrdersTable } from '@/components/dashboard/orders-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -18,6 +17,7 @@ import { getOrders } from '@/services/orders';
 import { Order } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
 import React from 'react';
+import { OrdersTable } from '@/components/dashboard/orders-table';
 
 
 const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: boolean }) => {
@@ -96,6 +96,7 @@ const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: bool
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('all');
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
@@ -156,6 +157,8 @@ export default function OrdersPage() {
       title="Orders"
       tabs={mainTabs}
       cta={cta}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
     >
         <DashboardPageLayout.TabContent value="all">
             <StatusFilters orders={orders} isLoading={isLoading} />

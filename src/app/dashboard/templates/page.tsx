@@ -9,8 +9,10 @@ import { SmsTemplatesTab } from '@/components/dashboard/sms-templates-tab';
 import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
+import { useState } from 'react';
 
 export default function TemplatesPage() {
+    const [activeTab, setActiveTab] = useState('products');
 
     const tabs = [
         { value: 'products', label: 'Product Templates' },
@@ -28,7 +30,13 @@ export default function TemplatesPage() {
   );
 
     return (
-        <DashboardPageLayout title="Templates" tabs={tabs} cta={cta}>
+        <DashboardPageLayout 
+            title="Templates" 
+            tabs={tabs} 
+            cta={cta} 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+        >
             <TabsContent value="products">
                 <ProductTemplatesTab />
             </TabsContent>

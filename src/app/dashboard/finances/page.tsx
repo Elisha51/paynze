@@ -109,6 +109,7 @@ export default function FinancesPage() {
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
   const { toast } = useToast();
 
@@ -241,7 +242,13 @@ export default function FinancesPage() {
   );
 
   return (
-    <DashboardPageLayout title="Finances" tabs={mainTabs} cta={cta}>
+    <DashboardPageLayout 
+        title="Finances" 
+        tabs={mainTabs} 
+        cta={cta}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+    >
       <DashboardPageLayout.TabContent value="transactions">
         <Card>
           <CardContent className="pt-6">

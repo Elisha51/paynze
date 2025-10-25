@@ -172,6 +172,7 @@ export default function ProcurementPage() {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('suppliers');
   const [date, setDate] = useState<DateRange | undefined>({ from: addDays(new Date(), -29), to: new Date() });
 
   React.useEffect(() => {
@@ -230,7 +231,13 @@ export default function ProcurementPage() {
   );
 
   return (
-    <DashboardPageLayout title="Procurement" tabs={mainTabs} cta={cta}>
+    <DashboardPageLayout 
+        title="Procurement" 
+        tabs={mainTabs} 
+        cta={cta} 
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+    >
       <DashboardPageLayout.TabContent value="suppliers">
         <Card>
           <CardContent className="pt-6">
