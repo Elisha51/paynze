@@ -16,10 +16,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/dashboard/data-table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import type { Staff } from '@/lib/types';
 import { getStaff } from '@/services/staff';
 import Link from 'next/link';
+import { RolesPermissionsTab } from '@/components/dashboard/roles-permissions-tab';
 
 const columns: ColumnDef<Staff>[] = [
   { accessorKey: 'name', header: 'Name' },
@@ -75,6 +75,11 @@ export default function StaffPage() {
     loadStaff();
   }, []);
 
+  const mainTabs = [
+      { value: 'team', label: 'Your Team' },
+      { value: 'permissions', label: 'Roles & Permissions' },
+  ];
+
   const cta = (
     <Button asChild>
       <Link href="/dashboard/staff/add">
@@ -85,16 +90,13 @@ export default function StaffPage() {
   );
 
   return (
-    <DashboardPageLayout title="Staff Management" cta={cta}>
-        <Card>
-          <CardHeader>
-              <CardTitle>Your Team</CardTitle>
-              <CardDescription>Manage staff accounts, roles, and permissions.</CardDescription>
-          </CardHeader>
-          <CardContent>
+    <DashboardPageLayout title="Staff Management" tabs={mainTabs} cta={cta}>
+        <DashboardPageLayout.TabContent value="team">
             <DataTable columns={columns} data={staff} />
-          </CardContent>
-        </Card>
+        </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.TabContent value="permissions">
+            <RolesPermissionsTab />
+        </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );
 }

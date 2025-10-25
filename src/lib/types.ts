@@ -1,5 +1,6 @@
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -271,14 +272,33 @@ export type ShippingZone = {
 };
 
 // Staff Management
+export type StaffRole = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager';
+
+export type Permissions = {
+  canViewDashboard: boolean;
+  canManageProducts: boolean;
+  canManageOrders: boolean;
+  canManageCustomers: boolean;
+  canManageFinances: boolean;
+  canManageStaff: boolean;
+  canManageSettings: boolean;
+};
+
+export type Role = {
+  name: StaffRole;
+  description: string;
+  permissions: Permissions;
+};
+
 export type Staff = {
   id: string;
   name: string;
   email: string;
-  role: 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager';
+  role: StaffRole;
   status: 'Active' | 'Inactive';
   lastLogin?: string;
 };
+
 
 // Finance Types
 export type Transaction = {
