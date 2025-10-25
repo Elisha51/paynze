@@ -7,12 +7,20 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { DollarSign, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
+import { DataTable } from '@/components/dashboard/data-table';
+import { ordersColumns } from './report-columns';
 
+const chartConfig = {
+  sales: {
+    label: 'Sales',
+    color: 'hsl(var(--primary))',
+  },
+} satisfies ChartConfig;
 
 export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], dateRange?: DateRange }) {
 
@@ -24,34 +32,58 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
     });
   }, [orders, dateRange]);
 
-  const summaryMetrics = useMemo(() => {
+  const { summaryMetrics, chartData } = useMemo(() => {
+    const currency = reportData.length > 0 ? reportData[0].currency : 'UGX';
+    
     if (reportData.length === 0) {
-      return { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, newCustomers: 0, currency: 'UGX' };
+      return { 
+        summaryMetrics: { totalRevenue: 0, totalOrders: 0, avgOrderValue: 0, newCustomers: 0, currency },
+        chartData: []
+      };
     }
     const totalRevenue = reportData.reduce((sum, row) => sum + row.total, 0);
     const totalOrders = reportData.length;
-    const avgOrderValue = totalRevenue / totalOrders;
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     
     // Simplistic new customer calculation
     const uniqueCustomers = new Set(reportData.map(o => o.customerId));
     const newCustomers = uniqueCustomers.size;
+    
+    const salesByDate: {[key: string]: number} = {};
+    reportData.forEach(order => {
+        const date = new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        salesByDate[date] = (salesByDate[date] || 0) + order.total;
+    });
 
+    const formattedChartData = Object.keys(salesByDate).map(date => ({
+        date,
+        sales: salesByDate[date]
+    })).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     return {
-      totalRevenue,
-      totalOrders,
-      avgOrderValue,
-      newCustomers,
-      currency: reportData[0].currency,
+      summaryMetrics: {
+        totalRevenue,
+        totalOrders,
+        avgOrderValue,
+        newCustomers,
+        currency,
+      },
+      chartData: formattedChartData
     };
   }, [reportData]);
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency: summaryMetrics.currency || 'UGX' }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: summaryMetrics.currency }).format(amount);
   };
 
+  const formatCurrencyForChart = (value: number) => {
+    if (value >= 1000000) return `${formatCurrency(value / 1000000)}M`;
+    if (value >= 1000) return `${formatCurrency(value / 1000)}k`;
+    return formatCurrency(value);
+  }
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -97,11 +129,47 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
 
        <Card>
         <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-          <CardDescription>A detailed time-series chart showing sales trends will be available here.</CardDescription>
+          <CardTitle>Sales Trend</CardTitle>
         </CardHeader>
-        <CardContent className="h-64 flex items-center justify-center text-muted-foreground">
-          Chart Placeholder
+        <CardContent className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                    <XAxis
+                        dataKey="date"
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                    />
+                    <YAxis
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(value) => formatCurrencyForChart(value)}
+                    />
+                    <Tooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
+                            formatter={(value) => formatCurrency(value as number)}
+                            indicator="dot"
+                        />}
+                    />
+                    <Bar dataKey="sales" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+            <CardTitle>Order History</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <DataTable
+                columns={ordersColumns}
+                data={reportData}
+            />
         </CardContent>
       </Card>
     </div>

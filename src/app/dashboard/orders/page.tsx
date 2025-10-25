@@ -7,7 +7,7 @@ import { OrdersTable } from '@/components/dashboard/orders-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,6 +17,7 @@ import { OrderAnalyticsReport } from '@/components/dashboard/analytics/order-ana
 import { getOrders } from '@/services/orders';
 import { Order } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
+import React from 'react';
 
 
 export default function OrdersPage() {
@@ -27,7 +28,7 @@ export default function OrdersPage() {
     to: new Date(),
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     async function loadOrders() {
         setIsLoading(true);
         const fetchedOrders = await getOrders();

@@ -7,11 +7,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
 } from '@/components/ui/card';
 import { Users, UserPlus, Repeat, UserCheck } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
-
+import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { ChartTooltipContent } from '@/components/ui/chart';
+import { DataTable } from '@/components/dashboard/data-table';
+import { customersColumns } from './report-columns';
 
 export function CustomerAnalyticsReport({ customers, dateRange }: { customers: Customer[], dateRange?: DateRange }) {
 
@@ -23,25 +25,45 @@ export function CustomerAnalyticsReport({ customers, dateRange }: { customers: C
     });
   }, [customers, dateRange]);
 
-  const summaryMetrics = useMemo(() => {
+  const { summaryMetrics, chartData } = useMemo(() => {
     if (reportData.length === 0) {
-      return { newCustomers: 0, returningCustomers: 0, vipCustomers: 0 };
+      return { 
+        summaryMetrics: { newCustomers: 0, returningCustomers: 0, vipCustomers: 0 },
+        chartData: []
+      };
     }
     
-    const newCustomers = reportData.length;
-    const returningCustomers = customers.length - newCustomers; // Simplistic
+    const newCustomersCount = reportData.length;
+    // This is a simplification. A real calculation would be more complex.
+    const returningCustomers = customers.length - newCustomersCount; 
     const vipCustomers = reportData.filter(c => c.customerGroup === 'Wholesaler').length;
+    
+    const customersByDate: {[key: string]: number} = {};
+    reportData.forEach(customer => {
+        if (customer.createdAt) {
+            const date = new Date(customer.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            customersByDate[date] = (customersByDate[date] || 0) + 1;
+        }
+    });
+
+    const formattedChartData = Object.keys(customersByDate).map(date => ({
+        date,
+        customers: customersByDate[date]
+    })).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
 
     return {
-      newCustomers,
-      returningCustomers,
-      vipCustomers,
+      summaryMetrics: {
+        newCustomers: newCustomersCount,
+        returningCustomers,
+        vipCustomers,
+      },
+      chartData: formattedChartData
     };
   }, [reportData, customers]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -60,7 +82,7 @@ export function CustomerAnalyticsReport({ customers, dateRange }: { customers: C
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summaryMetrics.returningCustomers}</div>
-            <p className="text-xs text-muted-foreground">Made more than one purchase</p>
+            <p className="text-xs text-muted-foreground">(Simplistic calculation)</p>
           </CardContent>
         </Card>
         <Card>
@@ -70,18 +92,50 @@ export function CustomerAnalyticsReport({ customers, dateRange }: { customers: C
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summaryMetrics.vipCustomers}</div>
-            <p className="text-xs text-muted-foreground">Customers in special groups</p>
+            <p className="text-xs text-muted-foreground">New customers in special groups</p>
           </CardContent>
         </Card>
       </div>
 
        <Card>
         <CardHeader>
-          <CardTitle>Coming Soon</CardTitle>
-          <CardDescription>A detailed chart showing customer acquisition trends will be available here.</CardDescription>
+          <CardTitle>Customer Acquisition</CardTitle>
         </CardHeader>
-        <CardContent className="h-64 flex items-center justify-center text-muted-foreground">
-          Chart Placeholder
+        <CardContent className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+                 <BarChart data={chartData}>
+                    <XAxis
+                        dataKey="date"
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                    />
+                    <YAxis
+                        stroke="#888888"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                        allowDecimals={false}
+                    />
+                    <Tooltip
+                        cursor={false}
+                        content={<ChartTooltipContent indicator="dot" />}
+                    />
+                    <Bar dataKey="customers" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+            </ResponsiveContainer>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+            <CardTitle>New Customer List</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <DataTable
+                columns={customersColumns}
+                data={reportData}
+            />
         </CardContent>
       </Card>
     </div>
