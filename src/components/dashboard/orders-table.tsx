@@ -200,9 +200,11 @@ const columns: ColumnDef<Order>[] = [
     cell: ({ row }) => {
       const status = row.getValue('status') as Order['status'];
       return (
-        <Badge variant={statusVariantMap[status] || 'secondary'}>
-          {status}
-        </Badge>
+        <div className="whitespace-nowrap">
+          <Badge variant={statusVariantMap[status] || 'secondary'}>
+            {status}
+          </Badge>
+        </div>
       );
     },
   },

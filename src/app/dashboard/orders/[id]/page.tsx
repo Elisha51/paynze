@@ -117,7 +117,7 @@ export default function ViewOrderPage() {
             <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
                 Order {order.id}
             </h1>
-            <Badge variant={statusVariant} className="hidden sm:inline-flex">
+            <Badge variant={statusVariant} className="hidden sm:inline-flex whitespace-nowrap">
                 {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">

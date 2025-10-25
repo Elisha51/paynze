@@ -56,9 +56,11 @@ export const ordersColumns: ColumnDef<Order>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => (
-      <Badge variant={row.getValue('status') === 'Pending' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
-        {row.getValue('status')}
-      </Badge>
+      <div className="whitespace-nowrap">
+        <Badge variant={row.getValue('status') === 'Pending' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
+          {row.getValue('status')}
+        </Badge>
+      </div>
     ),
   },
   {
@@ -156,9 +158,11 @@ export const purchaseOrdersColumns: ColumnDef<PurchaseOrder>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => (
-      <Badge variant={row.getValue('status') === 'Sent' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
-        {row.getValue('status')}
-      </Badge>
+      <div className="whitespace-nowrap">
+        <Badge variant={row.getValue('status') === 'Sent' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
+          {row.getValue('status')}
+        </Badge>
+      </div>
     ),
   },
   {
