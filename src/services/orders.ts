@@ -16,12 +16,30 @@ export async function getOrders(): Promise<Order[]> {
   await new Promise(resolve => setTimeout(resolve, 500));
   // Add assignments to mock data
   const assignedOrders = orders.map((order, index) => {
-      if (index === 0) { // Assign the first order
+      if (index === 0) { // Assign the first order for delivery
           return {
               ...order,
               assignedStaffId: 'staff-003',
               assignedStaffName: 'Peter Jones',
+              fulfilledByStaffId: 'staff-003',
+              fulfilledByStaffName: 'Peter Jones',
           };
+      }
+      if (index === 1) { // Mark second order as a pickup
+          return {
+              ...order,
+              status: 'Picked Up' as const,
+              fulfillmentMethod: 'Pickup' as const,
+              fulfilledByStaffId: 'staff-002', // Sales agent handled the pickup
+              fulfilledByStaffName: 'Jane Smith',
+          }
+      }
+      if (index === 2) {
+          return {
+              ...order,
+              status: 'Ready for Pickup' as const,
+              fulfillmentMethod: 'Pickup' as const,
+          }
       }
       return order;
   });

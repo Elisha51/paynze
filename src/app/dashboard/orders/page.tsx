@@ -66,10 +66,11 @@ export default function OrdersPage() {
 
   const filterTabs = [
     { value: 'all', label: 'All' },
-    { value: 'unassigned', label: 'Unassigned' },
-    { value: 'assigned', label: 'Assigned' },
     { value: 'pending', label: 'Pending' },
-    { value: 'delivered', label: 'Delivered' },
+    { value: 'ready-for-pickup', label: 'Ready for Pickup' },
+    { value: 'unassigned', label: 'Unassigned Deliveries' },
+    { value: 'assigned', label: 'Assigned Deliveries' },
+    { value: 'completed', label: 'Completed' },
     { value: 'cancelled', label: 'Cancelled' },
   ];
 
@@ -96,11 +97,25 @@ export default function OrdersPage() {
                         isLoading={isLoading}
                     />
                 </DashboardPageLayout.TabContent>
+                <DashboardPageLayout.TabContent value="pending">
+                    <OrdersTable
+                        orders={orders}
+                        isLoading={isLoading}
+                        filter={{ column: 'status', value: 'Pending' }}
+                    />
+                </DashboardPageLayout.TabContent>
+                <DashboardPageLayout.TabContent value="ready-for-pickup">
+                    <OrdersTable
+                        orders={orders}
+                        isLoading={isLoading}
+                        filter={{ column: 'status', value: 'Ready for Pickup' }}
+                    />
+                </DashboardPageLayout.TabContent>
                  <DashboardPageLayout.TabContent value="unassigned">
                     <OrdersTable
                         orders={orders}
                         isLoading={isLoading}
-                        filter={{ column: 'assignedStaffId', exists: false }}
+                        filter={{ column: 'assignedStaffId', exists: false, secondaryColumn: 'fulfillmentMethod', secondaryValue: 'Delivery' }}
                     />
                 </DashboardPageLayout.TabContent>
                  <DashboardPageLayout.TabContent value="assigned">
@@ -110,18 +125,11 @@ export default function OrdersPage() {
                         filter={{ column: 'assignedStaffId', exists: true }}
                     />
                 </DashboardPageLayout.TabContent>
-                <DashboardPageLayout.TabContent value="pending">
+                 <DashboardPageLayout.TabContent value="completed">
                     <OrdersTable
                         orders={orders}
                         isLoading={isLoading}
-                        filter={{ column: 'status', value: 'Pending' }}
-                    />
-                </DashboardPageLayout.TabContent>
-                <DashboardPageLayout.TabContent value="delivered">
-                    <OrdersTable
-                        orders={orders}
-                        isLoading={isLoading}
-                        filter={{ column: 'status', value: 'Delivered' }}
+                        filter={{ column: 'status', value: ['Delivered', 'Picked Up'] }}
                     />
                 </DashboardPageLayout.TabContent>
                 <DashboardPageLayout.TabContent value="cancelled">

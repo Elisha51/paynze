@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 export type ProductImage = {
   id: string;
   url: string;
@@ -180,7 +174,8 @@ export type Order = {
     customerName: string;
     customerEmail: string;
     date: string;
-    status: 'Pending' | 'Paid' | 'Shipped' | 'Delivered' | 'Cancelled';
+    status: 'Pending' | 'Paid' | 'Ready for Pickup' | 'Shipped' | 'Delivered' | 'Picked Up' | 'Cancelled';
+    fulfillmentMethod: 'Delivery' | 'Pickup';
     items: OrderItem[];
     total: number;
     currency: 'KES' | 'UGX' | 'TZS' | 'USD';
@@ -196,6 +191,8 @@ export type Order = {
     taxes?: number;
     assignedStaffId?: string;
     assignedStaffName?: string;
+    fulfilledByStaffId?: string;
+    fulfilledByStaffName?: string;
 };
 
 export type Customer = {

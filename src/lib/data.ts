@@ -177,6 +177,7 @@ export const orders: Order[] = [
         customerEmail: 'olivia@example.com',
         date: '2023-02-10', 
         status: 'Delivered', 
+        fulfillmentMethod: 'Delivery',
         items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000 }],
         total: 75000, 
         currency: 'UGX',
@@ -190,13 +191,29 @@ export const orders: Order[] = [
         customerName: 'Liam Johnson', 
         customerEmail: 'liam@example.com', 
         date: '2023-02-14', 
-        status: 'Delivered', 
+        status: 'Picked Up', 
+        fulfillmentMethod: 'Pickup',
         items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 1, price: 35000, category: 'Fabrics' }],
         total: 35000,
         currency: 'UGX',
         shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
         paymentMethod: 'Cash on Delivery',
-        paymentStatus: 'Unpaid'
+        paymentStatus: 'Paid'
+    },
+     { 
+        id: 'ORD-003', 
+        customerId: 'cust-03',
+        customerName: 'Noah Williams', 
+        customerEmail: 'noah@example.com', 
+        date: '2023-03-05', 
+        status: 'Pending', 
+        fulfillmentMethod: 'Delivery',
+        items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 15000, category: 'Digital Goods' }],
+        total: 15000,
+        currency: 'KES',
+        shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
+        paymentMethod: 'Mobile Money',
+        paymentStatus: 'Paid'
     },
 ];
 

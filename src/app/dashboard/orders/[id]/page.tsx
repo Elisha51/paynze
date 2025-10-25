@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Copy } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Copy, Store, PackageCheck } from 'lucide-react';
 import Link from 'next/link';
 import { getOrderById } from '@/services/orders';
 import type { Order } from '@/lib/types';
@@ -95,8 +95,10 @@ export default function ViewOrderPage() {
   const statusVariant = {
       Pending: 'secondary',
       Paid: 'default',
+      'Ready for Pickup': 'outline',
       Shipped: 'outline',
       Delivered: 'default',
+      'Picked Up': 'default',
       Cancelled: 'destructive',
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
 
@@ -117,9 +119,8 @@ export default function ViewOrderPage() {
                 {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                <Button variant="outline" size="sm">
-                    Mark as Fulfilled
-                </Button>
+                {order.fulfillmentMethod === 'Delivery' && <Button variant="outline" size="sm">Mark as Delivered</Button>}
+                {order.fulfillmentMethod === 'Pickup' && <Button variant="outline" size="sm">Mark as Picked Up</Button>}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="h-8 w-8">
@@ -149,16 +150,17 @@ export default function ViewOrderPage() {
                     </CardDescription>
                     </div>
                      <div className="ml-auto flex items-center gap-1">
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 gap-1"
-                        >
-                            <Truck className="h-3.5 w-3.5" />
-                            <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">
-                                Track Order
-                            </span>
-                        </Button>
+                        {order.fulfillmentMethod === 'Delivery' ? (
+                            <Button size="sm" variant="outline" className="h-8 gap-1">
+                                <Truck className="h-3.5 w-3.5" />
+                                <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">Track Order</span>
+                            </Button>
+                        ) : (
+                             <Button size="sm" variant="outline" className="h-8 gap-1">
+                                <Store className="h-3.5 w-3.5" />
+                                <span className="lg:sr-only xl:not-sr-only xl:whitespace-nowrap">Pickup Order</span>
+                            </Button>
+                        )}
                     </div>
                 </CardHeader>
                 <CardContent className="p-6 text-sm">
@@ -204,6 +206,33 @@ export default function ViewOrderPage() {
                             </li>
                         </ul>
                     </div>
+                     <Separator className="my-4" />
+                     <div className="grid gap-3">
+                        <div className="font-semibold">Fulfillment</div>
+                        {order.fulfilledByStaffName ? (
+                            <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground flex items-center gap-2">
+                                    <PackageCheck className="h-4 w-4" />
+                                    {order.status === 'Picked Up' ? 'Picked up by Customer, handled by' : 'Delivered by'}
+                                </span>
+                                <Link href={`/dashboard/staff/${order.fulfilledByStaffId}`} className="font-semibold hover:underline">
+                                    {order.fulfilledByStaffName}
+                                </Link>
+                            </div>
+                        ) : order.assignedStaffName ? (
+                             <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground flex items-center gap-2">
+                                    <Truck className="h-4 w-4" />
+                                    Assigned for delivery to
+                                </span>
+                                <Link href={`/dashboard/staff/${order.assignedStaffId}`} className="font-semibold hover:underline">
+                                    {order.assignedStaffName}
+                                </Link>
+                            </div>
+                        ) : (
+                            <p className="text-sm text-muted-foreground">This order is pending fulfillment.</p>
+                        )}
+                     </div>
                 </CardContent>
                 </Card>
             </div>
@@ -250,5 +279,3 @@ export default function ViewOrderPage() {
     </div>
   );
 }
-
-    

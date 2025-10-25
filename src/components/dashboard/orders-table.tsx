@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, User } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, User, PackageCheck } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -72,7 +72,7 @@ function AssignOrderDialog({ order }: { order: Order }) {
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Assign Order #{order.id}</DialogTitle>
-                    <DialogDescription>Select a staff member to assign this order to.</DialogDescription>
+                    <DialogDescription>Select a staff member to assign this order to for delivery.</DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
                     <Select onValueChange={setSelectedStaffId}>
@@ -96,6 +96,16 @@ function AssignOrderDialog({ order }: { order: Order }) {
         </Dialog>
     )
 }
+
+const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
+  Pending: 'secondary',
+  Paid: 'secondary',
+  'Ready for Pickup': 'outline',
+  Shipped: 'outline',
+  Delivered: 'default',
+  'Picked Up': 'default',
+  Cancelled: 'destructive',
+};
 
 
 const columns: ColumnDef<Order>[] = [
@@ -179,27 +189,35 @@ const columns: ColumnDef<Order>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => (
-      <Badge variant={row.getValue('status') === 'Pending' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
-        {row.getValue('status')}
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const status = row.getValue('status') as Order['status'];
+      return (
+        <Badge variant={statusVariantMap[status] || 'secondary'}>
+          {status}
+        </Badge>
+      );
+    },
   },
     {
     accessorKey: 'assignedStaffName',
-    header: 'Assigned To',
+    header: 'Fulfilled By',
     cell: ({ row }) => {
         const order = row.original;
-        if (!order.assignedStaffName) {
+        const staffName = order.fulfilledByStaffName || order.assignedStaffName;
+        const staffId = order.fulfilledByStaffId || order.assignedStaffId;
+        const isPickup = order.fulfillmentMethod === 'Pickup';
+
+        if (!staffName || !staffId) {
             return <span className="text-muted-foreground">Unassigned</span>
         }
         return (
-            <Link href={`/dashboard/staff/${order.assignedStaffId}`} className="flex items-center gap-2 hover:underline">
+            <Link href={`/dashboard/staff/${staffId}`} className="flex items-center gap-2 hover:underline">
                 <Avatar className="h-6 w-6">
-                    <AvatarImage src={`https://picsum.photos/seed/${order.assignedStaffId}/24/24`} />
-                    <AvatarFallback>{getInitials(order.assignedStaffName)}</AvatarFallback>
+                    <AvatarImage src={`https://picsum.photos/seed/${staffId}/24/24`} />
+                    <AvatarFallback>{getInitials(staffName)}</AvatarFallback>
                 </Avatar>
-                <span className="font-medium">{order.assignedStaffName}</span>
+                <span className="font-medium">{staffName}</span>
+                {isPickup && <PackageCheck className="h-4 w-4 text-muted-foreground" title="Pickup" />}
             </Link>
         )
     }
@@ -256,8 +274,10 @@ type OrdersTableProps = {
   isLoading: boolean;
   filter?: {
     column: string;
-    value?: string;
+    value?: string | string[];
     exists?: boolean;
+    secondaryColumn?: string;
+    secondaryValue?: string;
   };
 };
 
@@ -266,15 +286,24 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
 
   React.useEffect(() => {
     if (filter) {
-      if (filter.value) {
-        setData(orders.filter(item => (item as any)[filter.column] === filter.value));
-      } else if (filter.exists === true) {
-        setData(orders.filter(item => !!(item as any)[filter.column]));
-      } else if (filter.exists === false) {
-        setData(orders.filter(item => !(item as any)[filter.column]));
-      } else {
-        setData(orders);
+      let filteredData = orders;
+
+      if (filter.secondaryColumn && filter.secondaryValue) {
+          filteredData = filteredData.filter(item => (item as any)[filter.secondaryColumn!] === filter.secondaryValue);
       }
+
+      if (filter.value) {
+        if (Array.isArray(filter.value)) {
+            filteredData = filteredData.filter(item => (filter.value as string[]).includes((item as any)[filter.column]));
+        } else {
+            filteredData = filteredData.filter(item => (item as any)[filter.column] === filter.value);
+        }
+      } else if (filter.exists === true) {
+        filteredData = filteredData.filter(item => !!(item as any)[filter.column]);
+      } else if (filter.exists === false) {
+        filteredData = filteredData.filter(item => !(item as any)[filter.column]);
+      }
+      setData(filteredData);
     } else {
       setData(orders);
     }
