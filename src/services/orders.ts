@@ -14,10 +14,22 @@ let orders: Order[] = [...mockOrders];
 export async function getOrders(): Promise<Order[]> {
   // Simulate network delay
   await new Promise(resolve => setTimeout(resolve, 500));
-  return [...orders];
+  // Add assignments to mock data
+  const assignedOrders = orders.map((order, index) => {
+      if (index === 0) { // Assign the first order
+          return {
+              ...order,
+              assignedStaffId: 'staff-003',
+              assignedStaffName: 'Peter Jones',
+          };
+      }
+      return order;
+  });
+  return [...assignedOrders];
 }
 
 export async function getOrderById(orderId: string): Promise<Order | undefined> {
   await new Promise(resolve => setTimeout(resolve, 300));
-  return orders.find(order => order.id === orderId);
+  const allOrders = await getOrders();
+  return allOrders.find(order => order.id === orderId);
 }

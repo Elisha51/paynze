@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, User } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -34,6 +34,8 @@ import { useToast } from '@/hooks/use-toast';
 import { getStaff } from '@/services/staff';
 import type { Staff } from '@/lib/types';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { getInitials } from '@/lib/utils';
 
 function AssignOrderDialog({ order }: { order: Order }) {
     const { toast } = useToast();
@@ -184,8 +186,23 @@ const columns: ColumnDef<Order>[] = [
     ),
   },
     {
-    accessorKey: 'paymentMethod',
-    header: 'Payment',
+    accessorKey: 'assignedStaffName',
+    header: 'Assigned To',
+    cell: ({ row }) => {
+        const order = row.original;
+        if (!order.assignedStaffName) {
+            return <span className="text-muted-foreground">Unassigned</span>
+        }
+        return (
+            <Link href={`/dashboard/staff/${order.assignedStaffId}`} className="flex items-center gap-2 hover:underline">
+                <Avatar className="h-6 w-6">
+                    <AvatarImage src={`https://picsum.photos/seed/${order.assignedStaffId}/24/24`} />
+                    <AvatarFallback>{getInitials(order.assignedStaffName)}</AvatarFallback>
+                </Avatar>
+                <span className="font-medium">{order.assignedStaffName}</span>
+            </Link>
+        )
+    }
   },
   {
     accessorKey: 'total',
@@ -239,7 +256,8 @@ type OrdersTableProps = {
   isLoading: boolean;
   filter?: {
     column: string;
-    value: string;
+    value?: string;
+    exists?: boolean;
   };
 };
 
@@ -248,7 +266,15 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
 
   React.useEffect(() => {
     if (filter) {
-      setData(orders.filter(item => (item as any)[filter.column] === filter.value));
+      if (filter.value) {
+        setData(orders.filter(item => (item as any)[filter.column] === filter.value));
+      } else if (filter.exists === true) {
+        setData(orders.filter(item => !!(item as any)[filter.column]));
+      } else if (filter.exists === false) {
+        setData(orders.filter(item => !(item as any)[filter.column]));
+      } else {
+        setData(orders);
+      }
     } else {
       setData(orders);
     }
@@ -261,4 +287,3 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
     />
   );
 }
-

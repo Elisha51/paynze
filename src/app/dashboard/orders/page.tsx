@@ -66,6 +66,8 @@ export default function OrdersPage() {
 
   const filterTabs = [
     { value: 'all', label: 'All' },
+    { value: 'unassigned', label: 'Unassigned' },
+    { value: 'assigned', label: 'Assigned' },
     { value: 'pending', label: 'Pending' },
     { value: 'delivered', label: 'Delivered' },
     { value: 'cancelled', label: 'Cancelled' },
@@ -92,6 +94,20 @@ export default function OrdersPage() {
                     <OrdersTable
                         orders={orders}
                         isLoading={isLoading}
+                    />
+                </DashboardPageLayout.TabContent>
+                 <DashboardPageLayout.TabContent value="unassigned">
+                    <OrdersTable
+                        orders={orders}
+                        isLoading={isLoading}
+                        filter={{ column: 'assignedStaffId', exists: false }}
+                    />
+                </DashboardPageLayout.TabContent>
+                 <DashboardPageLayout.TabContent value="assigned">
+                    <OrdersTable
+                        orders={orders}
+                        isLoading={isLoading}
+                        filter={{ column: 'assignedStaffId', exists: true }}
                     />
                 </DashboardPageLayout.TabContent>
                 <DashboardPageLayout.TabContent value="pending">

@@ -45,7 +45,7 @@ const FilterTabs = ({ filterTabs, defaultValue, children }: { filterTabs: Tab[],
         <Card>
             <Tabs defaultValue={defaultValue}>
                 <CardHeader>
-                    <TabsList className="grid w-full grid-cols-4">
+                    <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                         {filterTabs.map(tab => (
                             <TabsTrigger key={tab.value} value={tab.value} className={tab.className}>
                                 {tab.label}

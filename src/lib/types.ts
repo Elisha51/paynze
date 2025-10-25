@@ -4,6 +4,7 @@
 
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -193,6 +194,8 @@ export type Order = {
     paymentStatus: 'Paid' | 'Unpaid';
     shippingCost?: number;
     taxes?: number;
+    assignedStaffId?: string;
+    assignedStaffName?: string;
 };
 
 export type Customer = {
@@ -295,7 +298,7 @@ export type Permissions = {
   settings: { view: boolean; edit: boolean };
 };
 
-export type AttributeType = 'kpi' | 'tags' | 'string' | 'number' | 'boolean' | 'date';
+export type AttributeType = 'kpi' | 'tags' | 'list' | 'string' | 'number' | 'boolean' | 'date';
 
 export type AssignableAttribute = {
     key: string; // e.g. 'salesTarget', 'deliveryZones'
