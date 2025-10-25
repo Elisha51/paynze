@@ -305,11 +305,17 @@ export type AssignableAttribute = {
     type: AttributeType;
 }
 
+export type CommissionRule = {
+    type: 'Fixed Amount' | 'Percentage of Sale';
+    rate: number;
+}
+
 export type Role = {
   name: StaffRoleName;
   description: string;
   permissions: Permissions;
   assignableAttributes?: AssignableAttribute[];
+  commission?: CommissionRule;
 };
 
 export type PerformanceTarget = {
@@ -358,4 +364,5 @@ export type Transaction = {
     category: 'Sales' | 'Inventory' | 'Utilities' | 'Salaries' | 'Marketing' | 'Other';
     status: 'Cleared' | 'Pending' | 'Reconciled';
 };
+
 

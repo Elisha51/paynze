@@ -1,4 +1,5 @@
 
+
 import type { Role, Permissions } from '@/lib/types';
 
 const defaultPermissions: Permissions = {
@@ -38,6 +39,10 @@ let roles: Role[] = [
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
     },
+    commission: {
+        type: 'Percentage of Sale',
+        rate: 5,
+    },
     assignableAttributes: [
         { key: 'salesTarget', label: 'Monthly Sales Target', type: 'kpi' },
         { key: 'assignedRegions', label: 'Sales Regions', type: 'tags' },
@@ -51,6 +56,10 @@ let roles: Role[] = [
       ...defaultPermissions,
       dashboard: { view: true },
       orders: { view: true, create: false, edit: true, delete: false },
+    },
+    commission: {
+        type: 'Fixed Amount',
+        rate: 1500,
     },
     assignableAttributes: [
         { key: 'deliveryTarget', label: 'Daily Delivery Target', type: 'kpi' },

@@ -1,16 +1,17 @@
 
+
 'use client';
 
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
-import type { Role, Permissions, CrudPermissions, AssignableAttribute, StaffRoleName, AttributeType } from '@/lib/types';
+import type { Role, Permissions, CrudPermissions, AssignableAttribute, StaffRoleName, AttributeType, CommissionRule } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
-import { PlusCircle, Trash2 } from 'lucide-react';
+import { PlusCircle, Trash2, DollarSign } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -152,6 +153,18 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
     );
   }
 
+  const handleCommissionChange = (roleName: string, field: keyof CommissionRule, value: string | number) => {
+     setRoles(prevRoles => 
+        prevRoles.map(role => {
+            if (role.name === roleName) {
+                const newCommission = { ...(role.commission || { type: 'Fixed Amount', rate: 0 }), [field]: value };
+                return { ...role, commission: newCommission };
+            }
+            return role;
+        })
+    );
+  }
+
 
   if (roles.length === 0) {
       return <div>Loading roles...</div>
@@ -183,11 +196,14 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                         <h3 className="font-semibold text-lg">{role.name}</h3>
                                         <p className="text-sm text-muted-foreground">{role.description}</p>
                                     </div>
-                                    {role.assignableAttributes && role.assignableAttributes.length > 0 && (
-                                        <Badge variant="secondary">
-                                            {role.assignableAttributes.length} Attribute{role.assignableAttributes.length > 1 ? 's' : ''}
-                                        </Badge>
-                                    )}
+                                    <div className="flex items-center gap-2">
+                                        {role.commission && <Badge variant="outline"><DollarSign className="h-3 w-3 mr-1"/>Commission</Badge>}
+                                        {role.assignableAttributes && role.assignableAttributes.length > 0 && (
+                                            <Badge variant="secondary">
+                                                {role.assignableAttributes.length} Attribute{role.assignableAttributes.length > 1 ? 's' : ''}
+                                            </Badge>
+                                        )}
+                                    </div>
                                 </div>
                             </AccordionTrigger>
                              <AccordionContent>
@@ -241,6 +257,29 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                             <Label htmlFor={`${role.name}-settings-edit`}>Edit</Label>
                                         </div>
                                     </div>
+                                    <Separator />
+                                    <h4 className="font-bold text-base">Commission Settings</h4>
+                                    <p className="text-sm text-muted-foreground">Define how staff with this role earn commissions. Set to zero to disable.</p>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor={`commission-type-${role.name}`}>Type</Label>
+                                            <Select value={role.commission?.type || 'Fixed Amount'} onValueChange={(v) => handleCommissionChange(role.name, 'type', v)}>
+                                                <SelectTrigger id={`commission-type-${role.name}`}>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Fixed Amount">Fixed Amount (per order/delivery)</SelectItem>
+                                                    <SelectItem value="Percentage of Sale">Percentage of Sale</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor={`commission-rate-${role.name}`}>Rate ({role.commission?.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
+                                            <Input id={`commission-rate-${role.name}`} type="number" value={role.commission?.rate || 0} onChange={(e) => handleCommissionChange(role.name, 'rate', Number(e.target.value))} />
+                                        </div>
+                                    </div>
+
+
                                     <Separator />
                                     <h4 className="font-bold text-base">Custom Attributes</h4>
                                     <p className="text-sm text-muted-foreground">Define custom data fields for staff members with this role. These fields will appear on their profile and can be used for tracking, assignments, or information.</p>
