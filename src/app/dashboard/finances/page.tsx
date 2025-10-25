@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Download } from 'lucide-react';
+import { PlusCircle, Download, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -18,8 +18,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/dashboard/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Staff, Role } from '@/lib/types';
 import { getTransactions, addTransaction } from '@/services/finances';
+import { getStaff } from '@/services/staff';
+import { getRoles } from '@/services/roles';
 import {
   Dialog,
   DialogContent,
@@ -42,6 +44,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
+import { CommissionReport } from '@/components/dashboard/commission-report';
 
 const columns: ColumnDef<Transaction>[] = [
     { accessorKey: 'date', header: 'Date' },
@@ -107,22 +110,30 @@ const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
 
 export default function FinancesPage() {
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
+  const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [roles, setRoles] = React.useState<Role[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
   const { toast } = useToast();
 
-  const loadTransactions = React.useCallback(async () => {
+  const loadData = React.useCallback(async () => {
     setIsLoading(true);
-    const fetched = await getTransactions();
-    setTransactions(fetched);
+    const [fetchedTransactions, fetchedStaff, fetchedRoles] = await Promise.all([
+        getTransactions(),
+        getStaff(),
+        getRoles()
+    ]);
+    setTransactions(fetchedTransactions);
+    setStaff(fetchedStaff);
+    setRoles(fetchedRoles);
     setIsLoading(false);
   }, []);
 
   React.useEffect(() => {
-    loadTransactions();
-  }, [loadTransactions]);
+    loadData();
+  }, [loadData]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -149,11 +160,12 @@ export default function FinancesPage() {
     toast({ title: 'Transaction Added' });
     setIsDialogOpen(false);
     setNewTransaction(emptyTransaction);
-    loadTransactions();
+    loadData();
   }
 
   const mainTabs = [
     { value: 'transactions', label: 'Transactions' },
+    { value: 'payroll', label: 'Payroll' },
     { value: 'reconciliation', label: 'Reconciliation' },
     { value: 'reports', label: 'Reports' },
   ];
@@ -255,6 +267,10 @@ export default function FinancesPage() {
             <DataTable columns={columns} data={transactions} />
           </CardContent>
         </Card>
+      </DashboardPageLayout.TabContent>
+
+      <DashboardPageLayout.TabContent value="payroll">
+          <CommissionReport staff={staff} roles={roles} onPayout={loadData} />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reconciliation">

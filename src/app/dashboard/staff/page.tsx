@@ -2,7 +2,7 @@
 
 'use client';
 
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, BarChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -33,7 +33,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { StaffCard } from '@/components/dashboard/staff-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CommissionReport } from '@/components/dashboard/commission-report';
 
 const emptyStaff: Omit<Staff, 'id'> = {
   name: '',
@@ -204,7 +203,21 @@ export default function StaffPage() {
             <RolesPermissionsTab roles={roles} setRoles={setRoles} />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="reports">
-            <CommissionReport staff={staff} roles={roles} onPayout={loadData} />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Staff Analytics</CardTitle>
+                    <CardDescription>Analyze performance and activity across your team.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
+                        <div className="bg-primary/10 p-4 rounded-full">
+                           <BarChart className="h-12 w-12 text-primary" />
+                        </div>
+                        <h2 className="text-xl font-semibold">Coming Soon</h2>
+                        <p className="text-muted-foreground max-w-sm mx-auto">Detailed staff performance reports and analytics will be available here.</p>
+                    </div>
+                </CardContent>
+            </Card>
         </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );
