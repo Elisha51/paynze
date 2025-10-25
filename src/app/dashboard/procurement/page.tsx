@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Edit } from 'lucide-react';
 
 import { Badge } from '@/components/ui/badge';
 import {
@@ -80,7 +80,12 @@ const supplierColumns: ColumnDef<Supplier>[] = [
             <DropdownMenuItem asChild>
               <Link href={`/dashboard/suppliers/${row.original.id}`}>View Details</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>Edit Supplier</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href={`/dashboard/suppliers/${row.original.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit Supplier
+              </Link>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
