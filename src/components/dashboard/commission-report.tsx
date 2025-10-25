@@ -1,8 +1,9 @@
 
+
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Staff, Role } from '@/lib/types';
+import type { Payout, Staff, Role } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/dashboard/data-table';
@@ -121,15 +122,23 @@ export function CommissionReport({ staff, roles, onPayout }: { staff: Staff[], r
                 status: 'Cleared',
             });
 
-            // 2. Reset the staff member's commission balance
-            await updateStaff({ ...staffMember, totalCommission: 0 });
+            // 2. Create a payout history record
+            const newPayout: Payout = {
+                date: new Date().toISOString(),
+                amount: amount,
+                currency: currency,
+            };
+            const updatedPayoutHistory = [...(staffMember.payoutHistory || []), newPayout];
+
+            // 3. Reset the staff member's commission balance and add to history
+            await updateStaff({ ...staffMember, totalCommission: 0, payoutHistory: updatedPayoutHistory });
 
             toast({
                 title: 'Payout Successful',
                 description: `${staffMember.name}'s commission has been paid out.`,
             });
             
-            // 3. Refresh the data
+            // 4. Refresh the data in the parent component
             onPayout();
 
         } catch (error) {

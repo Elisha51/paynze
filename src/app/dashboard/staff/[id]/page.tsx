@@ -7,7 +7,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle, Truck, Activity, DollarSign } from 'lucide-react';
 import Link from 'next/link';
-import type { Staff, Order, Role, AssignableAttribute } from '@/lib/types';
+import type { Staff, Order, Role, AssignableAttribute, Payout } from '@/lib/types';
 import { getStaff, updateStaff } from '@/services/staff';
 import { getOrders, updateOrder } from '@/services/orders';
 import { getRoles } from '@/services/roles';
@@ -40,6 +40,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { StaffScheduleCard } from '@/components/dashboard/staff-schedule-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 const orderColumns: ColumnDef<Order>[] = [
     {
@@ -69,6 +70,23 @@ const orderColumns: ColumnDef<Order>[] = [
             return <div className="text-right font-medium">{formatted}</div>;
         },
     }
+];
+
+const payoutColumns: ColumnDef<Payout>[] = [
+    {
+        accessorKey: 'date',
+        header: 'Date',
+        cell: ({ row }) => format(new Date(row.getValue('date')), 'PPP')
+    },
+    {
+        accessorKey: 'amount',
+        header: 'Amount',
+        cell: ({ row }) => {
+            const payout = row.original;
+            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: payout.currency }).format(payout.amount);
+            return <div className="font-medium">{formatted}</div>;
+        },
+    },
 ];
 
 const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttribute, value: any }) => {
@@ -443,22 +461,43 @@ export default function ViewStaffPage() {
             )}
         </TabsContent>
         <TabsContent value="performance" className="mt-6 space-y-6">
-            {staffMember.totalCommission && staffMember.currency && (
-                 <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                           <DollarSign className="h-5 w-5 text-primary"/>
-                           Performance Summary
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-sm">
-                            <span className="text-muted-foreground">Total Commission Earned: </span>
-                            <span className="font-bold text-lg">{formatCurrency(staffMember.totalCommission, staffMember.currency)}</span>
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <DollarSign className="h-5 w-5 text-primary"/>
+                        Performance Summary
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="divide-y">
+                    {staffMember.totalCommission && staffMember.currency && (
+                        <div className="text-sm py-3 flex justify-between items-center">
+                            <span className="text-muted-foreground">Unpaid Commission: </span>
+                            <span className="font-bold text-lg text-primary">{formatCurrency(staffMember.totalCommission, staffMember.currency)}</span>
                         </div>
-                    </CardContent>
-                </Card>
-            )}
+                    )}
+                    {staffMember.payoutHistory && staffMember.payoutHistory.length > 0 && (
+                        <div className="pt-4">
+                            <h4 className="font-medium text-sm mb-2">Payout History</h4>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead className="text-right">Amount</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {staffMember.payoutHistory.slice(-5).reverse().map((payout, index) => (
+                                        <TableRow key={index}>
+                                            <TableCell>{format(new Date(payout.date), 'PPP')}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(payout.amount, payout.currency)}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {assignedAttributes.map((attr) => {
                 if (!attr) return null;

@@ -323,6 +323,12 @@ export type Shift = {
   endTime: string;
 }
 
+export type Payout = {
+    date: string;
+    amount: number;
+    currency: string;
+};
+
 export type Staff = {
   id: string;
   name: string;
@@ -340,6 +346,7 @@ export type Staff = {
   totalSales?: number; // For sales agents
   totalCommission?: number; // For tracking earned commission
   currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
+  payoutHistory?: Payout[];
   // Dynamic attributes based on role
   attributes?: {
     [key: string]: PerformanceTarget | string[] | string | number | boolean | Date;
