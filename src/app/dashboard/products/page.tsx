@@ -16,6 +16,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { ProductPerformanceReport } from '@/components/dashboard/analytics/product-performance-report';
+import { CategoriesTab } from '@/components/dashboard/categories-tab';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -33,6 +34,7 @@ export default function ProductsPage() {
       { value: 'published', label: 'Published' },
       { value: 'draft', label: 'Draft' },
       { value: 'archived', label: 'Archived' },
+      { value: 'categories', label: 'Categories' },
       { value: 'reports', label: 'Reports', className: 'flex items-center gap-2' },
   ];
 
@@ -94,6 +96,9 @@ export default function ProductsPage() {
                 data={archivedProducts}
                 setData={setProducts}
             />
+        </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.TabContent value="categories">
+            <CategoriesTab />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="reports">
             <ProductPerformanceReport products={products} />

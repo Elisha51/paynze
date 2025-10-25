@@ -3,7 +3,6 @@
 
 import { PlusCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
 import {
   ColumnDef,
@@ -84,7 +83,7 @@ const getColumns = (
 ];
 
 
-function CategoriesTable() {
+export function CategoriesTab() {
   const [data, setData] = React.useState<Category[]>([]);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
@@ -194,25 +193,5 @@ function CategoriesTable() {
           </DialogContent>
         </Dialog>
     </>
-  );
-}
-
-
-export default function CategoriesPage() {
-
-  const tabs = [
-    { value: 'all', label: 'All Categories' },
-  ];
-
-  return (
-    <DashboardPageLayout
-      title="Categories"
-      tabs={tabs}
-      cta={<div />}
-    >
-      <DashboardPageLayout.TabContent value="all">
-        <CategoriesTable />
-      </DashboardPageLayout.TabContent>
-    </DashboardPageLayout>
   );
 }
