@@ -163,13 +163,15 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
         <StaffCard key={member.id} member={member} />
       ))}
       {staff.length > 3 && (
-        <Card className="flex flex-col items-center justify-center text-center bg-muted/50 hover:bg-muted transition-colors cursor-pointer">
-            <CardContent className="p-6">
-                 <ArrowRight className="h-8 w-8 text-muted-foreground mb-2" />
-                 <h3 className="font-semibold">View All Staff</h3>
-                 <p className="text-sm text-muted-foreground">See the full list below</p>
-            </CardContent>
-        </Card>
+        <Link href="/dashboard/staff">
+            <Card className="flex flex-col items-center justify-center text-center bg-muted/50 hover:bg-muted transition-colors cursor-pointer h-full">
+                <CardContent className="p-6 flex flex-col items-center justify-center">
+                    <ArrowRight className="h-8 w-8 text-muted-foreground mb-2" />
+                    <h3 className="font-semibold">View All Staff</h3>
+                    <p className="text-sm text-muted-foreground">See the full list below</p>
+                </CardContent>
+            </Card>
+        </Link>
       )}
     </div>
   );
