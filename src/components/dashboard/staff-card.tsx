@@ -8,9 +8,11 @@ import type { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
-import { ShieldAlert } from 'lucide-react';
+import { MoreVertical, DollarSign } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
+import { Button } from '../ui/button';
 
-export function StaffCard({ member }: { member: Staff }) {
+export function StaffCard({ member, onAwardBonus }: { member: Staff, onAwardBonus: () => void }) {
   const getInitials = (name: string) => {
     if (!name) return '??';
     const names = name.split(' ');
@@ -21,7 +23,6 @@ export function StaffCard({ member }: { member: Staff }) {
   };
 
   return (
-    <Link href={`/dashboard/staff/${member.id}`} className="block">
       <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 relative overflow-hidden">
         {member.status === 'Pending Verification' && (
            <div className="absolute top-0 right-0 h-16 w-16">
@@ -31,7 +32,7 @@ export function StaffCard({ member }: { member: Staff }) {
           </div>
         )}
         <CardContent className="p-4 flex items-center gap-4">
-          <div className="relative">
+          <Link href={`/dashboard/staff/${member.id}`} className="relative">
             <Avatar className="h-12 w-12">
               <AvatarImage src={member.avatarUrl} alt={member.name} />
               <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
@@ -40,13 +41,28 @@ export function StaffCard({ member }: { member: Staff }) {
                 "absolute bottom-0 right-0 block h-3 w-3 rounded-full ring-2 ring-background",
                 member.onlineStatus === 'Online' ? 'bg-green-500' : 'bg-gray-400'
             )}></span>
-          </div>
+          </Link>
           <div className="flex-1 overflow-hidden">
-            <p className="font-semibold truncate">{member.name}</p>
-            <p className="text-sm text-muted-foreground">{member.role}</p>
+             <Link href={`/dashboard/staff/${member.id}`} className="block">
+                <p className="font-semibold truncate">{member.name}</p>
+                <p className="text-sm text-muted-foreground">{member.role}</p>
+             </Link>
           </div>
+           <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                  <MoreVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onSelect={onAwardBonus}>
+                  <DollarSign className="mr-2 h-4 w-4" />
+                  Award Bonus
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
         </CardContent>
       </Card>
-    </Link>
   );
 }

@@ -2,12 +2,12 @@
 
 'use client';
 
-import { PlusCircle, BarChart } from 'lucide-react';
+import { PlusCircle, BarChart, DollarSign } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
 import type { Staff, Role } from '@/lib/types';
-import { getStaff, addStaff as serviceAddStaff } from '@/services/staff';
+import { getStaff, addStaff as serviceAddStaff, updateStaff } from '@/services/staff';
 import { RolesPermissionsTab } from '@/components/dashboard/roles-permissions-tab';
 import {
   Dialog,
@@ -49,6 +49,9 @@ export default function StaffPage() {
   const [activeTab, setActiveTab] = React.useState('team');
   const [newStaffMember, setNewStaffMember] = React.useState<Partial<Staff>>(emptyStaff);
   const [addMode, setAddMode] = React.useState<'invite' | 'manual'>('invite');
+  const [bonusStaff, setBonusStaff] = React.useState<Staff | null>(null);
+  const [bonusAmount, setBonusAmount] = React.useState<number>(0);
+  const [bonusReason, setBonusReason] = React.useState('');
   const { toast } = useToast();
 
   const loadData = React.useCallback(async () => {
@@ -94,6 +97,34 @@ export default function StaffPage() {
     setIsAddOpen(false);
     setNewStaffMember(emptyStaff);
     loadData();
+  }
+
+  const handleAwardBonus = async () => {
+      if (!bonusStaff || bonusAmount <= 0) {
+          toast({ variant: 'destructive', title: 'Invalid bonus amount' });
+          return;
+      }
+      
+      const newBonus = {
+          id: `bonus-${Date.now()}`,
+          date: new Date().toISOString(),
+          reason: bonusReason || 'Performance Bonus',
+          amount: bonusAmount,
+          awardedBy: 'admin', // In a real app, get the logged-in admin's ID
+      };
+      
+      const updatedStaff = {
+          ...bonusStaff,
+          totalCommission: (bonusStaff.totalCommission || 0) + bonusAmount,
+          bonuses: [...(bonusStaff.bonuses || []), newBonus],
+      };
+      
+      await updateStaff(updatedStaff);
+      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${bonusAmount}.`});
+      setBonusStaff(null);
+      setBonusAmount(0);
+      setBonusReason('');
+      loadData();
   }
 
 
@@ -169,6 +200,7 @@ export default function StaffPage() {
   );
 
   return (
+    <>
     <DashboardPageLayout 
         title="Staff Management" 
         tabs={mainTabs} 
@@ -194,7 +226,7 @@ export default function StaffPage() {
             ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {staff.map(member => (
-                        <StaffCard key={member.id} member={member} />
+                        <StaffCard key={member.id} member={member} onAwardBonus={() => setBonusStaff(member)} />
                     ))}
                 </div>
             )}
@@ -220,5 +252,45 @@ export default function StaffPage() {
             </Card>
         </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
+
+     <Dialog open={!!bonusStaff} onOpenChange={(isOpen) => !isOpen && setBonusStaff(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Award Bonus to {bonusStaff?.name}</DialogTitle>
+            <DialogDescription>
+              Grant a one-time bonus for exceptional performance or other reasons. This will be added to their next payout.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+             <div className="space-y-2">
+              <Label htmlFor="bonusAmount">Bonus Amount ({bonusStaff?.currency})</Label>
+              <Input
+                id="bonusAmount"
+                type="number"
+                value={bonusAmount}
+                onChange={(e) => setBonusAmount(Number(e.target.value))}
+                placeholder="e.g., 50000"
+              />
+            </div>
+             <div className="space-y-2">
+              <Label htmlFor="bonusReason">Reason (Optional)</Label>
+              <Input
+                id="bonusReason"
+                value={bonusReason}
+                onChange={(e) => setBonusReason(e.target.value)}
+                placeholder="e.g., Exceeded monthly sales target"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+            <Button onClick={handleAwardBonus}>
+              <DollarSign className="mr-2 h-4 w-4" />
+              Award Bonus
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

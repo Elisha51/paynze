@@ -49,7 +49,7 @@ import { CommissionReport } from '@/components/dashboard/commission-report';
 import { BarChart } from 'lucide-react';
 import { getOrders } from '@/services/orders';
 
-const columns: ColumnDef<Transaction>[] = [
+const getColumns = (): ColumnDef<Transaction>[] => [
     { accessorKey: 'date', header: 'Date' },
     { accessorKey: 'description', header: 'Description' },
     { 
@@ -88,7 +88,7 @@ const columns: ColumnDef<Transaction>[] = [
         header: () => <div className="text-right">Actions</div>,
         cell: () => (
           <div className="relative bg-background text-right sticky right-0">
-            <DropdownMenu>
+             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
               </DropdownMenuTrigger>
@@ -175,6 +175,8 @@ export default function FinancesPage() {
     { value: 'reconciliation', label: 'Reconciliation' },
     { value: 'reports', label: 'Reports' },
   ];
+
+  const columns = React.useMemo(() => getColumns(), []);
 
   const cta = (
     <div className="flex gap-2">

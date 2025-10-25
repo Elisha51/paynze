@@ -1,6 +1,6 @@
 
 
-import type { Role, Permissions } from '@/lib/types';
+import type { Role, Permissions, CommissionRule } from '@/lib/types';
 
 const defaultPermissions: Permissions = {
   dashboard: { view: true },

@@ -379,6 +379,12 @@ export type Transaction = {
     status: 'Cleared' | 'Pending' | 'Reconciled';
 };
 
-
+export type Role = {
+    name: StaffRoleName;
+    description: string;
+    permissions: Permissions;
+    assignableAttributes: AssignableAttribute[];
+    commissionRules: CommissionRule[];
+};
 
     

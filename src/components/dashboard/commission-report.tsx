@@ -3,12 +3,12 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import type { Payout, Staff, Role, Order } from '@/lib/types';
+import type { Payout, Staff, Role, Order, Bonus } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, DollarSign, MoreHorizontal } from 'lucide-react';
+import { ArrowUpDown, DollarSign, MoreHorizontal, Gift } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
@@ -16,8 +16,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
-    DialogClose,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -114,7 +112,7 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
     const commissionData = useMemo(() => {
         return staff.filter(s => {
             const role = roles.find(r => r.name === s.role);
-            return role?.commission && role.commission.rate > 0 && s.totalCommission && s.totalCommission > 0;
+            return role?.commissionRules && role.commissionRules.length > 0 && s.totalCommission && s.totalCommission > 0;
         }).map(s => ({
             staffId: s.id,
             name: s.name,
@@ -128,26 +126,41 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
         if (!payoutStaff) return { commissionBreakdown: [], totalBreakdownCommission: 0 };
         
         const staffRole = roles.find(r => r.name === payoutStaff.role);
-        if (!staffRole?.commission) return { commissionBreakdown: [], totalBreakdownCommission: 0 };
+        if (!staffRole?.commissionRules) return { commissionBreakdown: [], totalBreakdownCommission: 0 };
 
-        const breakdown = orders.map(order => {
-            let commission = 0;
-            if (staffRole.name === 'Delivery Rider' && order.fulfilledByStaffId === payoutStaff.id) {
-                if (staffRole.commission?.type === 'Fixed Amount') {
-                    commission = staffRole.commission.rate;
+        const orderCommissions = orders.flatMap(order => {
+            return (staffRole.commissionRules || []).map(rule => {
+                let commission = 0;
+                let triggerMet = false;
+
+                if (rule.trigger === 'On Order Delivered' && order.status === 'Delivered' && order.fulfilledByStaffId === payoutStaff.id) {
+                    triggerMet = true;
+                } else if (rule.trigger === 'On Order Paid' && order.paymentStatus === 'Paid' && order.salesAgentId === payoutStaff.id) {
+                    triggerMet = true;
                 }
-            } else if (staffRole.name === 'Sales Agent' && order.salesAgentId === payoutStaff.id && order.paymentStatus === 'Paid') {
-                 if (staffRole.commission?.type === 'Percentage of Sale') {
-                    commission = order.total * (staffRole.commission.rate / 100);
+
+                if (triggerMet) {
+                    if (rule.type === 'Fixed Amount') {
+                        commission = rule.rate;
+                    } else if (rule.type === 'Percentage of Sale') {
+                        commission = order.total * (rule.rate / 100);
+                    }
                 }
-            }
-            
-            return commission > 0 ? { order, commission } : null;
-        }).filter(Boolean) as { order: Order; commission: number }[];
+                
+                return commission > 0 ? { order, commission, ruleName: rule.name } : null;
+            }).filter(Boolean) as { order: Order; commission: number, ruleName: string }[];
+        }).flat();
         
-        const total = breakdown.reduce((sum, item) => sum + item.commission, 0);
+        const bonusBreakdown = (payoutStaff.bonuses || []).map(bonus => ({
+            ...bonus,
+            isBonus: true,
+        }));
 
-        return { commissionBreakdown: breakdown, totalBreakdownCommission: total };
+        const combinedBreakdown = [...orderCommissions, ...bonusBreakdown].sort((a,b) => new Date(a.date || a.order.date).getTime() - new Date(b.date || b.order.date).getTime());
+
+        const total = (payoutStaff.totalCommission || 0);
+
+        return { commissionBreakdown: combinedBreakdown, totalBreakdownCommission: total };
 
     }, [payoutStaff, orders, roles]);
 
@@ -162,10 +175,9 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
         if (!payoutStaff || !totalBreakdownCommission || !payoutStaff.currency) return;
         
         try {
-            // 1. Record an expense transaction
             await addTransaction({
                 date: format(new Date(), 'yyyy-MM-dd'),
-                description: `Commission payout to ${payoutStaff.name}`,
+                description: `Commission & Bonus payout to ${payoutStaff.name}`,
                 amount: -totalBreakdownCommission,
                 currency: payoutStaff.currency as 'UGX' | 'KES',
                 type: 'Expense',
@@ -173,16 +185,18 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
                 status: 'Cleared',
             });
 
-            // 2. Create a payout history record
             const newPayout: Payout = {
                 date: new Date().toISOString(),
                 amount: totalBreakdownCommission,
                 currency: payoutStaff.currency,
             };
-            const updatedPayoutHistory = [...(payoutStaff.payoutHistory || []), newPayout];
 
-            // 3. Reset the staff member's commission balance and add to history
-            await updateStaff({ ...payoutStaff, totalCommission: 0, payoutHistory: updatedPayoutHistory });
+            await updateStaff({ 
+                ...payoutStaff, 
+                totalCommission: 0, 
+                bonuses: [],
+                payoutHistory: [...(payoutStaff.payoutHistory || []), newPayout]
+            });
 
             toast({
                 title: 'Payout Successful',
@@ -211,8 +225,8 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
         <>
             <Card>
                 <CardHeader>
-                    <CardTitle>Commission Payout Report</CardTitle>
-                    <CardDescription>View unpaid commissions and process payouts for your staff.</CardDescription>
+                    <CardTitle>Commission & Bonus Payouts</CardTitle>
+                    <CardDescription>View unpaid earnings and process payouts for your staff.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <DataTable
@@ -232,30 +246,46 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
                     <DialogHeader>
                         <DialogTitle>Review Payout for {payoutStaff?.name}</DialogTitle>
                         <DialogDescription>
-                            Total unpaid commission of <span className="font-bold text-primary">{formatCurrency(totalBreakdownCommission, payoutStaff?.currency || 'UGX')}</span>. Review the earning sources below before confirming.
+                            Total unpaid earnings of <span className="font-bold text-primary">{formatCurrency(totalBreakdownCommission, payoutStaff?.currency || 'UGX')}</span>. Review the sources below before confirming.
                         </DialogDescription>
                     </DialogHeader>
                     <ScrollArea className="h-72">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Order ID</TableHead>
+                                    <TableHead>Source</TableHead>
                                     <TableHead>Date</TableHead>
-                                    <TableHead>Order Total</TableHead>
-                                    <TableHead className="text-right">Commission Earned</TableHead>
+                                    <TableHead>Details</TableHead>
+                                    <TableHead className="text-right">Amount Earned</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {commissionBreakdown.map(({ order, commission }) => (
-                                    <TableRow key={order.id}>
-                                        <TableCell>
-                                            <Link href={`/dashboard/orders/${order.id}`} className="font-medium hover:underline">{order.id}</Link>
-                                        </TableCell>
-                                        <TableCell>{format(new Date(order.date), 'PPP')}</TableCell>
-                                        <TableCell>{formatCurrency(order.total, order.currency)}</TableCell>
-                                        <TableCell className="text-right font-medium">{formatCurrency(commission, order.currency)}</TableCell>
-                                    </TableRow>
-                                ))}
+                                {commissionBreakdown.map((item, index) => {
+                                    if ('isBonus' in item) {
+                                        const bonus = item as Bonus & { isBonus: boolean };
+                                        return (
+                                            <TableRow key={`bonus-${index}`}>
+                                                <TableCell>
+                                                    <Badge variant="secondary" className="flex items-center gap-1 w-fit"><Gift className="h-3 w-3"/>Bonus</Badge>
+                                                </TableCell>
+                                                <TableCell>{format(new Date(bonus.date), 'PPP')}</TableCell>
+                                                <TableCell>{bonus.reason}</TableCell>
+                                                <TableCell className="text-right font-medium">{formatCurrency(bonus.amount, payoutStaff?.currency || 'UGX')}</TableCell>
+                                            </TableRow>
+                                        )
+                                    }
+                                    const commission = item as { order: Order; commission: number; ruleName: string };
+                                    return (
+                                        <TableRow key={`commission-${index}`}>
+                                            <TableCell>
+                                                <Link href={`/dashboard/orders/${commission.order.id}`} className="font-medium hover:underline">{commission.order.id}</Link>
+                                            </TableCell>
+                                            <TableCell>{format(new Date(commission.order.date), 'PPP')}</TableCell>
+                                            <TableCell className="text-xs text-muted-foreground">{commission.ruleName}</TableCell>
+                                            <TableCell className="text-right font-medium">{formatCurrency(commission.commission, commission.order.currency)}</TableCell>
+                                        </TableRow>
+                                    )
+                                })}
                             </TableBody>
                         </Table>
                     </ScrollArea>
@@ -267,7 +297,7 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Confirm Commission Payout</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                    This will mark all unpaid commissions for {payoutStaff?.name} as paid and create an expense record. Are you sure?
+                                    This will mark all unpaid earnings for {payoutStaff?.name} as paid and create an expense record. Are you sure?
                                 </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>

@@ -1,7 +1,7 @@
 
 
 import { products, orders as mockOrders } from '@/lib/data';
-import type { Order, Product, Staff } from '@/lib/types';
+import type { Order, Product, Staff, Role } from '@/lib/types';
 import { updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
@@ -11,7 +11,7 @@ let orders: Order[] = [...mockOrders];
 
 // In a real app, this would fetch from an API.
 // const apiBaseUrl = config.apiBaseUrl;
-// const response = await fetch(`${apiBaseUrl}/orders`);
+// const response = await fetch(`${apiBase-url}/orders`);
 // const data = await response.json();
 // return data;
 
@@ -100,7 +100,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
       }
   }
 
-  const handleCommission = async (staffId: string | undefined, order: Order) => {
+  const handleCommission = async (staffId: string | undefined, order: Order, trigger: 'On Order Paid' | 'On Order Delivered') => {
     if (!staffId) return;
 
     const allStaff = await getStaff();
@@ -109,34 +109,41 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
 
     const allRoles = await getRoles();
     const staffRole = allRoles.find(r => r.name === staffMember.role);
-    if (!staffRole?.commission || staffRole.commission.rate <= 0) return;
+    if (!staffRole?.commissionRules || staffRole.commissionRules.length === 0) return;
 
-    let earnedCommission = 0;
-    let shouldUpdateStaff = false;
-
-    // Calculate commission based on role
-    if (staffRole.name === 'Delivery Rider' && (order.status === 'Delivered' || order.status === 'Picked Up')) {
-        if (staffRole.commission.type === 'Fixed Amount') {
-            earnedCommission = staffRole.commission.rate;
-        }
-        if (staffMember.attributes?.deliveryTarget) {
-            const deliveryTarget = staffMember.attributes.deliveryTarget as { current: number; goal: number };
-            staffMember.attributes.deliveryTarget = { ...deliveryTarget, current: deliveryTarget.current + 1 };
-            shouldUpdateStaff = true;
-        }
-    } else if (staffRole.name === 'Sales Agent' && order.paymentStatus === 'Paid') {
-        if (staffRole.commission.type === 'Percentage of Sale') {
-            earnedCommission = order.total * (staffRole.commission.rate / 100);
-        }
-    }
-
-    if (earnedCommission > 0) {
-        staffMember.totalCommission = (staffMember.totalCommission || 0) + earnedCommission;
-        shouldUpdateStaff = true;
-    }
+    let totalEarnedCommission = 0;
     
-    if (shouldUpdateStaff) {
-        await updateStaff(staffMember);
+    staffRole.commissionRules.forEach(rule => {
+        if (rule.trigger === trigger) {
+            if (rule.type === 'Fixed Amount') {
+                totalEarnedCommission += rule.rate;
+            } else if (rule.type === 'Percentage of Sale') {
+                totalEarnedCommission += order.total * (rule.rate / 100);
+            }
+        }
+    });
+
+    if (totalEarnedCommission > 0 || trigger === 'On Order Delivered') { // Update KPIs even if no commission
+        let shouldUpdateStaff = totalEarnedCommission > 0;
+        
+        if (staffRole.name === 'Delivery Rider' && trigger === 'On Order Delivered') {
+            const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number, goal: number } | undefined;
+            if (deliveryTarget) {
+                staffMember.attributes = {
+                    ...staffMember.attributes,
+                    deliveryTarget: { ...deliveryTarget, current: deliveryTarget.current + 1 }
+                };
+                shouldUpdateStaff = true;
+            }
+        }
+        
+        if (totalEarnedCommission > 0) {
+            staffMember.totalCommission = (staffMember.totalCommission || 0) + totalEarnedCommission;
+        }
+
+        if (shouldUpdateStaff) {
+            updateStaff(staffMember);
+        }
     }
   };
   
@@ -154,10 +161,10 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
 
   // Handle commissions after the order has been updated in the main array
   if (updates.status === 'Delivered' || updates.status === 'Picked Up') {
-    await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder);
+    await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
   }
   if (updates.paymentStatus === 'Paid' || (updates.status === 'Paid' && originalOrder?.paymentStatus !== 'Paid')) {
-    await handleCommission(updatedOrder.salesAgentId, updatedOrder);
+    await handleCommission(updatedOrder.salesAgentId, updatedOrder, 'On Order Paid');
   }
 
 
@@ -235,5 +242,3 @@ export async function updateProductStock(
 
     await updateProduct(productToUpdate);
 }
-
-    
