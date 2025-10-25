@@ -39,7 +39,7 @@ import { getInitials } from '@/lib/utils';
 import { updateOrder, updateProductStock } from '@/services/orders';
 
 
-function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
+function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
     const { toast } = useToast();
 
     const titles = {
@@ -79,7 +79,7 @@ function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Orde
 
     return (
         <Dialog>
-            <DialogTrigger asChild>
+            <DialogTrigger asChild={asChild}>
                 {children}
             </DialogTrigger>
             <DialogContent>
@@ -96,7 +96,7 @@ function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Orde
     )
 }
 
-function AssignOrderDialog({ order, onUpdate, children }: { order: Order, onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
+function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Order, onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
     const { toast } = useToast();
     const [staff, setStaff] = React.useState<Staff[]>([]);
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
@@ -130,7 +130,7 @@ function AssignOrderDialog({ order, onUpdate, children }: { order: Order, onUpda
 
     return (
          <Dialog>
-            <DialogTrigger asChild>
+            <DialogTrigger asChild={asChild}>
                 {children}
             </DialogTrigger>
             <DialogContent>
@@ -325,33 +325,7 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
       const isPaid = order.paymentStatus === 'Paid';
       const isPendingFulfillment = order.status === 'Paid' || order.status === 'Pending';
       
-      // Determine primary action
-      let primaryAction = null;
-      if (isPendingFulfillment && order.fulfillmentMethod === 'Delivery') {
-          primaryAction = (
-            <AssignOrderDialog order={order} onUpdate={onUpdate}>
-                <Button size="sm" variant="outline">Assign</Button>
-            </AssignOrderDialog>
-          );
-      } else if (isPendingFulfillment && order.fulfillmentMethod === 'Pickup') {
-           primaryAction = (
-            <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                <Button size="sm" variant="outline">Ready for Pickup</Button>
-            </FulfillOrderDialog>
-          );
-      } else if (order.status === 'Ready for Pickup') {
-          primaryAction = (
-            <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate}>
-                <Button size="sm">Mark as Picked Up</Button>
-            </FulfillOrderDialog>
-          );
-      } else if (order.status === 'Shipped') {
-           primaryAction = (
-            <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate}>
-                 <Button size="sm">Mark as Delivered</Button>
-            </FulfillOrderDialog>
-          );
-      }
+      const primaryAction = null;
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
@@ -368,6 +342,28 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
                     <DropdownMenuItem asChild>
                         <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                     </DropdownMenuItem>
+
+                    {isPendingFulfillment && order.fulfillmentMethod === 'Delivery' && (
+                        <AssignOrderDialog order={order} onUpdate={onUpdate} asChild>
+                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
+                        </AssignOrderDialog>
+                    )}
+                    {isPendingFulfillment && order.fulfillmentMethod === 'Pickup' && (
+                         <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Ready for Pickup</DropdownMenuItem>
+                         </FulfillOrderDialog>
+                    )}
+                     {order.status === 'Ready for Pickup' && (
+                        <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
+                        </FulfillOrderDialog>
+                     )}
+                     {order.status === 'Shipped' && (
+                        <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} asChild>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Delivered</DropdownMenuItem>
+                        </FulfillOrderDialog>
+                     )}
+                    
                     <DropdownMenuItem>Cancel Order</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
