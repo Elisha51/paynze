@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/dashboard/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Transaction, Staff, Role } from '@/lib/types';
+import type { Transaction, Staff, Role, Order } from '@/lib/types';
 import { getTransactions, addTransaction } from '@/services/finances';
 import { getStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
@@ -46,6 +46,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
 import { CommissionReport } from '@/components/dashboard/commission-report';
+import { BarChart } from 'lucide-react';
+import { getOrders } from '@/services/orders';
 
 const columns: ColumnDef<Transaction>[] = [
     { accessorKey: 'date', header: 'Date' },
@@ -77,7 +79,7 @@ const columns: ColumnDef<Transaction>[] = [
         cell: ({ row }) => {
           const amount = parseFloat(row.getValue('amount'));
           const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(amount);
-          const amountClass = amount >= 0 ? 'text-green-600' : 'text-red-600';
+          const amountClass = row.original.type === 'Income' ? 'text-green-600' : 'text-red-600';
           return <div className={`text-right font-medium ${amountClass}`}>{formatted}</div>;
         },
     },
@@ -113,6 +115,7 @@ export default function FinancesPage() {
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
   const [staff, setStaff] = React.useState<Staff[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
+  const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('transactions');
@@ -121,14 +124,16 @@ export default function FinancesPage() {
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
-    const [fetchedTransactions, fetchedStaff, fetchedRoles] = await Promise.all([
+    const [fetchedTransactions, fetchedStaff, fetchedRoles, fetchedOrders] = await Promise.all([
         getTransactions(),
         getStaff(),
-        getRoles()
+        getRoles(),
+        getOrders(),
     ]);
     setTransactions(fetchedTransactions);
     setStaff(fetchedStaff);
     setRoles(fetchedRoles);
+    setOrders(fetchedOrders);
     setIsLoading(false);
   }, []);
 
@@ -271,7 +276,7 @@ export default function FinancesPage() {
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="payroll">
-          <CommissionReport staff={staff} roles={roles} onPayout={loadData} />
+          <CommissionReport staff={staff} roles={roles} orders={orders} onPayout={loadData} />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reconciliation">
@@ -281,7 +286,13 @@ export default function FinancesPage() {
                 <CardDescription>Match your recorded transactions against your bank or mobile money statements.</CardDescription>
             </CardHeader>
             <CardContent>
-                <p className="text-center text-muted-foreground py-12">Reconciliation feature coming soon.</p>
+                <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
+                    <div className="bg-primary/10 p-4 rounded-full">
+                        <BarChart className="h-12 w-12 text-primary" />
+                    </div>
+                    <h2 className="text-xl font-semibold">Coming Soon</h2>
+                    <p className="text-muted-foreground max-w-sm mx-auto">Detailed reconciliation tools will be available here to help you match records automatically.</p>
+                </div>
             </CardContent>
         </Card>
       </DashboardPageLayout.TabContent>
@@ -293,7 +304,13 @@ export default function FinancesPage() {
             <CardDescription>Analyze your income, expenses, and overall financial health.</CardDescription>
           </CardHeader>
           <CardContent>
-             <p className="text-center text-muted-foreground py-12">Detailed financial reports coming soon.</p>
+             <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
+                <div className="bg-primary/10 p-4 rounded-full">
+                    <BarChart className="h-12 w-12 text-primary" />
+                </div>
+                <h2 className="text-xl font-semibold">Coming Soon</h2>
+                <p className="text-muted-foreground max-w-sm mx-auto">Detailed financial reports and analytics will be available here.</p>
+            </div>
           </CardContent>
         </Card>
       </DashboardPageLayout.TabContent>
