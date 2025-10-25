@@ -34,7 +34,7 @@ export type InventoryItem = {
 export type StockAdjustment = {
     id: string;
     date: string;
-    type: 'Initial Stock' | 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage';
+    type: 'Initial Stock' | 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage' | 'Reserve' | 'Un-reserve';
     quantity: number; // Can be positive or negative
     reason?: string;
     channel?: 'Online' | 'In-Store' | 'Manual';

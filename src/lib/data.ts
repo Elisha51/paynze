@@ -138,7 +138,7 @@ export const products: Product[] = [
           { id: 'inv-006', serialNumber: 'SN-SHOE-42-006', status: 'Returned', locationName: 'Downtown Store'},
         ],
          stockAdjustments: [
-            { id: 'adj-shoe-1', date: '2023-03-01', type: 'Sale', quantity: -1, reason: 'Order #ORD-013', channel: 'Online' },
+            { id: 'adj-shoe-1', date: '2023-03-01T10:00:00Z', type: 'Sale', quantity: -1, reason: 'Order #ORD-013', channel: 'Online' },
         ]
       },
       { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stockByLocation: [
@@ -216,7 +216,7 @@ export const orders: Order[] = [
         currency: 'KES',
         shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
         paymentMethod: 'Mobile Money',
-        paymentStatus: 'Paid'
+        paymentStatus: 'Unpaid'
     },
 ];
 

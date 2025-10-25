@@ -49,6 +49,8 @@ const adjustmentTypeColors: { [key in Product['variants'][0]['stockAdjustments']
     'Return': 'text-green-600',
     'Manual Adjustment': 'text-purple-600',
     'Damage': 'text-yellow-600',
+    'Reserve': 'text-orange-600',
+    'Un-reserve': 'text-green-600',
 };
 
 type ProductDetailsInventoryProps = {
@@ -292,7 +294,7 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
                                    const variant = product.variants.find(v => v.stockAdjustments?.some(a => a.id === adj.id));
                                    return (
                                         <TableRow key={adj.id}>
-                                            <TableCell>{new Date(adj.date).toLocaleDateString()}</TableCell>
+                                            <TableCell>{new Date(adj.date).toLocaleString()}</TableCell>
                                             {product.hasVariants && <TableCell>{variant ? Object.values(variant.optionValues).join(' / ') : 'Default'}</TableCell>}
                                             <TableCell><span className={cn('font-medium', adjustmentTypeColors[adj.type])}>{adj.type}</span></TableCell>
                                             <TableCell>{adj.channel || 'N/A'}</TableCell>
