@@ -16,6 +16,8 @@ import { cn } from '@/lib/utils';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
 import { getCustomers } from '@/services/customers';
 import { Customer } from '@/lib/types';
+import { Calendar } from '@/components/ui/calendar';
+import React from 'react';
 
 
 export default function CustomersPage() {
