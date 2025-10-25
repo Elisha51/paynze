@@ -57,7 +57,7 @@ export const ordersColumns: ColumnDef<Order>[] = [
     header: 'Status',
     cell: ({ row }) => (
       <div className="whitespace-nowrap">
-        <Badge variant={row.getValue('status') === 'Pending' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
+        <Badge variant={row.getValue('status') === 'Awaiting Payment' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
           {row.getValue('status')}
         </Badge>
       </div>

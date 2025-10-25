@@ -175,7 +175,7 @@ export type Order = {
     customerName: string;
     customerEmail: string;
     date: string;
-    status: 'Pending' | 'Paid' | 'Ready for Pickup' | 'Shipped' | 'Delivered' | 'Picked Up' | 'Cancelled';
+    status: 'Awaiting Payment' | 'Paid' | 'Ready for Pickup' | 'Shipped' | 'Delivered' | 'Picked Up' | 'Cancelled';
     fulfillmentMethod: 'Delivery' | 'Pickup';
     channel: 'Online' | 'Manual' | 'POS';
     items: OrderItem[];

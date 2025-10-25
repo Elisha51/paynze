@@ -162,7 +162,7 @@ function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Orde
 }
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
-  Pending: 'secondary',
+  'Awaiting Payment': 'secondary',
   Paid: 'secondary',
   'Ready for Pickup': 'outline',
   Shipped: 'outline',
@@ -323,7 +323,7 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
     cell: ({ row }) => {
       const order = row.original;
       const isPaid = order.paymentStatus === 'Paid';
-      const isPendingFulfillment = order.status === 'Paid' || order.status === 'Pending';
+      const isPendingFulfillment = (order.status === 'Paid' || order.status === 'Awaiting Payment') && isPaid;
       
       const primaryAction = null;
 

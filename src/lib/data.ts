@@ -208,7 +208,7 @@ export const orders: Order[] = [
         customerName: 'Noah Williams', 
         customerEmail: 'noah@example.com', 
         date: '2023-03-05', 
-        status: 'Pending', 
+        status: 'Awaiting Payment', 
         fulfillmentMethod: 'Delivery',
         channel: 'Online',
         items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 15000, category: 'Digital Goods' }],

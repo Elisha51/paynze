@@ -43,7 +43,7 @@ const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: bool
                 <OrdersTable
                     orders={orders}
                     isLoading={isLoading}
-                    filter={{ column: 'status', value: 'Pending' }}
+                    filter={{ column: 'status', value: 'Awaiting Payment' }}
                 />
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="ready-for-pickup">

@@ -217,12 +217,12 @@ export default function AddOrderPage() {
                     </div>
                     <div className='space-y-2'>
                         <Label htmlFor="orderStatus">Order Status</Label>
-                        <Select defaultValue="Pending">
+                        <Select defaultValue="Awaiting Payment">
                             <SelectTrigger id="orderStatus">
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Pending">Pending</SelectItem>
+                                <SelectItem value="Awaiting Payment">Awaiting Payment</SelectItem>
                                 <SelectItem value="Paid">Paid</SelectItem>
                                 <SelectItem value="Ready for Pickup">Ready for Pickup</SelectItem>
                                 <SelectItem value="Shipped">Shipped</SelectItem>

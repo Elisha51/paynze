@@ -30,7 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
-  Pending: 'secondary',
+  'Awaiting Payment': 'secondary',
   Paid: 'secondary',
   'Ready for Pickup': 'outline',
   Shipped: 'outline',
