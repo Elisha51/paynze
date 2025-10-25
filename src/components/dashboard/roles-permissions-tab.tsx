@@ -136,9 +136,9 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                     {roles.map(role => (
                         <AccordionItem value={role.name} key={role.name}>
                             <AccordionTrigger>
-                                <div>
+                                <div className="text-left">
                                     <h3 className="font-semibold text-lg">{role.name}</h3>
-                                    <p className="text-sm text-muted-foreground text-left">{role.description}</p>
+                                    <p className="text-sm text-muted-foreground">{role.description}</p>
                                 </div>
                             </AccordionTrigger>
                              <AccordionContent>
