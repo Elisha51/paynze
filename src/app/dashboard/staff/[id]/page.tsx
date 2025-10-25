@@ -184,7 +184,7 @@ export default function ViewStaffPage() {
            toast({ variant: 'destructive', title: 'Staff Member Rejected', description: `${staffMember.name}'s application has been rejected.`});
       }
       setStaffMember(updatedStaff);
-  }
+  };
 
 
   if (loading) {
@@ -291,40 +291,42 @@ export default function ViewStaffPage() {
 
       {isPendingVerification && (
           <Card className="border-yellow-400 bg-yellow-50">
-              <CardHeader>
-                  <CardTitle>Verification Required</CardTitle>
-                  <CardDescription>Review the submitted documents and approve or reject this staff member.</CardDescription>
+              <CardHeader className="flex-row items-center justify-between">
+                <div className="space-y-1">
+                    <CardTitle>Verification Required</CardTitle>
+                    <CardDescription>Approve or reject this staff member after reviewing their documents.</CardDescription>
+                </div>
+                <div className="flex gap-2">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Reject
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Reject Staff Member</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Please provide a reason for rejecting {staffMember.name}. This will be recorded for administrative purposes.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="py-4">
+                                <Label htmlFor="rejectionReason">Rejection Reason</Label>
+                                <Textarea id="rejectionReason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
+                            </div>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleVerification('reject')} disabled={!rejectionReason}>Confirm Rejection</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    <Button onClick={() => handleVerification('approve')} size="sm">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Approve
+                    </Button>
+                </div>
               </CardHeader>
-              <CardContent className="flex justify-end gap-2">
-                <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                        <Button variant="destructive">
-                            <XCircle className="mr-2 h-4 w-4" />
-                            Reject
-                        </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>Reject Staff Member</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                Please provide a reason for rejecting {staffMember.name}. This will be recorded for administrative purposes.
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <div className="py-4">
-                            <Label htmlFor="rejectionReason">Rejection Reason</Label>
-                            <Textarea id="rejectionReason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
-                        </div>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleVerification('reject')} disabled={!rejectionReason}>Confirm Rejection</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
-                <Button onClick={() => handleVerification('approve')}>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Approve
-                </Button>
-              </CardContent>
           </Card>
       )}
 
@@ -364,6 +366,14 @@ export default function ViewStaffPage() {
                             icon={<Award className="h-12 w-12 text-primary" />}
                             title="No Tasks or Schedule"
                             description="This staff member currently has no assigned orders or schedule to display."
+                            cta={(
+                                <Button asChild>
+                                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
+                                        <Edit className="mr-2 h-4 w-4" />
+                                        Edit Profile & Attributes
+                                    </Link>
+                                </Button>
+                            )}
                         />
                     </CardContent>
                 </Card>
@@ -415,3 +425,5 @@ export default function ViewStaffPage() {
     </div>
   );
 }
+
+    
