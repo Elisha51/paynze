@@ -128,6 +128,7 @@ export default function ViewOrderPage() {
 
   const canMarkAsDelivered = order.status === 'Shipped';
   const canMarkAsPickedUp = order.status === 'Ready for Pickup';
+  const canReadyForPickup = order.status === 'Paid' && order.fulfillmentMethod === 'Pickup';
 
   return (
     <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -146,6 +147,7 @@ export default function ViewOrderPage() {
                 {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
+                {canReadyForPickup && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</Button>}
                 {canMarkAsDelivered && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Delivered')}>Mark as Delivered</Button>}
                 {canMarkAsPickedUp && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Picked Up')}>Mark as Picked Up</Button>}
                 <DropdownMenu>

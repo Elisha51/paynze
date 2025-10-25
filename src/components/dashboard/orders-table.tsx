@@ -39,7 +39,7 @@ import { getInitials } from '@/lib/utils';
 import { updateOrder, updateProductStock } from '@/services/orders';
 
 
-function FulfillOrderDialog({ order, action, onUpdate }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void }) {
+function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
     const { toast } = useToast();
 
     const titles = {
@@ -68,7 +68,6 @@ function FulfillOrderDialog({ order, action, onUpdate }: { order: Order, action:
         const updatedOrder = await updateOrder(order.id, { status: newStatus });
         
         if (action === 'deliver' || action === 'pickup') {
-            // Adjust stock for each item in the order
             await Promise.all(order.items.map(item => 
                 updateProductStock(item.sku, -item.quantity, 'Sale', `Order #${order.id}`)
             ));
@@ -81,9 +80,7 @@ function FulfillOrderDialog({ order, action, onUpdate }: { order: Order, action:
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 h-9 w-full justify-start">
-                    {titles[action]}
-                </div>
+                {children}
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -99,7 +96,7 @@ function FulfillOrderDialog({ order, action, onUpdate }: { order: Order, action:
     )
 }
 
-function AssignOrderDialog({ order, onUpdate }: { order: Order, onUpdate: (updatedOrder: Order) => void }) {
+function AssignOrderDialog({ order, onUpdate, children }: { order: Order, onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
     const { toast } = useToast();
     const [staff, setStaff] = React.useState<Staff[]>([]);
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
@@ -107,7 +104,6 @@ function AssignOrderDialog({ order, onUpdate }: { order: Order, onUpdate: (updat
     React.useEffect(() => {
         async function loadStaff() {
             const allStaff = await getStaff();
-            // Filter for roles that can be assigned orders, e.g., Delivery Rider
             const assignableStaff = allStaff.filter(s => s.role === 'Delivery Rider');
             setStaff(assignableStaff);
         }
@@ -125,7 +121,7 @@ function AssignOrderDialog({ order, onUpdate }: { order: Order, onUpdate: (updat
         const updatedOrder = await updateOrder(order.id, { 
             assignedStaffId: selectedStaffId, 
             assignedStaffName: selectedStaffMember.name,
-            status: 'Shipped', // Or another appropriate status
+            status: 'Shipped',
         });
 
         onUpdate(updatedOrder);
@@ -135,9 +131,7 @@ function AssignOrderDialog({ order, onUpdate }: { order: Order, onUpdate: (updat
     return (
          <Dialog>
             <DialogTrigger asChild>
-                <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50 h-9 w-full justify-start">
-                    Assign
-                </div>
+                {children}
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
@@ -328,11 +322,40 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
     header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
       const order = row.original;
-      const canAssign = order.fulfillmentMethod === 'Delivery' && !order.assignedStaffId && (order.status === 'Paid' || order.status === 'Pending');
-      const canReadyForPickup = order.fulfillmentMethod === 'Pickup' && (order.status === 'Paid' || order.status === 'Pending');
+      const isPaid = order.paymentStatus === 'Paid';
+      const isPendingFulfillment = order.status === 'Paid' || order.status === 'Pending';
+      
+      // Determine primary action
+      let primaryAction = null;
+      if (isPendingFulfillment && order.fulfillmentMethod === 'Delivery') {
+          primaryAction = (
+            <AssignOrderDialog order={order} onUpdate={onUpdate}>
+                <Button size="sm" variant="outline">Assign</Button>
+            </AssignOrderDialog>
+          );
+      } else if (isPendingFulfillment && order.fulfillmentMethod === 'Pickup') {
+           primaryAction = (
+            <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                <Button size="sm" variant="outline">Ready for Pickup</Button>
+            </FulfillOrderDialog>
+          );
+      } else if (order.status === 'Ready for Pickup') {
+          primaryAction = (
+            <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate}>
+                <Button size="sm">Mark as Picked Up</Button>
+            </FulfillOrderDialog>
+          );
+      } else if (order.status === 'Shipped') {
+           primaryAction = (
+            <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate}>
+                 <Button size="sm">Mark as Delivered</Button>
+            </FulfillOrderDialog>
+          );
+      }
 
       return (
-        <div className="relative bg-background text-right sticky right-0">
+        <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
+            {primaryAction}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="h-8 w-8 p-0">
@@ -345,10 +368,7 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
                     <DropdownMenuItem asChild>
                         <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                     </DropdownMenuItem>
-                    {canAssign && <AssignOrderDialog order={order} onUpdate={onUpdate} />}
-                    {canReadyForPickup && <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} />}
-                    {order.status === 'Shipped' && <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} />}
-                    {order.status === 'Ready for Pickup' && <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} />}
+                    <DropdownMenuItem>Cancel Order</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -373,15 +393,13 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>([]);
 
   React.useEffect(() => {
-    if (filter) {
-      let filteredData = orders;
+    let filteredData = orders;
 
-      // Apply secondary filter first if it exists
+    if (filter) {
       if (filter.secondaryColumn && filter.secondaryValue) {
           filteredData = filteredData.filter(item => (item as any)[filter.secondaryColumn!] === filter.secondaryValue);
       }
       
-      // Apply primary filter
       if (filter.value) {
         if (Array.isArray(filter.value)) {
             filteredData = filteredData.filter(item => (filter.value as string[]).includes((item as any)[filter.column]));
@@ -394,16 +412,16 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
           return filter.exists ? hasProperty : !hasProperty;
         });
       }
-      setData(filteredData);
-    } else {
-      setData(orders);
     }
+    
+    setData(filteredData);
   }, [orders, filter]);
 
   const handleUpdate = (updatedOrder: Order) => {
     const updateFunc = (d: Order[]) => d.map(o => o.id === updatedOrder.id ? updatedOrder : o);
     setData(updateFunc);
-    // In a real app, you would also update the parent `orders` state
+    // You might want to bubble this up to the parent component as well
+    // to update the main `orders` state if this component doesn't re-fetch.
   };
   
   const columns = React.useMemo(() => getColumns(handleUpdate), []);
