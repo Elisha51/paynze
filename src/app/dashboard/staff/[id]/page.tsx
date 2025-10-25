@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -38,7 +37,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { StaffScheduleCard } from '@/components/dashboard/staff-schedule-card';
-
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const orderColumns: ColumnDef<Order>[] = [
     {
@@ -235,6 +234,7 @@ export default function ViewStaffPage() {
       const attributeDefinition = role?.assignableAttributes?.find(attr => attr.key === key);
       return attributeDefinition ? { definition: attributeDefinition, value } : null;
   }).filter(Boolean) : [];
+  
   const hasAttributes = assignedAttributes.length > 0;
   const isPendingVerification = staffMember.status === 'Pending Verification';
   const hasDocuments = staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0;
@@ -327,9 +327,14 @@ export default function ViewStaffPage() {
               </CardContent>
           </Card>
       )}
-      
-       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className={cn("space-y-6", hasAttributes || showAssignedOrders ? 'lg:col-span-2' : 'lg:col-span-3')}>
+
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          {hasAttributes && <TabsTrigger value="performance">Performance & Attributes</TabsTrigger>}
+          <TabsTrigger value="details">Documents & Details</TabsTrigger>
+        </TabsList>
+        <TabsContent value="overview" className="mt-6 space-y-6">
             {showAssignedOrders && (
                  <Card>
                     <CardHeader>
@@ -347,11 +352,38 @@ export default function ViewStaffPage() {
                     </CardContent>
                 </Card>
             )}
-
+            
             {hasSchedule && (
                 <StaffScheduleCard schedule={staffMember.schedule || []} />
             )}
 
+            {!showAssignedOrders && !hasSchedule && (
+                 <Card>
+                    <CardContent>
+                        <EmptyState 
+                            icon={<Award className="h-12 w-12 text-primary" />}
+                            title="No Tasks or Schedule"
+                            description="This staff member currently has no assigned orders or schedule to display."
+                        />
+                    </CardContent>
+                </Card>
+            )}
+        </TabsContent>
+        <TabsContent value="performance" className="mt-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {assignedAttributes.map((attr) => {
+                if (!attr) return null;
+                return (
+                    <DynamicAttributeCard 
+                        key={attr.definition.key}
+                        attribute={attr.definition}
+                        value={attr.value}
+                    />
+                );
+            })}
+          </div>
+        </TabsContent>
+        <TabsContent value="details" className="mt-6 space-y-6">
              {hasDocuments && (
                 <Card>
                     <CardHeader>
@@ -369,43 +401,17 @@ export default function ViewStaffPage() {
                     </CardContent>
                 </Card>
             )}
-            
-            {!showAssignedOrders && !hasAttributes && !hasSchedule && !isPendingVerification && !hasDocuments && (
-                 <Card>
-                    <CardContent>
-                        <EmptyState 
-                            icon={<Award className="h-12 w-12 text-primary" />}
-                            title="No Tasks or Attributes"
-                            description="This staff member currently has no assigned orders, schedule, or role-specific attributes to display."
-                             cta={(
-                                <Button asChild>
-                                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        Edit Profile & Attributes
-                                    </Link>
-                                </Button>
-                            )}
-                        />
-                    </CardContent>
-                </Card>
-            )}
-        </div>
-
-        {hasAttributes && (
-            <div className="lg:col-span-1 space-y-6">
-                {assignedAttributes.map((attr) => {
-                    if (!attr) return null;
-                    return (
-                        <DynamicAttributeCard 
-                            key={attr.definition.key}
-                            attribute={attr.definition}
-                            value={attr.value}
-                        />
-                    );
-                })}
-            </div>
-        )}
-      </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2 text-sm">
+                <p><strong>Email:</strong> {staffMember.email}</p>
+                <p><strong>Phone:</strong> {staffMember.phone}</p>
+              </CardContent>
+            </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
