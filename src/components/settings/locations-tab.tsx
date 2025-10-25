@@ -206,7 +206,7 @@ export function LocationsTab({ locations, setLocations }: LocationsTabProps) {
                     <AlertDialog>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
                                     <MoreHorizontal className="h-4 w-4" />
                                     <span className="sr-only">Actions</span>
                                 </Button>
@@ -216,7 +216,7 @@ export function LocationsTab({ locations, setLocations }: LocationsTabProps) {
                                     <Edit className="mr-2 h-4 w-4" /> Edit
                                 </DropdownMenuItem>
                                 <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem className="text-destructive focus:text-destructive">
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
                                         <Trash2 className="mr-2 h-4 w-4" /> Delete
                                     </DropdownMenuItem>
                                 </AlertDialogTrigger>

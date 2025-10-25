@@ -8,13 +8,14 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, DollarSign } from 'lucide-react';
+import { ArrowUpDown, DollarSign, MoreHorizontal } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { updateStaff } from '@/services/staff';
 import { addTransaction } from '@/services/finances';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
 type CommissionRow = {
   staffId: string;
@@ -44,7 +45,7 @@ const getColumns = (handlePayout: (staffId: string, amount: number, currency: st
             <div className="text-right">
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
                     Unpaid Commission
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className="mr-2 h-4 w-4" />
                 </Button>
             </div>
         ),
@@ -63,12 +64,23 @@ const getColumns = (handlePayout: (staffId: string, amount: number, currency: st
             return (
                 <div className="text-right">
                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button size="sm" disabled={!canPayout}>
-                                <DollarSign className="mr-2 h-4 w-4" />
-                                Process Payout
-                            </Button>
-                        </AlertDialogTrigger>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0" disabled={!canPayout}>
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem disabled={!canPayout} onSelect={(e) => e.preventDefault()}>
+                                        <DollarSign className="mr-2 h-4 w-4" />
+                                        Process Payout
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Confirm Commission Payout</AlertDialogTitle>
