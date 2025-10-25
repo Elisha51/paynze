@@ -45,7 +45,7 @@ const FilterTabs = ({ filterTabs, defaultValue, children }: { filterTabs: Tab[],
                 <CardHeader>
                     <TabsList className="flex-wrap h-auto justify-start">
                         {filterTabs.map(tab => (
-                            <TabsTrigger key={tab.value} value={tab.value} className={tab.className}>
+                            <TabsTrigger key={tab.value} value={tab.value} className={`${tab.className} whitespace-nowrap`}>
                                 {tab.label}
                             </TabsTrigger>
                         ))}
