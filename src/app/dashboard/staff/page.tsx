@@ -41,6 +41,7 @@ import {
 } from '@/components/ui/select';
 import { getRoles } from '@/services/roles';
 import { useToast } from '@/hooks/use-toast';
+import { StaffWidget } from '@/components/dashboard/staff-widget';
 
 const columns: ColumnDef<Staff>[] = [
   { accessorKey: 'name', header: 'Name' },
@@ -210,7 +211,10 @@ export default function StaffPage() {
   return (
     <DashboardPageLayout title="Staff Management" tabs={mainTabs} cta={cta}>
         <DashboardPageLayout.TabContent value="team">
-            <DataTable columns={columns} data={staff} />
+            <div className="space-y-6">
+                <StaffWidget staff={staff} isLoading={isLoading} />
+                <DataTable columns={columns} data={staff} />
+            </div>
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="permissions">
             <RolesPermissionsTab roles={roles} setRoles={setRoles} />
@@ -218,5 +222,3 @@ export default function StaffPage() {
     </DashboardPageLayout>
   );
 }
-
-    

@@ -305,6 +305,11 @@ export type Staff = {
   role: StaffRole;
   status: 'Active' | 'Inactive';
   lastLogin?: string;
+  onlineStatus?: 'Online' | 'Offline';
+  assignedOrders?: Order[];
+  completionRate?: number; // e.g., 98.5
+  totalSales?: number; // For sales agents
+  currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
 };
 
 
