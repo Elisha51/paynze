@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,15 +15,17 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { StaffProfileForm } from './staff-profile-form'; // Re-use the form for core details
-import { updateStaff, getStaff } from '@/services/staff';
+import { updateStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import type { Staff, Role, AssignableAttribute, Shift } from '@/lib/types';
 import { FileUploader } from '../ui/file-uploader';
 import { Badge } from '../ui/badge';
 import { Separator } from '../ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import ReactCrop, { type Crop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
 
 
 const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any, value: any, onChange: (key: string, value: any) => void }) => {
@@ -120,10 +121,11 @@ const daysOfWeek: Shift['day'][] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday'
 export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     const router = useRouter();
     const { toast } = useToast();
-
     const [staffMember, setStaffMember] = useState<Staff | null>(initialStaff || null);
     const [allRoles, setAllRoles] = useState<Role[]>([]);
-    
+    const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+    const [crop, setCrop] = useState<Crop>();
+
     const selectedRole = allRoles.find(r => r.name === staffMember?.role);
 
     useEffect(() => {
@@ -133,13 +135,48 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
         }
         loadRoles();
     }, []);
-
+    
     if (!staffMember) {
         return <div>Loading...</div>; // Or a skeleton loader
     }
+
+    const handleCoreInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { id, value } = e.target;
+        setStaffMember(prev => prev ? ({...prev, [id]: value }) : null);
+    };
     
-    const handleCoreInfoSave = async (updatedStaff: Staff) => {
-        setStaffMember(updatedStaff);
+    const handleAvatarFileChange = (files: File[]) => {
+        if (files.length > 0) {
+            const reader = new FileReader();
+            reader.onload = () => {
+                setImageToCrop(reader.result as string);
+            };
+            reader.readAsDataURL(files[0]);
+        }
+    };
+    
+    const handleCropComplete = async () => {
+        if (!imageToCrop || !crop || !crop.width || !crop.height || !staffMember) return;
+
+        const image = new Image();
+        image.src = imageToCrop;
+        const canvas = document.createElement('canvas');
+        const scaleX = image.naturalWidth / image.width;
+        const scaleY = image.naturalHeight / image.height;
+        canvas.width = crop.width;
+        canvas.height = crop.height;
+        const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            toast({ variant: 'destructive', title: "Could not process image." });
+            return;
+        }
+
+        ctx.drawImage(image, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, crop.width, crop.height);
+        const croppedImageUrl = canvas.toDataURL('image/jpeg');
+        
+        setStaffMember({ ...staffMember, avatarUrl: croppedImageUrl });
+        setImageToCrop(null);
     };
 
     const handleRoleChange = (roleName: Staff['role']) => {
@@ -236,17 +273,50 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
                     </Button>
                 </div>
             </div>
-
-            <StaffProfileForm 
-                staff={staffMember}
-                onSave={handleCoreInfoSave}
-                onCancel={() => router.push(`/dashboard/staff/${staffMember.id}`)}
-            />
+            
+             <Card>
+                <CardHeader>
+                    <CardTitle>Personal Information</CardTitle>
+                    <CardDescription>Update name, contact details, and profile picture.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="flex items-center gap-4">
+                        <Avatar className="h-20 w-20">
+                            <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
+                            <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
+                        </Avatar>
+                        <div className="space-y-2 flex-1">
+                             <Label>Profile Picture</Label>
+                             <FileUploader 
+                                files={[]}
+                                onFilesChange={handleAvatarFileChange}
+                                maxFiles={1}
+                                accept={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
+                             />
+                             <p className="text-xs text-muted-foreground">Recommended size: 200x200px. Max 2MB.</p>
+                        </div>
+                    </div>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Full Name</Label>
+                            <Input id="name" value={staffMember.name} onChange={handleCoreInfoChange} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email Address</Label>
+                            <Input id="email" type="email" value={staffMember.email} onChange={handleCoreInfoChange} />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="phone">Phone Number</Label>
+                        <Input id="phone" type="tel" value={staffMember.phone || ''} onChange={handleCoreInfoChange} />
+                    </div>
+                </CardContent>
+            </Card>
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Role</CardTitle>
-                    <CardDescription>Assign a role to determine permissions and available attributes.</CardDescription>
+                    <CardTitle>Role & Permissions</CardTitle>
+                    <CardDescription>Assign a role to determine what this staff member can see and do.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <div className="space-y-2">
@@ -357,3 +427,4 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
         </div>
     );
 }
+

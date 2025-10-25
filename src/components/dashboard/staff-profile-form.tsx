@@ -43,12 +43,6 @@ export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = fals
             reader.readAsDataURL(files[0]);
         }
     };
-
-    const handleVerificationDocsChange = (files: File[]) => {
-        // This is a simulation. In a real app, you'd upload these files and get URLs.
-        const newDocs = files.map(file => ({ name: file.name, url: URL.createObjectURL(file) }));
-        setFormData(prev => ({ ...prev, verificationDocuments: [...(prev.verificationDocuments || []), ...newDocs] }));
-    }
     
     const handleCropComplete = async () => {
         if (!imageToCrop || !crop || !crop.width || !crop.height) return;
@@ -91,7 +85,6 @@ export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = fals
                 title: "Profile Updated",
                 description: "Your profile information has been saved.",
             });
-            onCancel(); // Go back to view mode
         } catch(e) {
              toast({
                 variant: 'destructive',
@@ -141,26 +134,8 @@ export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = fals
                         <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} />
                     </div>
                     
-                    {isSelfEditing && (
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Verification Documents</CardTitle>
-                                <CardDescription>Upload documents to verify your identity (e.g., National ID, Driver's License).</CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                                <FileUploader
-                                    files={formData.verificationDocuments || []}
-                                    onFilesChange={handleVerificationDocsChange}
-                                    maxFiles={5}
-                                    accept={{ 'application/pdf': ['.pdf'], 'image/*': ['.jpeg', '.jpg', '.png'] }}
-                                />
-                            </CardContent>
-                        </Card>
-                    )}
-
                     <div className="flex gap-2">
                         <Button onClick={handleSaveChanges}>Save Changes</Button>
-                        <Button variant="outline" onClick={onCancel}>Cancel</Button>
                     </div>
                 </CardContent>
             </Card>
