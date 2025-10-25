@@ -55,17 +55,29 @@ export default function ViewPurchaseOrderPage() {
   
   if (loading) {
     return (
-        <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-            <div className="mx-auto grid max-w-4xl flex-1 auto-rows-max gap-4">
-                 <div className="flex items-center gap-4">
-                    <Skeleton className="h-7 w-7" />
-                    <Skeleton className="h-7 w-32" />
-                    <Skeleton className="h-6 w-20 rounded-full sm:inline-flex" />
-                 </div>
-                 <Skeleton className="h-96 w-full" />
-            </div>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Skeleton className="h-9 w-9" />
+          <div className="flex-1 space-y-1">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-24" />
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <Skeleton className="h-10 w-20" />
+            <Skeleton className="h-10 w-10" />
+          </div>
         </div>
-    )
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <Skeleton className="h-80 w-full" />
+          </div>
+          <div className="lg:col-span-1 space-y-6">
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
 
@@ -97,54 +109,48 @@ export default function ViewPurchaseOrderPage() {
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
 
   return (
-    <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
-        <div className="mx-auto grid max-w-4xl flex-1 auto-rows-max gap-4">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-                    <Link href="/dashboard/procurement">
-                        <ChevronLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Link>
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/dashboard/procurement">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back</span>
+          </Link>
+        </Button>
+        <h1 className="flex-1 shrink-0 whitespace-nowrap text-2xl font-bold tracking-tight">
+            PO #{order.id}
+        </h1>
+        <Badge variant={statusVariant} className="hidden sm:inline-flex">
+            {order.status}
+        </Badge>
+        <div className="ml-auto flex items-center gap-2">
+            <Button variant="outline" size="sm">
+                Mark as Received
+            </Button>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9">
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">More</span>
                 </Button>
-                <h1 className="flex-1 shrink-0 whitespace-nowrap text-xl font-semibold tracking-tight sm:grow-0">
-                    PO #{order.id}
-                </h1>
-                <Badge variant={statusVariant} className="hidden sm:inline-flex">
-                    {order.status}
-                </Badge>
-                <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                    <Button variant="outline" size="sm">
-                        Mark as Received
-                    </Button>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-3.5 w-3.5" />
-                            <span className="sr-only">More</span>
-                        </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit PO</DropdownMenuItem>
-                            <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem>Edit PO</DropdownMenuItem>
+                    <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-6">
             <Card>
-                <CardHeader className="flex flex-row items-center justify-between bg-muted/50 p-4">
-                    <div className="grid gap-0.5">
-                        <CardTitle className="group flex items-center gap-2 text-lg">
-                            Supplier: <Link href={`/dashboard/suppliers/${order.supplierId}`} className="hover:underline">{order.supplierName}</Link>
-                        </CardTitle>
-                    </div>
-                    <div className="grid gap-0.5 text-right text-sm">
-                        <p><strong>Order Date:</strong> {order.orderDate}</p>
-                        <p><strong>Expected Delivery:</strong> {order.expectedDelivery}</p>
-                    </div>
+                <CardHeader>
+                    <CardTitle>Items Ordered</CardTitle>
                 </CardHeader>
-                <CardContent className="p-4 sm:p-6">
+                <CardContent>
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -166,14 +172,46 @@ export default function ViewPurchaseOrderPage() {
                         </TableBody>
                         <TableFooter>
                             <TableRow>
-                                <TableCell colSpan={3} className="text-right font-semibold">Grand Total</TableCell>
-                                <TableCell className="text-right font-bold">{formatCurrency(order.totalCost, order.currency)}</TableCell>
+                                <TableCell colSpan={3} className="text-right font-semibold text-lg">Grand Total</TableCell>
+                                <TableCell className="text-right font-bold text-lg">{formatCurrency(order.totalCost, order.currency)}</TableCell>
                             </TableRow>
                         </TableFooter>
                     </Table>
                 </CardContent>
             </Card>
         </div>
+        <div className="lg:col-span-1 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Supplier</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Link href={`/dashboard/suppliers/${order.supplierId}`} className="font-medium text-primary hover:underline">
+                        {order.supplierName}
+                    </Link>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Order Summary</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4 text-sm">
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Order Date</span>
+                        <span>{order.orderDate}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-muted-foreground">Expected Delivery</span>
+                        <span>{order.expectedDelivery}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Status</span>
+                        <Badge variant={statusVariant}>{order.status}</Badge>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+      </div>
     </div>
   );
 }
