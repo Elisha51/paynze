@@ -1,8 +1,9 @@
 
 
 import { products, orders as mockOrders } from '@/lib/data';
-import type { Order, Product } from '@/lib/types';
+import type { Order, Product, Staff } from '@/lib/types';
 import { updateProduct } from './products';
+import { getStaff, updateStaff } from './staff';
 
 let orders: Order[] = [...mockOrders];
 
@@ -86,6 +87,26 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
       for (const item of originalOrder.items) {
           await updateProductStock(item.sku, item.quantity, 'Un-reserve', `Order #${orderId} Cancelled`);
       }
+  }
+
+  // If a staff member fulfilled the order, update their performance metrics
+  if (updates.status === 'Delivered' && updates.fulfilledByStaffId) {
+    const allStaff = await getStaff();
+    const staffMember = allStaff.find(s => s.id === updates.fulfilledByStaffId);
+
+    if (staffMember && staffMember.role === 'Delivery Rider') {
+        const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number; goal: number } | undefined;
+        if (deliveryTarget) {
+            const newAttributes = {
+                ...staffMember.attributes,
+                deliveryTarget: {
+                    ...deliveryTarget,
+                    current: deliveryTarget.current + 1,
+                },
+            };
+            await updateStaff({ ...staffMember, attributes: newAttributes });
+        }
+    }
   }
 
   orders = orders.map(order => {
