@@ -173,7 +173,7 @@ export type Customer = {
     name: string;
     email: string;
     phone: string;
-    customerGroup: 'default' | 'wholesale' | 'retailer';
+    customerGroup: 'default' | 'Wholesaler' | 'Retailer';
     lastOrder: string;
     totalSpend: string;
     purchaseHistory: {
@@ -206,6 +206,7 @@ export type Supplier = {
   email: string;
   phone: string;
   address: string;
+  productsSupplied: string[]; // Array of product SKUs or names
 };
 
 export type PurchaseOrderItem = {

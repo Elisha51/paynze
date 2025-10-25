@@ -197,17 +197,7 @@ export function ProductPerformanceReport({ products }: { products: Product[] }) 
         </Card>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Product Performance</CardTitle>
-          <CardDescription>
-            Analyze sales performance by product and variant to identify your best-sellers.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <DataTable columns={columns} data={reportData} />
-        </CardContent>
-      </Card>
+      <DataTable columns={columns} data={reportData} />
     </div>
   );
 }

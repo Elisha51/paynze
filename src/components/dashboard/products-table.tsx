@@ -232,9 +232,15 @@ const getColumns = (
 type ProductsTableProps = {
   data: Product[];
   setData: React.Dispatch<React.SetStateAction<Product[]>>;
+  isLoading: boolean;
+  filter?: {
+    column: string;
+    value?: string;
+    excludeValue?: string;
+  }
 };
 
-export function ProductsTable({ data, setData }: ProductsTableProps) {
+export function ProductsTable({ data, setData, isLoading, filter }: ProductsTableProps) {
   const { toast } = useToast();
   
   const archiveProduct = async (sku: string) => {
@@ -274,6 +280,7 @@ export function ProductsTable({ data, setData }: ProductsTableProps) {
     <DataTable
         columns={columns}
         data={data}
+        filter={filter}
     />
   );
 }

@@ -1,9 +1,9 @@
 
 'use client';
 
-import { PlusCircle, Upload, ChevronDown, BarChart2 } from 'lucide-react';
+import { PlusCircle, Upload, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { ProductsTable } from '@/components/dashboard/products-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import type { Product } from '@/lib/types';
@@ -17,14 +17,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { ProductPerformanceReport } from '@/components/dashboard/analytics/product-performance-report';
 import { CategoriesTab } from '@/components/dashboard/categories-tab';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadProducts() {
+        setIsLoading(true);
         const fetchedProducts = await getProducts();
         setProducts(fetchedProducts);
+        setIsLoading(false);
     }
     loadProducts();
   }, []);
@@ -66,11 +70,6 @@ export default function ProductsPage() {
       </DropdownMenu>
   );
 
-  const allProducts = useMemo(() => products.filter(p => p.status !== 'archived'), [products]);
-  const publishedProducts = useMemo(() => products.filter(p => p.status === 'published'), [products]);
-  const draftProducts = useMemo(() => products.filter(p => p.status === 'draft'), [products]);
-  const archivedProducts = useMemo(() => products.filter(p => p.status === 'archived'), [products]);
-
   return (
     <DashboardPageLayout
         title="Products"
@@ -81,26 +80,34 @@ export default function ProductsPage() {
             <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue='all'>
                  <DashboardPageLayout.TabContent value="all">
                     <ProductsTable
-                        data={allProducts}
+                        data={products}
                         setData={setProducts}
+                        isLoading={isLoading}
+                        filter={{ column: 'status', excludeValue: 'archived' }}
                     />
                 </DashboardPageLayout.TabContent>
                 <DashboardPageLayout.TabContent value="published">
                     <ProductsTable 
-                        data={publishedProducts}
+                        data={products}
                         setData={setProducts}
+                        isLoading={isLoading}
+                        filter={{ column: 'status', value: 'published' }}
                     />
                 </DashboardPageLayout.TabContent>
                 <DashboardPageLayout.TabContent value="draft">
                     <ProductsTable
-                        data={draftProducts}
+                        data={products}
                         setData={setProducts}
+                        isLoading={isLoading}
+                        filter={{ column: 'status', value: 'draft' }}
                     />
                 </DashboardPageLayout.TabContent>
                 <DashboardPageLayout.TabContent value="archived">
                     <ProductsTable 
-                        data={archivedProducts}
+                        data={products}
                         setData={setProducts}
+                        isLoading={isLoading}
+                        filter={{ column: 'status', value: 'archived' }}
                     />
                 </DashboardPageLayout.TabContent>
             </DashboardPageLayout.FilterTabs>
@@ -111,7 +118,17 @@ export default function ProductsPage() {
         </DashboardPageLayout.TabContent>
         
         <DashboardPageLayout.TabContent value="reports">
-            <ProductPerformanceReport products={products} />
+            <Card>
+                <CardHeader>
+                    <CardTitle>Product Performance</CardTitle>
+                    <CardDescription>
+                        Analyze sales performance by product and variant to identify your best-sellers.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <ProductPerformanceReport products={products} />
+                </CardContent>
+            </Card>
         </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );

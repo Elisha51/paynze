@@ -32,6 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 
 const getColumns = (
@@ -132,42 +133,51 @@ export function CategoriesTab() {
     setIsEditOpen(true);
   }
 
-  const columns = React.useMemo(() => getColumns(openEditDialog, handleDeleteCategory), [handleDeleteCategory]);
+  const columns = React.useMemo(() => getColumns(openEditDialog, handleDeleteCategory), [loadData]);
 
   return (
     <>
-      <DataTable
-        columns={columns}
-        data={data}
-      />
-
-       <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-          <DialogTrigger asChild>
-            <Button className="mt-4">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Category
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Add New Category</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                    <Label htmlFor="name">Category Name</Label>
-                    <Input id="name" value={newCategory.name} onChange={(e) => setNewCategory({...newCategory, name: e.target.value})} />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="description">Description (Optional)</Label>
-                    <Textarea id="description" value={newCategory.description} onChange={(e) => setNewCategory({...newCategory, description: e.target.value})} />
-                </div>
-            </div>
-            <DialogFooter>
-                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <Button onClick={handleAddCategory}>Add Category</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <Card>
+          <CardHeader className="flex-row items-center justify-between">
+              <div>
+                <CardTitle>Manage Categories</CardTitle>
+                <CardDescription>Create and manage reusable configurations for faster product listing.</CardDescription>
+              </div>
+               <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                <DialogTrigger asChild>
+                    <Button>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Category
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Category</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="name">Category Name</Label>
+                            <Input id="name" value={newCategory.name} onChange={(e) => setNewCategory({...newCategory, name: e.target.value})} />
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Description (Optional)</Label>
+                            <Textarea id="description" value={newCategory.description} onChange={(e) => setNewCategory({...newCategory, description: e.target.value})} />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                        <Button onClick={handleAddCategory}>Add Category</Button>
+                    </DialogFooter>
+                </DialogContent>
+                </Dialog>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+                columns={columns}
+                data={data}
+            />
+          </CardContent>
+      </Card>
       
        <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
           <DialogContent>

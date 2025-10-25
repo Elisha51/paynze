@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import {
@@ -165,8 +166,6 @@ export function CustomersTable({ filter, cardTitle, cardDescription }: Customers
       columns={columns}
       data={data}
       filter={filter}
-      cardTitle={cardTitle}
-      cardDescription={cardDescription}
     />
   );
 }

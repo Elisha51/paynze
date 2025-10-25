@@ -35,14 +35,14 @@ export default function CustomersPage() {
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="wholesale">
                 <CustomersTable
-                filter={{ column: 'customerGroup', value: 'wholesale' }}
+                filter={{ column: 'customerGroup', value: 'Wholesaler' }}
                 cardTitle="Wholesale Customers"
                 cardDescription="View, manage, and communicate with your wholesale customers."
                 />
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="retailer">
                 <CustomersTable
-                filter={{ column: 'customerGroup', value: 'retailer' }}
+                filter={{ column: 'customerGroup', value: 'Retailer' }}
                 cardTitle="Retail Customers"
                 cardDescription="View, manage, and communicate with your retail customers."
                 />

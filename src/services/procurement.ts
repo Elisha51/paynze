@@ -1,3 +1,4 @@
+
 import type { Supplier, PurchaseOrder } from '@/lib/types';
 
 const suppliers: Supplier[] = [
@@ -7,7 +8,8 @@ const suppliers: Supplier[] = [
     contactName: 'Grace Nakato',
     email: 'grace@kitengekings.com',
     phone: '+256 772 111 222',
-    address: '123 Textile Road, Kampala'
+    address: '123 Textile Road, Kampala',
+    productsSupplied: ['KIT-001']
   },
   {
     id: 'SUP-002',
@@ -15,7 +17,8 @@ const suppliers: Supplier[] = [
     contactName: 'David Okello',
     email: 'david@leatherartisans.co.ug',
     phone: '+256 782 333 444',
-    address: '456 Craft Market, Jinja'
+    address: '456 Craft Market, Jinja',
+    productsSupplied: ['SHOE-002']
   }
 ];
 
