@@ -24,6 +24,7 @@ import {
   ChevronLeft,
   FileText,
   Truck,
+  Landmark,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -35,10 +36,12 @@ const menuItems = [
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
   { href: '/dashboard/products', label: 'Products', icon: Package },
   { href: '/dashboard/customers', label: 'Customers', icon: Users },
+  { href: '/dashboard/procurement', label: 'Procurement', icon: Truck },
 ];
 
 const premiumMenuItems = [
-  { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, plan: 'Premium' },
+    { href: '/dashboard/finances', label: 'Finances', icon: Landmark, plan: 'Premium' },
+    { href: '/dashboard/staff', label: 'Staff', icon: Users, plan: 'Premium' },
 ];
 
 const bottomMenuItems = [
