@@ -191,6 +191,8 @@ export type Order = {
     paymentStatus: 'Paid' | 'Unpaid';
     shippingCost?: number;
     taxes?: number;
+    salesAgentId?: string;
+    salesAgentName?: string;
     assignedStaffId?: string;
     assignedStaffName?: string;
     fulfilledByStaffId?: string;
@@ -310,14 +312,6 @@ export type CommissionRule = {
     rate: number;
 }
 
-export type Role = {
-  name: StaffRoleName;
-  description: string;
-  permissions: Permissions;
-  assignableAttributes?: AssignableAttribute[];
-  commission?: CommissionRule;
-};
-
 export type PerformanceTarget = {
     goal: number;
     current: number;
@@ -367,3 +361,5 @@ export type Transaction = {
 };
 
 
+
+    

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ArrowLeft, PlusCircle, Save, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -29,20 +30,23 @@ import {
 import { getCustomers } from '@/services/customers';
 import { getProducts } from '@/services/products';
 import { addOrder } from '@/services/orders';
-import type { Customer, Product, OrderItem, Order } from '@/lib/types';
+import type { Customer, Product, OrderItem, Order, Staff } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
+import { getStaff } from '@/services/staff';
 
 type NewOrderItem = Partial<OrderItem> & { id: number };
 
 export default function AddOrderPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [salesAgents, setSalesAgents] = useState<Staff[]>([]);
   const [items, setItems] = useState<NewOrderItem[]>([{ id: Date.now(), quantity: 1 }]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
+  const [selectedAgentId, setSelectedAgentId] = useState<string | undefined>();
   const [paymentMethod, setPaymentMethod] = useState<Order['paymentMethod']>('Cash on Delivery');
   const [fulfillmentMethod, setFulfillmentMethod] = useState<Order['fulfillmentMethod']>('Delivery');
   const [orderStatus, setOrderStatus] = useState<Order['status']>('Awaiting Payment');
@@ -53,12 +57,14 @@ export default function AddOrderPage() {
 
   useEffect(() => {
     async function fetchData() {
-        const [customerData, productData] = await Promise.all([
+        const [customerData, productData, staffData] = await Promise.all([
             getCustomers(),
-            getProducts()
+            getProducts(),
+            getStaff(),
         ]);
         setCustomers(customerData);
         setProducts(productData);
+        setSalesAgents(staffData.filter(s => s.role === 'Sales Agent'));
     }
     fetchData();
   }, []);
@@ -113,12 +119,16 @@ export default function AddOrderPage() {
       return;
     }
 
+    const agent = salesAgents.find(a => a.id === selectedAgentId);
+
     setIsLoading(true);
 
     const newOrder: Omit<Order, 'id'> = {
       customerId: customer.id,
       customerName: customer.name,
       customerEmail: customer.email,
+      salesAgentId: agent?.id,
+      salesAgentName: agent?.name,
       date: format(new Date(), 'yyyy-MM-dd'),
       status: orderStatus,
       fulfillmentMethod: fulfillmentMethod,
@@ -256,6 +266,17 @@ export default function AddOrderPage() {
                             </SelectContent>
                         </Select>
                     </div>
+                     <div className='space-y-2'>
+                        <Label htmlFor="agent">Sales Agent (Optional)</Label>
+                        <Select onValueChange={setSelectedAgentId} value={selectedAgentId}>
+                            <SelectTrigger id="agent">
+                                <SelectValue placeholder="Assign a sales agent" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {salesAgents.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </CardContent>
             </Card>
              <Card>
@@ -311,3 +332,5 @@ export default function AddOrderPage() {
     </div>
   );
 }
+
+    
