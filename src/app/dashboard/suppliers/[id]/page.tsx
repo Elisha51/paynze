@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -26,6 +27,8 @@ import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
+import { FileText } from 'lucide-react';
 
 
 const poColumns: ColumnDef<PurchaseOrder>[] = [
@@ -187,6 +190,19 @@ export default function ViewSupplierPage() {
                     <DataTable
                       columns={poColumns}
                       data={purchaseOrders}
+                       emptyState={{
+                        icon: FileText,
+                        title: "No Purchase Orders Yet",
+                        description: "You haven't sent any purchase orders to this supplier.",
+                        cta: (
+                            <Button asChild>
+                                <Link href="/dashboard/purchase-orders/add">
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Create Purchase Order
+                                </Link>
+                            </Button>
+                        )
+                      }}
                     />
                 </CardContent>
             </Card>
@@ -206,7 +222,19 @@ export default function ViewSupplierPage() {
                             ))}
                         </ul>
                     ) : (
-                        <p className="text-sm text-muted-foreground">No products are currently linked to this supplier.</p>
+                         <EmptyState 
+                            icon={<FileText className="h-12 w-12 text-primary" />}
+                            title="No Products Linked"
+                            description="No products are currently linked to this supplier. You can link them when editing a product."
+                            cta={(
+                                <Button asChild>
+                                    <Link href="/dashboard/products">
+                                        <ArrowLeft className="mr-2 h-4 w-4" />
+                                        Go to Products
+                                    </Link>
+                                </Button>
+                            )}
+                        />
                     )}
                 </CardContent>
             </Card>

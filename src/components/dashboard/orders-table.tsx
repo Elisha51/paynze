@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, User, Truck, Store, PackageCheck } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, User, Truck, Store, PackageCheck, ShoppingCart, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -485,6 +485,19 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
     <DataTable
       columns={columns}
       data={data}
+      emptyState={{
+        icon: ShoppingCart,
+        title: "No Orders Yet",
+        description: "You haven't received any orders. When you do, they will appear here.",
+        cta: (
+            <Button asChild>
+                <Link href="/dashboard/orders/add">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create an Order
+                </Link>
+            </Button>
+        )
+      }}
     />
   );
 }

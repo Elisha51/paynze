@@ -5,7 +5,7 @@ import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,6 +19,7 @@ import {
 import type { Customer } from '@/lib/types';
 import { DataTable } from './data-table';
 import Link from 'next/link';
+import { Users } from 'lucide-react';
 
 
 const columns: ColumnDef<Customer>[] = [
@@ -182,6 +183,19 @@ export function CustomersTable({ customers, isLoading, filter }: CustomersTableP
     <DataTable
       columns={columns}
       data={data}
+      emptyState={{
+        icon: Users,
+        title: "No Customers Yet",
+        description: "You haven't added any customers. Add your first customer to get started.",
+        cta: (
+            <Button asChild>
+                <Link href="/dashboard/customers/add">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Customer
+                </Link>
+            </Button>
+        )
+      }}
     />
   );
 }

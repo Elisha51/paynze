@@ -31,15 +31,24 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { useSearch } from '@/context/search-context';
+import { EmptyState } from '@/components/ui/empty-state';
+import type { LucideIcon } from 'lucide-react';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  emptyState?: {
+    icon: React.ComponentType<{ className?: string }>;
+    title: string;
+    description: string;
+    cta?: React.ReactNode;
+  };
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  emptyState
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -116,9 +125,18 @@ export function DataTable<TData, TValue>({
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center"
+                  className="h-auto"
                 >
-                  No results.
+                  {emptyState ? (
+                    <EmptyState 
+                      icon={React.createElement(emptyState.icon, { className: "h-12 w-12 text-primary" })}
+                      title={emptyState.title}
+                      description={emptyState.description}
+                      cta={emptyState.cta}
+                    />
+                  ) : (
+                    <div className="h-24 text-center">No results.</div>
+                  )}
                 </TableCell>
               </TableRow>
             )}

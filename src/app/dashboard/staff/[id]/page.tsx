@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -31,6 +32,7 @@ import { cn } from '@/lib/utils';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
+import { EmptyState } from '@/components/ui/empty-state';
 
 
 const orderColumns: ColumnDef<Order>[] = [
@@ -204,7 +206,7 @@ export default function ViewStaffPage() {
     )
   }
   
-  const showAssignedOrders = role?.permissions.orders.view && assignedOrders.length > 0;
+  const showAssignedOrders = role?.permissions.orders.view;
   const hasAttributes = staffMember.attributes && Object.keys(staffMember.attributes).length > 0 && role?.assignableAttributes && role.assignableAttributes.length > 0;
 
   return (
@@ -276,9 +278,13 @@ export default function ViewStaffPage() {
             )}
             
             {!showAssignedOrders && !hasAttributes && (
-                <Card>
-                    <CardContent className="p-12 text-center">
-                        <p className="text-muted-foreground">This staff member has no specific tasks or attributes to display.</p>
+                 <Card>
+                    <CardContent>
+                        <EmptyState 
+                            icon={<Award className="h-12 w-12 text-primary" />}
+                            title="No Tasks or Attributes"
+                            description="This staff member currently has no assigned orders or role-specific attributes to display."
+                        />
                     </CardContent>
                 </Card>
             )}

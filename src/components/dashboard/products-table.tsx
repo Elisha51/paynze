@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Package, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -283,7 +283,19 @@ export function ProductsTable({ data, setData, isLoading, filter }: ProductsTabl
     <DataTable
         columns={columns}
         data={data}
-        filter={filter}
+        emptyState={{
+            icon: Package,
+            title: "No Products Found",
+            description: "You haven't added any products yet. Let's add your first one!",
+            cta: (
+                <Button asChild>
+                    <Link href="/dashboard/products/add">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Product
+                    </Link>
+                </Button>
+            )
+        }}
     />
   );
 }
