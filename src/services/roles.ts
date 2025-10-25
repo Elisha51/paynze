@@ -26,6 +26,7 @@ let roles: Role[] = [
       staff: { view: true, create: true, edit: true, delete: true },
       settings: { view: true, edit: true },
     },
+    assignableAttributes: []
   },
   {
     name: 'Sales Agent',
@@ -37,6 +38,10 @@ let roles: Role[] = [
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
     },
+    assignableAttributes: [
+        { key: 'salesTarget', label: 'Monthly Sales Target', type: 'kpi' },
+        { key: 'assignedRegions', label: 'Sales Regions', type: 'tags' }
+    ]
   },
   {
     name: 'Delivery Rider',
@@ -46,6 +51,10 @@ let roles: Role[] = [
       dashboard: { view: true },
       orders: { view: true, create: false, edit: true, delete: false },
     },
+    assignableAttributes: [
+        { key: 'deliveryTarget', label: 'Daily Delivery Target', type: 'kpi' },
+        { key: 'deliveryZones', label: 'Delivery Zones', type: 'tags' }
+    ]
   },
   {
     name: 'Finance Manager',
@@ -56,6 +65,7 @@ let roles: Role[] = [
       finances: { view: true, create: true, edit: true, delete: true },
       procurement: { view: true, create: true, edit: true, delete: false },
     },
+    assignableAttributes: []
   },
 ];
 

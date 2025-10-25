@@ -1,5 +1,6 @@
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -271,7 +272,7 @@ export type ShippingZone = {
 };
 
 // Staff Management
-export type StaffRole = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager';
+export type StaffRoleName = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager' | string;
 
 export type CrudPermissions = {
   view: boolean;
@@ -291,11 +292,17 @@ export type Permissions = {
   settings: { view: boolean; edit: boolean };
 };
 
+export type AssignableAttribute = {
+    key: string; // e.g. 'salesTarget', 'deliveryZones'
+    label: string; // e.g. 'Sales Target', 'Delivery Zones'
+    type: 'kpi' | 'tags' | 'list';
+}
 
 export type Role = {
-  name: StaffRole;
+  name: StaffRoleName;
   description: string;
   permissions: Permissions;
+  assignableAttributes?: AssignableAttribute[];
 };
 
 export type PerformanceTarget = {
@@ -310,7 +317,7 @@ export type Staff = {
   name: string;
   email: string;
   avatarUrl?: string;
-  role: StaffRole;
+  role: StaffRoleName;
   status: 'Active' | 'Inactive';
   lastLogin?: string;
   onlineStatus?: 'Online' | 'Offline';
@@ -318,8 +325,10 @@ export type Staff = {
   completionRate?: number; // e.g., 98.5
   totalSales?: number; // For sales agents
   currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
-  targets?: PerformanceTarget[];
-  zones?: string[]; // e.g. ['Kampala Central', 'Wakiso']
+  // Dynamic attributes based on role
+  attributes?: {
+    [key: string]: any; // e.g. { salesTarget: { goal: 50, current: 25 }, deliveryZones: ['Kampala', 'Wakiso'] }
+  }
 };
 
 

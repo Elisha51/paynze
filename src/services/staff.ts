@@ -1,5 +1,6 @@
 
 
+
 import type { Staff, Order } from '@/lib/types';
 import { format } from 'date-fns';
 import { getOrders } from './orders';
@@ -23,11 +24,6 @@ async function initializeStaff() {
         completionRate: 100,
         totalSales: 550000,
         currency: 'UGX',
-        targets: [
-            { id: 't-1', name: 'Monthly Sales', goal: 1000000, current: 550000 },
-            { id: 't-2', name: 'Team Growth', goal: 5, current: 4 },
-        ],
-        zones: ['National']
       },
       { 
         id: 'staff-002', 
@@ -41,10 +37,10 @@ async function initializeStaff() {
         assignedOrders: [],
         totalSales: 125000,
         currency: 'KES',
-        targets: [
-            { id: 't-3', name: 'New Customers', goal: 10, current: 7 },
-        ],
-        zones: ['Nairobi', 'Mombasa']
+        attributes: {
+          salesTarget: { goal: 500000, current: 125000 },
+          assignedRegions: ['Nairobi', 'Mombasa']
+        }
       },
       { 
         id: 'staff-003', 
@@ -57,10 +53,10 @@ async function initializeStaff() {
         onlineStatus: 'Offline',
         assignedOrders: allOrders.slice(0, 1),
         completionRate: 95.2,
-        targets: [
-            { id: 't-4', name: 'On-time Deliveries', goal: 50, current: 48 },
-        ],
-        zones: ['Kampala Central']
+        attributes: {
+          deliveryTarget: { goal: 20, current: 18 },
+          deliveryZones: ['Kampala Central', 'Makindye']
+        }
       },
       { 
         id: 'staff-004', 

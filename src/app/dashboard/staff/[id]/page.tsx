@@ -5,10 +5,11 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award } from 'lucide-react';
 import Link from 'next/link';
-import type { Staff, Order } from '@/lib/types';
+import type { Staff, Order, Role, AssignableAttribute } from '@/lib/types';
 import { getStaff, getStaffOrders } from '@/services/staff';
+import { getRoles } from '@/services/roles';
 import {
   Card,
   CardContent,
@@ -62,10 +63,55 @@ const orderColumns: ColumnDef<Order>[] = [
     }
 ];
 
+const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttribute, value: any }) => {
+    const iconMap = {
+        kpi: Target,
+        tags: MapPin,
+        list: List,
+    };
+    const Icon = iconMap[attribute.type] || Award;
+
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                    <Icon className="h-5 w-5 text-primary"/>
+                    {attribute.label}
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                {attribute.type === 'kpi' && value && (
+                    <div className="space-y-4">
+                        <div>
+                            <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm font-medium">{attribute.label}</span>
+                                <span className="text-sm font-semibold">{value.current}/{value.goal}</span>
+                            </div>
+                            <Progress value={(value.current / value.goal) * 100} />
+                        </div>
+                    </div>
+                )}
+                {attribute.type === 'tags' && Array.isArray(value) && (
+                     <div className="flex flex-wrap gap-2">
+                        {value.map(tag => (
+                            <Badge key={tag} variant="secondary">{tag}</Badge>
+                        ))}
+                    </div>
+                )}
+                {(!value || (Array.isArray(value) && value.length === 0)) && (
+                    <p className="text-sm text-muted-foreground text-center py-4">No {attribute.label.toLowerCase()} assigned.</p>
+                )}
+            </CardContent>
+        </Card>
+    );
+};
+
+
 export default function ViewStaffPage() {
   const params = useParams();
   const id = params.id as string;
   const [staffMember, setStaffMember] = useState<Staff | null>(null);
+  const [role, setRole] = useState<Role | null>(null);
   const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -82,11 +128,17 @@ export default function ViewStaffPage() {
     async function loadData() {
         if (!id) return;
         setLoading(true);
-        const [staffData, orderData] = await Promise.all([
+        const [staffData, orderData, allRoles] = await Promise.all([
             getStaff().then(staffList => staffList.find(s => s.id === id)),
-            getStaffOrders(id)
+            getStaffOrders(id),
+            getRoles()
         ]);
+        
         setStaffMember(staffData || null);
+        if (staffData) {
+            const staffRole = allRoles.find(r => r.name === staffData.role);
+            setRole(staffRole || null);
+        }
         setAssignedOrders(orderData);
         setLoading(false);
     }
@@ -201,47 +253,13 @@ export default function ViewStaffPage() {
         </div>
 
         <div className="lg:col-span-1 space-y-6">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Target className="h-5 w-5 text-primary"/>
-                        Performance Goals
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {staffMember.targets && staffMember.targets.length > 0 ? staffMember.targets.map(target => (
-                        <div key={target.id}>
-                            <div className="flex justify-between items-center mb-1">
-                                <span className="text-sm font-medium">{target.name}</span>
-                                <span className="text-sm font-semibold">{target.current}/{target.goal}</span>
-                            </div>
-                            <Progress value={(target.current / target.goal) * 100} />
-                        </div>
-                    )) : (
-                        <p className="text-sm text-muted-foreground text-center py-4">No performance goals set.</p>
-                    )}
-                </CardContent>
-            </Card>
-
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-primary"/>
-                        Assigned Zones
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {staffMember.zones && staffMember.zones.length > 0 ? (
-                        <div className="flex flex-wrap gap-2">
-                            {staffMember.zones.map(zone => (
-                                <Badge key={zone} variant="secondary">{zone}</Badge>
-                            ))}
-                        </div>
-                    ) : (
-                         <p className="text-sm text-muted-foreground text-center py-4">No zones assigned.</p>
-                    )}
-                </CardContent>
-            </Card>
+            {role?.assignableAttributes && role.assignableAttributes.map(attr => (
+                <DynamicAttributeCard 
+                    key={attr.key}
+                    attribute={attr}
+                    value={staffMember.attributes?.[attr.key]}
+                />
+            ))}
         </div>
       </div>
     </div>

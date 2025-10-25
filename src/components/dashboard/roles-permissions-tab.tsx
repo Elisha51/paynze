@@ -4,13 +4,13 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { getRoles, addRole, updateRole } from '@/services/roles';
-import type { Role, Permissions, CrudPermissions } from '@/lib/types';
+import { updateRole, addRole as serviceAddRole } from '@/services/roles';
+import type { Role, Permissions, CrudPermissions, AssignableAttribute, StaffRoleName } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -23,17 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
-
-const defaultPermissions: Permissions = {
-  dashboard: { view: true },
-  products: { view: false, create: false, edit: false, delete: false },
-  orders: { view: false, create: false, edit: false, delete: false },
-  customers: { view: false, create: false, edit: false, delete: false },
-  procurement: { view: false, create: false, edit: false, delete: false },
-  finances: { view: false, create: false, edit: false, delete: false },
-  staff: { view: false, create: false, edit: false, delete: false },
-  settings: { view: false, edit: false },
-};
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -45,29 +35,44 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
 type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
 const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'finances', 'staff'];
 
-const PermissionRow = ({ module, permissions, onPermissionChange }: { module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => (
+const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => (
     <div className="space-y-3">
         <h5 className="font-semibold text-sm capitalize">{module}</h5>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
             {Object.keys(permissionLabels).map((key) => (
                 <div key={key} className="flex items-center space-x-2">
                     <Checkbox
-                        id={`${module}-${key}`}
+                        id={`${roleName}-${module}-${key}`}
                         checked={permissions[key as keyof CrudPermissions]}
                         onCheckedChange={(checked) => onPermissionChange(key as keyof CrudPermissions, !!checked)}
                     />
-                    <Label htmlFor={`${module}-${key}`}>{permissionLabels[key as keyof CrudPermissions]}</Label>
+                    <Label htmlFor={`${roleName}-${module}-${key}`}>{permissionLabels[key as keyof CrudPermissions]}</Label>
                 </div>
             ))}
         </div>
     </div>
 );
 
+const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
+    name: '',
+    description: '',
+    permissions: {
+        dashboard: { view: true },
+        products: { view: false, create: false, edit: false, delete: false },
+        orders: { view: false, create: false, edit: false, delete: false },
+        customers: { view: false, create: false, edit: false, delete: false },
+        procurement: { view: false, create: false, edit: false, delete: false },
+        finances: { view: false, create: false, edit: false, delete: false },
+        staff: { view: false, create: false, edit: false, delete: false },
+        settings: { view: false, edit: false },
+    },
+    assignableAttributes: [],
+}
 
 export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRoles: React.Dispatch<React.SetStateAction<Role[]>>}) {
   const { toast } = useToast();
   const [isAddOpen, setIsAddOpen] = useState(false);
-  const [newRole, setNewRole] = useState<{name: string, description: string}>({name: '', description: ''});
+  const [newRole, setNewRole] = useState(emptyRole);
 
   const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: keyof CrudPermissions | keyof Permissions['settings'] | 'view', value: boolean) => {
     setRoles(prevRoles =>
@@ -100,14 +105,50 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
       }
       const roleToAdd: Role = {
           ...newRole,
-          permissions: defaultPermissions,
           name: newRole.name as Role['name'],
       }
-      const addedRole = await addRole(roleToAdd);
+      const addedRole = await serviceAddRole(roleToAdd);
       setRoles(prev => [...prev, addedRole]);
       toast({ title: 'Role Added' });
       setIsAddOpen(false);
-      setNewRole({name: '', description: ''});
+      setNewRole(emptyRole);
+  }
+
+  const handleAttributeChange = (roleName: string, index: number, field: keyof AssignableAttribute, value: string) => {
+    setRoles(prevRoles => 
+        prevRoles.map(role => {
+            if (role.name === roleName) {
+                const newAttributes = [...(role.assignableAttributes || [])];
+                newAttributes[index] = { ...newAttributes[index], [field]: value };
+                return { ...role, assignableAttributes: newAttributes };
+            }
+            return role;
+        })
+    );
+  }
+
+  const addAttribute = (roleName: string) => {
+    setRoles(prevRoles => 
+        prevRoles.map(role => {
+            if (role.name === roleName) {
+                const newAttributes = [...(role.assignableAttributes || []), { key: '', label: '', type: 'tags' }];
+                return { ...role, assignableAttributes: newAttributes };
+            }
+            return role;
+        })
+    );
+  }
+  
+  const removeAttribute = (roleName: string, index: number) => {
+     setRoles(prevRoles => 
+        prevRoles.map(role => {
+            if (role.name === roleName) {
+                const newAttributes = (role.assignableAttributes || []).filter((_, i) => i !== index);
+                return { ...role, assignableAttributes: newAttributes };
+            }
+            return role;
+        })
+    );
   }
 
 
@@ -132,7 +173,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                   </DialogTrigger>
               </CardHeader>
               <CardContent>
-                <Accordion type="single" collapsible className="w-full" defaultValue='Admin'>
+                <Accordion type="single" collapsible className="w-full" defaultValue={roles[0]?.name}>
                     {roles.map(role => (
                         <AccordionItem value={role.name} key={role.name}>
                             <AccordionTrigger>
@@ -143,6 +184,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                             </AccordionTrigger>
                              <AccordionContent>
                                 <div className="space-y-6 pt-4">
+                                    <h4 className="font-bold text-base">Module Permissions</h4>
                                      <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
                                             <h5 className="font-semibold text-sm">Dashboard</h5>
@@ -162,6 +204,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                     {permissionModules.map(module => (
                                         <PermissionRow
                                             key={module}
+                                            roleName={role.name}
                                             module={module}
                                             permissions={role.permissions[module]}
                                             onPermissionChange={(key, value) => handlePermissionChange(role.name, module, key, value)}
@@ -190,7 +233,44 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                             <Label htmlFor={`${role.name}-settings-edit`}>Edit</Label>
                                         </div>
                                     </div>
-
+                                    <Separator />
+                                    <h4 className="font-bold text-base">Custom Attributes</h4>
+                                    <div className="space-y-4">
+                                        {(role.assignableAttributes || []).map((attr, index) => (
+                                            <Card key={index} className="p-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor={`attr-label-${index}`}>Label</Label>
+                                                        <Input id={`attr-label-${index}`} value={attr.label} onChange={(e) => handleAttributeChange(role.name, index, 'label', e.target.value)} placeholder="e.g. Sales Target"/>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor={`attr-key-${index}`}>Key</Label>
+                                                        <Input id={`attr-key-${index}`} value={attr.key} onChange={(e) => handleAttributeChange(role.name, index, 'key', e.target.value)} placeholder="e.g. salesTarget" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor={`attr-type-${index}`}>Type</Label>
+                                                         <Select value={attr.type} onValueChange={(v) => handleAttributeChange(role.name, index, 'type', v)}>
+                                                            <SelectTrigger id={`attr-type-${index}`}>
+                                                                <SelectValue/>
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="kpi">KPI / Target</SelectItem>
+                                                                <SelectItem value="tags">Tags / List</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-end mt-2">
+                                                     <Button variant="ghost" size="icon" onClick={() => removeAttribute(role.name, index)}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                         <Button variant="outline" size="sm" onClick={() => addAttribute(role.name)}>
+                                            <PlusCircle className="mr-2 h-4 w-4" /> Add Attribute
+                                        </Button>
+                                    </div>
                                 </div>
                                 <div className="flex justify-end mt-6">
                                     <Button onClick={() => handleSaveChanges(role)}>Save Changes</Button>
