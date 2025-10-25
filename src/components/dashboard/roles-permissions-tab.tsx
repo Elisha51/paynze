@@ -69,6 +69,7 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         settings: { view: false, edit: false },
     },
     assignableAttributes: [],
+    commissionRules: [],
 }
 
 export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRoles: React.Dispatch<React.SetStateAction<Role[]>>}) {
@@ -153,12 +154,43 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
     );
   }
 
-  const handleCommissionChange = (roleName: string, field: keyof CommissionRule, value: string | number) => {
-     setRoles(prevRoles => 
+  const handleCommissionRuleChange = (roleName: string, index: number, field: keyof CommissionRule, value: string | number) => {
+    setRoles(prevRoles => 
         prevRoles.map(role => {
             if (role.name === roleName) {
-                const newCommission = { ...(role.commission || { type: 'Fixed Amount', rate: 0 }), [field]: value };
-                return { ...role, commission: newCommission };
+                const newRules = [...(role.commissionRules || [])];
+                const rule = { ...newRules[index] };
+                if (field === 'rate') {
+                    rule[field] = Number(value);
+                } else {
+                    (rule as any)[field] = value;
+                }
+                newRules[index] = rule;
+                return { ...role, commissionRules: newRules };
+            }
+            return role;
+        })
+    );
+  }
+
+  const addCommissionRule = (roleName: string) => {
+    setRoles(prevRoles => 
+        prevRoles.map(role => {
+            if (role.name === roleName) {
+                const newRules = [...(role.commissionRules || []), { id: `rule-${Date.now()}`, name: 'New Rule', trigger: 'On Order Paid', type: 'Fixed Amount', rate: 0 }];
+                return { ...role, commissionRules: newRules };
+            }
+            return role;
+        })
+    );
+  }
+
+  const removeCommissionRule = (roleName: string, index: number) => {
+    setRoles(prevRoles => 
+        prevRoles.map(role => {
+            if (role.name === roleName) {
+                const newRules = (role.commissionRules || []).filter((_, i) => i !== index);
+                return { ...role, commissionRules: newRules };
             }
             return role;
         })
@@ -197,7 +229,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                         <p className="text-sm text-muted-foreground">{role.description}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {role.commission && <Badge variant="outline"><DollarSign className="h-3 w-3 mr-1"/>Commission</Badge>}
+                                        {role.commissionRules && role.commissionRules.length > 0 && <Badge variant="outline"><DollarSign className="h-3 w-3 mr-1"/>Commission</Badge>}
                                         {role.assignableAttributes && role.assignableAttributes.length > 0 && (
                                             <Badge variant="secondary">
                                                 {role.assignableAttributes.length} Attribute{role.assignableAttributes.length > 1 ? 's' : ''}
@@ -258,25 +290,51 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                         </div>
                                     </div>
                                     <Separator />
-                                    <h4 className="font-bold text-base">Commission Settings</h4>
-                                    <p className="text-sm text-muted-foreground">Define how staff with this role earn commissions. Set to zero to disable.</p>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor={`commission-type-${role.name}`}>Type</Label>
-                                            <Select value={role.commission?.type || 'Fixed Amount'} onValueChange={(v) => handleCommissionChange(role.name, 'type', v)}>
-                                                <SelectTrigger id={`commission-type-${role.name}`}>
-                                                    <SelectValue />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Fixed Amount">Fixed Amount (per order/delivery)</SelectItem>
-                                                    <SelectItem value="Percentage of Sale">Percentage of Sale</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor={`commission-rate-${role.name}`}>Rate ({role.commission?.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
-                                            <Input id={`commission-rate-${role.name}`} type="number" value={role.commission?.rate || 0} onChange={(e) => handleCommissionChange(role.name, 'rate', Number(e.target.value))} />
-                                        </div>
+                                    <h4 className="font-bold text-base">Commission Rules</h4>
+                                    <p className="text-sm text-muted-foreground">Define how staff with this role earn commissions. Multiple rules can apply.</p>
+                                    <div className="space-y-4">
+                                        {(role.commissionRules || []).map((rule, index) => (
+                                            <Card key={index} className="p-4">
+                                                <div className="flex justify-end mb-2">
+                                                    <Button variant="ghost" size="icon" onClick={() => removeCommissionRule(role.name, index)}>
+                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                    <div className="space-y-2 lg:col-span-2">
+                                                        <Label htmlFor={`rule-name-${index}`}>Rule Name</Label>
+                                                        <Input id={`rule-name-${index}`} value={rule.name} onChange={(e) => handleCommissionRuleChange(role.name, index, 'name', e.target.value)} placeholder="e.g. Standard Delivery Fee" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor={`rule-trigger-${index}`}>Trigger</Label>
+                                                        <Select value={rule.trigger} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'trigger', v as CommissionRule['trigger'])}>
+                                                            <SelectTrigger id={`rule-trigger-${index}`}><SelectValue /></SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="On Order Paid">On Order Paid</SelectItem>
+                                                                <SelectItem value="On Order Delivered">On Order Delivered</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                     <div className="space-y-2">
+                                                        <Label htmlFor={`rule-type-${index}`}>Type</Label>
+                                                        <Select value={rule.type} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'type', v as CommissionRule['type'])}>
+                                                            <SelectTrigger id={`rule-type-${index}`}><SelectValue /></SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
+                                                                <SelectItem value="Percentage of Sale">Percentage of Sale</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <div className="space-y-2 lg:col-start-4">
+                                                        <Label htmlFor={`rule-rate-${index}`}>Rate ({rule.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
+                                                        <Input id={`rule-rate-${index}`} type="number" value={rule.rate} onChange={(e) => handleCommissionRuleChange(role.name, index, 'rate', e.target.value)} />
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        ))}
+                                        <Button variant="outline" size="sm" onClick={() => addCommissionRule(role.name)}>
+                                            <PlusCircle className="mr-2 h-4 w-4" /> Add Commission Rule
+                                        </Button>
                                     </div>
 
 
