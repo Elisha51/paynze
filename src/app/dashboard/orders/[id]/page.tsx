@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -136,6 +137,8 @@ export default function ViewOrderPage() {
   const canReadyForPickup = order.status === 'Paid' && order.fulfillmentMethod === 'Pickup';
   const canBePaid = order.paymentStatus === 'Unpaid';
   const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
+  const isMobileMoney = order.paymentMethod === 'Mobile Money';
+
 
   return (
     <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
@@ -154,7 +157,31 @@ export default function ViewOrderPage() {
                 {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                {canBePaid && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</Button>}
+                {canBePaid && (
+                  isMobileMoney ? (
+                     <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="outline" size="sm">Verify & Mark as Paid</Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Confirm Mobile Money Payment</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              Have you received the mobile money payment of {formatCurrency(order.total, order.currency)} for order #{order.id}? This action cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleUpdateStatus('Paid', 'Paid')}>
+                              Yes, Payment Received
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                     </AlertDialog>
+                  ) : (
+                    <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</Button>
+                  )
+                )}
                 {canReadyForPickup && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</Button>}
                 {canMarkAsDelivered && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Delivered')}>Mark as Delivered</Button>}
                 {canMarkAsPickedUp && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Picked Up')}>Mark as Picked Up</Button>}
