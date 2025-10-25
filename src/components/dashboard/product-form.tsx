@@ -463,15 +463,17 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
 
   const singleVariantOnHand = product.variants[0]?.stockByLocation[0]?.stock.onHand || 0;
   const singleVariantAvailable = product.variants[0]?.stockByLocation[0]?.stock.available || 0;
+  
+  const handleBack = () => {
+      router.back();
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild className="hidden md:inline-flex">
-          <Link href={initialProduct?.sku ? `/dashboard/products/${initialProduct.sku}` : "/dashboard/products"}>
+        <Button variant="outline" size="icon" onClick={handleBack} className="hidden md:inline-flex">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back</span>
-          </Link>
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">

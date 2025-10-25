@@ -75,9 +75,9 @@ export default function ViewPurchaseOrderPage() {
             <h1 className="text-2xl font-bold">Purchase Order not found</h1>
             <p className="text-muted-foreground">The PO you are looking for does not exist.</p>
             <Button asChild className="mt-4">
-                <Link href="/dashboard/purchase-orders">
+                <Link href="/dashboard/procurement">
                     <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Purchase Orders
+                    Back to Procurement
                 </Link>
             </Button>
         </div>
@@ -101,7 +101,7 @@ export default function ViewPurchaseOrderPage() {
         <div className="mx-auto grid max-w-4xl flex-1 auto-rows-max gap-4">
             <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" className="h-7 w-7" asChild>
-                    <Link href="/dashboard/purchase-orders">
+                    <Link href="/dashboard/procurement">
                         <ChevronLeft className="h-4 w-4" />
                         <span className="sr-only">Back</span>
                     </Link>
