@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import {
@@ -93,8 +94,9 @@ export function DataTable<TData, TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
+                  const isActionsColumn = header.id === 'actions';
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className={isActionsColumn ? 'sticky right-0 bg-background' : ''}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -114,14 +116,17 @@ export function DataTable<TData, TValue>({
                   key={row.id}
                   data-state={row.getIsSelected() && 'selected'}
                 >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const isActionsColumn = cell.column.id === 'actions';
+                    return (
+                        <TableCell key={cell.id} className={isActionsColumn ? 'sticky right-0 bg-background' : ''}>
+                        {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                        )}
+                        </TableCell>
+                    )
+                  })}
                 </TableRow>
               ))
             ) : (

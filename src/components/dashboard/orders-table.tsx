@@ -256,24 +256,27 @@ const columns: ColumnDef<Order>[] = [
   {
     id: 'actions',
     enableHiding: false,
+    header: () => <div className="sr-only">Actions</div>,
     cell: ({ row }) => {
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem asChild>
-                <Link href={`/dashboard/orders/${row.original.id}`}>View Details</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
-            <AssignOrderDialog order={row.original} />
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="relative bg-background text-right">
+            <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="h-4 w-4" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/orders/${row.original.id}`}>View Details</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem>Mark as Shipped</DropdownMenuItem>
+                <AssignOrderDialog order={row.original} />
+            </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
       );
     },
   },

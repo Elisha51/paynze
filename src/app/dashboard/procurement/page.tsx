@@ -66,8 +66,9 @@ const supplierColumns: ColumnDef<Supplier>[] = [
   },
   {
     id: 'actions',
+    header: () => <div className="sr-only">Actions</div>,
     cell: ({ row }) => (
-      <div className="text-right">
+      <div className="relative bg-background text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -144,8 +145,9 @@ const poColumns: ColumnDef<PurchaseOrder>[] = [
   },
   {
     id: 'actions',
+    header: () => <div className="sr-only">Actions</div>,
     cell: ({ row }) => (
-      <div className="text-right">
+      <div className="relative bg-background text-right">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">

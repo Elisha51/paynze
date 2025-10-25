@@ -179,9 +179,11 @@ const getColumns = (
   {
     id: 'actions',
     enableHiding: false,
+    header: () => <div className="sr-only">Actions</div>,
     cell: ({ row }) => {
         const product = row.original;
         return (
+          <div className="relative bg-background text-right">
             <AlertDialog>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -224,6 +226,7 @@ const getColumns = (
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+          </div>
         );
     },
   },

@@ -184,7 +184,7 @@ export function LocationsTab({ locations, setLocations }: LocationsTabProps) {
               <TableHead>Location Name</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Pickup Point</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="sticky right-0 bg-background text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -202,7 +202,7 @@ export function LocationsTab({ locations, setLocations }: LocationsTabProps) {
                     <Badge variant="outline">Disabled</Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="sticky right-0 bg-background text-right">
                     <AlertDialog>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
