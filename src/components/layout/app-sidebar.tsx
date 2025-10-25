@@ -30,6 +30,7 @@ import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 import { type OnboardingFormData } from '@/context/onboarding-context';
+import { Badge } from '../ui/badge';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -87,15 +88,17 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
                 </Link>
                 </SidebarMenuItem>
             ))}
-             {showPremiumFeatures && premiumMenuItems.map((item) => (
+             {premiumMenuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>
                     <SidebarMenuButton
-                    isActive={pathname.startsWith(item.href)}
-                    tooltip={item.label}
+                        isActive={pathname.startsWith(item.href)}
+                        tooltip={item.label}
+                        disabled={!showPremiumFeatures}
                     >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    <span className="flex-1">{item.label}</span>
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">{item.label}</span>
+                        {!showPremiumFeatures && <Badge variant="secondary" className="text-xs">Premium</Badge>}
                     </SidebarMenuButton>
                 </Link>
                 </SidebarMenuItem>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -17,20 +17,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/dashboard/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-
-type Staff = {
-  id: string;
-  name: string;
-  email: string;
-  role: 'Admin' | 'Sales Agent' | 'Delivery Rider';
-  status: 'Active' | 'Inactive';
-};
-
-const staff: Staff[] = [
-  { id: 'staff-001', name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active' },
-  { id: 'staff-002', name: 'Jane Smith', email: 'jane@example.com', role: 'Sales Agent', status: 'Active' },
-  { id: 'staff-003', name: 'Peter Jones', email: 'peter@example.com', role: 'Delivery Rider', status: 'Inactive' },
-];
+import type { Staff } from '@/lib/types';
+import { getStaff } from '@/services/staff';
+import Link from 'next/link';
 
 const columns: ColumnDef<Staff>[] = [
   { accessorKey: 'name', header: 'Name' },
@@ -40,6 +29,10 @@ const columns: ColumnDef<Staff>[] = [
     header: 'Role',
     cell: ({ row }) => <Badge variant="outline">{row.getValue('role')}</Badge>
   },
+  {
+    accessorKey: 'lastLogin',
+    header: 'Last Login',
+  },
   { 
     accessorKey: 'status', 
     header: 'Status',
@@ -47,29 +40,47 @@ const columns: ColumnDef<Staff>[] = [
   },
   {
     id: 'actions',
-    cell: () => (
-      <div className="text-right">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem>Edit Details</DropdownMenuItem>
-            <DropdownMenuItem>View Performance</DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive">Deactivate</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const staffMember = row.original;
+      return (
+        <div className="text-right">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem asChild><Link href={`/dashboard/staff/${staffMember.id}/edit`}>Edit Details</Link></DropdownMenuItem>
+              <DropdownMenuItem>View Performance</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive">Deactivate</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    }
   },
 ];
 
 export default function StaffPage() {
+  const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function loadStaff() {
+        setIsLoading(true);
+        const fetched = await getStaff();
+        setStaff(fetched);
+        setIsLoading(false);
+    }
+    loadStaff();
+  }, []);
+
   const cta = (
-    <Button>
-      <PlusCircle className="mr-2 h-4 w-4" />
-      Add Staff Member
+    <Button asChild>
+      <Link href="/dashboard/staff/add">
+        <PlusCircle className="mr-2 h-4 w-4" />
+        Add Staff Member
+      </Link>
     </Button>
   );
 

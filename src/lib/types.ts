@@ -1,4 +1,5 @@
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -224,7 +225,7 @@ export type Supplier = {
   email: string;
   phone: string;
   address: string;
-  productsSupplied: string[]; // Array of product SKUs or names
+  productsSupplied: string[]; // Array of product SKUs
 };
 
 export type PurchaseOrderItem = {
@@ -267,4 +268,26 @@ export type ShippingZone = {
         name: string; // 'Flat Rate', 'Free Shipping'
         price: number;
     }[];
+};
+
+// Staff Management
+export type Staff = {
+  id: string;
+  name: string;
+  email: string;
+  role: 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager';
+  status: 'Active' | 'Inactive';
+  lastLogin?: string;
+};
+
+// Finance Types
+export type Transaction = {
+    id: string;
+    date: string;
+    description: string;
+    amount: number;
+    currency: 'UGX' | 'KES' | 'TZS' | 'USD';
+    type: 'Income' | 'Expense';
+    category: 'Sales' | 'Inventory' | 'Utilities' | 'Salaries' | 'Marketing' | 'Other';
+    status: 'Cleared' | 'Pending' | 'Reconciled';
 };
