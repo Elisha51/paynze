@@ -1,4 +1,5 @@
 
+
 import { orders as mockOrders } from '@/lib/data';
 import type { Order } from '@/lib/types';
 
@@ -23,6 +24,7 @@ export async function getOrders(): Promise<Order[]> {
               assignedStaffName: 'Peter Jones',
               fulfilledByStaffId: 'staff-003',
               fulfilledByStaffName: 'Peter Jones',
+              channel: 'Online' as const,
           };
       }
       if (index === 1) { // Mark second order as a pickup
@@ -32,6 +34,7 @@ export async function getOrders(): Promise<Order[]> {
               fulfillmentMethod: 'Pickup' as const,
               fulfilledByStaffId: 'staff-002', // Sales agent handled the pickup
               fulfilledByStaffName: 'Jane Smith',
+              channel: 'Manual' as const,
           }
       }
       if (index === 2) {
@@ -39,9 +42,13 @@ export async function getOrders(): Promise<Order[]> {
               ...order,
               status: 'Ready for Pickup' as const,
               fulfillmentMethod: 'Pickup' as const,
+              channel: 'Online' as const,
           }
       }
-      return order;
+      return {
+          ...order,
+          channel: index % 2 === 0 ? 'Online' : 'Manual' as const,
+      };
   });
   return [...assignedOrders];
 }

@@ -151,6 +151,14 @@ const columns: ColumnDef<Order>[] = [
     ),
   },
   {
+    accessorKey: 'channel',
+    header: 'Channel',
+    cell: ({ row }) => {
+        const channel = row.getValue('channel') as Order['channel'];
+        return <Badge variant={channel === 'Online' ? 'outline' : 'secondary'}>{channel}</Badge>
+    }
+  },
+  {
     accessorKey: 'customerName',
     header: ({ column }) => {
         return (

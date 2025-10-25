@@ -1,4 +1,5 @@
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -176,6 +177,7 @@ export type Order = {
     date: string;
     status: 'Pending' | 'Paid' | 'Ready for Pickup' | 'Shipped' | 'Delivered' | 'Picked Up' | 'Cancelled';
     fulfillmentMethod: 'Delivery' | 'Pickup';
+    channel: 'Online' | 'Manual' | 'POS';
     items: OrderItem[];
     total: number;
     currency: 'KES' | 'UGX' | 'TZS' | 'USD';

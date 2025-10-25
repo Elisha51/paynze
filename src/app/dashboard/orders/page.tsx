@@ -66,6 +66,8 @@ export default function OrdersPage() {
 
   const filterTabs = [
     { value: 'all', label: 'All' },
+    { value: 'online', label: 'Online' },
+    { value: 'manual', label: 'Manual' },
     { value: 'pending', label: 'Awaiting Payment' },
     { value: 'ready-for-pickup', label: 'Ready for Pickup' },
     { value: 'unassigned', label: 'Unassigned' },
@@ -96,6 +98,20 @@ export default function OrdersPage() {
                     <OrdersTable
                         orders={orders}
                         isLoading={isLoading}
+                    />
+                </DashboardPageLayout.TabContent>
+                <DashboardPageLayout.TabContent value="online">
+                    <OrdersTable
+                        orders={orders}
+                        isLoading={isLoading}
+                        filter={{ column: 'channel', value: 'Online' }}
+                    />
+                </DashboardPageLayout.TabContent>
+                <DashboardPageLayout.TabContent value="manual">
+                    <OrdersTable
+                        orders={orders}
+                        isLoading={isLoading}
+                        filter={{ column: 'channel', value: 'Manual' }}
                     />
                 </DashboardPageLayout.TabContent>
                 <DashboardPageLayout.TabContent value="pending">
