@@ -7,6 +7,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { DollarSign, ShoppingCart, Truck, TrendingUp } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
