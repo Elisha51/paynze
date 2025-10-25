@@ -122,7 +122,7 @@ export default function ProductsPage() {
                 <CardHeader>
                     <CardTitle>Product Performance</CardTitle>
                     <CardDescription>
-                        Analyze sales performance by product and variant to identify your best-sellers.
+                        Analyze sales performance by product.
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
