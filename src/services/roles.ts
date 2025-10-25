@@ -11,7 +11,7 @@ const defaultPermissions: Permissions = {
   canManageSettings: false,
 };
 
-const roles: Role[] = [
+let roles: Role[] = [
   {
     name: 'Admin',
     description: 'Has access to all features and settings.',
@@ -58,3 +58,17 @@ export async function getRoles(): Promise<Role[]> {
   await new Promise(resolve => setTimeout(resolve, 300));
   return JSON.parse(JSON.stringify(roles)); // Deep copy to avoid mutation issues
 }
+
+export async function addRole(role: Role): Promise<Role> {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  roles.push(role);
+  return role;
+}
+
+export async function updateRole(updatedRole: Role): Promise<Role> {
+  await new Promise(resolve => setTimeout(resolve, 300));
+  roles = roles.map(r => r.name === updatedRole.name ? updatedRole : r);
+  return updatedRole;
+}
+
+    
