@@ -60,6 +60,15 @@ export async function getOrderById(orderId: string): Promise<Order | undefined> 
   return allOrders.find(order => order.id === orderId);
 }
 
+export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
+  await new Promise(resolve => setTimeout(resolve, 500));
+  const newOrder: Order = {
+    ...order,
+    id: `ORD-${Date.now()}`,
+  };
+  orders.unshift(newOrder);
+  return newOrder;
+}
 
 export async function updateOrder(orderId: string, updates: Partial<Order>): Promise<Order> {
   await new Promise(resolve => setTimeout(resolve, 200));

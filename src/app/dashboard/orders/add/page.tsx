@@ -7,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -26,13 +25,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter
 } from "@/components/ui/table"
 import { getCustomers } from '@/services/customers';
 import { getProducts } from '@/services/products';
-import type { Customer, Product, OrderItem } from '@/lib/types';
+import { addOrder } from '@/services/orders';
+import type { Customer, Product, OrderItem, Order } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { format } from 'date-fns';
 
 type NewOrderItem = Partial<OrderItem> & { id: number };
 
@@ -40,7 +42,13 @@ export default function AddOrderPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [items, setItems] = useState<NewOrderItem[]>([{ id: Date.now(), quantity: 1 }]);
-  const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
+  const [paymentMethod, setPaymentMethod] = useState<Order['paymentMethod']>('Cash on Delivery');
+  const [orderStatus, setOrderStatus] = useState<Order['status']>('Awaiting Payment');
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
+
 
   useEffect(() => {
     async function fetchData() {
@@ -78,7 +86,7 @@ export default function AddOrderPage() {
   const removeItem = (itemId: number) => {
     setItems(prev => prev.filter(item => item.id !== itemId));
   };
-  
+
   const subtotal = items.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 0), 0);
   const tax = subtotal * 0.18; // Example tax rate
   const total = subtotal + tax;
@@ -86,6 +94,57 @@ export default function AddOrderPage() {
   const formatCurrency = (amount: number) => {
     const currency = products.find(p => p.sku === items[0]?.sku)?.currency || 'UGX';
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  }
+
+  const handleSaveOrder = async () => {
+    if (!selectedCustomerId) {
+        toast({ variant: 'destructive', title: 'Please select a customer.' });
+        return;
+    }
+    if (items.some(item => !item.sku || !item.quantity || !item.price)) {
+        toast({ variant: 'destructive', title: 'All order items must be complete.' });
+        return;
+    }
+
+    const customer = customers.find(c => c.id === selectedCustomerId);
+    if (!customer) {
+      toast({ variant: 'destructive', title: 'Customer not found.' });
+      return;
+    }
+
+    setIsLoading(true);
+
+    const newOrder: Omit<Order, 'id'> = {
+      customerId: customer.id,
+      customerName: customer.name,
+      customerEmail: customer.email,
+      date: format(new Date(), 'yyyy-MM-dd'),
+      status: orderStatus,
+      fulfillmentMethod: 'Delivery', // Default, can be changed later
+      channel: 'Manual',
+      items: items as OrderItem[],
+      total,
+      currency: products.find(p => p.sku === items[0]?.sku)?.currency || 'UGX',
+      shippingAddress: { // Mock address, can be improved
+          street: '123 Customer Lane',
+          city: 'Kampala',
+          postalCode: '12345',
+          country: 'Uganda',
+      },
+      paymentMethod,
+      paymentStatus: orderStatus === 'Paid' ? 'Paid' : 'Unpaid',
+      shippingCost: 0, // Mock data
+      taxes: tax,
+    };
+    
+    try {
+        await addOrder(newOrder);
+        toast({ title: 'Order Created', description: 'The new order has been saved successfully.' });
+        router.push('/dashboard/orders');
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save the new order.' });
+        setIsLoading(false);
+    }
   }
 
   return (
@@ -102,9 +161,9 @@ export default function AddOrderPage() {
           <p className="text-muted-foreground text-sm">Manually create an order for a customer.</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button>
+            <Button onClick={handleSaveOrder} disabled={isLoading}>
               <Save className="mr-2 h-4 w-4" />
-              Save Order
+              {isLoading ? 'Saving...' : 'Save Order'}
             </Button>
         </div>
       </div>
@@ -187,7 +246,7 @@ export default function AddOrderPage() {
                 <CardContent className="space-y-4">
                     <div className='space-y-2'>
                         <Label htmlFor="customer">Select Customer</Label>
-                        <Select onValueChange={setSelectedCustomer} value={selectedCustomer || undefined}>
+                        <Select onValueChange={setSelectedCustomerId} value={selectedCustomerId}>
                             <SelectTrigger id="customer">
                                 <SelectValue placeholder="Select a customer" />
                             </SelectTrigger>
@@ -205,7 +264,7 @@ export default function AddOrderPage() {
                 <CardContent className="space-y-4">
                     <div className='space-y-2'>
                         <Label htmlFor="paymentMethod">Payment Method</Label>
-                        <Select defaultValue="Cash on Delivery">
+                        <Select value={paymentMethod} onValueChange={(v: Order['paymentMethod']) => setPaymentMethod(v)}>
                             <SelectTrigger id="paymentMethod">
                                 <SelectValue placeholder="Select method" />
                             </SelectTrigger>
@@ -217,12 +276,12 @@ export default function AddOrderPage() {
                     </div>
                     <div className='space-y-2'>
                         <Label htmlFor="orderStatus">Order Status</Label>
-                        <Select defaultValue="Awaiting Payment">
+                        <Select value={orderStatus} onValueChange={(v: Order['status']) => setOrderStatus(v)}>
                             <SelectTrigger id="orderStatus">
                                 <SelectValue placeholder="Select status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="Awaiting Payment">Awaiting Payment</SelectItem>
+                               <SelectItem value="Awaiting Payment">Awaiting Payment</SelectItem>
                                 <SelectItem value="Paid">Paid</SelectItem>
                                 <SelectItem value="Ready for Pickup">Ready for Pickup</SelectItem>
                                 <SelectItem value="Shipped">Shipped</SelectItem>
