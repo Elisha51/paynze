@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getRoles, addRole, updateRole } from '@/services/roles';
-import type { Role, Permissions } from '@/lib/types';
-import { Switch } from '@/components/ui/switch';
+import type { Role, Permissions, CrudPermissions } from '@/lib/types';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
@@ -22,16 +22,46 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 
 const defaultPermissions: Permissions = {
-  canViewDashboard: true,
-  canManageProducts: false,
-  canManageOrders: false,
-  canManageCustomers: false,
-  canManageFinances: false,
-  canManageStaff: false,
-  canManageSettings: false,
+  dashboard: { view: true },
+  products: { view: false, create: false, edit: false, delete: false },
+  orders: { view: false, create: false, edit: false, delete: false },
+  customers: { view: false, create: false, edit: false, delete: false },
+  procurement: { view: false, create: false, edit: false, delete: false },
+  finances: { view: false, create: false, edit: false, delete: false },
+  staff: { view: false, create: false, edit: false, delete: false },
+  settings: { view: false, edit: false },
 };
+
+const permissionLabels: Record<keyof CrudPermissions, string> = {
+    view: 'View',
+    create: 'Create',
+    edit: 'Edit',
+    delete: 'Delete'
+}
+
+type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
+const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'finances', 'staff'];
+
+const PermissionRow = ({ module, permissions, onPermissionChange }: { module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => (
+    <div className="space-y-3">
+        <h5 className="font-semibold text-sm capitalize">{module}</h5>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+            {Object.keys(permissionLabels).map((key) => (
+                <div key={key} className="flex items-center space-x-2">
+                    <Checkbox
+                        id={`${module}-${key}`}
+                        checked={permissions[key as keyof CrudPermissions]}
+                        onCheckedChange={(checked) => onPermissionChange(key as keyof CrudPermissions, !!checked)}
+                    />
+                    <Label htmlFor={`${module}-${key}`}>{permissionLabels[key as keyof CrudPermissions]}</Label>
+                </div>
+            ))}
+        </div>
+    </div>
+);
 
 
 export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRoles: React.Dispatch<React.SetStateAction<Role[]>>}) {
@@ -39,20 +69,16 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newRole, setNewRole] = useState<{name: string, description: string}>({name: '', description: ''});
 
-  const handlePermissionChange = (roleName: string, permissionKey: string, value: boolean) => {
+  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: keyof CrudPermissions | keyof Permissions['settings'] | 'view', value: boolean) => {
     setRoles(prevRoles =>
       prevRoles.map(role => {
         if (role.name === roleName) {
-          // Create a new permissions object
-          const newPermissions = {
-            ...role.permissions,
-            [permissionKey]: value,
-          };
-          // Return a new role object
-          return {
-            ...role,
-            permissions: newPermissions,
-          };
+          const newPermissions = { ...role.permissions };
+          const modulePermissions = { ...newPermissions[module] };
+          (modulePermissions as any)[permissionKey] = value;
+          newPermissions[module] = modulePermissions;
+          
+          return { ...role, permissions: newPermissions };
         }
         return role;
       })
@@ -106,45 +132,73 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                   </DialogTrigger>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {roles.map(role => (
-                    <Card key={role.name}>
-                      <CardHeader>
-                        <CardTitle>{role.name}</CardTitle>
-                        <CardDescription>{role.description}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <h4 className="font-semibold text-sm">Permissions</h4>
-                        <Separator />
-                        <div className="space-y-4">
-                          {Object.entries(role.permissions).map(([key, value]) => (
-                            <div key={key} className="flex items-center justify-between">
-                              <Label htmlFor={`${role.name}-${key}`} className="text-sm capitalize">
-                                {key.replace(/([A-Z])/g, ' $1').trim()}
-                              </Label>
-                              <Switch
-                                id={`${role.name}-${key}`}
-                                checked={value}
-                                onCheckedChange={(checked) => handlePermissionChange(role.name, key, checked)}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button className="w-full" onClick={() => handleSaveChanges(role)}>Save Changes</Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                  <DialogTrigger asChild>
-                    <Card className="flex items-center justify-center border-2 border-dashed hover:border-primary transition-colors cursor-pointer min-h-[400px]">
-                        <div className="text-center">
-                            <PlusCircle className="mx-auto h-10 w-10 text-muted-foreground" />
-                            <p className="mt-2 text-sm font-semibold text-muted-foreground">Add New Role</p>
-                        </div>
-                    </Card>
-                  </DialogTrigger>
-                </div>
+                <Accordion type="single" collapsible className="w-full" defaultValue='Admin'>
+                    {roles.map(role => (
+                        <AccordionItem value={role.name} key={role.name}>
+                            <AccordionTrigger>
+                                <div>
+                                    <h3 className="font-semibold text-lg">{role.name}</h3>
+                                    <p className="text-sm text-muted-foreground text-left">{role.description}</p>
+                                </div>
+                            </AccordionTrigger>
+                             <AccordionContent>
+                                <div className="space-y-6 pt-4">
+                                     <div className="flex items-center justify-between">
+                                        <div className="space-y-0.5">
+                                            <h5 className="font-semibold text-sm">Dashboard</h5>
+                                            <p className="text-xs text-muted-foreground">Allow access to the main dashboard overview.</p>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`${role.name}-dashboard-view`}
+                                                checked={role.permissions.dashboard.view}
+                                                onCheckedChange={(checked) => handlePermissionChange(role.name, 'dashboard', 'view', !!checked)}
+                                            />
+                                            <Label htmlFor={`${role.name}-dashboard-view`}>View</Label>
+                                        </div>
+                                    </div>
+                                    <Separator />
+
+                                    {permissionModules.map(module => (
+                                        <PermissionRow
+                                            key={module}
+                                            module={module}
+                                            permissions={role.permissions[module]}
+                                            onPermissionChange={(key, value) => handlePermissionChange(role.name, module, key, value)}
+                                        />
+                                    ))}
+                                    
+                                     <Separator />
+                                     <div className="flex items-center justify-between">
+                                        <div className="space-y-0.5">
+                                            <h5 className="font-semibold text-sm">Settings</h5>
+                                            <p className="text-xs text-muted-foreground">Allow access to store settings.</p>
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`${role.name}-settings-view`}
+                                                checked={role.permissions.settings.view}
+                                                onCheckedChange={(checked) => handlePermissionChange(role.name, 'settings', 'view', !!checked)}
+                                            />
+                                            <Label htmlFor={`${role.name}-settings-view`} className="mr-4">View</Label>
+                                            
+                                            <Checkbox
+                                                id={`${role.name}-settings-edit`}
+                                                checked={role.permissions.settings.edit}
+                                                onCheckedChange={(checked) => handlePermissionChange(role.name, 'settings', 'edit', !!checked)}
+                                            />
+                                            <Label htmlFor={`${role.name}-settings-edit`}>Edit</Label>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div className="flex justify-end mt-6">
+                                    <Button onClick={() => handleSaveChanges(role)}>Save Changes</Button>
+                                </div>
+                             </AccordionContent>
+                        </AccordionItem>
+                    ))}
+                </Accordion>
               </CardContent>
           </Card>
           <DialogContent>

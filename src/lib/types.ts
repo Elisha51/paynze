@@ -1,6 +1,5 @@
 
 
-
 export type ProductImage = {
   id: string;
   url: string;
@@ -274,15 +273,24 @@ export type ShippingZone = {
 // Staff Management
 export type StaffRole = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager';
 
-export type Permissions = {
-  canViewDashboard: boolean;
-  canManageProducts: boolean;
-  canManageOrders: boolean;
-  canManageCustomers: boolean;
-  canManageFinances: boolean;
-  canManageStaff: boolean;
-  canManageSettings: boolean;
+export type CrudPermissions = {
+  view: boolean;
+  create: boolean;
+  edit: boolean;
+  delete: boolean;
 };
+
+export type Permissions = {
+  dashboard: { view: boolean };
+  products: CrudPermissions;
+  orders: CrudPermissions;
+  customers: CrudPermissions;
+  procurement: CrudPermissions;
+  finances: CrudPermissions;
+  staff: CrudPermissions;
+  settings: { view: boolean; edit: boolean };
+};
+
 
 export type Role = {
   name: StaffRole;

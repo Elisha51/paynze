@@ -2,13 +2,14 @@
 import type { Role, Permissions } from '@/lib/types';
 
 const defaultPermissions: Permissions = {
-  canViewDashboard: true,
-  canManageProducts: false,
-  canManageOrders: false,
-  canManageCustomers: false,
-  canManageFinances: false,
-  canManageStaff: false,
-  canManageSettings: false,
+  dashboard: { view: true },
+  products: { view: false, create: false, edit: false, delete: false },
+  orders: { view: false, create: false, edit: false, delete: false },
+  customers: { view: false, create: false, edit: false, delete: false },
+  procurement: { view: false, create: false, edit: false, delete: false },
+  finances: { view: false, create: false, edit: false, delete: false },
+  staff: { view: false, create: false, edit: false, delete: false },
+  settings: { view: false, edit: false },
 };
 
 let roles: Role[] = [
@@ -16,13 +17,14 @@ let roles: Role[] = [
     name: 'Admin',
     description: 'Has access to all features and settings.',
     permissions: {
-      canViewDashboard: true,
-      canManageProducts: true,
-      canManageOrders: true,
-      canManageCustomers: true,
-      canManageFinances: true,
-      canManageStaff: true,
-      canManageSettings: true,
+      dashboard: { view: true },
+      products: { view: true, create: true, edit: true, delete: true },
+      orders: { view: true, create: true, edit: true, delete: true },
+      customers: { view: true, create: true, edit: true, delete: true },
+      procurement: { view: true, create: true, edit: true, delete: true },
+      finances: { view: true, create: true, edit: true, delete: true },
+      staff: { view: true, create: true, edit: true, delete: true },
+      settings: { view: true, edit: true },
     },
   },
   {
@@ -30,9 +32,10 @@ let roles: Role[] = [
     description: 'Manages products, orders, and customers.',
     permissions: {
       ...defaultPermissions,
-      canManageProducts: true,
-      canManageOrders: true,
-      canManageCustomers: true,
+      dashboard: { view: true },
+      products: { view: true, create: true, edit: true, delete: false },
+      orders: { view: true, create: true, edit: true, delete: false },
+      customers: { view: true, create: true, edit: true, delete: false },
     },
   },
   {
@@ -40,7 +43,8 @@ let roles: Role[] = [
     description: 'Views and updates order and delivery statuses.',
     permissions: {
       ...defaultPermissions,
-      canManageOrders: true,
+      dashboard: { view: true },
+      orders: { view: true, create: false, edit: true, delete: false },
     },
   },
   {
@@ -48,7 +52,9 @@ let roles: Role[] = [
     description: 'Manages financial records and reporting.',
     permissions: {
       ...defaultPermissions,
-      canManageFinances: true,
+      dashboard: { view: true },
+      finances: { view: true, create: true, edit: true, delete: true },
+      procurement: { view: true, create: true, edit: true, delete: false },
     },
   },
 ];
@@ -70,5 +76,3 @@ export async function updateRole(updatedRole: Role): Promise<Role> {
   roles = roles.map(r => r.name === updatedRole.name ? updatedRole : r);
   return updatedRole;
 }
-
-    
