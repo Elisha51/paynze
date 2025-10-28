@@ -25,9 +25,7 @@ import {
   FileText,
   Truck,
   Landmark,
-  User,
-  DollarSign,
-  ClipboardList,
+  UserCog,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -45,7 +43,7 @@ const menuItems = [
 
 const premiumMenuItems = [
     { href: '/dashboard/finances', label: 'Finances', icon: Landmark, plan: 'Premium' },
-    { href: '/dashboard/staff', label: 'Staff', icon: Users, plan: 'Premium' },
+    { href: '/dashboard/staff', label: 'Staff', icon: UserCog, plan: 'Premium' },
 ];
 
 const bottomMenuItems = [
@@ -153,5 +151,3 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
     </Sidebar>
   );
 }
-
-    
