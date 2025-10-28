@@ -5,7 +5,7 @@ import type { Customer, Communication, Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { MessageSquare, Phone, Users, ShoppingCart, PlusCircle, FileText, ShoppingBag, CornerDownRight } from 'lucide-react';
+import { MessageSquare, Phone, Users, ShoppingCart, PlusCircle, FileText, ShoppingBag, CornerDownRight, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 type CustomerActivityLogProps = {
   customer: Customer;
@@ -45,6 +46,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
   const [filter, setFilter] = useState<ActivityType>('all');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [expandedThreads, setExpandedThreads] = useState<string[]>([]);
   const { toast } = useToast();
 
   const handleAddCommunication = (content: string, threadId?: string) => {
@@ -96,6 +98,14 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
 
   const visibleActivities = filteredActivities.slice(0, visibleCount);
 
+  const toggleThread = (threadId: string) => {
+    setExpandedThreads(prev => 
+        prev.includes(threadId) 
+            ? prev.filter(id => id !== threadId)
+            : [...prev, threadId]
+    );
+  };
+
   const ReplyForm = ({ parentId }: { parentId: string}) => {
     const [replyContent, setReplyContent] = useState('');
     return (
@@ -116,6 +126,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
 
   const TimelineItem = ({ activity, isLast }: { activity: UnifiedActivity, isLast: boolean }) => {
     let Icon, title, content, replies;
+    const isExpanded = activity.activityType === 'communication' && expandedThreads.includes(activity.id);
 
     if (activity.activityType === 'communication') {
         Icon = iconMap[activity.type];
@@ -142,15 +153,25 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
                 <p className="text-xs text-muted-foreground">{format(new Date(activity.date), 'PPP p')}</p>
                 <p className="text-sm font-medium">{title}</p>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{content}</p>
-                {activity.activityType === 'communication' && (
-                  <Button variant="ghost" size="sm" className="h-auto p-1 -ml-1 text-xs" onClick={() => setReplyingTo(replyingTo === activity.id ? null : activity.id)}>
-                    <CornerDownRight className="h-3 w-3 mr-1" />
-                    Reply
-                  </Button>
-                )}
+                
+                <div className="flex items-center gap-2">
+                    {activity.activityType === 'communication' && (
+                      <Button variant="ghost" size="sm" className="h-auto p-1 -ml-1 text-xs" onClick={() => setReplyingTo(replyingTo === activity.id ? null : activity.id)}>
+                        <CornerDownRight className="h-3 w-3 mr-1" />
+                        Reply
+                      </Button>
+                    )}
+                    {replies && replies.length > 0 && (
+                        <Button variant="ghost" size="sm" className="h-auto p-1 text-xs" onClick={() => toggleThread(activity.id)}>
+                            <ChevronDown className={cn("h-3 w-3 mr-1 transition-transform", isExpanded && "rotate-180")} />
+                            {isExpanded ? 'Hide' : 'Show'} {replies.length} repl{replies.length > 1 ? 'ies' : 'y'}
+                        </Button>
+                    )}
+                </div>
 
-                 {replies && replies.length > 0 && (
-                  <div className="pt-4 space-y-4">
+                 <AnimatePresence>
+                 {isExpanded && replies && replies.length > 0 && (
+                  <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="pt-4 space-y-4">
                     {replies.map((reply) => (
                       <div key={reply.id} className="flex items-start gap-3 ml-4 pl-4 border-l">
                          <Avatar className="h-6 w-6">
@@ -162,8 +183,9 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
                          </div>
                       </div>
                     ))}
-                  </div>
+                  </motion.div>
                  )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                   {replyingTo === activity.id && <ReplyForm parentId={activity.id} />}
