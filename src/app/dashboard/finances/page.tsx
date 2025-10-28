@@ -72,7 +72,7 @@ export default function FinancesPage() {
   };
   
   const handleSelectChange = (field: keyof typeof emptyTransaction, value: string) => {
-    setNewTransaction(prev => ({...prev, [field]: value}));
+    setNewTransaction(prev => ({...prev, [field]: value as any}));
   }
 
   const handleAddTransaction = async () => {
@@ -99,13 +99,6 @@ export default function FinancesPage() {
     { value: 'summary', label: 'Daily Summary' },
     { value: 'reconciliation', label: 'Reconciliation' },
   ];
-  
-   const filterTabs = [
-    { value: 'all', label: 'All' },
-    { value: 'cleared', label: 'Cleared' },
-    { value: 'pending', label: 'Pending' },
-  ];
-
 
   const cta = (
     <div className="flex gap-2">
@@ -158,7 +151,7 @@ export default function FinancesPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="paymentMethod">Payment Method</Label>
-                        <Select onValueChange={(v) => handleSelectChange('paymentMethod', v as Transaction['paymentMethod'])} defaultValue={newTransaction.paymentMethod}>
+                        <Select onValueChange={(v) => handleSelectChange('paymentMethod', v)} defaultValue={newTransaction.paymentMethod}>
                             <SelectTrigger><SelectValue/></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="Cash">Cash</SelectItem>
@@ -212,28 +205,10 @@ export default function FinancesPage() {
         onTabChange={setActiveTab}
     >
       <DashboardPageLayout.TabContent value="transactions">
-          <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="all">
-            <DashboardPageLayout.TabContent value="all">
-                <TransactionsTable
-                  transactions={transactions}
-                  isLoading={isLoading}
-                />
-            </DashboardPageLayout.TabContent>
-             <DashboardPageLayout.TabContent value="cleared">
-                <TransactionsTable
-                  transactions={transactions}
-                  isLoading={isLoading}
-                  filter={{ column: 'status', value: 'Cleared' }}
-                />
-            </DashboardPageLayout.TabContent>
-             <DashboardPageLayout.TabContent value="pending">
-                <TransactionsTable
-                  transactions={transactions}
-                  isLoading={isLoading}
-                  filter={{ column: 'status', value: 'Pending' }}
-                />
-            </DashboardPageLayout.TabContent>
-          </DashboardPageLayout.FilterTabs>
+        <TransactionsTable
+            transactions={transactions}
+            isLoading={isLoading}
+        />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="summary">

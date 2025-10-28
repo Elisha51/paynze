@@ -9,6 +9,8 @@ import {
   VisibilityState,
   flexRender,
   getCoreRowModel,
+  getFacetedRowModel,
+  getFacetedUniqueValues,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
@@ -32,11 +34,24 @@ import {
 import { Button } from '@/components/ui/button';
 import { useSearch } from '@/context/search-context';
 import { EmptyState } from '@/components/ui/empty-state';
-import type { LucideIcon } from 'lucide-react';
+import { DataTableFacetedFilter } from '../ui/data-table-faceted-filter';
+import { X } from 'lucide-react';
+
+interface DataTableFilter {
+  columnId: string;
+  title: string;
+  options: {
+    label: string;
+    value: string;
+    icon?: React.ComponentType<{ className?: string }>;
+  }[];
+}
+
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  filters?: DataTableFilter[];
   emptyState?: {
     icon: React.ComponentType<{ className?: string }>;
     title: string;
@@ -48,6 +63,7 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({
   columns,
   data,
+  filters,
   emptyState
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -66,6 +82,8 @@ export function DataTable<TData, TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     state: {
@@ -77,9 +95,36 @@ export function DataTable<TData, TValue>({
     },
     globalFilterFn: 'auto',
   });
+  
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
+       {filters && filters.length > 0 && (
+         <div className="flex items-center gap-2">
+            {filters.map(filter => {
+                const column = table.getColumn(filter.columnId);
+                return column ? (
+                    <DataTableFacetedFilter
+                        key={filter.columnId}
+                        column={column}
+                        title={filter.title}
+                        options={filter.options}
+                    />
+                ) : null;
+            })}
+             {isFiltered && (
+                <Button
+                    variant="ghost"
+                    onClick={() => table.resetColumnFilters()}
+                    className="h-8 px-2 lg:px-3"
+                >
+                    Reset
+                    <X className="ml-2 h-4 w-4" />
+                </Button>
+            )}
+        </div>
+      )}
       <div className="rounded-md border">
         <Table>
           <TableHeader>

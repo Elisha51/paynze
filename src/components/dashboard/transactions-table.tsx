@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import {
@@ -34,14 +35,26 @@ const getColumns = (): ColumnDef<Transaction>[] => [
         cell: ({ row }) => {
             const isIncome = row.getValue('type') === 'Income';
             return <Badge variant={isIncome ? 'default' : 'secondary'}>{row.getValue('type')}</Badge>
-        }
+        },
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id))
+        },
     },
-    { accessorKey: 'paymentMethod', header: 'Payment Method' },
+    { 
+        accessorKey: 'paymentMethod', 
+        header: 'Payment Method',
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id))
+        },
+    },
     { accessorKey: 'category', header: 'Category' },
     { 
         accessorKey: 'status', 
         header: 'Status',
-        cell: ({ row }) => <Badge variant={row.getValue('status') === 'Cleared' ? 'secondary' : 'outline'}>{row.getValue('status')}</Badge>
+        cell: ({ row }) => <Badge variant={row.getValue('status') === 'Cleared' ? 'secondary' : 'outline'}>{row.getValue('status')}</Badge>,
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id))
+        },
     },
     {
         accessorKey: 'amount',
@@ -83,29 +96,51 @@ const getColumns = (): ColumnDef<Transaction>[] => [
 type TransactionsTableProps = {
   transactions: Transaction[];
   isLoading: boolean;
-  filter?: {
-    column: string;
-    value: string;
-  };
 };
 
-export function TransactionsTable({ transactions, isLoading, filter }: TransactionsTableProps) {
-  const [data, setData] = React.useState<Transaction[]>([]);
+const transactionTypes = [
+    { value: 'Income', label: 'Income' },
+    { value: 'Expense', label: 'Expense' },
+];
 
-  React.useEffect(() => {
-    if (filter) {
-      setData(transactions.filter(item => (item as any)[filter.column] === filter.value));
-    } else {
-      setData(transactions);
-    }
-  }, [transactions, filter]);
-  
+const paymentMethods = [
+    { value: 'Cash', label: 'Cash' },
+    { value: 'Mobile Money', label: 'Mobile Money' },
+    { value: 'Bank Transfer', label: 'Bank Transfer' },
+    { value: 'Card', label: 'Card' },
+    { value: 'Other', label: 'Other' },
+];
+
+const transactionStatuses = [
+    { value: 'Cleared', label: 'Cleared' },
+    { value: 'Pending', label: 'Pending' },
+];
+
+
+export function TransactionsTable({ transactions, isLoading }: TransactionsTableProps) {
   const columns = React.useMemo(() => getColumns(), []);
 
   return (
     <DataTable
       columns={columns}
-      data={data}
+      data={transactions}
+      filters={[
+        {
+          columnId: 'status',
+          title: 'Status',
+          options: transactionStatuses,
+        },
+        {
+          columnId: 'type',
+          title: 'Type',
+          options: transactionTypes,
+        },
+        {
+          columnId: 'paymentMethod',
+          title: 'Payment Method',
+          options: paymentMethods,
+        }
+      ]}
       emptyState={{
         icon: FileText,
         title: 'No Transactions Yet',
