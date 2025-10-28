@@ -95,6 +95,14 @@ const supplierColumns: ColumnDef<Supplier>[] = [
   },
 ];
 
+const poStatuses = [
+    { value: 'Draft', label: 'Draft' },
+    { value: 'Sent', label: 'Sent' },
+    { value: 'Partial', label: 'Partial' },
+    { value: 'Received', label: 'Received' },
+    { value: 'Cancelled', label: 'Cancelled' },
+];
+
 // Columns for Purchase Orders Table
 const poColumns: ColumnDef<PurchaseOrder>[] = [
   {
@@ -127,6 +135,9 @@ const poColumns: ColumnDef<PurchaseOrder>[] = [
         {row.getValue('status') as string}
       </Badge>
     ),
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: 'totalCost',
@@ -250,7 +261,15 @@ export default function ProcurementPage() {
       <DashboardPageLayout.TabContent value="purchase-orders">
         <Card>
             <CardContent className="pt-6">
-                <DataTable columns={poColumns} data={purchaseOrders} />
+                <DataTable 
+                    columns={poColumns} 
+                    data={purchaseOrders}
+                    filters={[{
+                        columnId: 'status',
+                        title: 'Status',
+                        options: poStatuses
+                    }]}
+                />
             </CardContent>
         </Card>
       </DashboardPageLayout.TabContent>

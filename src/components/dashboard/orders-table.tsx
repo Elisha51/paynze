@@ -189,6 +189,21 @@ const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'o
   Cancelled: 'destructive',
 };
 
+const orderStatuses = [
+    { value: 'Awaiting Payment', label: 'Awaiting Payment' },
+    { value: 'Paid', label: 'Paid' },
+    { value: 'Ready for Pickup', label: 'Ready for Pickup' },
+    { value: 'Shipped', label: 'Shipped' },
+    { value: 'Delivered', label: 'Delivered' },
+    { value: 'Picked Up', label: 'Picked Up' },
+    { value: 'Cancelled', label: 'Cancelled' },
+];
+
+const fulfillmentMethods = [
+    { value: 'Delivery', label: 'Delivery' },
+    { value: 'Pickup', label: 'Pickup' },
+];
+
 
 const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[] => [
   {
@@ -238,7 +253,10 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
     cell: ({ row }) => {
         const channel = row.getValue('channel') as Order['channel'];
         return <Badge variant={channel === 'Online' ? 'outline' : 'secondary'}>{channel}</Badge>
-    }
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: 'customerName',
@@ -288,6 +306,16 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
           </Badge>
         </div>
       );
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
+  },
+    {
+    accessorKey: 'fulfillmentMethod',
+    header: 'Fulfillment',
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
     },
   },
     {
@@ -435,48 +463,17 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
 type OrdersTableProps = {
   orders: Order[];
   isLoading: boolean;
-  filter?: {
-    column: string;
-    value?: string | string[];
-    exists?: boolean;
-    secondaryColumn?: string;
-    secondaryValue?: string;
-  };
 };
 
-export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
-  const [data, setData] = React.useState<Order[]>([]);
+export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
+  const [data, setData] = React.useState<Order[]>(orders);
 
   React.useEffect(() => {
-    let filteredData = orders;
-
-    if (filter) {
-      if (filter.secondaryColumn && filter.secondaryValue) {
-          filteredData = filteredData.filter(item => (item as any)[filter.secondaryColumn!] === filter.secondaryValue);
-      }
-      
-      if (filter.value) {
-        if (Array.isArray(filter.value)) {
-            filteredData = filteredData.filter(item => (filter.value as string[]).includes((item as any)[filter.column]));
-        } else {
-            filteredData = filteredData.filter(item => (item as any)[filter.column] === filter.value);
-        }
-      } else if (typeof filter.exists !== 'undefined') {
-        filteredData = filteredData.filter(item => {
-          const hasProperty = Object.prototype.hasOwnProperty.call(item, filter.column) && (item as any)[filter.column] !== null && (item as any)[filter.column] !== undefined;
-          return filter.exists ? hasProperty : !hasProperty;
-        });
-      }
-    }
-    
-    setData(filteredData);
-  }, [orders, filter]);
+    setData(orders);
+  }, [orders]);
 
   const handleUpdate = (updatedOrder: Order) => {
-    const updateFunc = (d: Order[]) => d.map(o => o.id === updatedOrder.id ? updatedOrder : o);
-    setData(updateFunc);
-    // You might want to bubble this up to the parent component as well
-    // to update the main `orders` state if this component doesn't re-fetch.
+    setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
   };
   
   const columns = React.useMemo(() => getColumns(handleUpdate), []);
@@ -485,10 +482,14 @@ export function OrdersTable({ orders, isLoading, filter }: OrdersTableProps) {
     <DataTable
       columns={columns}
       data={data}
+      filters={[
+          { columnId: 'status', title: 'Status', options: orderStatuses },
+          { columnId: 'fulfillmentMethod', title: 'Fulfillment', options: fulfillmentMethods }
+      ]}
       emptyState={{
         icon: ShoppingCart,
-        title: "No Orders Yet",
-        description: "You haven't received any orders. When you do, they will appear here.",
+        title: "No Orders Found",
+        description: "You haven't received any orders matching these filters. When you do, they will appear here.",
         cta: (
             <Button asChild>
                 <Link href="/dashboard/orders/add">

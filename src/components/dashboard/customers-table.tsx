@@ -22,6 +22,13 @@ import Link from 'next/link';
 import { Users } from 'lucide-react';
 
 
+const customerGroups = [
+    { value: 'default', label: 'Default' },
+    { value: 'Wholesaler', label: 'Wholesaler' },
+    { value: 'Retailer', label: 'Retailer' },
+];
+
+
 const columns: ColumnDef<Customer>[] = [
   {
     id: 'select',
@@ -84,6 +91,9 @@ const columns: ColumnDef<Customer>[] = [
     accessorKey: 'customerGroup',
     header: 'Group',
     cell: ({ row }) => <Badge variant="outline">{row.getValue('customerGroup')}</Badge>,
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: 'lastOrderDate',
@@ -162,27 +172,18 @@ const columns: ColumnDef<Customer>[] = [
 type CustomersTableProps = {
   customers: Customer[];
   isLoading: boolean;
-  filter?: {
-    column: string;
-    value: string;
-  };
 };
 
-export function CustomersTable({ customers, isLoading, filter }: CustomersTableProps) {
-  const [data, setData] = React.useState<Customer[]>([]);
-
-  React.useEffect(() => {
-    if (filter) {
-      setData(customers.filter(item => (item as any)[filter.column] === filter.value));
-    } else {
-      setData(customers);
-    }
-  }, [customers, filter]);
-
+export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
   return (
     <DataTable
       columns={columns}
-      data={data}
+      data={customers}
+      filters={[{
+        columnId: 'customerGroup',
+        title: 'Group',
+        options: customerGroups
+      }]}
       emptyState={{
         icon: Users,
         title: "No Customers Yet",

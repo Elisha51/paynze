@@ -77,13 +77,6 @@ export default function ProductsPage() {
       { value: 'reports', label: 'Reports', className: 'flex items-center gap-2' },
   ];
   
-  const filterTabs = [
-      { value: 'all', label: 'All' },
-      { value: 'published', label: 'Published' },
-      { value: 'draft', label: 'Draft' },
-      { value: 'archived', label: 'Archived' },
-  ]
-
   const cta = (
      <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -117,40 +110,11 @@ export default function ProductsPage() {
         onTabChange={setActiveTab}
     >
         <DashboardPageLayout.TabContent value="products">
-            <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue='all'>
-                 <DashboardPageLayout.TabContent value="all">
-                    <ProductsTable
-                        data={products}
-                        setData={setProducts}
-                        isLoading={isLoading}
-                        filter={{ column: 'status', excludeValue: 'archived' }}
-                    />
-                </DashboardPageLayout.TabContent>
-                <DashboardPageLayout.TabContent value="published">
-                    <ProductsTable 
-                        data={products}
-                        setData={setProducts}
-                        isLoading={isLoading}
-                        filter={{ column: 'status', value: 'published' }}
-                    />
-                </DashboardPageLayout.TabContent>
-                <DashboardPageLayout.TabContent value="draft">
-                    <ProductsTable
-                        data={products}
-                        setData={setProducts}
-                        isLoading={isLoading}
-                        filter={{ column: 'status', value: 'draft' }}
-                    />
-                </DashboardPageLayout.TabContent>
-                <DashboardPageLayout.TabContent value="archived">
-                    <ProductsTable 
-                        data={products}
-                        setData={setProducts}
-                        isLoading={isLoading}
-                        filter={{ column: 'status', value: 'archived' }}
-                    />
-                </DashboardPageLayout.TabContent>
-            </DashboardPageLayout.FilterTabs>
+            <ProductsTable
+                data={products}
+                setData={setProducts}
+                isLoading={isLoading}
+            />
         </DashboardPageLayout.TabContent>
 
         <DashboardPageLayout.TabContent value="categories">

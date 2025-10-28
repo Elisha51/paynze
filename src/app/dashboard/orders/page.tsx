@@ -20,87 +20,6 @@ import React from 'react';
 import { OrdersTable } from '@/components/dashboard/orders-table';
 
 
-const StatusFilters = ({ orders, isLoading }: { orders: Order[], isLoading: boolean }) => {
-    const filterTabs = [
-        { value: 'all', label: 'All' },
-        { value: 'pending', label: 'Awaiting Payment' },
-        { value: 'paid', label: 'Paid' },
-        { value: 'ready-for-pickup', label: 'Ready for Pickup' },
-        { value: 'unassigned', label: 'Unassigned Delivery' },
-        { value: 'assigned', label: 'Assigned for Delivery' },
-        { value: 'delivered', label: 'Delivered' },
-        { value: 'picked-up', label: 'Picked Up' },
-        { value: 'cancelled', label: 'Cancelled' },
-    ];
-    return (
-        <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="all">
-            <DashboardPageLayout.TabContent value="all">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="pending">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'status', value: 'Awaiting Payment' }}
-                />
-            </DashboardPageLayout.TabContent>
-             <DashboardPageLayout.TabContent value="paid">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'status', value: 'Paid' }}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="ready-for-pickup">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'status', value: 'Ready for Pickup' }}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="unassigned">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'assignedStaffId', exists: false, secondaryColumn: 'fulfillmentMethod', secondaryValue: 'Delivery' }}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="assigned">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'assignedStaffId', exists: true, secondaryColumn: 'fulfillmentMethod', secondaryValue: 'Delivery' }}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="delivered">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'status', value: 'Delivered' }}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="picked-up">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'status', value: 'Picked Up' }}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="cancelled">
-                <OrdersTable
-                    orders={orders}
-                    isLoading={isLoading}
-                    filter={{ column: 'status', value: 'Cancelled' }}
-                />
-            </DashboardPageLayout.TabContent>
-        </DashboardPageLayout.FilterTabs>
-    );
-};
-
-
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -143,13 +62,8 @@ export default function OrdersPage() {
 
   const mainTabs = [
       { value: 'all', label: 'All Orders' },
-      { value: 'online', label: 'Online' },
-      { value: 'manual', label: 'Manual' },
       { value: 'reports', label: 'Reports' },
   ];
-
-  const onlineOrders = orders.filter(o => o.channel === 'Online');
-  const manualOrders = orders.filter(o => o.channel === 'Manual');
 
   const cta = (
     <Button asChild>
@@ -169,15 +83,7 @@ export default function OrdersPage() {
       onTabChange={setActiveTab}
     >
         <DashboardPageLayout.TabContent value="all">
-            <StatusFilters orders={orders} isLoading={isLoading} />
-        </DashboardPageLayout.TabContent>
-
-        <DashboardPageLayout.TabContent value="online">
-            <StatusFilters orders={onlineOrders} isLoading={isLoading} />
-        </DashboardPageLayout.TabContent>
-
-        <DashboardPageLayout.TabContent value="manual">
-            <StatusFilters orders={manualOrders} isLoading={isLoading} />
+            <OrdersTable orders={orders} isLoading={isLoading} />
         </DashboardPageLayout.TabContent>
 
         <DashboardPageLayout.TabContent value="reports">

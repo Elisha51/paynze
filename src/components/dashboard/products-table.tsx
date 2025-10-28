@@ -6,7 +6,7 @@ import Image from 'next/image';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Package, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Package, PlusCircle, PackageCheck, FileArchive, File as FileIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -34,11 +34,21 @@ import {
 import type { Product } from '@/lib/types';
 import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
-import { deleteProduct } from '@/services/products';
 
+const productStatuses = [
+    { value: 'published', label: 'Published', icon: PackageCheck },
+    { value: 'draft', label: 'Draft', icon: FileIcon },
+    { value: 'archived', label: 'Archived', icon: FileArchive },
+];
+const productTypes = [
+    { value: 'Physical', label: 'Physical' },
+    { value: 'Digital', label: 'Digital' },
+    { value: 'Service', label: 'Service' },
+];
 
 const getColumns = (
   archiveProduct: (sku: string) => void,
+  unarchiveProduct: (sku: string) => void
 ): ColumnDef<Product>[] => [
   {
     id: 'select',
@@ -115,7 +125,20 @@ const getColumns = (
       const variant = status === 'draft' ? 'secondary' : status === 'archived' ? 'outline' : 'default';
       const capitalizedVisibility = status.charAt(0).toUpperCase() + status.slice(1);
       return <div className="whitespace-nowrap"><Badge variant={variant}>{capitalizedVisibility}</Badge></div>;
-    }
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
+  },
+    {
+    accessorKey: 'productType',
+    header: 'Type',
+    cell: ({ row }) => {
+        return <Badge variant="outline">{row.getValue('productType')}</Badge>
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: 'retailPrice',
@@ -156,6 +179,9 @@ const getColumns = (
       },
       cell: ({ row }) => {
         const product = row.original;
+        if (product.inventoryTracking === "Don't Track") {
+            return <div className="text-right text-muted-foreground">--</div>;
+        }
         // Sum stock from all variants and locations
         const totalStock = product.variants.reduce((sum, v) => 
             sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.available, 0) || 0), 0);
@@ -201,11 +227,17 @@ const getColumns = (
                     <Link href={`/dashboard/products/${product.sku}/edit`}>Edit</Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <AlertDialogTrigger asChild>
-                    <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive">
-                      Archive
+                  {product.status !== 'archived' ? (
+                    <AlertDialogTrigger asChild>
+                        <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={e => e.preventDefault()}>
+                        Archive
+                        </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                  ) : (
+                    <DropdownMenuItem onClick={() => product.sku && unarchiveProduct(product.sku)}>
+                        Unarchive
                     </DropdownMenuItem>
-                  </AlertDialogTrigger>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
               <AlertDialogContent>
@@ -236,14 +268,9 @@ type ProductsTableProps = {
   data: Product[];
   setData: React.Dispatch<React.SetStateAction<Product[]>>;
   isLoading: boolean;
-  filter?: {
-    column: string;
-    value?: string;
-    excludeValue?: string;
-  }
 };
 
-export function ProductsTable({ data, setData, isLoading, filter }: ProductsTableProps) {
+export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) {
   const { toast } = useToast();
   
   const archiveProduct = async (sku: string) => {
@@ -255,18 +282,15 @@ export function ProductsTable({ data, setData, isLoading, filter }: ProductsTabl
     );
 
     try {
-        // In a real app, you might call a service to update the backend
-        // For now, we simulate this. The service function could be `updateProductStatus`
-        // await updateProductStatus(sku, 'archived');
+        // In a real app, this would be a service call
         toast({
             title: "Product Archived",
             description: "The product has been moved to the archive.",
         });
     } catch (error) {
-        // If the backend update fails, revert the UI change
         setData(currentData =>
             currentData.map(product =>
-                product.sku === sku ? { ...product, status: 'published' } : product // or original status
+                product.sku === sku ? { ...product, status: 'published' } : product
             )
         );
         toast({
@@ -277,16 +301,32 @@ export function ProductsTable({ data, setData, isLoading, filter }: ProductsTabl
     }
   };
 
-  const columns = React.useMemo(() => getColumns(archiveProduct), [setData]);
+  const unarchiveProduct = (sku: string) => {
+    setData(currentData =>
+      currentData.map(product =>
+        product.sku === sku ? { ...product, status: 'draft' } : product
+      )
+    );
+     toast({
+        title: "Product Unarchived",
+        description: "The product has been restored to 'Draft' status.",
+    });
+  }
+
+  const columns = React.useMemo(() => getColumns(archiveProduct, unarchiveProduct), [setData]);
 
   return (
     <DataTable
         columns={columns}
         data={data}
+        filters={[
+          { columnId: 'status', title: 'Status', options: productStatuses },
+          { columnId: 'productType', title: 'Type', options: productTypes }
+        ]}
         emptyState={{
             icon: Package,
             title: "No Products Found",
-            description: "You haven't added any products yet. Let's add your first one!",
+            description: "No products match the current filters. Try adjusting your search.",
             cta: (
                 <Button asChild>
                     <Link href="/dashboard/products/add">

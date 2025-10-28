@@ -64,12 +64,6 @@ export default function CustomersPage() {
       { value: 'reports', label: 'Reports' },
   ];
 
-  const filterTabs = [
-    { value: 'all', label: 'All' },
-    { value: 'wholesale', label: 'Wholesale' },
-    { value: 'retailer', label: 'Retailer' },
-  ];
-
   const cta = (
     <Button asChild>
       <Link href="/dashboard/customers/add">
@@ -88,28 +82,10 @@ export default function CustomersPage() {
       onTabChange={setActiveTab}
     >
       <DashboardPageLayout.TabContent value="customers">
-          <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="all">
-            <DashboardPageLayout.TabContent value="all">
-                <CustomersTable
-                  customers={customers}
-                  isLoading={isLoading}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="wholesale">
-                <CustomersTable
-                  customers={customers}
-                  isLoading={isLoading}
-                  filter={{ column: 'customerGroup', value: 'Wholesaler' }}
-                />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="retailer">
-                <CustomersTable
-                  customers={customers}
-                  isLoading={isLoading}
-                  filter={{ column: 'customerGroup', value: 'Retailer' }}
-                />
-            </DashboardPageLayout.TabContent>
-          </DashboardPageLayout.FilterTabs>
+          <CustomersTable
+            customers={customers}
+            isLoading={isLoading}
+          />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reports">
