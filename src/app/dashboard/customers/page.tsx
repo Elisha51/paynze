@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CustomersTable } from '@/components/dashboard/customers-table';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -65,12 +65,20 @@ export default function CustomersPage() {
   ];
 
   const cta = (
-    <Button asChild>
-      <Link href="/dashboard/customers/add">
-        <PlusCircle className="mr-2 h-4 w-4" />
-        Add Customer
-      </Link>
-    </Button>
+     <div className="flex gap-2">
+        <Button variant="outline" size="sm" className="h-9 px-2.5 sm:px-4" asChild>
+            <a href="/customers-template.csv" download>
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline-flex">Export</span>
+            </a>
+        </Button>
+        <Button asChild size="sm" className="h-9 px-2.5 sm:px-4">
+            <Link href="/dashboard/customers/add">
+                <PlusCircle className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline-flex">Add Customer</span>
+            </Link>
+        </Button>
+     </div>
   );
 
   return (

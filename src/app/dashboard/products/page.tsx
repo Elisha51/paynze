@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Upload, ChevronDown, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Upload, ChevronDown, Calendar as CalendarIcon, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { ProductsTable } from '@/components/dashboard/products-table';
@@ -78,27 +78,35 @@ export default function ProductsPage() {
   ];
   
   const cta = (
-     <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button>
-            Add Product <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/products/add">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Manually
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/products/import">
-                <Upload className="mr-2 h-4 w-4" />
-                Import Products
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex gap-2">
+        <Button variant="outline" size="sm" className="h-9 px-2.5 sm:px-4" asChild>
+            <a href="/products-template.csv" download>
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline-flex">Export</span>
+            </a>
+        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+            <Button size="sm" className="h-9 px-2.5 sm:px-4">
+                Add Product <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+                <Link href="/dashboard/products/add">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Manually
+                </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+                <Link href="/dashboard/products/import">
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import Products
+                </Link>
+            </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    </div>
   );
 
   return (

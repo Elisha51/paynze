@@ -1,0 +1,3 @@
+OrderID,CustomerName,Date,Total,Status
+"ORD-SAMPLE-1","John Doe","2023-10-27",49.99,"Shipped"
+"ORD-SAMPLE-2","Jane Smith","2023-10-26",25.00,"Delivered"

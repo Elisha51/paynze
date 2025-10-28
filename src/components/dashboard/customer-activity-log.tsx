@@ -1,15 +1,14 @@
 
 'use client';
 import { useState } from 'react';
-import type { Customer, Communication } from '@/lib/types';
+import type { Customer, Communication, Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { MessageSquare, Phone, Users, ShoppingCart, PlusCircle, User } from 'lucide-react';
+import { MessageSquare, Phone, Users, ShoppingCart, PlusCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import { getInitials } from '@/lib/utils';
 import {
   Select,
   SelectContent,
@@ -98,7 +97,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
         
         <div className="relative pl-8">
             <div className="absolute left-3 top-2 h-full w-0.5 bg-border" />
-            {allActivities.map((activity) => {
+            {allActivities.map((activity, index) => {
                 const isCommunication = activity.activityType === 'communication';
                 let Icon, title, content;
 
@@ -115,7 +114,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
                 }
 
                 return (
-                    <div key={activity.id} className="relative pb-8">
+                    <div key={`${activity.id}-${index}`} className="relative pb-8">
                         <div className="absolute top-2 -left-[30px]">
                             <Avatar className="h-8 w-8 border-2 border-background bg-muted">
                                 <AvatarFallback>
