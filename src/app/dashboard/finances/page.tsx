@@ -187,7 +187,7 @@ export default function FinancesPage() {
 
 
   const mainTabs = [
-    { value: 'transactions', label: 'All Transactions' },
+    { value: 'transactions', label: 'Transactions' },
     { value: 'summary', label: 'Summary' },
     { value: 'reconciliation', label: 'Reconciliation' },
     { value: 'payouts', label: 'Payouts' },

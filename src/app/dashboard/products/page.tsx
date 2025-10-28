@@ -72,7 +72,7 @@ export default function ProductsPage() {
   };
 
   const tabs = [
-      { value: 'products', label: 'All Products' },
+      { value: 'products', label: 'Products' },
       { value: 'categories', label: 'Categories' },
       { value: 'analytics', label: 'Analytics', className: 'flex items-center gap-2' },
   ];

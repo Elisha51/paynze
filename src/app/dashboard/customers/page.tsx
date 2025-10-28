@@ -60,7 +60,7 @@ export default function CustomersPage() {
   };
 
   const mainTabs = [
-      { value: 'customers', label: 'All Customers' },
+      { value: 'customers', label: 'Customers' },
       { value: 'analytics', label: 'Analytics' },
   ];
 

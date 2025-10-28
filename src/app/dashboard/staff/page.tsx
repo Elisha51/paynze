@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PlusCircle, BarChart, DollarSign, Wallet } from 'lucide-react';
@@ -49,7 +48,7 @@ export default function StaffPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState('team');
+  const [activeTab, setActiveTab] = React.useState('staff');
   const [newStaffMember, setNewStaffMember] = React.useState<Partial<Staff>>(emptyStaff);
   const [addMode, setAddMode] = React.useState<'invite' | 'manual'>('invite');
   const [bonusStaff, setBonusStaff] = React.useState<Staff | null>(null);
@@ -137,7 +136,7 @@ export default function StaffPage() {
 
 
   const mainTabs = [
-      { value: 'team', label: 'Your Team' },
+      { value: 'staff', label: 'Staff' },
       { value: 'permissions', label: 'Roles & Permissions' },
       { value: 'all-logs', label: 'All Logs' },
       { value: 'analytics', label: 'Analytics' },
@@ -217,7 +216,7 @@ export default function StaffPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
     >
-        <DashboardPageLayout.TabContent value="team">
+        <DashboardPageLayout.TabContent value="staff">
             {isLoading ? (
                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {[...Array(8)].map((_, i) => (

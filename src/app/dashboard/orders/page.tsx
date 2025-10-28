@@ -23,7 +23,7 @@ import { OrdersTable } from '@/components/dashboard/orders-table';
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('orders');
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
@@ -61,7 +61,7 @@ export default function OrdersPage() {
 
 
   const mainTabs = [
-      { value: 'all', label: 'All Orders' },
+      { value: 'orders', label: 'Orders' },
       { value: 'analytics', label: 'Analytics' },
   ];
 
@@ -90,7 +90,7 @@ export default function OrdersPage() {
       activeTab={activeTab}
       onTabChange={setActiveTab}
     >
-        <DashboardPageLayout.TabContent value="all">
+        <DashboardPageLayout.TabContent value="orders">
             <OrdersTable orders={orders} isLoading={isLoading} />
         </DashboardPageLayout.TabContent>
 
