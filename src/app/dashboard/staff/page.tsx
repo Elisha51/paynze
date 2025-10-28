@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PlusCircle, BarChart, DollarSign, Wallet } from 'lucide-react';
@@ -165,7 +166,7 @@ export default function StaffPage() {
                     <p className="text-sm text-muted-foreground">Send an email invitation for the new staff member to create their own account and password.</p>
                      <div className="space-y-2">
                         <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" placeholder="colleague@example.com" value={newStaffMember.email} onChange={handleInputChange} />
+                        <Input id="email" type="email" placeholder="colleague@example.com" value={newStaffMember.email || ''} onChange={handleInputChange} />
                     </div>
                      <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>
@@ -182,11 +183,11 @@ export default function StaffPage() {
                      <p className="text-sm text-muted-foreground">Create a profile and set a temporary password for the new staff member. They will require verification before they can log in.</p>
                     <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" value={newStaffMember.name} onChange={handleInputChange} />
+                        <Input id="name" value={newStaffMember.name || ''} onChange={handleInputChange} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email Address</Label>
-                        <Input id="email" type="email" value={newStaffMember.email} onChange={handleInputChange} />
+                        <Input id="email" type="email" value={newStaffMember.email || ''} onChange={handleInputChange} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>
@@ -305,3 +306,5 @@ export default function StaffPage() {
     </>
   );
 }
+
+    
