@@ -122,10 +122,11 @@ const columns: ColumnDef<Customer>[] = [
   {
     id: 'actions',
     enableHiding: false,
+    header: () => <div className="text-right">Actions</div>,
     cell: ({ row }) => {
       const customer = row.original;
       return (
-        <div className="text-right">
+        <div className="relative bg-background text-right sticky right-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">

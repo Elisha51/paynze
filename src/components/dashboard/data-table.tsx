@@ -88,7 +88,7 @@ export function DataTable<TData, TValue>({
                 {headerGroup.headers.map((header) => {
                   const isActionsColumn = header.id === 'actions';
                   return (
-                    <TableHead key={header.id} className={isActionsColumn ? 'sticky right-0 bg-background' : ''}>
+                    <TableHead key={header.id} className={isActionsColumn ? 'sticky right-0 bg-card' : ''}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
