@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getStaff, updateStaff } from '@/services/staff';
 import { addTransaction } from '@/services/finances';
