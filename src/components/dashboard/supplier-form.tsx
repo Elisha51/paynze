@@ -76,14 +76,16 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
     router.push('/dashboard/procurement');
   }
 
+  const handleBack = () => {
+      router.back();
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/procurement">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Link>
+        <Button variant="outline" size="icon" onClick={handleBack}>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="sr-only">Back</span>
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{initialSupplier ? 'Edit Supplier' : 'Add New Supplier'}</h1>

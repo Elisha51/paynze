@@ -227,7 +227,7 @@ export const SidebarMenuButton = React.forwardRef<
                 className: cn(
                     child.props.className,
                     'transition-all duration-300',
-                    state === 'expanded' ? '' : 'absolute -top-2 -right-2 p-1.5 h-auto text-xs',
+                    state === 'expanded' ? '' : 'absolute -top-1 -right-1 p-1 h-auto text-[10px] leading-none',
                 ),
             });
            }
@@ -250,7 +250,7 @@ export const SidebarMenuButton = React.forwardRef<
     return (
       <Tooltip>
         <TooltipTrigger asChild>{buttonContent}</TooltipTrigger>
-        <TooltipContent side="top" align="center">
+        <TooltipContent side="right" align="center">
           {tooltip}
         </TooltipContent>
       </Tooltip>

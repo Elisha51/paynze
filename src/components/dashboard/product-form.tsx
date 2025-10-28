@@ -122,6 +122,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [showComparePrice, setShowComparePrice] = useState(!!initialProduct?.compareAtPrice);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -129,6 +130,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   useEffect(() => {
     // When initialProduct changes, reset the form state
     setProduct({ ...emptyProduct, ...initialProduct });
+    setShowComparePrice(!!initialProduct?.compareAtPrice);
 
     const data = localStorage.getItem('onboardingData');
     if (data) {
@@ -626,10 +628,25 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                         <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="compareAtPrice">Compare At Price ({product.currency})</Label>
-                        <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000"/>
+                        <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')}>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="no" id="show-compare-no" />
+                                <Label htmlFor="show-compare-no">No "compare at" price</Label>
+                            </div>
+                             <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="yes" id="show-compare-yes" />
+                                <Label htmlFor="show-compare-yes">Show "compare at" price</Label>
+                            </div>
+                        </RadioGroup>
                     </div>
                  </div>
+                {showComparePrice && (
+                    <div className="space-y-2">
+                        <Label htmlFor="compareAtPrice">Compare At Price ({product.currency})</Label>
+                        <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000"/>
+                         <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>
+                    </div>
+                )}
                 <div className="space-y-4">
                     <h4 className="font-medium text-sm">Wholesale Pricing</h4>
                     {product.wholesalePricing && product.wholesalePricing.length > 0 && (
@@ -1128,5 +1145,3 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
     </div>
   );
 }
-
-    

@@ -35,7 +35,7 @@ import { Button } from '@/components/ui/button';
 import { useSearch } from '@/context/search-context';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DataTableFacetedFilter } from '../ui/data-table-faceted-filter';
-import { X } from 'lucide-react';
+import { X, Search } from 'lucide-react';
 
 interface DataTableFilter {
   columnId: string;
@@ -172,7 +172,7 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-auto"
                 >
-                  {emptyState ? (
+                  {emptyState && data.length === 0 ? (
                     <EmptyState 
                       icon={React.createElement(emptyState.icon, { className: "h-12 w-12 text-primary" })}
                       title={emptyState.title}
@@ -180,7 +180,11 @@ export function DataTable<TData, TValue>({
                       cta={emptyState.cta}
                     />
                   ) : (
-                    <div className="h-24 text-center">No results.</div>
+                    <EmptyState
+                      icon={<Search className="h-12 w-12 text-muted-foreground" />}
+                      title="No Results Found"
+                      description="No records match your current search query or filters. Try adjusting them to find what you're looking for."
+                    />
                   )}
                 </TableCell>
               </TableRow>

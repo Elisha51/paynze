@@ -8,7 +8,7 @@ import type { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { StaffCard } from './staff-card';
 
-export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: boolean }) {
+export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[], isLoading: boolean, onAwardBonus: (member: Staff) => void }) {
   const staffToShow = staff.slice(0, 3);
   if (isLoading) {
     return (
@@ -33,7 +33,7 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {staffToShow.map(member => (
-        <StaffCard key={member.id} member={member} />
+        <StaffCard key={member.id} member={member} onAwardBonus={() => onAwardBonus(member)} />
       ))}
       {staff.length > 3 && (
         <Link href="/dashboard/staff" className="flex">
