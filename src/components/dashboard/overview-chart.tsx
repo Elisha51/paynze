@@ -5,7 +5,7 @@ import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartTooltipContent, ChartContainer, type ChartConfig } from '@/components/ui/chart';
 import { useMemo } from 'react';
 import { Order } from '@/lib/types';
-import { format, subMonths, startOfMonth, endOfMonth, eachMonthOfInterval } from 'date-fns';
+import { format, subMonths, startOfMonth, endOfMonth, eachDayOfInterval, eachMonthOfInterval } from 'date-fns';
 
 const chartConfig = {
   total: {
@@ -16,30 +16,35 @@ const chartConfig = {
 
 export function OverviewChart({ orders }: { orders: Order[] }) {
   const salesData = useMemo(() => {
-    const now = new Date();
-    const last12Months = eachMonthOfInterval({
-      start: subMonths(now, 11),
-      end: now,
-    });
+     if (orders.length === 0) return [];
     
-    const monthlySales = last12Months.map(month => {
-      const monthStart = startOfMonth(month);
-      const monthEnd = endOfMonth(month);
-      
-      const total = orders
-        .filter(order => {
-          const orderDate = new Date(order.date);
-          return order.paymentStatus === 'Paid' && orderDate >= monthStart && orderDate <= monthEnd;
-        })
-        .reduce((sum, order) => sum + order.total, 0);
+    const dateArray = orders.map(o => new Date(o.date));
+    const minDate = new Date(Math.min(...dateArray.map(date => date.getTime())));
+    const maxDate = new Date(Math.max(...dateArray.map(date => date.getTime())));
+    const diffDays = (maxDate.getTime() - minDate.getTime()) / (1000 * 3600 * 24);
 
-      return {
-        name: format(month, 'MMM'),
-        total,
-      };
-    });
-
-    return monthlySales;
+    if (diffDays <= 31) { // Group by day
+      const days = eachDayOfInterval({ start: minDate, end: maxDate });
+      return days.map(day => {
+        const total = orders
+          .filter(order => new Date(order.date).toDateString() === day.toDateString() && order.paymentStatus === 'Paid')
+          .reduce((sum, order) => sum + order.total, 0);
+        return { name: format(day, 'MMM d'), total };
+      });
+    } else { // Group by month
+      const months = eachMonthOfInterval({ start: minDate, end: maxDate });
+      return months.map(month => {
+        const monthStart = startOfMonth(month);
+        const monthEnd = endOfMonth(month);
+        const total = orders
+          .filter(order => {
+            const orderDate = new Date(order.date);
+            return order.paymentStatus === 'Paid' && orderDate >= monthStart && orderDate <= monthEnd;
+          })
+          .reduce((sum, order) => sum + order.total, 0);
+        return { name: format(month, 'MMM'), total };
+      });
+    }
   }, [orders]);
 
   const currency = orders.length > 0 ? orders[0].currency : 'UGX';

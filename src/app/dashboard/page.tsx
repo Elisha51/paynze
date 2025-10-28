@@ -17,6 +17,7 @@ import {
   Activity,
   Package,
   Clock,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
@@ -33,7 +34,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
+import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+
 
 export default function DashboardPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
@@ -45,6 +52,10 @@ export default function DashboardPage() {
   const [bonusAmount, setBonusAmount] = React.useState<number>(0);
   const [bonusReason, setBonusReason] = React.useState('');
   const { toast } = useToast();
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: addDays(new Date(), -29),
+    to: new Date(),
+  });
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
@@ -65,16 +76,35 @@ export default function DashboardPage() {
     loadData();
   }, [loadData]);
   
-  // Lifetime Metrics
-  const totalRevenue = orders.reduce((sum, order) => sum + (order.paymentStatus === 'Paid' ? order.total : 0), 0);
-  const totalSales = orders.length;
-  const totalCustomers = customers.length;
+  const { filteredOrders, filteredCustomers } = React.useMemo(() => {
+    if (!date?.from) {
+        return { filteredOrders: orders, filteredCustomers: customers };
+    }
+    const fromDate = date.from;
+    const toDate = date.to || new Date();
+
+    const filteredOrders = orders.filter(order => {
+        const orderDate = new Date(order.date);
+        return orderDate >= fromDate && orderDate <= toDate;
+    });
+
+    const filteredCustomers = customers.filter(customer => {
+        if (!customer.createdAt) return false;
+        const creationDate = new Date(customer.createdAt);
+        return creationDate >= fromDate && creationDate <= toDate;
+    });
+
+    return { filteredOrders, filteredCustomers };
+  }, [orders, customers, date]);
+
+
+  // Metrics for the selected period
+  const revenueInPeriod = filteredOrders.reduce((sum, order) => sum + (order.paymentStatus === 'Paid' ? order.total : 0), 0);
+  const salesInPeriod = filteredOrders.length;
+  const newCustomersInPeriod = filteredCustomers.length;
   const currency = orders.length > 0 ? orders[0].currency : 'UGX';
 
-  // Daily Metrics
-  const today = new Date().toISOString().split('T')[0];
-  const todaysOrders = orders.filter(order => order.date === today);
-  const todaysRevenue = todaysOrders.reduce((sum, order) => sum + (order.paymentStatus === 'Paid' ? order.total : 0), 0);
+  // Overall metrics (not affected by date filter)
   const activeProducts = products.filter(p => p.status === 'published').length;
   const pendingOrders = orders.filter(o => ['Awaiting Payment', 'Paid', 'Ready for Pickup'].includes(o.status)).length;
   
@@ -119,20 +149,93 @@ export default function DashboardPage() {
       loadData();
   }
 
+  const handlePresetChange = (value: string) => {
+    const now = new Date();
+    switch (value) {
+      case 'today':
+        setDate({ from: now, to: now });
+        break;
+      case 'last-7':
+        setDate({ from: addDays(now, -6), to: now });
+        break;
+      case 'last-30':
+        setDate({ from: addDays(now, -29), to: now });
+        break;
+      case 'ytd':
+        setDate({ from: new Date(now.getFullYear(), 0, 1), to: now });
+        break;
+      default:
+        setDate(undefined);
+    }
+  };
+
 
   return (
     <>
-    <div className="flex-1 space-y-4">
+    <div className="space-y-4">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+             <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+             <div className="flex items-center gap-2 w-full lg:w-auto">
+                <Select onValueChange={handlePresetChange} defaultValue="last-30">
+                    <SelectTrigger className="w-full lg:w-[180px]">
+                        <SelectValue placeholder="Select a preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="last-7">Last 7 days</SelectItem>
+                        <SelectItem value="last-30">Last 30 days</SelectItem>
+                        <SelectItem value="ytd">Year to date</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "w-full lg:w-[300px] justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date?.from ? (
+                        date.to ? (
+                            <>
+                            {format(date.from, "LLL dd, y")} -{" "}
+                            {format(date.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(date.from, "LLL dd, y")
+                        )
+                        ) : (
+                        <span>Pick a date</span>
+                        )}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={date?.from}
+                        selected={date}
+                        onSelect={setDate}
+                        numberOfMonths={2}
+                    />
+                    </PopoverContent>
+                </Popover>
+            </div>
+        </div>
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(revenueInPeriod)}</div>
             <p className="text-xs text-muted-foreground">
-              Based on all paid orders
+              In selected period
             </p>
           </CardContent>
         </Card>
@@ -142,45 +245,21 @@ export default function DashboardPage() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{totalSales}</div>
+            <div className="text-2xl font-bold">+{salesInPeriod}</div>
             <p className="text-xs text-muted-foreground">
-              Total orders placed
+              Orders in selected period
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Customers</CardTitle>
+            <CardTitle className="text-sm font-medium">New Customers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{totalCustomers}</div>
+            <div className="text-2xl font-bold">+{newCustomersInPeriod}</div>
             <p className="text-xs text-muted-foreground">
-              Total customers
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeProducts}</div>
-            <p className="text-xs text-muted-foreground">
-              Products currently listed
-            </p>
-          </CardContent>
-        </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(todaysRevenue)}</div>
-            <p className="text-xs text-muted-foreground">
-              {todaysOrders.length} order(s) today
+              In selected period
             </p>
           </CardContent>
         </Card>
@@ -192,31 +271,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{pendingOrders}</div>
             <p className="text-xs text-muted-foreground">
-              Orders awaiting fulfillment
-            </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Staff</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{staff.filter(s => s.onlineStatus === 'Online').length}</div>
-            <p className="text-xs text-muted-foreground">
-              Staff members currently online
-            </p>
-          </CardContent>
-        </Card>
-         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Now</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">+573</div>
-            <p className="text-xs text-muted-foreground">
-              +201 since last hour (mock)
+              Total orders awaiting fulfillment
             </p>
           </CardContent>
         </Card>
@@ -228,14 +283,14 @@ export default function DashboardPage() {
             <CardTitle>Overview</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart orders={orders} />
+            <OverviewChart orders={filteredOrders} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
           <CardHeader>
             <CardTitle>Recent Sales</CardTitle>
             <CardDescription>
-              Your most recent orders.
+              Your 5 most recent orders.
             </CardDescription>
           </CardHeader>
           <CardContent>
