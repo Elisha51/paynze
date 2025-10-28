@@ -29,6 +29,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 
 export default function DashboardPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
@@ -70,7 +71,8 @@ export default function DashboardPage() {
       name: order.customerName,
       email: order.customerEmail,
       amount: `+${formatCurrency(order.total)}`,
-      avatarId: `avatar-${(Math.floor(Math.random() * 5) + 1)}`
+      avatarId: `avatar-${(Math.floor(Math.random() * 5) + 1)}`,
+      customerId: order.customerId
   }));
 
   const handleAwardBonus = async () => {
@@ -182,9 +184,11 @@ export default function DashboardPage() {
                       <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="ml-4 space-y-1">
-                      <p className="text-sm font-medium leading-none">
-                        {sale.name}
-                      </p>
+                      <Link href={`/dashboard/customers/${sale.customerId}`}>
+                        <p className="text-sm font-medium leading-none hover:underline">
+                          {sale.name}
+                        </p>
+                      </Link>
                       <p className="text-sm text-muted-foreground">
                         {sale.email}
                       </p>

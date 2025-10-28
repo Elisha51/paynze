@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -18,7 +19,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Image from 'next/image';
-import type { Product, Supplier } from '@/lib/types';
+import type { Product, Supplier, ProductVariant } from '@/lib/types';
 import { Remarkable } from 'remarkable';
 import { Laptop, Store } from 'lucide-react';
 import { useMemo } from 'react';
@@ -48,7 +49,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File));
 
-  const getVariantStatusBadge = (status: Product['variants'][0]['status']) => {
+  const getVariantStatusBadge = (status: ProductVariant['status']) => {
     switch (status) {
         case 'In Stock': return <Badge variant="default">In Stock</Badge>;
         case 'Low Stock': return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Low Stock</Badge>;
