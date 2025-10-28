@@ -2,7 +2,7 @@
 
 'use client';
 
-import { PlusCircle, Download, DollarSign, Calendar as CalendarIcon, FileText } from 'lucide-react';
+import { PlusCircle, Download, FileText, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -53,7 +53,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { DailySummary } from '@/components/dashboard/daily-summary';
 
 const getColumns = (): ColumnDef<Transaction>[] => [
     { accessorKey: 'date', header: 'Date' },
@@ -124,7 +123,7 @@ export default function FinancesPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState('summary');
+  const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
@@ -192,7 +191,6 @@ export default function FinancesPage() {
   }
 
   const mainTabs = [
-    { value: 'summary', label: 'Daily Summary' },
     { value: 'transactions', label: 'All Transactions' },
     { value: 'payroll', label: 'Payroll' },
     { value: 'reconciliation', label: 'Reconciliation' },
@@ -292,10 +290,6 @@ export default function FinancesPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
     >
-      <DashboardPageLayout.TabContent value="summary">
-        <DailySummary transactions={transactions} isLoading={isLoading} />
-      </DashboardPageLayout.TabContent>
-
       <DashboardPageLayout.TabContent value="transactions">
         <Card>
           <CardContent className="pt-6">
@@ -306,6 +300,14 @@ export default function FinancesPage() {
                     icon: FileText,
                     title: "No Transactions Yet",
                     description: "When you make sales or record expenses, they'll appear here.",
+                    cta: (
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Add First Transaction
+                            </Button>
+                        </DialogTrigger>
+                    )
                 }}
             />
           </CardContent>
