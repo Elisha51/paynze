@@ -132,7 +132,7 @@ export default function StaffPage() {
 
   const mainTabs = [
       { value: 'team', label: 'Your Team' },
-      { value: 'permissions', label: 'Roles & Permissions' },
+      { value: 'permissions', label: 'Roles &amp; Permissions' },
       { value: 'reports', label: 'Reports' },
   ];
 
@@ -296,5 +296,7 @@ export default function StaffPage() {
     </>
   );
 }
+
+    
 
     

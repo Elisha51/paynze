@@ -153,3 +153,5 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
     </Sidebar>
   );
 }
+
+    

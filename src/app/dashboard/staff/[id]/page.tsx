@@ -171,15 +171,6 @@ const UnassignedOrders = ({ orders, staffMember, onAssign }: { orders: Order[], 
     )
 }
 
-const mockActivity = [
-    { time: '2 hours ago', action: 'Approved Order #ORD-002 for pickup.' },
-    { time: '4 hours ago', action: 'Updated their profile information.' },
-    { time: '1 day ago', action: 'Viewed the customer report for the last 30 days.' },
-    { time: '2 days ago', action: 'Assigned Order #ORD-011 for delivery.' },
-    { time: '2 days ago', action: `Logged in from IP address 192.168.1.1` },
-]
-
-
 export default function ViewStaffPage() {
   const params = useParams();
   const router = useRouter();
@@ -403,9 +394,8 @@ export default function ViewStaffPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance & Attributes</TabsTrigger>}
-          <TabsTrigger value="details">Documents & Details</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+          {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance &amp; Attributes</TabsTrigger>}
+          <TabsTrigger value="details">Documents &amp; Details</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6 space-y-6">
             {showAssignedOrders && (
@@ -451,7 +441,7 @@ export default function ViewStaffPage() {
                                 <Button asChild>
                                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
                                         <Edit className="mr-2 h-4 w-4" />
-                                        Edit Profile & Attributes
+                                        Edit Profile &amp; Attributes
                                     </Link>
                                 </Button>
                             )}
@@ -540,33 +530,9 @@ export default function ViewStaffPage() {
               </CardContent>
             </Card>
         </TabsContent>
-         <TabsContent value="activity" className="mt-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                        <Activity className="h-5 w-5 text-primary" />
-                        Activity Log
-                    </CardTitle>
-                    <CardDescription>A log of recent actions taken by this staff member.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                     <div className="space-y-4">
-                        {mockActivity.map((item, index) => (
-                            <div key={index} className="flex items-start gap-4">
-                                <div className="text-right w-24 flex-shrink-0">
-                                    <p className="text-sm text-muted-foreground">{item.time}</p>
-                                </div>
-                                <div className="relative">
-                                    <span className="absolute left-[-13px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background"></span>
-                                </div>
-                                <p className="flex-1 text-sm">{item.action}</p>
-                            </div>
-                        ))}
-                    </div>
-                </CardContent>
-            </Card>
-        </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+    

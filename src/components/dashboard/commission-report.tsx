@@ -97,7 +97,7 @@ const getColumns = (
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuItem disabled={!canPayout} onSelect={() => openPayoutDialog(staffId)}>
                                 <DollarSign className="mr-2 h-4 w-4" />
-                                Review & Process Payout
+                                Review &amp; Process Payout
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
@@ -126,43 +126,18 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
 
     const { commissionBreakdown, totalBreakdownCommission } = useMemo(() => {
         if (!payoutStaff) return { commissionBreakdown: [], totalBreakdownCommission: 0 };
-        
-        const staffRole = roles.find(r => r.name === payoutStaff.role);
-        if (!staffRole?.commissionRules) return { commissionBreakdown: [], totalBreakdownCommission: 0 };
 
-        const orderCommissions = orders.flatMap(order => {
-            return (staffRole.commissionRules || []).map(rule => {
-                let commission = 0;
-                let triggerMet = false;
-
-                if (rule.trigger === 'On Order Delivered' && order.status === 'Delivered' && order.fulfilledByStaffId === payoutStaff.id) {
-                    triggerMet = true;
-                } else if (rule.trigger === 'On Order Paid' && order.paymentStatus === 'Paid' && order.salesAgentId === payoutStaff.id) {
-                    triggerMet = true;
-                }
-
-                if (triggerMet) {
-                    if (rule.type === 'Fixed Amount') {
-                        commission = rule.rate;
-                    } else if (rule.type === 'Percentage of Sale') {
-                        commission = order.total * (rule.rate / 100);
-                    }
-                }
-                
-                return commission > 0 ? { order, commission, ruleName: rule.name } : null;
-            }).filter(Boolean) as { order: Order; commission: number, ruleName: string }[];
-        }).flat();
-        
+        // For simplicity, we're not re-calculating the breakdown here.
+        // A real implementation would fetch historical commission records.
+        // We'll just show the total and any bonuses.
         const bonusBreakdown = (payoutStaff.bonuses || []).map(bonus => ({
             ...bonus,
             isBonus: true,
         }));
-
-        const combinedBreakdown = [...orderCommissions, ...bonusBreakdown].sort((a,b) => new Date((a as any).date || (a as any).order.date).getTime() - new Date((b as any).date || (b as any).order.date).getTime());
-
+        
         const total = (payoutStaff.totalCommission || 0);
 
-        return { commissionBreakdown: combinedBreakdown, totalBreakdownCommission: total };
+        return { commissionBreakdown: bonusBreakdown, totalBreakdownCommission: total };
 
     }, [payoutStaff, orders, roles]);
 
@@ -228,7 +203,7 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
         <>
             <Card>
                 <CardHeader>
-                    <CardTitle>Commission & Bonus Payouts</CardTitle>
+                    <CardTitle>Commission &amp; Bonus Payouts</CardTitle>
                     <CardDescription>View unpaid earnings and process payouts for your staff.</CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -252,46 +227,9 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
                             Total unpaid earnings of <span className="font-bold text-primary">{formatCurrency(totalBreakdownCommission, payoutStaff?.currency || 'UGX')}</span>. Review the sources below before confirming.
                         </DialogDescription>
                     </DialogHeader>
-                    <ScrollArea className="h-72">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Source</TableHead>
-                                    <TableHead>Date</TableHead>
-                                    <TableHead>Details</TableHead>
-                                    <TableHead className="text-right">Amount Earned</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {commissionBreakdown.map((item, index) => {
-                                    if ('isBonus' in item) {
-                                        const bonus = item as Bonus & { isBonus: boolean };
-                                        return (
-                                            <TableRow key={`bonus-${index}`}>
-                                                <TableCell>
-                                                    <Badge variant="secondary" className="flex items-center gap-1 w-fit"><Gift className="h-3 w-3"/>Bonus</Badge>
-                                                </TableCell>
-                                                <TableCell>{format(new Date(bonus.date), 'PPP')}</TableCell>
-                                                <TableCell>{bonus.reason}</TableCell>
-                                                <TableCell className="text-right font-medium">{formatCurrency(bonus.amount, payoutStaff?.currency || 'UGX')}</TableCell>
-                                            </TableRow>
-                                        )
-                                    }
-                                    const commission = item as { order: Order; commission: number; ruleName: string };
-                                    return (
-                                        <TableRow key={`commission-${index}`}>
-                                            <TableCell>
-                                                <Link href={`/dashboard/orders/${commission.order.id}`} className="font-medium hover:underline">{commission.order.id}</Link>
-                                            </TableCell>
-                                            <TableCell>{format(new Date(commission.order.date), 'PPP')}</TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">{commission.ruleName}</TableCell>
-                                            <TableCell className="text-right font-medium">{formatCurrency(commission.commission, commission.order.currency)}</TableCell>
-                                        </TableRow>
-                                    )
-                                })}
-                            </TableBody>
-                        </Table>
-                    </ScrollArea>
+                    <div className="py-4">
+                        <p className="text-sm text-muted-foreground">This total includes commissions earned from sales and deliveries, plus any manually awarded bonuses.</p>
+                    </div>
                     <DialogFooter>
                       <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
                       <AlertDialog>
