@@ -78,7 +78,7 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
         const value = activeTab || defaultValue;
         return (
             <Tabs defaultValue={defaultValue} value={value} onValueChange={onTabChange}>
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
                     <TabsList className="overflow-x-auto w-full justify-start md:w-auto">
                         {tabs.map((tab) => (
                         <TabsTrigger key={tab.value} value={tab.value} className={tab.className}>

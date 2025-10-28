@@ -203,15 +203,15 @@ export default function FinancesPage() {
 
   const cta = (
     <div className="flex gap-2">
-        <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
+        <Button variant="outline" size="sm" className="h-9 px-2.5 sm:px-4">
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline-flex">Export</span>
         </Button>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-                <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Transaction
+                <Button size="sm" className="h-9 px-2.5 sm:px-4">
+                    <PlusCircle className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline-flex">Add Transaction</span>
                 </Button>
             </DialogTrigger>
             <DialogContent>
