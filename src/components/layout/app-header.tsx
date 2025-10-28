@@ -13,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
+import { NotificationBell } from './notification-bell';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
@@ -36,6 +37,8 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
         {/* Search form removed */}
       </div>
 
+      <NotificationBell />
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary" size="icon" className="rounded-full">
@@ -50,6 +53,7 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
           <DropdownMenuLabel>{onboardingData?.businessName || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
            <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
+           <DropdownMenuItem asChild><Link href="/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>

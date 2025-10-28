@@ -7,6 +7,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import AppHeader from '@/components/layout/app-header';
 import { SearchProvider } from '@/context/search-context';
 import { type OnboardingFormData } from '@/context/onboarding-context';
+import { NotificationProvider } from '@/context/notification-context';
 
 export default function DashboardLayout({
   children,
@@ -28,18 +29,20 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <SearchProvider>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <AppSidebar onboardingData={onboardingData} isDevMode={isDevMode} />
-          <div className="flex flex-col w-full overflow-x-hidden">
-            <AppHeader onboardingData={onboardingData} />
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
-              {children}
-            </main>
+    <NotificationProvider>
+      <SearchProvider>
+        <SidebarProvider>
+          <div className="flex min-h-screen w-full">
+            <AppSidebar onboardingData={onboardingData} isDevMode={isDevMode} />
+            <div className="flex flex-col w-full overflow-x-hidden">
+              <AppHeader onboardingData={onboardingData} />
+              <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
+                {children}
+              </main>
+            </div>
           </div>
-        </div>
-      </SidebarProvider>
-    </SearchProvider>
+        </SidebarProvider>
+      </SearchProvider>
+    </NotificationProvider>
   );
 }

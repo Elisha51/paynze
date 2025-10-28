@@ -26,6 +26,8 @@ import {
   FileText,
   Truck,
   Landmark,
+  User,
+  ClipboardCheck,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -47,6 +49,7 @@ const premiumMenuItems = [
 ];
 
 const bottomMenuItems = [
+  { href: '/dashboard/my-tasks', label: 'My Tasks', icon: ClipboardCheck },
   { href: '/dashboard/templates', label: 'Templates', icon: FileText },
   { href: '/dashboard/settings', label: 'Settings', icon: Settings },
 ]

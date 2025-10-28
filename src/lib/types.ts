@@ -387,4 +387,13 @@ export type Role = {
     commissionRules: CommissionRule[];
 };
 
-    
+// Notification Types
+export type Notification = {
+    id: string;
+    type: 'new-order' | 'low-stock' | 'new-customer' | 'task-assigned';
+    title: string;
+    description: string;
+    timestamp: string;
+    read: boolean;
+    link?: string;
+};
