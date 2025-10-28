@@ -26,6 +26,7 @@ import {
   Truck,
   Landmark,
   UserCog,
+  Megaphone,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -42,6 +43,7 @@ const menuItems = [
 ];
 
 const premiumMenuItems = [
+    { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, plan: 'Premium' },
     { href: '/dashboard/finances', label: 'Finances', icon: Landmark, plan: 'Premium' },
     { href: '/dashboard/staff', label: 'Staff', icon: UserCog, plan: 'Premium' },
 ];
