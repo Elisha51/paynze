@@ -24,7 +24,7 @@ type DailySummaryProps = {
 };
 
 export function DailySummary({ transactions }: DailySummaryProps) {
-    const [daysToShow, setDaysToShow] = useState(7);
+    const [daysToShow, setDaysToShow] = useState(5);
 
     const dailySummaries = useMemo(() => {
         const groups = transactions.reduce((acc, transaction) => {
