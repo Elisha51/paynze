@@ -205,7 +205,7 @@ const getColumns = (
   {
     id: 'actions',
     enableHiding: false,
-    header: () => <div className="text-right">Actions</div>,
+    header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
         const product = row.original;
         return (
