@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { PlusCircle, Download, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Download, Calendar as CalendarIcon, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -32,7 +31,6 @@ import { useToast } from '@/hooks/use-toast';
 import { format, addDays } from 'date-fns';
 import { DailySummary } from '@/components/dashboard/daily-summary';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { Upload } from 'lucide-react';
 import { TransactionsTable } from '@/components/dashboard/transactions-table';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { DateRange } from 'react-day-picker';
@@ -40,6 +38,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance-analytics-report';
+import { reconcileTransactions, type ReconciliationOutput } from '@/ai/flows/reconcile-transactions';
+import { ReconciliationReport } from '@/components/dashboard/reconciliation-report';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   description: '',
@@ -58,6 +58,8 @@ export default function FinancesPage() {
   const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
   const [statementFile, setStatementFile] = React.useState<File[]>([]);
+  const [isReconciling, setIsReconciling] = React.useState(false);
+  const [reconciliationResult, setReconciliationResult] = React.useState<ReconciliationOutput | null>(null);
   const { toast } = useToast();
    const [date, setDate] = React.useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
@@ -123,6 +125,44 @@ export default function FinancesPage() {
     setNewTransaction(emptyTransaction);
     loadData();
   }
+  
+  const handleStartReconciliation = async () => {
+    if (statementFile.length === 0) {
+      toast({ variant: 'destructive', title: 'No file uploaded' });
+      return;
+    }
+
+    setIsReconciling(true);
+    setReconciliationResult(null);
+
+    const file = statementFile[0];
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+        try {
+            const statementText = event.target?.result as string;
+            const result = await reconcileTransactions({
+                statement: statementText,
+                recordedTransactions: transactions,
+            });
+            setReconciliationResult(result);
+            toast({ title: "Reconciliation Complete", description: "AI analysis finished successfully." });
+        } catch (error) {
+            console.error("Reconciliation failed:", error);
+            toast({ variant: 'destructive', title: 'Reconciliation Failed', description: 'The AI analysis could not be completed.' });
+        } finally {
+            setIsReconciling(false);
+        }
+    };
+    
+    reader.onerror = () => {
+      toast({ variant: 'destructive', title: 'Error Reading File', description: 'Could not read the uploaded statement file.'});
+      setIsReconciling(false);
+    }
+    
+    reader.readAsText(file);
+  };
+
 
   const mainTabs = [
     { value: 'transactions', label: 'All Transactions' },
@@ -245,6 +285,32 @@ export default function FinancesPage() {
       <DashboardPageLayout.TabContent value="summary">
         <DailySummary transactions={transactions} />
       </DashboardPageLayout.TabContent>
+      
+      <DashboardPageLayout.TabContent value="reconciliation">
+        <div className="space-y-6">
+          <Card>
+              <CardHeader>
+                  <CardTitle>Reconciliation</CardTitle>
+                  <CardDescription>Upload your bank or mobile money statements to match against your recorded transactions.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                  <FileUploader
+                      files={statementFile}
+                      onFilesChange={setStatementFile}
+                      maxFiles={1}
+                      accept={{ 'text/csv': ['.csv'], 'application/pdf': ['.pdf'], 'text/plain': ['.txt'] }}
+                  />
+                  <Button onClick={handleStartReconciliation} disabled={statementFile.length === 0 || isReconciling}>
+                      <Upload className="mr-2 h-4 w-4"/>
+                      {isReconciling ? 'Analyzing...' : 'Start Reconciliation'}
+                  </Button>
+              </CardContent>
+          </Card>
+          {reconciliationResult && (
+            <ReconciliationReport result={reconciliationResult} />
+          )}
+        </div>
+      </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reports">
             <Card>
@@ -309,29 +375,6 @@ export default function FinancesPage() {
                     <FinanceAnalyticsReport transactions={transactions} dateRange={date} />
                 </CardContent>
             </Card>
-      </DashboardPageLayout.TabContent>
-
-      <DashboardPageLayout.TabContent value="reconciliation">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Reconciliation</CardTitle>
-                    <CardDescription>Upload your bank or mobile money statements to match against your recorded transactions.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <FileUploader
-                        files={statementFile}
-                        onFilesChange={setStatementFile}
-                        maxFiles={1}
-                        accept={{ 'text/csv': ['.csv'], 'application/pdf': ['.pdf'] }}
-                    />
-                    <Button disabled={statementFile.length === 0}>
-                        <Upload className="mr-2 h-4 w-4"/>
-                        Start Reconciliation
-                    </Button>
-                </CardContent>
-            </Card>
-        </div>
       </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );
