@@ -5,8 +5,11 @@ import { PlusCircle, Download, Calendar as CalendarIcon, Upload } from 'lucide-r
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Staff, Role, Order } from '@/lib/types';
 import { getTransactions, addTransaction } from '@/services/finances';
+import { getStaff } from '@/services/staff';
+import { getRoles } from '@/services/roles';
+import { getOrders } from '@/services/orders';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +43,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance-analytics-report';
 import { reconcileTransactions, type ReconciliationOutput } from '@/ai/flows/reconcile-transactions';
 import { ReconciliationReport } from '@/components/dashboard/reconciliation-report';
+import { CommissionReport } from '@/components/dashboard/commission-report';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   description: '',
@@ -53,6 +57,9 @@ const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
 
 export default function FinancesPage() {
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
+  const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [roles, setRoles] = React.useState<Role[]>([]);
+  const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('transactions');
@@ -68,8 +75,16 @@ export default function FinancesPage() {
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
-    const fetchedTransactions = await getTransactions();
+    const [fetchedTransactions, fetchedStaff, fetchedRoles, fetchedOrders] = await Promise.all([
+      getTransactions(),
+      getStaff(), 
+      getRoles(), 
+      getOrders()
+    ]);
     setTransactions(fetchedTransactions);
+    setStaff(fetchedStaff);
+    setRoles(fetchedRoles);
+    setOrders(fetchedOrders);
     setIsLoading(false);
   }, []);
 
@@ -175,6 +190,7 @@ export default function FinancesPage() {
     { value: 'transactions', label: 'All Transactions' },
     { value: 'summary', label: 'Summary' },
     { value: 'reconciliation', label: 'Reconciliation' },
+    { value: 'payouts', label: 'Payouts' },
     { value: 'reports', label: 'Reports' },
   ];
 
@@ -375,6 +391,10 @@ export default function FinancesPage() {
             <ReconciliationReport result={reconciliationResult} />
           )}
         </div>
+      </DashboardPageLayout.TabContent>
+
+      <DashboardPageLayout.TabContent value="payouts">
+        <CommissionReport staff={staff} roles={roles} orders={orders} onPayout={loadData} />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reports">

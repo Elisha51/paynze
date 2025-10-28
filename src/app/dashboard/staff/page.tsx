@@ -32,7 +32,6 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { StaffCard } from '@/components/dashboard/staff-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CommissionReport } from '@/components/dashboard/commission-report';
 import { getOrders } from '@/services/orders';
 
 const emptyStaff: Omit<Staff, 'id'> = {
@@ -134,7 +133,6 @@ export default function StaffPage() {
   const mainTabs = [
       { value: 'team', label: 'Your Team' },
       { value: 'permissions', label: 'Roles & Permissions' },
-      { value: 'payouts', label: 'Payouts' },
       { value: 'reports', label: 'Reports' },
   ];
 
@@ -237,9 +235,6 @@ export default function StaffPage() {
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="permissions">
             <RolesPermissionsTab roles={roles} setRoles={setRoles} />
-        </DashboardPageLayout.TabContent>
-        <DashboardPageLayout.TabContent value="payouts">
-            <CommissionReport staff={staff} roles={roles} orders={orders} onPayout={loadData} />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="reports">
             <Card>
