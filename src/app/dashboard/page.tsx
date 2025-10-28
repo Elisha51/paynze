@@ -96,7 +96,7 @@ export default function DashboardPage() {
       };
       
       await updateStaff(updatedStaffMember);
-      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${bonusAmount}.`});
+      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${formatCurrency(bonusAmount)}.`});
       setBonusStaff(null);
       setBonusAmount(0);
       setBonusReason('');

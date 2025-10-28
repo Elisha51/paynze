@@ -93,6 +93,17 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
       })
     );
   };
+
+  const handleDescriptionChange = (roleName: string, description: string) => {
+      setRoles(prevRoles =>
+        prevRoles.map(role => {
+            if (role.name === roleName) {
+                return { ...role, description };
+            }
+            return role;
+        })
+      )
+  }
   
   const handleSaveChanges = async (role: Role) => {
       await updateRole(role);
@@ -241,6 +252,11 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                             </AccordionTrigger>
                              <AccordionContent>
                                 <div className="space-y-6 pt-4">
+                                    <div className="space-y-2">
+                                        <Label htmlFor={`description-${role.name}`}>Role Description</Label>
+                                        <Input id={`description-${role.name}`} value={role.description} onChange={(e) => handleDescriptionChange(role.name, e.target.value)} />
+                                    </div>
+                                    <Separator />
                                     <h4 className="font-bold text-base">Module Permissions</h4>
                                      <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">

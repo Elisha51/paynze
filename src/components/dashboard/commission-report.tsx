@@ -258,5 +258,3 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
         </>
     );
 }
-
-    

@@ -124,11 +124,15 @@ export default function StaffPage() {
       };
       
       await updateStaff(updatedStaff);
-      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${bonusAmount}.`});
+      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus for ${formatCurrency(bonusAmount, bonusStaff.currency || 'UGX')}.`});
       setBonusStaff(null);
       setBonusAmount(0);
       setBonusReason('');
       loadData();
+  }
+
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
 
 
