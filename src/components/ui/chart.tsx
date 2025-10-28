@@ -9,6 +9,8 @@ import { cn } from "@/lib/utils"
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
+let chartCount = 0
+
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode
@@ -44,8 +46,7 @@ const ChartContainer = React.forwardRef<
     >["children"]
   }
 >(({ id, className, children, config, ...props }, ref) => {
-  const uniqueId = React.useId()
-  const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`
+  const chartId = `chart-${id || ++chartCount}`
 
   return (
     <ChartContext.Provider value={{ config }}>
