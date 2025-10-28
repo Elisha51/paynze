@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, CalendarIcon, X, FileText, Clock, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Save, Calendar, X, FileText, Clock, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -13,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Calendar } from '@/components/ui/calendar';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn, getInitials } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -83,12 +84,12 @@ const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any,
                         !value && "text-muted-foreground"
                     )}
                     >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <Calendar className="mr-2 h-4 w-4" />
                     {value ? format(new Date(value), "PPP") : <span>Pick a date</span>}
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
-                    <Calendar
+                    <CalendarComponent
                         mode="single"
                         selected={value ? new Date(value) : undefined}
                         onSelect={(date) => onChange(key, date)}
@@ -427,4 +428,3 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
         </div>
     );
 }
-

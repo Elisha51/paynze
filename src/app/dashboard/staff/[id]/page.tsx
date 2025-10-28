@@ -293,10 +293,20 @@ export default function ViewStaffPage() {
   const hasSchedule = staffMember.schedule && staffMember.schedule.length > 0;
   
   const assignedOrders = allOrders.filter(o => o.assignedStaffId === staffMember.id);
+  const fulfilledOrders = allOrders.filter(o => o.fulfilledByStaffId === staffMember.id);
+  const allRelatedOrders = [...assignedOrders, ...fulfilledOrders];
   const unassignedDeliveryOrders = allOrders.filter(o => o.status === 'Paid' && o.fulfillmentMethod === 'Delivery' && !o.assignedStaffId);
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
+  
+  const activityLog = allRelatedOrders.map(order => ({
+      id: `activity-${order.id}`,
+      date: order.date, // This is a simplification
+      description: `Fulfilled Order #${order.id} for ${order.customerName}`,
+      link: `/dashboard/orders/${order.id}`
+  })).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
 
   return (
     <div className="space-y-6">
@@ -395,6 +405,7 @@ export default function ViewStaffPage() {
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance &amp; Attributes</TabsTrigger>}
+          <TabsTrigger value="activity">Activity Log</TabsTrigger>
           <TabsTrigger value="details">Documents &amp; Details</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6 space-y-6">
@@ -500,6 +511,42 @@ export default function ViewStaffPage() {
                 );
             })}
           </div>
+        </TabsContent>
+         <TabsContent value="activity" className="mt-6 space-y-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary"/>
+                        Activity Log
+                    </CardTitle>
+                    <CardDescription>A log of recent actions performed by this staff member.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                   <div className="space-y-4">
+                        {activityLog.length > 0 ? activityLog.map(item => (
+                            <div key={item.id} className="flex items-start gap-4">
+                                <div className="flex flex-col items-center">
+                                    <span className="relative flex h-3 w-3">
+                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-sky-500"></span>
+                                    </span>
+                                    <div className="w-px h-12 bg-border"></div>
+                                </div>
+                                <div>
+                                    <p className="text-sm">{item.description}</p>
+                                    <Link href={item.link} className="text-xs text-muted-foreground hover:underline">{format(new Date(item.date), 'PPP p')}</Link>
+                                </div>
+                            </div>
+                        )) : (
+                             <EmptyState 
+                                icon={<Activity className="h-12 w-12 text-primary" />}
+                                title="No Recent Activity"
+                                description="This staff member has not performed any recorded actions recently."
+                            />
+                        )}
+                   </div>
+                </CardContent>
+            </Card>
         </TabsContent>
         <TabsContent value="details" className="mt-6 space-y-6">
              {hasDocuments && (
