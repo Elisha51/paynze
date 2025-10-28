@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { BellRing, PackageWarning } from 'lucide-react';
+import { BellRing, PackageX } from 'lucide-react';
 
 const iconMap = {
     'new-order': BellRing,
-    'low-stock': PackageWarning,
+    'low-stock': PackageX,
 };
 
 export function NotificationsSheet() {
