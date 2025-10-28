@@ -15,13 +15,16 @@ import {
   Users,
   CreditCard,
   Activity,
+  Package,
+  Clock,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { QuickLinks } from '@/components/dashboard/quick-links';
 import { getOrders } from '@/services/orders';
 import { getCustomers } from '@/services/customers';
-import type { Order, Customer, RecentSale, Staff } from '@/lib/types';
+import { getProducts } from '@/services/products';
+import type { Order, Customer, RecentSale, Staff, Product } from '@/lib/types';
 import { StaffWidget } from '@/components/dashboard/staff-widget';
 import { getStaff, updateStaff } from '@/services/staff';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
@@ -30,10 +33,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { format } from 'date-fns';
 
 export default function DashboardPage() {
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [customers, setCustomers] = React.useState<Customer[]>([]);
+  const [products, setProducts] = React.useState<Product[]>([]);
   const [staff, setStaff] = React.useState<Staff[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [bonusStaff, setBonusStaff] = React.useState<Staff | null>(null);
@@ -43,14 +48,16 @@ export default function DashboardPage() {
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
-    const [orderData, customerData, staffData] = await Promise.all([
+    const [orderData, customerData, staffData, productData] = await Promise.all([
       getOrders(),
       getCustomers(),
-      getStaff()
+      getStaff(),
+      getProducts(),
     ]);
     setOrders(orderData);
     setCustomers(customerData);
     setStaff(staffData);
+    setProducts(productData);
     setIsLoading(false);
   }, []);
 
@@ -58,10 +65,19 @@ export default function DashboardPage() {
     loadData();
   }, [loadData]);
   
+  // Lifetime Metrics
   const totalRevenue = orders.reduce((sum, order) => sum + (order.paymentStatus === 'Paid' ? order.total : 0), 0);
   const totalSales = orders.length;
   const totalCustomers = customers.length;
   const currency = orders.length > 0 ? orders[0].currency : 'UGX';
+
+  // Daily Metrics
+  const today = new Date().toISOString().split('T')[0];
+  const todaysOrders = orders.filter(order => order.date === today);
+  const todaysRevenue = todaysOrders.reduce((sum, order) => sum + (order.paymentStatus === 'Paid' ? order.total : 0), 0);
+  const activeProducts = products.filter(p => p.status === 'published').length;
+  const pendingOrders = orders.filter(o => ['Awaiting Payment', 'Paid', 'Ready for Pickup'].includes(o.status)).length;
+  
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   };
@@ -72,7 +88,7 @@ export default function DashboardPage() {
       email: order.customerEmail,
       amount: `+${formatCurrency(order.total)}`,
       avatarId: `avatar-${(Math.floor(Math.random() * 5) + 1)}`,
-      customerId: order.customerId
+      customerId: order.customerId,
   }));
 
   const handleAwardBonus = async () => {
@@ -122,6 +138,18 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Sales</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">+{totalSales}</div>
+            <p className="text-xs text-muted-foreground">
+              Total orders placed
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Customers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -134,17 +162,53 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Sales</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Active Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+{totalSales}</div>
+            <div className="text-2xl font-bold">{activeProducts}</div>
             <p className="text-xs text-muted-foreground">
-              Total orders placed
+              Products currently listed
+            </p>
+          </CardContent>
+        </Card>
+         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(todaysRevenue)}</div>
+            <p className="text-xs text-muted-foreground">
+              {todaysOrders.length} order(s) today
             </p>
           </CardContent>
         </Card>
         <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{pendingOrders}</div>
+            <p className="text-xs text-muted-foreground">
+              Orders awaiting fulfillment
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Active Staff</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{staff.filter(s => s.onlineStatus === 'Online').length}</div>
+            <p className="text-xs text-muted-foreground">
+              Staff members currently online
+            </p>
+          </CardContent>
+        </Card>
+         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Now</CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
