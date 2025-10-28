@@ -4,10 +4,10 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag, PlusCircle } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { getCustomerById } from '@/services/customers';
-import type { Customer, Order } from '@/lib/types';
+import type { Customer } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -22,43 +22,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DataTable } from '@/components/dashboard/data-table';
-import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { classifyCustomer, ClassifyCustomerOutput } from '@/ai/flows/classify-customers';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CustomerActivityLog } from '@/components/dashboard/customer-activity-log';
-
-const orderColumns: ColumnDef<Order>[] = [
-    {
-        accessorKey: 'id',
-        header: 'Order',
-        cell: ({ row }) => (
-            <Link href={`/dashboard/orders/${row.original.id}`} className="font-medium hover:underline">
-                {row.getValue('id')}
-            </Link>
-        )
-    },
-    {
-        accessorKey: 'date',
-        header: 'Date',
-    },
-    {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: ({ row }) => <Badge>{row.getValue('status')}</Badge>
-    },
-    {
-        accessorKey: 'total',
-        header: 'Total',
-        cell: ({ row }) => {
-            const order = row.original;
-            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total);
-            return <div className="text-right font-medium">{formatted}</div>;
-        },
-    }
-];
 
 export default function ViewCustomerPage() {
   const params = useParams();
@@ -72,8 +39,13 @@ export default function ViewCustomerPage() {
     async function loadData() {
         if (!id) return;
         setLoading(true);
-        const fetchedCustomer = await getCustomerById(id);
-        setCustomer(fetchedCustomer || null);
+        try {
+            const fetchedCustomer = await getCustomerById(id);
+            setCustomer(fetchedCustomer || null);
+        } catch (error) {
+            console.error("Failed to fetch customer data:", error);
+            setCustomer(null);
+        }
         setLoading(false);
     }
     loadData();
@@ -126,7 +98,7 @@ export default function ViewCustomerPage() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
-            <Skeleton className="h-64 w-full" />
+            <Skeleton className="h-96 w-full" />
           </div>
           <div className="lg:col-span-1 space-y-6">
             <Skeleton className="h-48 w-full" />
@@ -205,29 +177,7 @@ export default function ViewCustomerPage() {
       
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-            <Tabs defaultValue="orders">
-                <TabsList>
-                    <TabsTrigger value="orders">Order History</TabsTrigger>
-                    <TabsTrigger value="activity">Activity Log &amp; Notes</TabsTrigger>
-                </TabsList>
-                <TabsContent value="orders">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Order History</CardTitle>
-                            <CardDescription>A complete log of all orders placed by this customer.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <DataTable
-                            columns={orderColumns}
-                            data={customer.orders || []}
-                            />
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-                 <TabsContent value="activity">
-                    <CustomerActivityLog customer={customer} />
-                </TabsContent>
-            </Tabs>
+            <CustomerActivityLog customer={customer} />
         </div>
 
         <div className="lg:col-span-1 space-y-6">
