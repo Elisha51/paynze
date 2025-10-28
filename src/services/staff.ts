@@ -1,11 +1,13 @@
 
 
-import type { Staff, Order } from '@/lib/types';
-import { format, subDays } from 'date-fns';
+import type { Staff, Order, StaffActivity } from '@/lib/types';
+import { format, subDays, subHours } from 'date-fns';
 import { getOrders } from './orders';
 
 let staff: Staff[] = [];
 let allOrders: Order[] = [];
+let allActivities: StaffActivity[] = [];
+
 
 async function initializeStaff() {
     allOrders = await getOrders();
@@ -122,6 +124,15 @@ async function initializeStaff() {
         totalCommission: 0,
       },
     ];
+
+    allActivities = [
+        { id: 'act-1', staffId: 'staff-003', staffName: 'Peter Jones', activity: 'Order Marked as Delivered', details: { text: 'Order #ORD-001', link: '/dashboard/orders/ORD-001'}, timestamp: subHours(new Date(), 3).toISOString() },
+        { id: 'act-2', staffId: 'staff-002', staffName: 'Jane Smith', activity: 'Order Created Manually', details: { text: 'Order #ORD-002', link: '/dashboard/orders/ORD-002'}, timestamp: subHours(new Date(), 6).toISOString() },
+        { id: 'act-3', staffId: 'staff-001', staffName: 'John Doe', activity: 'Staff Member Approved', details: { text: 'Aisha Omar', link: '/dashboard/staff/staff-006' }, timestamp: subHours(new Date(), 26).toISOString() },
+        { id: 'act-4', staffId: 'staff-004', staffName: 'Mary Anne', activity: 'Payout Processed', details: { text: 'Payout for Peter Jones' }, timestamp: subDays(new Date(), 2).toISOString() },
+        { id: 'act-5', staffId: 'staff-003', staffName: 'Peter Jones', activity: 'Order Assigned', details: { text: 'Order #ORD-007', link: '/dashboard/orders/ORD-007'}, timestamp: subDays(new Date(), 3).toISOString() },
+        { id: 'act-6', staffId: 'staff-002', staffName: 'Jane Smith', activity: 'Product Edited', details: { text: 'Handmade Leather Shoes', link: '/dashboard/products/SHOE-002' }, timestamp: subDays(new Date(), 4).toISOString() },
+    ];
 }
 
 initializeStaff();
@@ -136,6 +147,15 @@ export async function getStaffOrders(staffId: string): Promise<Order[]> {
     const allOrders = await getOrders();
     return allOrders.filter(o => o.assignedStaffId === staffId);
 }
+
+export async function getStaffActivity(staffId?: string): Promise<StaffActivity[]> {
+    await new Promise(resolve => setTimeout(resolve, 300));
+    if (staffId) {
+        return allActivities.filter(a => a.staffId === staffId).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    }
+    return allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
+
 
 export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {
   await new Promise(resolve => setTimeout(resolve, 300));

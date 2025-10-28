@@ -1,12 +1,13 @@
 
+
 'use client';
 
 import { PlusCircle, BarChart, DollarSign, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
-import type { Staff, Role, Order } from '@/lib/types';
-import { getStaff, addStaff as serviceAddStaff, updateStaff } from '@/services/staff';
+import type { Staff, Role, Order, StaffActivity } from '@/lib/types';
+import { getStaff, addStaff as serviceAddStaff, updateStaff, getStaffActivity } from '@/services/staff';
 import { RolesPermissionsTab } from '@/components/dashboard/roles-permissions-tab';
 import {
   Dialog,
@@ -33,6 +34,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { StaffCard } from '@/components/dashboard/staff-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getOrders } from '@/services/orders';
+import { StaffActivityLog } from '@/components/dashboard/staff-activity-log';
 
 const emptyStaff: Omit<Staff, 'id'> = {
   name: '',
@@ -132,7 +134,8 @@ export default function StaffPage() {
 
   const mainTabs = [
       { value: 'team', label: 'Your Team' },
-      { value: 'permissions', label: 'Roles &amp; Permissions' },
+      { value: 'permissions', label: 'Roles & Permissions' },
+      { value: 'all-logs', label: 'All Logs' },
       { value: 'reports', label: 'Reports' },
   ];
 
@@ -235,6 +238,9 @@ export default function StaffPage() {
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="permissions">
             <RolesPermissionsTab roles={roles} setRoles={setRoles} />
+        </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.TabContent value="all-logs">
+            <StaffActivityLog staff={staff} />
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="reports">
             <Card>
