@@ -1,4 +1,5 @@
 
+
 import type { Supplier, PurchaseOrder } from '@/lib/types';
 
 const suppliers: Supplier[] = [
@@ -19,6 +20,15 @@ const suppliers: Supplier[] = [
     phone: '+256 782 333 444',
     address: '456 Craft Market, Jinja',
     productsSupplied: ['SHOE-002']
+  },
+  {
+    id: 'SUP-003',
+    name: 'Rwenzori Coffee Co-op',
+    contactName: 'Sarah Kizza',
+    email: 'sarah.k@rwenzoricoffee.org',
+    phone: '+256 752 555 666',
+    address: '789 Mountain View Rd, Kasese',
+    productsSupplied: ['COFF-01']
   }
 ];
 
@@ -47,6 +57,19 @@ const purchaseOrders: PurchaseOrder[] = [
     currency: 'UGX',
     items: [
       { productId: 'SHOE-002-42', productName: 'Handmade Leather Shoes - Size 42', quantity: 20, cost: 65000 },
+    ]
+  },
+  {
+    id: 'PO-003',
+    supplierId: 'SUP-003',
+    supplierName: 'Rwenzori Coffee Co-op',
+    status: 'Draft',
+    orderDate: '2024-07-18',
+    expectedDelivery: '2024-08-01',
+    totalCost: 2000000,
+    currency: 'UGX',
+    items: [
+      { productId: 'COFF-01', productName: 'Rwenzori Coffee Beans', quantity: 100, cost: 20000 },
     ]
   }
 ];
