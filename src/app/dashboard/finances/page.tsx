@@ -127,8 +127,8 @@ export default function FinancesPage() {
   const mainTabs = [
     { value: 'transactions', label: 'All Transactions' },
     { value: 'summary', label: 'Summary' },
-    { value: 'reports', label: 'Reports' },
     { value: 'reconciliation', label: 'Reconciliation' },
+    { value: 'reports', label: 'Reports' },
   ];
 
   const cta = (
