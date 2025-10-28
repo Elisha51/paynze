@@ -98,3 +98,4 @@ export async function updateRole(updatedRole: Role): Promise<Role> {
   roles = roles.map(r => r.name === updatedRole.name ? updatedRole : r);
   return updatedRole;
 }
+

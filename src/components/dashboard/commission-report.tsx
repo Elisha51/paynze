@@ -16,6 +16,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogClose,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -157,7 +158,7 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
             isBonus: true,
         }));
 
-        const combinedBreakdown = [...orderCommissions, ...bonusBreakdown].sort((a,b) => new Date(a.date || a.order.date).getTime() - new Date(b.date || b.order.date).getTime());
+        const combinedBreakdown = [...orderCommissions, ...bonusBreakdown].sort((a,b) => new Date((a as any).date || (a as any).order.date).getTime() - new Date((b as any).date || (b as any).order.date).getTime());
 
         const total = (payoutStaff.totalCommission || 0);
 
@@ -290,27 +291,31 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
                             </TableBody>
                         </Table>
                     </ScrollArea>
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button>Process Payout</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Confirm Commission Payout</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will mark all unpaid earnings for {payoutStaff?.name} as paid and create an expense record. Are you sure?
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={handlePayout}>
-                                    Confirm Payout
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                    <DialogFooter>
+                      <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                              <Button>Process Payout</Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                              <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirm Commission Payout</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      This will mark all unpaid earnings for {payoutStaff?.name} as paid and create an expense record. Are you sure?
+                                  </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handlePayout}>
+                                      Confirm Payout
+                                  </AlertDialogAction>
+                              </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </>
     );
 }
+
