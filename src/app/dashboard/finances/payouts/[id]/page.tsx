@@ -1,25 +1,33 @@
 
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getStaff, updateStaff } from '@/services/staff';
 import { addTransaction } from '@/services/finances';
-import type { Staff, Payout } from '@/lib/types';
+import type { Staff, Payout, Order, CommissionRule, Bonus } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { ArrowLeft, DollarSign, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Gift, DollarSign, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Link from 'next/link';
+import { getOrders } from '@/services/orders';
+import { getRoles } from '@/services/roles';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 type EarningItem = {
+    id: string;
     date: string;
     description: string;
     amount: number;
-    link?: string;
+    status: 'approved' | 'rejected' | 'pending';
+    type: 'Commission' | 'Bonus';
+    original: Order | Bonus;
 };
 
 export default function PayoutReviewPage() {
@@ -29,65 +37,136 @@ export default function PayoutReviewPage() {
     const id = params.id as string;
 
     const [staffMember, setStaffMember] = useState<Staff | null>(null);
+    const [allOrders, setAllOrders] = useState<Order[]>([]);
     const [loading, setLoading] = useState(true);
+    const [earningItems, setEarningItems] = useState<EarningItem[]>([]);
+    const [payoutAmount, setPayoutAmount] = useState(0);
+
+    const calculateCommissions = (staff: Staff, orders: Order[], roles: any[]): EarningItem[] => {
+        const staffRole = roles.find(r => r.name === staff.role);
+        if (!staffRole?.commissionRules) return [];
+
+        let commissionItems: EarningItem[] = [];
+
+        orders.forEach(order => {
+            staffRole.commissionRules.forEach((rule: CommissionRule) => {
+                let isTriggered = false;
+                if (rule.trigger === 'On Order Paid' && order.paymentStatus === 'Paid' && order.salesAgentId === staff.id) {
+                    isTriggered = true;
+                }
+                if (rule.trigger === 'On Order Delivered' && (order.status === 'Delivered' || order.status === 'Picked Up') && order.fulfilledByStaffId === staff.id) {
+                    isTriggered = true;
+                }
+
+                if (isTriggered) {
+                    let amount = 0;
+                    if (rule.type === 'Fixed Amount') {
+                        amount = rule.rate;
+                    } else if (rule.type === 'Percentage of Sale') {
+                        amount = order.total * (rule.rate / 100);
+                    }
+                    
+                    commissionItems.push({
+                        id: `comm-${order.id}-${rule.id}`,
+                        date: order.date,
+                        description: `${rule.name} on Order #${order.id}`,
+                        amount,
+                        status: 'pending',
+                        type: 'Commission',
+                        original: order
+                    });
+                }
+            });
+        });
+
+        const bonusItems: EarningItem[] = (staff.bonuses || []).map(bonus => ({
+            id: bonus.id,
+            date: bonus.date,
+            description: bonus.reason,
+            amount: bonus.amount,
+            status: 'pending',
+            type: 'Bonus',
+            original: bonus
+        }));
+
+        // Filter out commissions and bonuses that have already been part of a payout
+        const paidItemIds = new Set(staff.payoutHistory?.flatMap(p => (p as any).paidItemIds || []) || []);
+        
+        return [...commissionItems, ...bonusItems]
+            .filter(item => !paidItemIds.has(item.id))
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    };
+
 
     useEffect(() => {
         if (!id) return;
-        async function loadStaff() {
+        async function loadData() {
             setLoading(true);
-            const staffList = await getStaff();
+            const [staffList, ordersData, rolesData] = await Promise.all([getStaff(), getOrders(), getRoles()]);
             const member = staffList.find(s => s.id === id);
-            setStaffMember(member || null);
+            
+            if (member) {
+                setStaffMember(member);
+                const calculatedItems = calculateCommissions(member, ordersData, rolesData);
+                setEarningItems(calculatedItems);
+                
+                // Approve all by default and calculate total
+                const approvedItems = calculatedItems.map(item => ({ ...item, status: 'approved' as const }));
+                setEarningItems(approvedItems);
+                const total = approvedItems.reduce((sum, item) => sum + item.amount, 0);
+                setPayoutAmount(total);
+
+            } else {
+                setStaffMember(null);
+            }
+            setAllOrders(ordersData);
             setLoading(false);
         }
-        loadStaff();
+        loadData();
     }, [id]);
 
-    const formatCurrency = (amount: number, currency: string) => {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    const handleItemToggle = (itemId: string, checked: boolean) => {
+        const newItems = earningItems.map(item => 
+            item.id === itemId ? { ...item, status: checked ? 'approved' : 'rejected' } : item
+        );
+        setEarningItems(newItems);
+        const total = newItems
+            .filter(item => item.status === 'approved')
+            .reduce((sum, item) => sum + item.amount, 0);
+        setPayoutAmount(total);
     };
-
-    const earningItems: EarningItem[] = useMemo(() => {
-        if (!staffMember) return [];
-        // This is a simplified calculation. In a real app, this data would come from a more structured source.
-        const saleCommissions: EarningItem[] = (staffMember.totalSales ? [{
-            date: new Date().toISOString(),
-            description: `Commission from sales`,
-            amount: (staffMember.totalCommission || 0) - (staffMember.bonuses?.reduce((sum, b) => sum + b.amount, 0) || 0)
-        }] : []);
-
-        const bonusItems: EarningItem[] = (staffMember.bonuses || []).map(bonus => ({
-            date: bonus.date,
-            description: `Bonus: ${bonus.reason}`,
-            amount: bonus.amount,
-        }));
-        
-        return [...saleCommissions, ...bonusItems].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    }, [staffMember]);
     
     const handleProcessPayout = async () => {
-        if (!staffMember || !staffMember.totalCommission || staffMember.totalCommission <= 0) {
-            toast({ variant: 'destructive', title: 'No commission to pay out.' });
+        if (!staffMember || payoutAmount <= 0) {
+            toast({ variant: 'destructive', title: 'No approved earnings to pay out.' });
             return;
         }
 
-        const payoutAmount = staffMember.totalCommission;
-        const payoutCurrency = staffMember.currency || 'UGX';
+        const approvedItems = earningItems.filter(item => item.status === 'approved');
+        const approvedItemIds = approvedItems.map(item => item.id);
 
-        const newPayout: Payout = { date: new Date().toISOString(), amount: payoutAmount, currency: payoutCurrency };
+        const newPayout: Payout & { paidItemIds?: string[] } = {
+            date: new Date().toISOString(),
+            amount: payoutAmount,
+            currency: staffMember.currency || 'UGX',
+            paidItemIds: approvedItemIds,
+        };
+
+        const remainingCommission = staffMember.totalCommission - approvedItems.reduce((sum, item) => sum + item.amount, 0);
+
         const updatedStaff: Staff = {
             ...staffMember,
-            totalCommission: 0,
+            totalCommission: remainingCommission > 0 ? remainingCommission : 0,
             payoutHistory: [...(staffMember.payoutHistory || []), newPayout],
-            bonuses: [],
         };
+
         await updateStaff(updatedStaff);
+
         await addTransaction({
             date: new Date().toISOString(),
-            description: `Commission payout for ${staffMember.name}`,
+            description: `Payout to ${staffMember.name}`,
             amount: -payoutAmount,
-            currency: payoutCurrency,
+            currency: staffMember.currency || 'UGX',
             type: 'Expense',
             category: 'Salaries',
             status: 'Cleared',
@@ -96,10 +175,14 @@ export default function PayoutReviewPage() {
 
         toast({
             title: 'Payout Processed',
-            description: `${staffMember.name} has been paid ${formatCurrency(payoutAmount, payoutCurrency)}.`,
+            description: `${staffMember.name} has been paid ${formatCurrency(payoutAmount, staffMember.currency || 'UGX')}.`,
         });
         
         router.push('/dashboard/finances?tab=payouts');
+    };
+
+    const formatCurrency = (amount: number, currency: string) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
     };
 
     if (loading) {
@@ -107,11 +190,11 @@ export default function PayoutReviewPage() {
              <div className="space-y-6">
                 <Skeleton className="h-8 w-48" />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1 space-y-6">
-                        <Skeleton className="h-48 w-full" />
-                    </div>
                     <div className="lg:col-span-2 space-y-6">
                         <Skeleton className="h-80 w-full" />
+                        <Skeleton className="h-64 w-full" />
+                    </div>
+                    <div className="lg:col-span-1 space-y-6">
                         <Skeleton className="h-64 w-full" />
                     </div>
                 </div>
@@ -122,6 +205,8 @@ export default function PayoutReviewPage() {
     if (!staffMember) {
         return <div>Staff member not found.</div>;
     }
+    
+    const approvedTotal = earningItems.filter(i => i.status === 'approved').reduce((sum, item) => sum + item.amount, 0);
 
     return (
         <div className="space-y-6">
@@ -132,76 +217,68 @@ export default function PayoutReviewPage() {
                     </Link>
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold">Review Payout for {staffMember.name}</h1>
-                    <p className="text-muted-foreground">Confirm earnings and process payment for this staff member.</p>
+                    <h1 className="text-2xl font-bold">Payout Worksheet for {staffMember.name}</h1>
+                    <p className="text-muted-foreground">Approve earnings and process payment for this staff member.</p>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-1 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Payout Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex justify-between text-lg">
-                                <span className="text-muted-foreground">Total Payout:</span>
-                                <span className="font-bold text-primary">{formatCurrency(staffMember.totalCommission || 0, staffMember.currency || 'UGX')}</span>
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button className="w-full" disabled={!staffMember.totalCommission || staffMember.totalCommission <= 0}>
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        Process Payout
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Confirm Payout</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will create an expense of {formatCurrency(staffMember.totalCommission || 0, staffMember.currency || 'UGX')} and reset {staffMember.name}'s unpaid commission balance. This action cannot be undone.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleProcessPayout}>Confirm & Pay</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </CardFooter>
-                    </Card>
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 <div className="lg:col-span-2 space-y-6">
-                    <Card>
+                     <Card>
                         <CardHeader>
-                            <CardTitle>Unpaid Earnings Breakdown</CardTitle>
-                            <CardDescription>A list of all commissions and bonuses contributing to the unpaid total.</CardDescription>
+                            <CardTitle>Unpaid Earnings</CardTitle>
+                            <CardDescription>Select items to include in this payout. Uncheck items to reject or defer them.</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead className="w-10">
+                                             <Checkbox 
+                                                checked={earningItems.every(i => i.status === 'approved')}
+                                                onCheckedChange={(checked) => {
+                                                    const newStatus = checked ? 'approved' : 'rejected';
+                                                    const newItems = earningItems.map(i => ({...i, status: newStatus as 'approved' | 'rejected' }));
+                                                    setEarningItems(newItems);
+                                                     const total = newItems
+                                                        .filter(item => item.status === 'approved')
+                                                        .reduce((sum, item) => sum + item.amount, 0);
+                                                    setPayoutAmount(total);
+                                                }}
+                                             />
+                                        </TableHead>
                                         <TableHead>Date</TableHead>
                                         <TableHead>Description</TableHead>
+                                        <TableHead>Details</TableHead>
                                         <TableHead className="text-right">Amount</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {earningItems.length > 0 ? earningItems.map(item => (
-                                        <TableRow key={item.date + item.description}>
+                                        <TableRow key={item.id} className={item.status === 'rejected' ? 'bg-muted/50' : ''}>
+                                            <TableCell>
+                                                <Checkbox checked={item.status === 'approved'} onCheckedChange={(c) => handleItemToggle(item.id, !!c)} />
+                                            </TableCell>
                                             <TableCell>{format(new Date(item.date), 'PPP')}</TableCell>
-                                            <TableCell>{item.description}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(item.amount, staffMember.currency || 'UGX')}</TableCell>
+                                            <TableCell>
+                                                <div className="flex items-center gap-2">
+                                                    {item.type === 'Bonus' && <Gift className="h-4 w-4 text-yellow-500" />}
+                                                    {item.description}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-muted-foreground text-xs">
+                                                {item.type === 'Bonus' ? `Awarded by ${item.original.awardedBy}` : `Order #${(item.original as Order).id}`}
+                                            </TableCell>
+                                            <TableCell className="text-right font-medium">{formatCurrency(item.amount, staffMember.currency || 'UGX')}</TableCell>
                                         </TableRow>
                                     )) : (
-                                        <TableRow><TableCell colSpan={3} className="text-center h-24">No unpaid earnings.</TableCell></TableRow>
+                                        <TableRow><TableCell colSpan={5} className="text-center h-24">No unpaid earnings found.</TableCell></TableRow>
                                     )}
                                 </TableBody>
                             </Table>
                         </CardContent>
                     </Card>
+
                     <Card>
                         <CardHeader>
                             <CardTitle>Recent Payout History</CardTitle>
@@ -228,6 +305,49 @@ export default function PayoutReviewPage() {
                                 </TableBody>
                             </Table>
                         </CardContent>
+                    </Card>
+                </div>
+
+                <div className="lg:col-span-1 space-y-6 sticky top-24">
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Payment Summary</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex justify-between text-sm">
+                                <span className="text-muted-foreground">Approved Earnings:</span>
+                                <span className="font-semibold">{formatCurrency(approvedTotal, staffMember.currency || 'UGX')}</span>
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="payoutAmount">Payment Amount</Label>
+                                <div className="relative">
+                                    <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input id="payoutAmount" type="number" value={payoutAmount} onChange={(e) => setPayoutAmount(Number(e.target.value))} className="pl-8" />
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button className="w-full" disabled={payoutAmount <= 0}>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Review & Confirm Payout
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Confirm Payout</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                           You are about to process a payment of <strong className="text-foreground">{formatCurrency(payoutAmount, staffMember.currency || 'UGX')}</strong> to {staffMember.name}. This will create an expense record and update their unpaid balance. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleProcessPayout}>Confirm & Pay</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </CardFooter>
                     </Card>
                 </div>
             </div>

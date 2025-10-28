@@ -1,5 +1,6 @@
 
 
+
 import type { Staff, Order, StaffActivity } from '@/lib/types';
 import { format, subDays, subHours } from 'date-fns';
 import { getOrders } from './orders';
@@ -47,6 +48,9 @@ async function initializeStaff() {
           assignedRegions: ['Nairobi', 'Mombasa'],
           isKeyAccountManager: true,
         },
+        bonuses: [
+            { id: 'bonus-1', date: subDays(new Date(), 3).toISOString(), reason: 'Exceeded Q2 Target', amount: 5000, awardedBy: 'John Doe'}
+        ],
         schedule: [
           { day: 'Monday', startTime: '09:00', endTime: '17:00' },
           { day: 'Tuesday', startTime: '09:00', endTime: '17:00' },
