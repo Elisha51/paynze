@@ -15,9 +15,11 @@ import Link from 'next/link';
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const LOGGED_IN_STAFF_ID = 'staff-003';
 
@@ -136,6 +138,50 @@ export default function MyTasksPage() {
         completedTasks: unifiedTasks.filter(t => t.isCompleted),
     };
 
+    const TaskItem = ({ task }: { task: UnifiedTask }) => {
+        const isOrder = task.type === 'Order';
+        const order = isOrder ? task.original as Order : null;
+
+        const taskContent = (
+            <div className="flex items-start gap-3 p-3 bg-background rounded-lg border hover:bg-muted/50 transition-colors">
+                <Checkbox id={task.id} checked={task.isCompleted} onCheckedChange={() => handleToggleTask(task)} className="mt-1" />
+                <div className="flex-1">
+                     <label htmlFor={task.id} className="font-medium cursor-pointer">{task.title}</label>
+                     <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                        {isOrder && order?.fulfillmentMethod === 'Delivery' ? <Truck className="h-3 w-3"/> : isOrder ? <Store className="h-3 w-3"/> : <div className="w-3 h-3"/>}
+                        <span>{format(new Date(task.date), 'PPP')}</span>
+                        {isOrder && <span>|</span>}
+                        {isOrder && <Link href={`/dashboard/orders/${(task.original as Order).id}`} onClick={(e) => e.stopPropagation()} className="hover:underline text-primary">View Order</Link>}
+                    </div>
+                </div>
+            </div>
+        );
+
+        if (isOrder) {
+            return taskContent;
+        }
+
+        return (
+            <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    {taskContent}
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Complete Task?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                           Mark the task "{task.title}" as completed? This action can be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleToggleTask(task)}>Mark as Completed</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        );
+    }
+
 
     return (
         <div className="space-y-6">
@@ -174,47 +220,30 @@ export default function MyTasksPage() {
                 )}
             </div>
             
-           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                           <ClipboardList className="h-5 w-5" /> To Do ({todoTasks.length})
-                        </CardTitle>
-                        <CardDescription>Active assignments and tasks that require your action.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            {todoTasks.length > 0 ? todoTasks.map(task => (
-                                <div key={task.id} className="flex items-start gap-3 p-3 bg-background rounded-lg border">
-                                    <Checkbox id={task.id} checked={task.isCompleted} onCheckedChange={() => handleToggleTask(task)} className="mt-1" />
-                                    <div className="flex-1">
-                                        <label htmlFor={task.id} className="font-medium cursor-pointer">{task.title}</label>
-                                        <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
-                                            {task.type === 'Order' ? (
-                                                (task.original as Order).fulfillmentMethod === 'Delivery' ? <Truck className="h-3 w-3"/> : <Store className="h-3 w-3"/>
-                                            ) : <div className="w-3 h-3"/>}
-                                            <span>{format(new Date(task.date), 'PPP')}</span>
-                                            {task.type === 'Order' && <span>|</span>}
-                                            {task.type === 'Order' && <Link href={`/dashboard/orders/${(task.original as Order).id}`} className="hover:underline text-primary">View Order</Link>}
-                                        </div>
-                                    </div>
-                                </div>
+            <Tabs defaultValue="todo" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="todo">
+                        <ClipboardList className="mr-2 h-4 w-4" /> To Do ({todoTasks.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="completed">
+                         <CheckCircle className="mr-2 h-4 w-4" /> Completed ({completedTasks.length})
+                    </TabsTrigger>
+                </TabsList>
+                <TabsContent value="todo" className="mt-4">
+                     <Card>
+                        <CardContent className="p-4 space-y-4">
+                           {todoTasks.length > 0 ? todoTasks.map(task => (
+                                <TaskItem key={task.id} task={task} />
                             )) : (
                                 <p className="text-sm text-muted-foreground text-center py-8">No active tasks.</p>
                             )}
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader>
-                        <CardTitle className="flex items-center gap-2">
-                            <CheckCircle className="h-5 w-5" /> Completed ({completedTasks.length})
-                        </CardTitle>
-                        <CardDescription>A history of your fulfilled orders and completed tasks.</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                         <div className="space-y-4">
-                            {completedTasks.length > 0 ? completedTasks.map(task => (
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                <TabsContent value="completed" className="mt-4">
+                    <Card>
+                         <CardContent className="p-4 space-y-4">
+                             {completedTasks.length > 0 ? completedTasks.map(task => (
                                 <div key={task.id} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg border">
                                     <Checkbox id={task.id} checked={task.isCompleted} onCheckedChange={() => handleToggleTask(task)} className="mt-1"/>
                                     <div className="flex-1">
@@ -230,10 +259,10 @@ export default function MyTasksPage() {
                             )) : (
                                 <p className="text-sm text-muted-foreground text-center py-8">No completed tasks yet.</p>
                             )}
-                        </div>
-                    </CardContent>
-                </Card>
-           </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+            </Tabs>
         </div>
     );
 }

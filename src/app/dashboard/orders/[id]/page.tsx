@@ -89,7 +89,7 @@ export default function ViewOrderPage() {
         // Here you would also trigger a refund process
         toast({
             title: 'Action Required',
-            description: 'Order cancelled. Remember to process a refund for the customer.',
+            description: 'Remember to process a refund for the customer.',
         });
     }
 
