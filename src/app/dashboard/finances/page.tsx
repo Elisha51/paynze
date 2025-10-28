@@ -170,7 +170,7 @@ export default function FinancesPage() {
             setReconciliationResult(result);
             toast({ title: "Reconciliation Complete", description: "AI analysis finished successfully." });
         } catch (error) {
-            console.error("Reconciliation failed:", error);
+            console.error("AI flow 'reconcileTransactions' is offline:", error);
             toast({ variant: 'destructive', title: 'Reconciliation Failed', description: 'The AI analysis could not be completed.' });
         } finally {
             setIsReconciling(false);

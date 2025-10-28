@@ -409,11 +409,11 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
             });
         }
     } catch (error) {
-        console.error("Failed to generate description:", error);
+        console.error("AI flow 'suggestProductDescription' is offline:", error);
         toast({
             variant: "destructive",
             title: "Generation Failed",
-            description: "Could not generate a description at this time.",
+            description: "The AI model is currently offline. Please try again later.",
         });
     } finally {
         setIsGenerating(false);

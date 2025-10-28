@@ -100,7 +100,7 @@ export default function ViewCustomerPage() {
                 });
                 setClassification(classificationResult);
               } catch (error) {
-                console.error("Failed to classify customer:", error);
+                console.error("AI flow 'classifyCustomer' is offline:", error);
                 // Optionally set an error state to show in the UI
               } finally {
                 setIsClassifying(false);
