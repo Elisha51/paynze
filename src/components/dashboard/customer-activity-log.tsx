@@ -5,17 +5,10 @@ import type { Customer, Communication, Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { MessageSquare, Phone, Users, ShoppingCart, PlusCircle, FileText, ShoppingBag, CornerDownRight, ChevronDown } from 'lucide-react';
+import { MessageSquare, Phone, Users, ShoppingCart, FileText, ShoppingBag, CornerDownRight, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '../ui/avatar';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -34,7 +27,6 @@ const iconMap: { [key: string]: React.ElementType } = {
   Phone: Phone,
   Meeting: Users,
   order: ShoppingBag,
-  add: PlusCircle,
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -105,6 +97,12 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
             : [...prev, threadId]
     );
   };
+  
+  const placeholderMap = {
+      Note: "Add a note...",
+      Phone: "Log a call...",
+      Meeting: "Log a meeting..."
+  }
 
   const ReplyForm = ({ parentId }: { parentId: string}) => {
     const [replyContent, setReplyContent] = useState('');
@@ -203,27 +201,28 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
       </CardHeader>
       <CardContent>
           <Card className="mb-6 bg-muted/50">
-            <CardContent className="p-4 space-y-3">
-                 <Textarea
-                    placeholder="Add a note or log an interaction..."
-                    value={newNote}
-                    onChange={e => setNewNote(e.target.value)}
-                    className="min-h-[80px] bg-background"
-                />
-                <div className="flex justify-between items-center">
-                    <Select value={interactionType} onValueChange={v => setInteractionType(v as InteractionType)}>
-                        <SelectTrigger className="w-[150px]">
-                            <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Note"><MessageSquare className="mr-2 h-4 w-4" />Log a Note</SelectItem>
-                            <SelectItem value="Phone"><Phone className="mr-2 h-4 w-4" />Log a Call</SelectItem>
-                            <SelectItem value="Meeting"><Users className="mr-2 h-4 w-4" />Log a Meeting</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Button onClick={() => handleAddCommunication(newNote)} disabled={!newNote}>
-                        Save
-                    </Button>
+            <CardHeader className="p-3">
+                 <Tabs value={interactionType} onValueChange={(v) => setInteractionType(v as InteractionType)}>
+                    <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="Note"><MessageSquare className="mr-2 h-4 w-4" />Log a Note</TabsTrigger>
+                        <TabsTrigger value="Phone"><Phone className="mr-2 h-4 w-4" />Log a Call</TabsTrigger>
+                        <TabsTrigger value="Meeting"><Users className="mr-2 h-4 w-4" />Log a Meeting</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+            </CardHeader>
+            <CardContent className="p-3 pt-0">
+                <div className="space-y-3">
+                    <Textarea
+                        placeholder={placeholderMap[interactionType]}
+                        value={newNote}
+                        onChange={e => setNewNote(e.target.value)}
+                        className="min-h-[80px] bg-background"
+                    />
+                    <div className="flex justify-end">
+                        <Button onClick={() => handleAddCommunication(newNote)} disabled={!newNote}>
+                            Save {interactionType}
+                        </Button>
+                    </div>
                 </div>
             </CardContent>
           </Card>
