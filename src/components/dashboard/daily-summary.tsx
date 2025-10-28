@@ -1,20 +1,30 @@
 
 'use client';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Transaction } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { format } from 'date-fns';
 import { Badge } from '@/components/ui/badge';
-import { ArrowDown, ArrowUp, DollarSign } from 'lucide-react';
+import { ArrowDown, ArrowUp, MoreVertical } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 type DailySummaryProps = {
     transactions: Transaction[];
 };
 
 export function DailySummary({ transactions }: DailySummaryProps) {
+    const [daysToShow, setDaysToShow] = useState(7);
 
     const dailySummaries = useMemo(() => {
         const groups = transactions.reduce((acc, transaction) => {
@@ -42,6 +52,8 @@ export function DailySummary({ transactions }: DailySummaryProps) {
     const formatCurrency = (amount: number, currency: string) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
     }
+    
+    const visibleSummaries = dailySummaries.slice(0, daysToShow);
 
     if (transactions.length === 0) {
         return (
@@ -55,38 +67,66 @@ export function DailySummary({ transactions }: DailySummaryProps) {
     
     return (
         <Card>
-            <CardHeader>
-                <CardTitle>Daily Settlement Summary</CardTitle>
-                <CardDescription>A day-by-day breakdown of your financial activities.</CardDescription>
+            <CardHeader className="flex-row items-center justify-between">
+                <div>
+                    <CardTitle>Daily Settlement Summary</CardTitle>
+                    <CardDescription>A day-by-day breakdown of your financial activities.</CardDescription>
+                </div>
+                <div className="w-[180px]">
+                    <Select value={String(daysToShow)} onValueChange={(v) => setDaysToShow(Number(v))}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Show days..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="5">Last 5 days</SelectItem>
+                            <SelectItem value="10">Last 10 days</SelectItem>
+                            <SelectItem value="20">Last 20 days</SelectItem>
+                            <SelectItem value="30">Last 30 days</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </CardHeader>
             <CardContent>
                  <Accordion type="single" collapsible className="w-full">
-                    {dailySummaries.map((summary) => {
+                    {visibleSummaries.map((summary) => {
                         const netTotal = summary.income + summary.expense;
                         return (
                             <AccordionItem value={summary.date} key={summary.date}>
-                                <AccordionTrigger>
-                                    <div className="flex justify-between items-center w-full pr-4">
-                                        <div className="text-left">
-                                            <p className="font-semibold text-lg">{format(new Date(summary.date), 'PPP')}</p>
-                                            <p className="text-sm text-muted-foreground">{summary.transactions.length} transactions</p>
+                                <div className="flex items-center">
+                                    <AccordionTrigger className="flex-1">
+                                        <div className="flex justify-between items-center w-full pr-4">
+                                            <div className="text-left">
+                                                <p className="font-semibold text-lg">{format(new Date(summary.date), 'PPP')}</p>
+                                                <p className="text-sm text-muted-foreground">{summary.transactions.length} transactions</p>
+                                            </div>
+                                            <div className="flex gap-4 text-right">
+                                                <div>
+                                                    <p className="text-xs text-muted-foreground">Income</p>
+                                                    <p className="font-semibold text-green-600">{formatCurrency(summary.income, 'UGX')}</p>
+                                                </div>
+                                                 <div>
+                                                    <p className="text-xs text-muted-foreground">Expenses</p>
+                                                    <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), 'UGX')}</p>
+                                                </div>
+                                                 <div>
+                                                    <p className="text-xs text-muted-foreground">Net</p>
+                                                    <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, 'UGX')}</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="flex gap-4 text-right">
-                                            <div>
-                                                <p className="text-xs text-muted-foreground">Income</p>
-                                                <p className="font-semibold text-green-600">{formatCurrency(summary.income, 'UGX')}</p>
-                                            </div>
-                                             <div>
-                                                <p className="text-xs text-muted-foreground">Expenses</p>
-                                                <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), 'UGX')}</p>
-                                            </div>
-                                             <div>
-                                                <p className="text-xs text-muted-foreground">Net</p>
-                                                <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, 'UGX')}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </AccordionTrigger>
+                                    </AccordionTrigger>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="ml-2 h-8 w-8">
+                                                <MoreVertical className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                            <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+                                            <DropdownMenuItem>Mark as Reconciled</DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
+                                </div>
                                 <AccordionContent>
                                     <Table>
                                         <TableHeader>
