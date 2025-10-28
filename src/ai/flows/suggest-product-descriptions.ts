@@ -32,6 +32,7 @@ export async function suggestProductDescription(input: SuggestProductDescription
 
 const prompt = ai.definePrompt({
   name: 'suggestProductDescriptionPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: SuggestProductDescriptionInputSchema},
   output: {schema: SuggestProductDescriptionOutputSchema},
   prompt: `You are an expert e-commerce product description writer.

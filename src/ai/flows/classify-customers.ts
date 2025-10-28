@@ -37,6 +37,7 @@ export async function classifyCustomer(input: ClassifyCustomerInput): Promise<Cl
 
 const classifyCustomerPrompt = ai.definePrompt({
   name: 'classifyCustomerPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: {schema: ClassifyCustomerInputSchema},
   output: {schema: ClassifyCustomerOutputSchema},
   prompt: `You are an expert marketing analyst tasked with classifying customers based on their purchase history.

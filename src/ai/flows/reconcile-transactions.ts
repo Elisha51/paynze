@@ -56,6 +56,7 @@ export async function reconcileTransactions(input: ReconciliationInput): Promise
 
 const prompt = ai.definePrompt({
   name: 'reconcileTransactionsPrompt',
+  model: 'googleai/gemini-2.5-flash',
   input: { schema: ReconciliationInputSchema },
   output: { schema: ReconciliationOutputSchema },
   prompt: `You are an expert accountant AI specializing in financial reconciliation for small businesses.
