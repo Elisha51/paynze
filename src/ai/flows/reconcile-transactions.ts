@@ -25,7 +25,7 @@ const TransactionSchema = z.object({
 
 const ReconciliationInputSchema = z.object({
   statement: z.string().describe('The full text content of the bank or mobile money statement.'),
-  recordedTransactions: z.array(TransactionSchema).describe('An array of transactions already recorded in the system.'),
+  recordedTransactions: z.array(TransactionSchema).describe('An array of transactions already recorded in the system for the specified period.'),
 });
 
 export type ReconciliationInput = z.infer<typeof ReconciliationInputSchema>;
@@ -58,25 +58,25 @@ const prompt = ai.definePrompt({
   name: 'reconcileTransactionsPrompt',
   input: { schema: ReconciliationInputSchema },
   output: { schema: ReconciliationOutputSchema },
-  prompt: `You are an expert accountant AI specializing in financial reconciliation.
-  Your task is to compare a provided bank/mobile money statement with a list of user-recorded transactions.
+  prompt: `You are an expert accountant AI specializing in financial reconciliation for small businesses.
+  Your task is to meticulously compare a provided bank/mobile money statement with a list of user-recorded transactions for a specific period.
   
   Carefully analyze both lists and categorize them into three groups:
-  1.  **Matched Transactions**: Identify pairs of transactions that correspond to each other. A match can be based on amount, date proximity, and description hints. Assign a confidence level (High, Medium, Low) for each match.
-  2.  **Unmatched Statement Items**: List all items from the bank statement that have no corresponding entry in the user's records. Suggest a possible reason (e.g., 'Bank Fee', 'Unrecorded Sale').
-  3.  **Unmatched User Items**: List all items from the user's records that do not appear on the statement. Suggest a possible reason (e.g., 'Pending transaction', 'Cash payment not banked').
+  1.  **Matched Transactions**: Identify pairs of transactions that correspond to each other. A match can be based on amount, date proximity, and description hints. Pay attention to the paymentMethod in the user's records to help guide your matching. Assign a confidence level (High, Medium, Low) for each match.
+  2.  **Unmatched Statement Items**: List all items from the bank statement that have no corresponding entry in the user's records. Suggest a possible reason (e.g., 'Bank Fee', 'Unrecorded Sale', 'ATM Withdrawal').
+  3.  **Unmatched User Items**: List all items from the user's records that do not appear on the statement for this period. Suggest a possible reason (e.g., 'Pending transaction', 'Cash payment not banked', 'Transaction cleared in a different period').
 
-  Use the provided JSON schemas for the output. Be meticulous and accurate.
+  Use the provided JSON schemas for the output. Be meticulous, accurate, and provide clear reasoning.
 
   **Bank/Mobile Money Statement:**
   ---
   {{{statement}}}
   ---
 
-  **User's Recorded Transactions:**
+  **User's Recorded Transactions for the Period:**
   ---
   {{#each recordedTransactions}}
-  - ID: {{id}}, Date: {{date}}, Amount: {{amount}} {{currency}}, Desc: {{description}}
+  - ID: {{id}}, Date: {{date}}, Amount: {{amount}} {{currency}}, Desc: {{description}}, Method: {{paymentMethod}}
   {{/each}}
   ---
   `,

@@ -141,9 +141,16 @@ export default function FinancesPage() {
     reader.onload = async (event) => {
         try {
             const statementText = event.target?.result as string;
+            
+            const transactionsForPeriod = transactions.filter(t => {
+                if (!date?.from) return true;
+                const transactionDate = new Date(t.date);
+                return transactionDate >= date.from && transactionDate <= (date.to || new Date());
+            });
+
             const result = await reconcileTransactions({
                 statement: statementText,
-                recordedTransactions: transactions,
+                recordedTransactions: transactionsForPeriod,
             });
             setReconciliationResult(result);
             toast({ title: "Reconciliation Complete", description: "AI analysis finished successfully." });
@@ -289,9 +296,60 @@ export default function FinancesPage() {
       <DashboardPageLayout.TabContent value="reconciliation">
         <div className="space-y-6">
           <Card>
-              <CardHeader>
-                  <CardTitle>Reconciliation</CardTitle>
-                  <CardDescription>Upload your bank or mobile money statements to match against your recorded transactions.</CardDescription>
+              <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+                  <div>
+                    <CardTitle>Reconciliation</CardTitle>
+                    <CardDescription>Upload your bank or mobile money statements to match against your recorded transactions.</CardDescription>
+                  </div>
+                   <div className="flex items-center gap-2 w-full lg:w-auto">
+                        <Select onValueChange={handlePresetChange} defaultValue="last-30">
+                            <SelectTrigger className="w-full lg:w-[180px]">
+                                <SelectValue placeholder="Select a preset" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="today">Today</SelectItem>
+                                <SelectItem value="last-7">Last 7 days</SelectItem>
+                                <SelectItem value="last-30">Last 30 days</SelectItem>
+                                <SelectItem value="ytd">Year to date</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full lg:w-[300px] justify-start text-left font-normal",
+                                !date && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date?.from ? (
+                                date.to ? (
+                                    <>
+                                    {format(date.from, "LLL dd, y")} -{" "}
+                                    {format(date.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(date.from, "LLL dd, y")
+                                )
+                                ) : (
+                                <span>Pick a date</span>
+                                )}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={date?.from}
+                                selected={date}
+                                onSelect={setDate}
+                                numberOfMonths={2}
+                            />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
               </CardHeader>
               <CardContent className="space-y-6">
                   <FileUploader
@@ -306,6 +364,13 @@ export default function FinancesPage() {
                   </Button>
               </CardContent>
           </Card>
+          {isReconciling && (
+              <Card>
+                  <CardContent className="p-6 text-center">
+                    <p>Analyzing statement... Please wait.</p>
+                  </CardContent>
+              </Card>
+          )}
           {reconciliationResult && (
             <ReconciliationReport result={reconciliationResult} />
           )}
