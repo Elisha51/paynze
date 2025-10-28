@@ -45,11 +45,9 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
   const [filter, setFilter] = useState<ActivityType>('all');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
   const { toast } = useToast();
 
-  const handleAddCommunication = (threadId?: string) => {
-    const content = threadId ? replyContent : newNote;
+  const handleAddCommunication = (content: string, threadId?: string) => {
     if (!content.trim()) {
       toast({ variant: 'destructive', title: 'Content cannot be empty' });
       return;
@@ -68,7 +66,6 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
     setCommunications(prev => [newComm, ...prev]);
 
     if (threadId) {
-      setReplyContent('');
       setReplyingTo(null);
       toast({ title: 'Reply Added' });
     } else {
@@ -99,20 +96,23 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
 
   const visibleActivities = filteredActivities.slice(0, visibleCount);
 
-  const ReplyForm = ({ parentId }: { parentId: string}) => (
-    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="ml-8 mt-4 space-y-2">
-      <Textarea
-        placeholder="Write a reply..."
-        value={replyContent}
-        onChange={(e) => setReplyContent(e.target.value)}
-        className="min-h-[60px]"
-      />
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>Cancel</Button>
-        <Button size="sm" onClick={() => handleAddCommunication(parentId)}>Save Reply</Button>
-      </div>
-    </motion.div>
-  );
+  const ReplyForm = ({ parentId }: { parentId: string}) => {
+    const [replyContent, setReplyContent] = useState('');
+    return (
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="ml-8 mt-4 space-y-2">
+        <Textarea
+            placeholder="Write a reply..."
+            value={replyContent}
+            onChange={(e) => setReplyContent(e.target.value)}
+            className="min-h-[60px]"
+        />
+        <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>Cancel</Button>
+            <Button size="sm" onClick={() => handleAddCommunication(replyContent, parentId)}>Save Reply</Button>
+        </div>
+        </motion.div>
+    );
+  };
 
   const TimelineItem = ({ activity, isLast }: { activity: UnifiedActivity, isLast: boolean }) => {
     let Icon, title, content, replies;
@@ -199,7 +199,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
                             <SelectItem value="Meeting"><Users className="mr-2 h-4 w-4" />Log a Meeting</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button onClick={() => handleAddCommunication()} disabled={!newNote}>
+                    <Button onClick={() => handleAddCommunication(newNote)} disabled={!newNote}>
                         Save
                     </Button>
                 </div>
