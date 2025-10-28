@@ -1,10 +1,12 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import type { Staff, Order, Todo } from '@/lib/types';
+import type { Staff, Order, Todo, Role } from '@/lib/types';
 import { getStaff, getStaffOrders } from '@/services/staff';
 import { getTodos, addTodo, updateTodo } from '@/services/todos';
+import { getRoles } from '@/services/roles';
 import { updateOrder } from '@/services/orders';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -33,6 +35,7 @@ export default function MyTasksPage() {
     const [staffMember, setStaffMember] = useState<Staff | null>(null);
     const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
+    const [roles, setRoles] = useState<Role[]>([]);
     const [loading, setLoading] = useState(true);
     const [newTaskTitle, setNewTaskTitle] = useState('');
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -40,16 +43,18 @@ export default function MyTasksPage() {
 
     const loadData = async () => {
         setLoading(true);
-        const [staffList, orderData, todoData] = await Promise.all([
+        const [staffList, orderData, todoData, roleData] = await Promise.all([
             getStaff(),
             getStaffOrders(LOGGED_IN_STAFF_ID),
             getTodos(),
+            getRoles(),
         ]);
         const member = staffList.find(s => s.id === LOGGED_IN_STAFF_ID);
         
         setStaffMember(member || null);
         setAssignedOrders(orderData);
         setTodos(todoData);
+        setRoles(roleData);
         setLoading(false);
     };
 
@@ -78,6 +83,15 @@ export default function MyTasksPage() {
 
         return [...orderTasks, ...personalTasks].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [assignedOrders, todos]);
+    
+    const staffRole = useMemo(() => {
+        if (staffMember) {
+            return roles.find(r => r.name === staffMember.role);
+        }
+        return undefined;
+    }, [staffMember, roles]);
+
+    const canCreateTasks = staffRole?.permissions.tasks.create === true;
 
     const handleToggleTask = async (task: UnifiedTask) => {
         if (task.type === 'Todo') {
@@ -131,32 +145,34 @@ export default function MyTasksPage() {
                     <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
                     <p className="text-muted-foreground">Your assigned orders and personal to-do items.</p>
                 </div>
-                <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                    <DialogTrigger asChild>
-                         <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Task
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Add a new task</DialogTitle>
-                            <DialogDescription>Create a personal to-do item.</DialogDescription>
-                        </DialogHeader>
-                        <div className="py-4 space-y-2">
-                            <Label htmlFor="task-title">Task Title</Label>
-                            <Input 
-                                id="task-title" 
-                                value={newTaskTitle} 
-                                onChange={(e) => setNewTaskTitle(e.target.value)} 
-                                placeholder="e.g., Follow up with supplier"
-                            />
-                        </div>
-                        <DialogFooter>
-                            <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                            <Button onClick={handleAddTask}>Save Task</Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
+                {canCreateTasks && (
+                    <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add Task
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Add a new task</DialogTitle>
+                                <DialogDescription>Create a personal to-do item.</DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4 space-y-2">
+                                <Label htmlFor="task-title">Task Title</Label>
+                                <Input 
+                                    id="task-title" 
+                                    value={newTaskTitle} 
+                                    onChange={(e) => setNewTaskTitle(e.target.value)} 
+                                    placeholder="e.g., Follow up with supplier"
+                                />
+                            </div>
+                            <DialogFooter>
+                                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                                <Button onClick={handleAddTask}>Save Task</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                )}
             </div>
             
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

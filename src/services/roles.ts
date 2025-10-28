@@ -10,6 +10,7 @@ const defaultPermissions: Permissions = {
   procurement: { view: false, create: false, edit: false, delete: false },
   finances: { view: false, create: false, edit: false, delete: false },
   staff: { view: false, create: false, edit: false, delete: false },
+  tasks: { view: false, create: false, edit: false, delete: false },
   settings: { view: false, edit: false },
 };
 
@@ -25,6 +26,7 @@ let roles: Role[] = [
       procurement: { view: true, create: true, edit: true, delete: true },
       finances: { view: true, create: true, edit: true, delete: true },
       staff: { view: true, create: true, edit: true, delete: true },
+      tasks: { view: true, create: true, edit: true, delete: true },
       settings: { view: true, edit: true },
     },
     assignableAttributes: [],
@@ -39,6 +41,7 @@ let roles: Role[] = [
       products: { view: true, create: true, edit: true, delete: false },
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
+      tasks: { view: true, create: true, edit: false, delete: false },
     },
     commissionRules: [
         { id: 'sales-1', name: 'Standard Sales Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 5 }
@@ -56,6 +59,7 @@ let roles: Role[] = [
       ...defaultPermissions,
       dashboard: { view: true },
       orders: { view: true, create: false, edit: true, delete: false },
+      tasks: { view: true, create: false, edit: false, delete: false },
     },
     commissionRules: [
         { id: 'delivery-1', name: 'Per-Delivery Fee', trigger: 'On Order Delivered', type: 'Fixed Amount', rate: 1500 }
@@ -75,6 +79,7 @@ let roles: Role[] = [
       dashboard: { view: true },
       finances: { view: true, create: true, edit: true, delete: true },
       procurement: { view: true, create: true, edit: true, delete: false },
+      tasks: { view: true, create: true, edit: true, delete: true },
     },
     assignableAttributes: [],
     commissionRules: [],
@@ -98,4 +103,5 @@ export async function updateRole(updatedRole: Role): Promise<Role> {
   roles = roles.map(r => r.name === updatedRole.name ? updatedRole : r);
   return updatedRole;
 }
+
 

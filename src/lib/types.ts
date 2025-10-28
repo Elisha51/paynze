@@ -296,6 +296,7 @@ export type Permissions = {
   procurement: CrudPermissions;
   finances: CrudPermissions;
   staff: CrudPermissions;
+  tasks: CrudPermissions;
   settings: { view: boolean; edit: boolean };
 };
 
