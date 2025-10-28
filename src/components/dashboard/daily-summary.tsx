@@ -92,40 +92,38 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                         const netTotal = summary.income + summary.expense;
                         return (
                             <AccordionItem value={summary.date} key={summary.date}>
-                                <div className="flex items-center">
-                                    <AccordionTrigger className="flex-1 py-4 hover:no-underline">
-                                        <div className="flex justify-between items-center w-full">
-                                            <div className="text-left">
-                                                <p className="font-semibold text-lg">{format(new Date(summary.date), 'PPP')}</p>
-                                                <p className="text-sm text-muted-foreground">{summary.transactions.length} transactions</p>
-                                            </div>
-                                            <div className="flex gap-4 text-right">
-                                                <div>
-                                                    <p className="text-xs text-muted-foreground">Income</p>
-                                                    <p className="font-semibold text-green-600">{formatCurrency(summary.income, 'UGX')}</p>
-                                                </div>
-                                                 <div>
-                                                    <p className="text-xs text-muted-foreground">Expenses</p>
-                                                    <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), 'UGX')}</p>
-                                                </div>
-                                                 <div>
-                                                    <p className="text-xs text-muted-foreground">Net</p>
-                                                    <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, 'UGX')}</p>
-                                                </div>
-                                            </div>
+                                <div className="flex justify-between items-center w-full hover:bg-muted/50 rounded-md">
+                                    <AccordionTrigger className="flex-1 py-4 px-4 hover:no-underline">
+                                        <div className="text-left">
+                                            <p className="font-semibold text-lg">{format(new Date(summary.date), 'PPP')}</p>
+                                            <p className="text-sm text-muted-foreground">{summary.transactions.length} transactions</p>
                                         </div>
                                     </AccordionTrigger>
-                                    <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="ml-2 h-8 w-8">
-                                                <MoreVertical className="h-4 w-4" />
-                                            </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                            <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-                                            <DropdownMenuItem>Mark as Reconciled</DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                    </DropdownMenu>
+                                     <div className="flex items-center gap-4 text-right pr-4">
+                                        <div>
+                                            <p className="text-xs text-muted-foreground">Income</p>
+                                            <p className="font-semibold text-green-600">{formatCurrency(summary.income, 'UGX')}</p>
+                                        </div>
+                                            <div>
+                                            <p className="text-xs text-muted-foreground">Expenses</p>
+                                            <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), 'UGX')}</p>
+                                        </div>
+                                            <div>
+                                            <p className="text-xs text-muted-foreground">Net</p>
+                                            <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, 'UGX')}</p>
+                                        </div>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="ghost" size="icon" className="ml-2 h-8 w-8">
+                                                    <MoreVertical className="h-4 w-4" />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+                                                <DropdownMenuItem>Mark as Reconciled</DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </div>
                                 </div>
                                 <AccordionContent>
                                     <Table>
