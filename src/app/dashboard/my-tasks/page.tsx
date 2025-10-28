@@ -32,7 +32,7 @@ type UnifiedTask = {
   original: Order | Todo;
 };
 
-export default function MyTasksPage() {
+export default function MyTasksPage({ isDevMode }: { isDevMode?: boolean }) {
     const [staffMember, setStaffMember] = useState<Staff | null>(null);
     const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
@@ -92,7 +92,7 @@ export default function MyTasksPage() {
         return undefined;
     }, [staffMember, roles]);
 
-    const canCreateTasks = staffRole?.permissions.tasks.create === true;
+    const canCreateTasks = isDevMode || (staffRole?.permissions.tasks.create === true);
 
     const handleToggleTask = async (task: UnifiedTask) => {
         if (task.type === 'Todo') {

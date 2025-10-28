@@ -28,6 +28,14 @@ export default function DashboardLayout({
     }
   }, []);
 
+  // Pass isDevMode to children
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, { isDevMode } as any);
+    }
+    return child;
+  });
+
   return (
     <NotificationProvider>
       <SearchProvider>
@@ -37,7 +45,7 @@ export default function DashboardLayout({
             <div className="flex flex-col w-full overflow-x-hidden">
               <AppHeader onboardingData={onboardingData} />
               <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
-                {children}
+                {childrenWithProps}
               </main>
             </div>
           </div>
