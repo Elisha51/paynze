@@ -30,11 +30,11 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { CommissionReport } from '@/components/dashboard/commission-report';
 import { DailySummary } from '@/components/dashboard/daily-summary';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { Upload } from 'lucide-react';
 import { TransactionsTable } from '@/components/dashboard/transactions-table';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   description: '',
