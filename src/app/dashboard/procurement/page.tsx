@@ -215,7 +215,7 @@ export default function ProcurementPage() {
   const mainTabs = [
     { value: 'suppliers', label: 'Suppliers' },
     { value: 'purchase-orders', label: 'Purchase Orders' },
-    { value: 'reports', label: 'Reports' },
+    { value: 'analytics', label: 'Analytics' },
   ];
 
   const cta = (
@@ -266,11 +266,11 @@ export default function ProcurementPage() {
         />
       </DashboardPageLayout.TabContent>
 
-      <DashboardPageLayout.TabContent value="reports">
+      <DashboardPageLayout.TabContent value="analytics">
         <Card>
           <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
             <div>
-              <CardTitle>Procurement Report</CardTitle>
+              <CardTitle>Procurement Analytics</CardTitle>
               <CardDescription>Analyze supplier costs and purchase order volume.</CardDescription>
             </div>
             <div className="flex items-center gap-2 w-full lg:w-auto">

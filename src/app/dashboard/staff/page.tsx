@@ -140,7 +140,7 @@ export default function StaffPage() {
       { value: 'team', label: 'Your Team' },
       { value: 'permissions', label: 'Roles & Permissions' },
       { value: 'all-logs', label: 'All Logs' },
-      { value: 'reports', label: 'Reports' },
+      { value: 'analytics', label: 'Analytics' },
   ];
 
   const cta = (
@@ -246,7 +246,7 @@ export default function StaffPage() {
         <DashboardPageLayout.TabContent value="all-logs">
             <StaffActivityLog staff={staff} />
         </DashboardPageLayout.TabContent>
-        <DashboardPageLayout.TabContent value="reports">
+        <DashboardPageLayout.TabContent value="analytics">
             <Card>
                 <CardHeader>
                     <CardTitle>Staff Analytics</CardTitle>

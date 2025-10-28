@@ -61,7 +61,7 @@ export default function CustomersPage() {
 
   const mainTabs = [
       { value: 'customers', label: 'All Customers' },
-      { value: 'reports', label: 'Reports' },
+      { value: 'analytics', label: 'Analytics' },
   ];
 
   const cta = (
@@ -96,11 +96,11 @@ export default function CustomersPage() {
           />
       </DashboardPageLayout.TabContent>
 
-      <DashboardPageLayout.TabContent value="reports">
+      <DashboardPageLayout.TabContent value="analytics">
             <Card>
                 <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
                     <div>
-                        <CardTitle>Customer Report</CardTitle>
+                        <CardTitle>Customer Analytics</CardTitle>
                         <CardDescription>
                             Analyze customer growth and value over time.
                         </CardDescription>

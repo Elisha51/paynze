@@ -62,7 +62,7 @@ export default function OrdersPage() {
 
   const mainTabs = [
       { value: 'all', label: 'All Orders' },
-      { value: 'reports', label: 'Reports' },
+      { value: 'analytics', label: 'Analytics' },
   ];
 
   const cta = (
@@ -94,11 +94,11 @@ export default function OrdersPage() {
             <OrdersTable orders={orders} isLoading={isLoading} />
         </DashboardPageLayout.TabContent>
 
-        <DashboardPageLayout.TabContent value="reports">
+        <DashboardPageLayout.TabContent value="analytics">
              <Card>
                 <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
                     <div>
-                        <CardTitle>Orders Report</CardTitle>
+                        <CardTitle>Order Analytics</CardTitle>
                         <CardDescription>
                             Analyze sales and order volume over time.
                         </CardDescription>

@@ -191,7 +191,7 @@ export default function FinancesPage() {
     { value: 'summary', label: 'Summary' },
     { value: 'reconciliation', label: 'Reconciliation' },
     { value: 'payouts', label: 'Payouts' },
-    { value: 'reports', label: 'Reports' },
+    { value: 'analytics', label: 'Analytics' },
   ];
 
   const cta = (
@@ -399,11 +399,11 @@ export default function FinancesPage() {
         <CommissionReport staff={staff} roles={roles} orders={orders} onPayout={loadData} />
       </DashboardPageLayout.TabContent>
 
-      <DashboardPageLayout.TabContent value="reports">
+      <DashboardPageLayout.TabContent value="analytics">
             <Card>
                 <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
                     <div>
-                        <CardTitle>Financial Report</CardTitle>
+                        <CardTitle>Financial Analytics</CardTitle>
                         <CardDescription>
                             Analyze income, expenses, and profitability over time.
                         </CardDescription>

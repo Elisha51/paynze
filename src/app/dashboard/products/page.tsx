@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PlusCircle, Upload, ChevronDown, Calendar as CalendarIcon, Download } from 'lucide-react';
@@ -75,7 +74,7 @@ export default function ProductsPage() {
   const tabs = [
       { value: 'products', label: 'All Products' },
       { value: 'categories', label: 'Categories' },
-      { value: 'reports', label: 'Reports', className: 'flex items-center gap-2' },
+      { value: 'analytics', label: 'Analytics', className: 'flex items-center gap-2' },
   ];
   
   const cta = (
@@ -130,7 +129,7 @@ export default function ProductsPage() {
             <CategoriesTab />
         </DashboardPageLayout.TabContent>
         
-        <DashboardPageLayout.TabContent value="reports">
+        <DashboardPageLayout.TabContent value="analytics">
             <Card>
                 <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
                     <div>
