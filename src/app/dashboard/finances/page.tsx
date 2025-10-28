@@ -196,9 +196,11 @@ export default function FinancesPage() {
 
   const cta = (
     <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="h-9 px-2.5 sm:px-4">
-            <Download className="h-4 w-4 sm:mr-2" />
-            <span className="hidden sm:inline-flex">Export</span>
+        <Button variant="outline" size="sm" className="h-9 px-2.5 sm:px-4" asChild>
+            <a href="/transactions_sample.csv" download>
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline-flex">Export</span>
+            </a>
         </Button>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

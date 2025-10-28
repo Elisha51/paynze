@@ -1,0 +1,7 @@
+Date,Description,Type,Category,Amount,Currency,Status,Payment Method
+2024-07-25,"Sale from Order #ORD-002",Income,Sales,160000,UGX,Cleared,Cash
+2024-07-25,"Sale from Order #ORD-001",Income,Sales,75000,UGX,Cleared,Mobile Money
+2024-07-24,"Sale from Order #ORD-003",Income,Sales,10000,KES,Cleared,Mobile Money
+2024-07-24,"Purchase Order #PO-002 Payment",Expense,Inventory,-1300000,UGX,Pending,Bank Transfer
+2024-07-23,"Monthly Utilities",Expense,Utilities,-150000,UGX,Cleared,Mobile Money
+2024-07-23,"Sale from Order #ORD-005",Income,Sales,75000,UGX,Pending,Cash

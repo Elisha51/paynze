@@ -1,9 +1,31 @@
 
+
 import { customers as mockCustomers } from '@/lib/data';
 import type { Customer } from '@/lib/types';
 import { getOrders } from './orders';
+import { subDays } from 'date-fns';
 
-let customers: Customer[] = [...mockCustomers];
+let customers: Customer[] = [...mockCustomers].map((customer, index) => ({
+    ...customer,
+    communications: [
+        {
+            id: `comm-1-${index}`,
+            type: 'Note',
+            content: 'Initial customer import.',
+            date: subDays(new Date(), 10).toISOString(),
+            staffId: 'system',
+            staffName: 'System'
+        },
+        ...(index === 0 ? [{
+            id: 'comm-2-0',
+            type: 'Phone' as const,
+            content: 'Called to confirm wholesale pricing interest.',
+            date: subDays(new Date(), 5).toISOString(),
+            staffId: 'staff-002',
+            staffName: 'Jane Smith'
+        }] : [])
+    ]
+}));
 
 // In a real app, this would fetch from an API.
 // const apiBaseUrl = config.apiBaseUrl;

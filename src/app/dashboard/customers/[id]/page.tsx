@@ -1,9 +1,10 @@
 
+
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { getCustomerById } from '@/services/customers';
 import type { Customer, Order } from '@/lib/types';
@@ -26,6 +27,8 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { classifyCustomer, ClassifyCustomerOutput } from '@/ai/flows/classify-customers';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CustomerActivityLog } from '@/components/dashboard/customer-activity-log';
 
 const orderColumns: ColumnDef<Order>[] = [
     {
@@ -202,18 +205,29 @@ export default function ViewCustomerPage() {
       
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Order History</CardTitle>
-                    <CardDescription>A complete log of all orders placed by this customer.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <DataTable
-                      columns={orderColumns}
-                      data={customer.orders || []}
-                    />
-                </CardContent>
-            </Card>
+            <Tabs defaultValue="orders">
+                <TabsList>
+                    <TabsTrigger value="orders">Order History</TabsTrigger>
+                    <TabsTrigger value="activity">Activity Log &amp; Notes</TabsTrigger>
+                </TabsList>
+                <TabsContent value="orders">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Order History</CardTitle>
+                            <CardDescription>A complete log of all orders placed by this customer.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <DataTable
+                            columns={orderColumns}
+                            data={customer.orders || []}
+                            />
+                        </CardContent>
+                    </Card>
+                </TabsContent>
+                 <TabsContent value="activity">
+                    <CustomerActivityLog customer={customer} />
+                </TabsContent>
+            </Tabs>
         </div>
 
         <div className="lg:col-span-1 space-y-6">

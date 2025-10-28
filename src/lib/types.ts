@@ -1,5 +1,6 @@
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -199,6 +200,15 @@ export type Order = {
     fulfilledByStaffName?: string;
 };
 
+export type Communication = {
+  id: string;
+  type: 'Note' | 'Phone' | 'Meeting' | 'Message';
+  content: string;
+  date: string;
+  staffId: string;
+  staffName: string;
+};
+
 export type Customer = {
     id: string;
     name: string;
@@ -210,6 +220,7 @@ export type Customer = {
     currency: 'KES' | 'UGX' | 'TZS' | 'USD';
     createdAt?: string;
     orders?: Order[];
+    communications?: Communication[];
 };
 
 export type RecentSale = {
@@ -366,6 +377,18 @@ export type Staff = {
   },
   schedule?: Shift[];
 };
+
+export type StaffActivity = {
+    id: string;
+    staffId: string;
+    staffName: string;
+    activity: string; // "Logged in", "Updated Order", "Created Product"
+    details: {
+        text: string; // "Order #123", "Product 'Kitenge Fabric'"
+        link?: string; // "/dashboard/orders/123"
+    };
+    timestamp: string;
+}
 
 
 // Finance Types
