@@ -5,7 +5,7 @@ import type { Customer, Communication, Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { MessageSquare, Phone, Users, ShoppingCart, PlusCircle, FileText, ShoppingBag } from 'lucide-react';
+import { MessageSquare, Phone, Users, ShoppingCart, PlusCircle, FileText, ShoppingBag, CornerDownRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
+import { AnimatePresence, motion } from 'framer-motion';
 
 type CustomerActivityLogProps = {
   customer: Customer;
@@ -25,8 +26,7 @@ type CustomerActivityLogProps = {
 type InteractionType = 'Note' | 'Phone' | 'Meeting';
 type ActivityType = 'all' | 'order' | 'communication';
 
-type UnifiedActivity = (Communication & { activityType: 'communication' }) | (Order & { activityType: 'order' });
-
+type UnifiedActivity = (Communication & { activityType: 'communication'; replies?: Communication[] }) | (Order & { activityType: 'order' });
 
 const iconMap: { [key: string]: React.ElementType } = {
   Note: MessageSquare,
@@ -44,51 +44,84 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
   const [communications, setCommunications] = useState<Communication[]>(customer.communications || []);
   const [filter, setFilter] = useState<ActivityType>('all');
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
   const { toast } = useToast();
 
-  const handleAddNote = () => {
-    if (!newNote.trim()) {
-      toast({
-        variant: 'destructive',
-        title: 'Note cannot be empty',
-      });
+  const handleAddCommunication = (threadId?: string) => {
+    const content = threadId ? replyContent : newNote;
+    if (!content.trim()) {
+      toast({ variant: 'destructive', title: 'Content cannot be empty' });
       return;
     }
+    
     const newComm: Communication = {
       id: `comm_${Date.now()}`,
-      type: interactionType,
-      content: newNote,
+      type: threadId ? 'Note' : interactionType,
+      content,
       date: new Date().toISOString(),
       staffId: 'staff-001', // Logged in user
       staffName: 'Admin',
+      ...(threadId && { threadId }),
     };
 
     setCommunications(prev => [newComm, ...prev]);
-    setNewNote('');
-    toast({ title: 'Note Added' });
-    // In a real app, this would call a service to save the communication
+
+    if (threadId) {
+      setReplyContent('');
+      setReplyingTo(null);
+      toast({ title: 'Reply Added' });
+    } else {
+      setNewNote('');
+      toast({ title: `${interactionType} Logged` });
+    }
   };
-  
+
   const allActivities: UnifiedActivity[] = useMemo(() => {
-    const comms = communications.map(c => ({...c, activityType: 'communication' as const}));
+    const topLevelComms = communications.filter(c => !c.threadId);
+    const replies = communications.filter(c => c.threadId);
+
+    const commsWithReplies = topLevelComms.map(comm => ({
+        ...comm,
+        activityType: 'communication' as const,
+        replies: replies.filter(r => r.threadId === comm.id).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    }));
+
     const orders = (customer.orders || []).map(o => ({...o, activityType: 'order' as const}));
-    return [...comms, ...orders].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    return [...commsWithReplies, ...orders].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [communications, customer.orders]);
 
   const filteredActivities = useMemo(() => {
-      if (filter === 'all') return allActivities;
-      return allActivities.filter(activity => activity.activityType === filter);
+    if (filter === 'all') return allActivities;
+    return allActivities.filter(activity => activity.activityType === filter);
   }, [allActivities, filter]);
 
   const visibleActivities = filteredActivities.slice(0, visibleCount);
 
+  const ReplyForm = ({ parentId }: { parentId: string}) => (
+    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="ml-8 mt-4 space-y-2">
+      <Textarea
+        placeholder="Write a reply..."
+        value={replyContent}
+        onChange={(e) => setReplyContent(e.target.value)}
+        className="min-h-[60px]"
+      />
+      <div className="flex justify-end gap-2">
+        <Button variant="ghost" size="sm" onClick={() => setReplyingTo(null)}>Cancel</Button>
+        <Button size="sm" onClick={() => handleAddCommunication(parentId)}>Save Reply</Button>
+      </div>
+    </motion.div>
+  );
+
   const TimelineItem = ({ activity, isLast }: { activity: UnifiedActivity, isLast: boolean }) => {
-    let Icon, title, content;
+    let Icon, title, content, replies;
 
     if (activity.activityType === 'communication') {
         Icon = iconMap[activity.type];
         title = `Logged a ${activity.type.toLowerCase()} by ${activity.staffName}`;
         content = activity.content;
+        replies = activity.replies;
     } else { // Order
         Icon = ShoppingBag;
         title = `Order #${activity.id} placed`;
@@ -98,7 +131,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
     return (
         <div className="relative pl-8">
             {!isLast && <div className="absolute left-3 top-3 h-full w-0.5 bg-border" />}
-             <div className="absolute -left-[1px] top-0">
+             <div className="absolute -left-px top-0">
                 <Avatar className="h-8 w-8 border-2 border-background bg-muted">
                     <AvatarFallback>
                         <Icon className="h-4 w-4 text-muted-foreground" />
@@ -108,7 +141,33 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
             <div className="space-y-1 pb-8">
                 <p className="text-xs text-muted-foreground">{format(new Date(activity.date), 'PPP p')}</p>
                 <p className="text-sm font-medium">{title}</p>
-                <p className="text-sm text-muted-foreground">{content}</p>
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{content}</p>
+                {activity.activityType === 'communication' && (
+                  <Button variant="ghost" size="sm" className="h-auto p-1 -ml-1 text-xs" onClick={() => setReplyingTo(replyingTo === activity.id ? null : activity.id)}>
+                    <CornerDownRight className="h-3 w-3 mr-1" />
+                    Reply
+                  </Button>
+                )}
+
+                 {replies && replies.length > 0 && (
+                  <div className="pt-4 space-y-4">
+                    {replies.map((reply) => (
+                      <div key={reply.id} className="flex items-start gap-3 ml-4 pl-4 border-l">
+                         <Avatar className="h-6 w-6">
+                            <AvatarFallback className="text-xs">{reply.staffName.substring(0, 1)}</AvatarFallback>
+                         </Avatar>
+                         <div className="flex-1">
+                            <p className="text-xs text-muted-foreground">{reply.staffName} &middot; {format(new Date(reply.date), 'PP p')}</p>
+                            <p className="text-sm">{reply.content}</p>
+                         </div>
+                      </div>
+                    ))}
+                  </div>
+                 )}
+
+                <AnimatePresence>
+                  {replyingTo === activity.id && <ReplyForm parentId={activity.id} />}
+                </AnimatePresence>
             </div>
         </div>
     )
@@ -119,30 +178,15 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
       <CardHeader>
         <CardTitle>Activity Feed</CardTitle>
         <CardDescription>A log of all interactions and orders related to this customer.</CardDescription>
-        <Tabs value={filter} onValueChange={(value) => setFilter(value as ActivityType)} className="w-full pt-2">
-            <TabsList>
-                <TabsTrigger value="all">All Activity</TabsTrigger>
-                <TabsTrigger value="order">Orders</TabsTrigger>
-                <TabsTrigger value="communication">Notes & Activity</TabsTrigger>
-            </TabsList>
-        </Tabs>
       </CardHeader>
       <CardContent>
-          <div className="relative pl-8">
-              <div className="absolute left-3 top-3 h-full w-0.5 bg-border" />
-              <div className="absolute -left-[1px] top-0">
-                <Avatar className="h-8 w-8 border-2 border-background bg-primary/10">
-                    <AvatarFallback className="bg-transparent">
-                        <PlusCircle className="h-4 w-4 text-primary" />
-                    </AvatarFallback>
-                </Avatar>
-              </div>
-              <div className="space-y-4 pb-8">
-                <Textarea
+          <Card className="mb-6 bg-muted/50">
+            <CardContent className="p-4 space-y-3">
+                 <Textarea
                     placeholder="Add a note or log an interaction..."
                     value={newNote}
                     onChange={e => setNewNote(e.target.value)}
-                    className="min-h-[80px]"
+                    className="min-h-[80px] bg-background"
                 />
                 <div className="flex justify-between items-center">
                     <Select value={interactionType} onValueChange={v => setInteractionType(v as InteractionType)}>
@@ -155,12 +199,20 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
                             <SelectItem value="Meeting"><Users className="mr-2 h-4 w-4" />Log a Meeting</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Button onClick={handleAddNote} disabled={!newNote}>
-                        Save Note
+                    <Button onClick={() => handleAddCommunication()} disabled={!newNote}>
+                        Save
                     </Button>
                 </div>
-              </div>
-          </div>
+            </CardContent>
+          </Card>
+        
+        <Tabs value={filter} onValueChange={(value) => setFilter(value as ActivityType)} className="w-full mb-4">
+            <TabsList>
+                <TabsTrigger value="all">All Activity</TabsTrigger>
+                <TabsTrigger value="order">Orders</TabsTrigger>
+                <TabsTrigger value="communication">Notes & Activity</TabsTrigger>
+            </TabsList>
+        </Tabs>
 
           {visibleActivities.length > 0 ? visibleActivities.map((activity, index) => (
               <TimelineItem 

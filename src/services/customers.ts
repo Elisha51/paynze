@@ -1,31 +1,58 @@
 
 
+
 import { customers as mockCustomers } from '@/lib/data';
 import type { Customer } from '@/lib/types';
 import { getOrders } from './orders';
-import { subDays } from 'date-fns';
+import { subDays, subHours } from 'date-fns';
 
-let customers: Customer[] = [...mockCustomers].map((customer, index) => ({
-    ...customer,
-    communications: [
+let customers: Customer[] = [...mockCustomers].map((customer, index) => {
+    const baseComms = [
         {
             id: `comm-1-${index}`,
-            type: 'Note',
-            content: 'Initial customer import.',
+            type: 'Note' as const,
+            content: 'Initial customer import from previous system.',
             date: subDays(new Date(), 10).toISOString(),
             staffId: 'system',
             staffName: 'System'
-        },
-        ...(index === 0 ? [{
+        }
+    ];
+
+    if (index === 0) {
+        baseComms.push({
             id: 'comm-2-0',
             type: 'Phone' as const,
-            content: 'Called to confirm wholesale pricing interest.',
+            content: 'Called to confirm wholesale pricing interest. Sent over the latest catalog.',
             date: subDays(new Date(), 5).toISOString(),
             staffId: 'staff-002',
             staffName: 'Jane Smith'
-        }] : [])
-    ]
-}));
+        });
+        baseComms.push({
+            id: 'comm-3-0',
+            type: 'Note' as const,
+            content: 'This is a reply to the phone call log.',
+            date: subDays(new Date(), 4).toISOString(),
+            staffId: 'staff-001',
+            staffName: 'Admin',
+            threadId: 'comm-2-0'
+        });
+    }
+     if (index === 1) {
+        baseComms.push({
+            id: 'comm-2-1',
+            type: 'Meeting' as const,
+            content: 'Met at the trade show. Discussed potential for a larger order of leather goods.',
+            date: subHours(new Date(), 8).toISOString(),
+            staffId: 'staff-001',
+            staffName: 'Admin'
+        });
+    }
+
+    return {
+        ...customer,
+        communications: baseComms,
+    };
+});
 
 // In a real app, this would fetch from an API.
 // const apiBaseUrl = config.apiBaseUrl;

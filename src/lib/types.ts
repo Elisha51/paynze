@@ -1,6 +1,7 @@
 
 
 
+
 export type ProductImage = {
   id: string;
   url: string;
@@ -207,6 +208,7 @@ export type Communication = {
   date: string;
   staffId: string;
   staffName: string;
+  threadId?: string;
 };
 
 export type Customer = {

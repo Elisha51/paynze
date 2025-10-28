@@ -25,6 +25,8 @@ import { Badge } from '@/components/ui/badge';
 import { classifyCustomer, ClassifyCustomerOutput } from '@/ai/flows/classify-customers';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CustomerActivityLog } from '@/components/dashboard/customer-activity-log';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
 
 export default function ViewCustomerPage() {
   const params = useParams();
@@ -86,7 +88,8 @@ export default function ViewCustomerPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           <Skeleton className="h-9 w-9" />
-          <div className="flex-1 space-y-1">
+          <Skeleton className="h-16 w-16 rounded-full" />
+          <div className="flex-1 space-y-2">
             <Skeleton className="h-7 w-48" />
             <Skeleton className="h-4 w-64" />
           </div>
@@ -140,6 +143,9 @@ export default function ViewCustomerPage() {
             <span className="sr-only">Back to Customers</span>
           </Link>
         </Button>
+         <Avatar className="h-16 w-16">
+            <AvatarFallback>{getInitials(customer.name)}</AvatarFallback>
+         </Avatar>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">
             {customer.name}
