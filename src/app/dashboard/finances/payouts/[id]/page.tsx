@@ -106,10 +106,15 @@ export default function PayoutReviewPage() {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-8 w-48" />
-                <Card>
-                    <CardHeader><Skeleton className="h-6 w-1/2" /></CardHeader>
-                    <CardContent><Skeleton className="h-48 w-full" /></CardContent>
-                </Card>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-1 space-y-6">
+                        <Skeleton className="h-48 w-full" />
+                    </div>
+                    <div className="lg:col-span-2 space-y-6">
+                        <Skeleton className="h-80 w-full" />
+                        <Skeleton className="h-64 w-full" />
+                    </div>
+                </div>
              </div>
         );
     }
@@ -133,6 +138,41 @@ export default function PayoutReviewPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-1 space-y-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Payout Summary</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex justify-between text-lg">
+                                <span className="text-muted-foreground">Total Payout:</span>
+                                <span className="font-bold text-primary">{formatCurrency(staffMember.totalCommission || 0, staffMember.currency || 'UGX')}</span>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                             <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button className="w-full" disabled={!staffMember.totalCommission || staffMember.totalCommission <= 0}>
+                                        <CheckCircle className="mr-2 h-4 w-4" />
+                                        Process Payout
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Confirm Payout</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will create an expense of {formatCurrency(staffMember.totalCommission || 0, staffMember.currency || 'UGX')} and reset {staffMember.name}'s unpaid commission balance. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleProcessPayout}>Confirm & Pay</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </CardFooter>
+                    </Card>
+                </div>
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
@@ -188,41 +228,6 @@ export default function PayoutReviewPage() {
                                 </TableBody>
                             </Table>
                         </CardContent>
-                    </Card>
-                </div>
-                <div className="lg:col-span-1 space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Payout Summary</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex justify-between text-lg">
-                                <span className="text-muted-foreground">Total Payout:</span>
-                                <span className="font-bold text-primary">{formatCurrency(staffMember.totalCommission || 0, staffMember.currency || 'UGX')}</span>
-                            </div>
-                        </CardContent>
-                        <CardFooter>
-                             <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button className="w-full" disabled={!staffMember.totalCommission || staffMember.totalCommission <= 0}>
-                                        <CheckCircle className="mr-2 h-4 w-4" />
-                                        Process Payout
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>Confirm Payout</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            This will create an expense of {formatCurrency(staffMember.totalCommission || 0, staffMember.currency || 'UGX')} and reset {staffMember.name}'s unpaid commission balance. This action cannot be undone.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                        <AlertDialogAction onClick={handleProcessPayout}>Confirm & Pay</AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
-                        </CardFooter>
                     </Card>
                 </div>
             </div>
