@@ -13,7 +13,7 @@ import type { ProductImage } from '@/lib/types';
 
 interface FileUploaderProps {
   files: (File | ProductImage)[];
-  onFilesChange: (files: File[]) => void;
+  onFilesChange: (files: (File | ProductImage)[]) => void;
   maxFiles?: number;
   accept?: { [key: string]: string[] };
 }
@@ -44,10 +44,11 @@ export function FileUploader({
         });
       }
 
-      let newFiles: File[];
+      const existingFiles = files.filter(f => !(f instanceof File));
+      let newFiles: (File | ProductImage)[];
+      
       if (maxFiles > 1) {
-        // We cast files to any because it could be ProductImage type
-        newFiles = [...(files as any[]), ...acceptedFiles].slice(0, maxFiles);
+        newFiles = [...existingFiles, ...files.filter(f => f instanceof File), ...acceptedFiles].slice(0, maxFiles);
       } else {
         newFiles = acceptedFiles.slice(0, 1);
       }
@@ -66,18 +67,18 @@ export function FileUploader({
   });
 
   const removeFile = (index: number) => {
-    const newFiles = files.filter((_, i) => i !== index) as File[];
+    const newFiles = files.filter((_, i) => i !== index);
     onFilesChange(newFiles);
   };
 
   const previews = useMemo(() => files.map((file, index) => {
     const isFile = file instanceof File;
-    const isImage = isFile && file.type?.startsWith('image/');
     const url = isFile ? URL.createObjectURL(file) : (file as ProductImage).url;
-    const name = isFile ? file.name : 'Image';
+    const name = isFile ? file.name : (file as ProductImage).id;
+    const isImage = (isFile && file.type.startsWith('image/')) || (!isFile && url.includes('picsum'));
     
     return (
-      <div key={index} className="relative w-24 h-24 rounded-md overflow-hidden border">
+      <div key={name + index} className="relative w-24 h-24 rounded-md overflow-hidden border">
         {isImage ? (
             <Image src={url} alt="File preview" fill className="object-cover" />
         ) : (

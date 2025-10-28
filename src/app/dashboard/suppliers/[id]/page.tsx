@@ -161,9 +161,11 @@ export default function ViewSupplierPage() {
                     New PO
                 </Link>
             </Button>
-            <Button variant="outline">
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
+            <Button variant="outline" asChild>
+                 <Link href={`/dashboard/suppliers/${supplier.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                </Link>
             </Button>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>

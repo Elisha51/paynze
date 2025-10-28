@@ -251,27 +251,19 @@ export default function ProcurementPage() {
         onTabChange={setActiveTab}
     >
       <DashboardPageLayout.TabContent value="suppliers">
-        <Card>
-          <CardContent className="pt-6">
-            <DataTable columns={supplierColumns} data={suppliers} />
-          </CardContent>
-        </Card>
+        <DataTable columns={supplierColumns} data={suppliers} />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="purchase-orders">
-        <Card>
-            <CardContent className="pt-6">
-                <DataTable 
-                    columns={poColumns} 
-                    data={purchaseOrders}
-                    filters={[{
-                        columnId: 'status',
-                        title: 'Status',
-                        options: poStatuses
-                    }]}
-                />
-            </CardContent>
-        </Card>
+        <DataTable 
+            columns={poColumns} 
+            data={purchaseOrders}
+            filters={[{
+                columnId: 'status',
+                title: 'Status',
+                options: poStatuses
+            }]}
+        />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reports">

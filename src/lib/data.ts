@@ -349,16 +349,16 @@ export const recentSales: RecentSale[] = [
 ];
 
 export const salesData: SalesData[] = [
-    { name: 'Jan', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Feb', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Mar', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Apr', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'May', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Jun', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Jul', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Aug', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Sep', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Oct', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Nov', total: Math.floor(Math.random() * 5000) + 1000 },
-    { name: 'Dec', total: Math.floor(Math.random() * 5000) + 1000 },
+    { name: 'Jan', total: 325000 },
+    { name: 'Feb', total: 410000 },
+    { name: 'Mar', total: 280000 },
+    { name: 'Apr', total: 480000 },
+    { name: 'May', total: 390000 },
+    { name: 'Jun', total: 310000 },
+    { name: 'Jul', total: 420000 },
+    { name: 'Aug', total: 0 },
+    { name: 'Sep', total: 0 },
+    { name: 'Oct', total: 0 },
+    { name: 'Nov', total: 0 },
+    { name: 'Dec', total: 0 },
 ];

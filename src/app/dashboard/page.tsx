@@ -1,4 +1,8 @@
 
+
+'use client';
+
+import React from 'react';
 import {
   Card,
   CardContent,
@@ -13,12 +17,55 @@ import {
   Activity,
 } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { recentSales } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { QuickLinks } from '@/components/dashboard/quick-links';
+import { getOrders } from '@/services/orders';
+import { getCustomers } from '@/services/customers';
+import type { Order, Customer, RecentSale } from '@/lib/types';
+import { StaffWidget } from '@/components/dashboard/staff-widget';
+import { getStaff } from '@/services/staff';
+import type { Staff } from '@/lib/types';
 
 export default function DashboardPage() {
+  const [orders, setOrders] = React.useState<Order[]>([]);
+  const [customers, setCustomers] = React.useState<Customer[]>([]);
+  const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function loadData() {
+      setIsLoading(true);
+      const [orderData, customerData, staffData] = await Promise.all([
+        getOrders(),
+        getCustomers(),
+        getStaff()
+      ]);
+      setOrders(orderData);
+      setCustomers(customerData);
+      setStaff(staffData);
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+  
+  const totalRevenue = orders.reduce((sum, order) => sum + order.total, 0);
+  const totalSales = orders.length;
+  const totalCustomers = customers.length;
+  const currency = orders.length > 0 ? orders[0].currency : 'UGX';
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  };
+  
+  const recentSales: RecentSale[] = orders.slice(0, 5).map(order => ({
+      id: order.id,
+      name: order.customerName,
+      email: order.customerEmail,
+      amount: `+${formatCurrency(order.total)}`,
+      avatarId: 'avatar-1' // Fallback avatar
+  }));
+
+
   return (
     <div className="flex-1 space-y-4">
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -28,9 +75,9 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">KES 452,318.89</div>
+            <div className="text-2xl font-bold">{formatCurrency(totalRevenue)}</div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              Based on all orders
             </p>
           </CardContent>
         </Card>
@@ -40,9 +87,9 @@ export default function DashboardPage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+2350</div>
+            <div className="text-2xl font-bold">+{totalCustomers}</div>
             <p className="text-xs text-muted-foreground">
-              +180.1% from last month
+              Total customers
             </p>
           </CardContent>
         </Card>
@@ -52,9 +99,9 @@ export default function DashboardPage() {
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">+12,234</div>
+            <div className="text-2xl font-bold">+{totalSales}</div>
             <p className="text-xs text-muted-foreground">
-              +19% from last month
+              Total orders placed
             </p>
           </CardContent>
         </Card>
@@ -66,7 +113,7 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">+573</div>
             <p className="text-xs text-muted-foreground">
-              +201 since last hour
+              +201 since last hour (mock)
             </p>
           </CardContent>
         </Card>
@@ -85,7 +132,7 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle>Recent Sales</CardTitle>
             <CardDescription>
-              You made 265 sales this month.
+              Your most recent orders.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -114,6 +161,15 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+       <Card>
+        <CardHeader>
+          <CardTitle>Your Team</CardTitle>
+          <CardDescription>An overview of your staff members and their online status.</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <StaffWidget staff={staff} isLoading={isLoading} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

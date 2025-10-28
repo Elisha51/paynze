@@ -1,10 +1,11 @@
 
+
 'use client';
 import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,9 +17,16 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import type { Customer } from '@/lib/types';
-import { getCustomers } from '@/services/customers';
 import { DataTable } from './data-table';
 import Link from 'next/link';
+import { Users } from 'lucide-react';
+
+
+const customerGroups = [
+    { value: 'default', label: 'Default' },
+    { value: 'Wholesaler', label: 'Wholesaler' },
+    { value: 'Retailer', label: 'Retailer' },
+];
 
 
 const columns: ColumnDef<Customer>[] = [
@@ -83,6 +91,9 @@ const columns: ColumnDef<Customer>[] = [
     accessorKey: 'customerGroup',
     header: 'Group',
     cell: ({ row }) => <Badge variant="outline">{row.getValue('customerGroup')}</Badge>,
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
   {
     accessorKey: 'lastOrderDate',
@@ -122,11 +133,11 @@ const columns: ColumnDef<Customer>[] = [
   {
     id: 'actions',
     enableHiding: false,
-    header: () => <div className="text-right">Actions</div>,
+    header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
       const customer = row.original;
       return (
-        <div className="relative bg-background text-right sticky right-0">
+        <div className="bg-background text-right sticky right-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -159,40 +170,33 @@ const columns: ColumnDef<Customer>[] = [
 ];
 
 type CustomersTableProps = {
-  cardTitle: string;
-  cardDescription: string;
-  filter?: {
-    column: string;
-    value: string;
-  };
+  customers: Customer[];
+  isLoading: boolean;
 };
 
-export function CustomersTable({ cardTitle, cardDescription, filter }: CustomersTableProps) {
-  const [data, setData] = React.useState<Customer[]>([]);
-  const [allData, setAllData] = React.useState<Customer[]>([]);
-
-  React.useEffect(() => {
-    async function loadCustomers() {
-      const fetchedCustomers = await getCustomers();
-      setAllData(fetchedCustomers);
-    }
-    loadCustomers();
-  }, []);
-
-  React.useEffect(() => {
-    if (filter) {
-      setData(allData.filter(item => (item as any)[filter.column] === filter.value));
-    } else {
-      setData(allData);
-    }
-  }, [allData, filter]);
-
+export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
   return (
     <DataTable
       columns={columns}
-      data={data}
-      cardTitle={cardTitle}
-      cardDescription={cardDescription}
+      data={customers}
+      filters={[{
+        columnId: 'customerGroup',
+        title: 'Group',
+        options: customerGroups
+      }]}
+      emptyState={{
+        icon: Users,
+        title: "No Customers Yet",
+        description: "You haven't added any customers. Add your first customer to get started.",
+        cta: (
+            <Button asChild>
+                <Link href="/dashboard/customers/add">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Customer
+                </Link>
+            </Button>
+        )
+      }}
     />
   );
 }
