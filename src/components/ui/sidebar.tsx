@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
@@ -72,11 +71,9 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarContext.Provider value={{ state, isMobile, toggleSidebar }}>
-      <TooltipProvider delayDuration={0}>
-        <Sheet open={sheetOpenValue} onOpenChange={onSheetOpenChange}>
+      <Sheet open={sheetOpenValue} onOpenChange={onSheetOpenChange}>
           {children}
-        </Sheet>
-      </TooltipProvider>
+      </Sheet>
     </SidebarContext.Provider>
   );
 }
