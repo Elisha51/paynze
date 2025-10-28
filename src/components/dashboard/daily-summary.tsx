@@ -93,8 +93,8 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                         return (
                             <AccordionItem value={summary.date} key={summary.date}>
                                 <div className="flex items-center">
-                                    <AccordionTrigger className="flex-1">
-                                        <div className="flex justify-between items-center w-full pr-4">
+                                    <AccordionTrigger className="flex-1 py-4">
+                                        <div className="flex justify-between items-center w-full">
                                             <div className="text-left">
                                                 <p className="font-semibold text-lg">{format(new Date(summary.date), 'PPP')}</p>
                                                 <p className="text-sm text-muted-foreground">{summary.transactions.length} transactions</p>
