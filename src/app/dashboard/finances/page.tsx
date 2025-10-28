@@ -53,6 +53,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { FileUploader } from '@/components/ui/file-uploader';
+import { DailySummary } from '@/components/dashboard/daily-summary';
 
 const getColumns = (): ColumnDef<Transaction>[] => [
     { accessorKey: 'date', header: 'Date' },
@@ -192,6 +193,7 @@ export default function FinancesPage() {
 
   const mainTabs = [
     { value: 'transactions', label: 'All Transactions' },
+    { value: 'summary', label: 'Daily Summary' },
     { value: 'payroll', label: 'Payroll' },
     { value: 'reconciliation', label: 'Reconciliation' },
     { value: 'reports', label: 'Reports' },
@@ -312,6 +314,10 @@ export default function FinancesPage() {
             />
           </CardContent>
         </Card>
+      </DashboardPageLayout.TabContent>
+
+      <DashboardPageLayout.TabContent value="summary">
+        <DailySummary transactions={transactions} />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="payroll">
