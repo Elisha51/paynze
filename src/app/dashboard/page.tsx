@@ -16,6 +16,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { recentSales, salesData } from '@/lib/data';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
+import { QuickLinks } from '@/components/dashboard/quick-links';
 
 export default function DashboardPage() {
   return (
@@ -70,6 +71,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       </div>
+      <QuickLinks />
       <div className="grid gap-4 lg:grid-cols-7">
         <Card className="lg:col-span-4">
           <CardHeader>
