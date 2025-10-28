@@ -378,6 +378,7 @@ export type Transaction = {
     type: 'Income' | 'Expense';
     category: 'Sales' | 'Inventory' | 'Utilities' | 'Salaries' | 'Marketing' | 'Other';
     status: 'Cleared' | 'Pending' | 'Reconciled';
+    paymentMethod: 'Cash' | 'Mobile Money' | 'Bank Transfer' | 'Card' | 'Other';
 };
 
 export type Role = {

@@ -2,27 +2,12 @@
 
 'use client';
 
-import { PlusCircle, Download, FileText, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
-import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
-
-import { Badge } from '@/components/ui/badge';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { DataTable } from '@/components/dashboard/data-table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Transaction, Staff, Role, Order } from '@/lib/types';
+import type { Transaction } from '@/lib/types';
 import { getTransactions, addTransaction } from '@/services/finances';
-import { getStaff } from '@/services/staff';
-import { getRoles } from '@/services/roles';
 import {
   Dialog,
   DialogContent,
@@ -44,69 +29,12 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { CommissionReport } from '@/components/dashboard/commission-report';
-import { BarChart, Upload } from 'lucide-react';
-import { getOrders } from '@/services/orders';
-import type { DateRange } from 'react-day-picker';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
-import { Calendar } from '@/components/ui/calendar';
-import { FileUploader } from '@/components/ui/file-uploader';
 import { DailySummary } from '@/components/dashboard/daily-summary';
-
-const getColumns = (): ColumnDef<Transaction>[] => [
-    { accessorKey: 'date', header: 'Date' },
-    { accessorKey: 'description', header: 'Description' },
-    { 
-        accessorKey: 'type', 
-        header: 'Type',
-        cell: ({ row }) => {
-            const isIncome = row.getValue('type') === 'Income';
-            return <Badge variant={isIncome ? 'default' : 'secondary'}>{row.getValue('type')}</Badge>
-        }
-    },
-    { accessorKey: 'category', header: 'Category' },
-    { 
-        accessorKey: 'status', 
-        header: 'Status',
-        cell: ({ row }) => <Badge variant={row.getValue('status') === 'Cleared' ? 'secondary' : 'outline'}>{row.getValue('status')}</Badge>
-    },
-    {
-        accessorKey: 'amount',
-        header: ({ column }) => (
-          <div className="text-right">
-            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-              Amount
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          </div>
-        ),
-        cell: ({ row }) => {
-          const amount = parseFloat(row.getValue('amount'));
-          const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(amount);
-          const amountClass = row.original.type === 'Income' ? 'text-green-600' : 'text-red-600';
-          return <div className={`text-right font-medium ${amountClass}`}>{formatted}</div>;
-        },
-    },
-    {
-        id: 'actions',
-        header: () => <div className="text-right">Actions</div>,
-        cell: () => (
-          <div className="relative bg-background text-right sticky right-0">
-             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0"><span className="sr-only">Open menu</span><MoreHorizontal className="h-4 w-4" /></Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem>View Details</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ),
-    },
-];
+import { FileUploader } from '@/components/ui/file-uploader';
+import { Upload } from 'lucide-react';
+import { TransactionsTable } from '@/components/dashboard/transactions-table';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   description: '',
@@ -115,36 +43,22 @@ const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   type: 'Expense',
   category: 'Other',
   status: 'Pending',
+  paymentMethod: 'Cash',
 };
 
 export default function FinancesPage() {
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
-  const [staff, setStaff] = React.useState<Staff[]>([]);
-  const [roles, setRoles] = React.useState<Role[]>([]);
-  const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
-  const [date, setDate] = React.useState<DateRange | undefined>({
-    from: addDays(new Date(), -29),
-    to: new Date(),
-  });
   const [statementFile, setStatementFile] = React.useState<File[]>([]);
   const { toast } = useToast();
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
-    const [fetchedTransactions, fetchedStaff, fetchedRoles, fetchedOrders] = await Promise.all([
-        getTransactions(),
-        getStaff(),
-        getRoles(),
-        getOrders(),
-    ]);
+    const fetchedTransactions = await getTransactions();
     setTransactions(fetchedTransactions);
-    setStaff(fetchedStaff);
-    setRoles(fetchedRoles);
-    setOrders(fetchedOrders);
     setIsLoading(false);
   }, []);
 
@@ -160,17 +74,6 @@ export default function FinancesPage() {
   const handleSelectChange = (field: keyof typeof emptyTransaction, value: string) => {
     setNewTransaction(prev => ({...prev, [field]: value}));
   }
-  
-  const handlePresetChange = (value: string) => {
-    const now = new Date();
-    switch (value) {
-      case 'today': setDate({ from: now, to: now }); break;
-      case 'last-7': setDate({ from: addDays(now, -6), to: now }); break;
-      case 'last-30': setDate({ from: addDays(now, -29), to: now }); break;
-      case 'ytd': setDate({ from: new Date(now.getFullYear(), 0, 1), to: now }); break;
-      default: setDate(undefined);
-    }
-  };
 
   const handleAddTransaction = async () => {
     if (!newTransaction.description || newTransaction.amount === 0) {
@@ -181,7 +84,7 @@ export default function FinancesPage() {
     const transactionToAdd = { 
         ...newTransaction, 
         amount: finalAmount, 
-        date: format(new Date(), 'yyyy-MM-dd')
+        date: format(new Date(), 'yyyy-MM-dd HH:mm:ss')
     };
 
     await addTransaction(transactionToAdd);
@@ -194,12 +97,15 @@ export default function FinancesPage() {
   const mainTabs = [
     { value: 'transactions', label: 'All Transactions' },
     { value: 'summary', label: 'Daily Summary' },
-    { value: 'payroll', label: 'Payroll' },
     { value: 'reconciliation', label: 'Reconciliation' },
-    { value: 'reports', label: 'Reports' },
+  ];
+  
+   const filterTabs = [
+    { value: 'all', label: 'All' },
+    { value: 'cleared', label: 'Cleared' },
+    { value: 'pending', label: 'Pending' },
   ];
 
-  const columns = React.useMemo(() => getColumns(), []);
 
   const cta = (
     <div className="flex gap-2">
@@ -251,6 +157,19 @@ export default function FinancesPage() {
                         </div>
                     </div>
                     <div className="space-y-2">
+                        <Label htmlFor="paymentMethod">Payment Method</Label>
+                        <Select onValueChange={(v) => handleSelectChange('paymentMethod', v as Transaction['paymentMethod'])} defaultValue={newTransaction.paymentMethod}>
+                            <SelectTrigger><SelectValue/></SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Cash">Cash</SelectItem>
+                                <SelectItem value="Mobile Money">Mobile Money</SelectItem>
+                                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                                <SelectItem value="Card">Card</SelectItem>
+                                <SelectItem value="Other">Other</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
                         <Select onValueChange={(v) => handleSelectChange('category', v)} defaultValue={newTransaction.category}>
                             <SelectTrigger><SelectValue/></SelectTrigger>
@@ -293,125 +212,55 @@ export default function FinancesPage() {
         onTabChange={setActiveTab}
     >
       <DashboardPageLayout.TabContent value="transactions">
-        <Card>
-          <CardContent className="pt-6">
-            <DataTable 
-                columns={columns} 
-                data={transactions} 
-                emptyState={{
-                    icon: FileText,
-                    title: "No Transactions Yet",
-                    description: "When you make sales or record expenses, they'll appear here.",
-                    cta: (
-                        <DialogTrigger asChild>
-                            <Button>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add First Transaction
-                            </Button>
-                        </DialogTrigger>
-                    )
-                }}
-            />
-          </CardContent>
-        </Card>
+          <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="all">
+            <DashboardPageLayout.TabContent value="all">
+                <TransactionsTable
+                  transactions={transactions}
+                  isLoading={isLoading}
+                />
+            </DashboardPageLayout.TabContent>
+             <DashboardPageLayout.TabContent value="cleared">
+                <TransactionsTable
+                  transactions={transactions}
+                  isLoading={isLoading}
+                  filter={{ column: 'status', value: 'Cleared' }}
+                />
+            </DashboardPageLayout.TabContent>
+             <DashboardPageLayout.TabContent value="pending">
+                <TransactionsTable
+                  transactions={transactions}
+                  isLoading={isLoading}
+                  filter={{ column: 'status', value: 'Pending' }}
+                />
+            </DashboardPageLayout.TabContent>
+          </DashboardPageLayout.FilterTabs>
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="summary">
         <DailySummary transactions={transactions} />
       </DashboardPageLayout.TabContent>
 
-      <DashboardPageLayout.TabContent value="payroll">
-          <CommissionReport staff={staff} roles={roles} orders={orders} onPayout={loadData} />
-      </DashboardPageLayout.TabContent>
-
       <DashboardPageLayout.TabContent value="reconciliation">
-        <Card>
-            <CardHeader>
-                <CardTitle>Reconciliation</CardTitle>
-                <CardDescription>Upload your bank or mobile money statements to match against your recorded transactions.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-                <FileUploader
-                    files={statementFile}
-                    onFilesChange={setStatementFile}
-                    maxFiles={1}
-                    accept={{ 'text/csv': ['.csv'], 'application/pdf': ['.pdf'] }}
-                />
-                <Button disabled={statementFile.length === 0}>
-                    <Upload className="mr-2 h-4 w-4"/>
-                    Start Reconciliation
-                </Button>
-            </CardContent>
-        </Card>
-      </DashboardPageLayout.TabContent>
-
-      <DashboardPageLayout.TabContent value="reports">
-        <Card>
-          <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
-            <div>
-                <CardTitle>Financial Reports</CardTitle>
-                <CardDescription>Analyze your income, expenses, and overall financial health.</CardDescription>
-            </div>
-            <div className="flex items-center gap-2 w-full lg:w-auto">
-                <Select onValueChange={handlePresetChange} defaultValue="last-30">
-                    <SelectTrigger className="w-full lg:w-[180px]">
-                        <SelectValue placeholder="Select a preset" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        <SelectItem value="today">Today</SelectItem>
-                        <SelectItem value="last-7">Last 7 days</SelectItem>
-                        <SelectItem value="last-30">Last 30 days</SelectItem>
-                        <SelectItem value="ytd">Year to date</SelectItem>
-                    </SelectContent>
-                </Select>
-                <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        id="date"
-                        variant={"outline"}
-                        className={cn(
-                        "w-full lg:w-[300px] justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                        )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {date?.from ? (
-                        date.to ? (
-                            <>
-                            {format(date.from, "LLL dd, y")} -{" "}
-                            {format(date.to, "LLL dd, y")}
-                            </>
-                        ) : (
-                            format(date.from, "LLL dd, y")
-                        )
-                        ) : (
-                        <span>Pick a date</span>
-                        )}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={date?.from}
-                        selected={date}
-                        onSelect={setDate}
-                        numberOfMonths={2}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Reconciliation</CardTitle>
+                    <CardDescription>Upload your bank or mobile money statements to match against your recorded transactions.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <FileUploader
+                        files={statementFile}
+                        onFilesChange={setStatementFile}
+                        maxFiles={1}
+                        accept={{ 'text/csv': ['.csv'], 'application/pdf': ['.pdf'] }}
                     />
-                    </PopoverContent>
-                </Popover>
-            </div>
-          </CardHeader>
-          <CardContent>
-             <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
-                <div className="bg-primary/10 p-4 rounded-full">
-                    <BarChart className="h-12 w-12 text-primary" />
-                </div>
-                <h2 className="text-xl font-semibold">Report Data Not Implemented</h2>
-                <p className="text-muted-foreground max-w-sm mx-auto">The UI is ready, but the logic to generate and display the financial charts and tables for the selected date range has not been implemented yet.</p>
-            </div>
-          </CardContent>
-        </Card>
+                    <Button disabled={statementFile.length === 0}>
+                        <Upload className="mr-2 h-4 w-4"/>
+                        Start Reconciliation
+                    </Button>
+                </CardContent>
+            </Card>
+        </div>
       </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );
