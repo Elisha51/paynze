@@ -242,4 +242,3 @@ export async function updateProductStock(
 
     await updateProduct(productToUpdate);
 }
-

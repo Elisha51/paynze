@@ -416,5 +416,3 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
     </>
   );
 }
-
-

@@ -377,7 +377,7 @@ export type Transaction = {
     currency: 'UGX' | 'KES' | 'TZS' | 'USD';
     type: 'Income' | 'Expense';
     category: 'Sales' | 'Inventory' | 'Utilities' | 'Salaries' | 'Marketing' | 'Other';
-    status: 'Cleared' | 'Pending' | 'Reconciled';
+    status: 'Cleared' | 'Pending';
     paymentMethod: 'Cash' | 'Mobile Money' | 'Bank Transfer' | 'Card' | 'Other';
 };
 
