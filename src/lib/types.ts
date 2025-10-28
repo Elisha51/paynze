@@ -397,3 +397,11 @@ export type Notification = {
     read: boolean;
     link?: string;
 };
+
+// To-do Types
+export type Todo = {
+  id: string;
+  title: string;
+  status: 'To Do' | 'Completed';
+  createdAt: string;
+};
