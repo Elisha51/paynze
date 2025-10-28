@@ -26,6 +26,7 @@ import {
   Truck,
   Landmark,
   User,
+  ClipboardCheck
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';

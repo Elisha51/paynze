@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
 import { ClipboardCheck } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
@@ -38,38 +39,46 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
         {/* Search form removed */}
       </div>
 
-      <Button variant="ghost" size="icon" className="relative rounded-full" asChild>
-        <Link href="/dashboard/my-tasks">
-            <ClipboardCheck className="h-5 w-5" />
-            <span className="sr-only">My Tasks</span>
+      <div className="flex items-center gap-2">
+        <Link href="/dashboard/my-tasks" className="relative">
+            <Button variant="ghost" size="icon" className="rounded-full">
+                <ClipboardCheck className="h-5 w-5" />
+                <span className="sr-only">My Tasks</span>
+            </Button>
+            <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-1 text-xs"
+            >
+                2
+            </Badge>
         </Link>
-      </Button>
 
-      <NotificationBell />
+        <NotificationBell />
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="secondary" size="icon" className="rounded-full">
-            <Avatar>
-              <AvatarImage src="https://picsum.photos/seed/admin/40/40" alt="Admin" />
-              <AvatarFallback>{onboardingData ? getInitials(onboardingData.businessName) : 'AD'}</AvatarFallback>
-            </Avatar>
-            <span className="sr-only">Toggle user menu</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuLabel>{onboardingData?.businessName || 'My Account'}</DropdownMenuLabel>
-          <DropdownMenuSeparator />
-           <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
-          <DropdownMenuItem>Support</DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <Link href="/login">Logout</Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+            <Button variant="secondary" size="icon" className="rounded-full">
+                <Avatar>
+                <AvatarImage src="https://picsum.photos/seed/admin/40/40" alt="Admin" />
+                <AvatarFallback>{onboardingData ? getInitials(onboardingData.businessName) : 'AD'}</AvatarFallback>
+                </Avatar>
+                <span className="sr-only">Toggle user menu</span>
+            </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+            <DropdownMenuLabel>{onboardingData?.businessName || 'My Account'}</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
+            <DropdownMenuItem>Support</DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+                <Link href="/login">Logout</Link>
+            </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   );
 }
