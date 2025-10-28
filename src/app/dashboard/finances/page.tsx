@@ -2,7 +2,7 @@
 
 'use client';
 
-import { PlusCircle, Download, DollarSign } from 'lucide-react';
+import { PlusCircle, Download, DollarSign, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -44,10 +44,15 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { addDays, format } from 'date-fns';
 import { CommissionReport } from '@/components/dashboard/commission-report';
-import { BarChart } from 'lucide-react';
+import { BarChart, Upload } from 'lucide-react';
 import { getOrders } from '@/services/orders';
+import type { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import { FileUploader } from '@/components/ui/file-uploader';
 
 const getColumns = (): ColumnDef<Transaction>[] => [
     { accessorKey: 'date', header: 'Date' },
@@ -120,6 +125,11 @@ export default function FinancesPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
+  const [date, setDate] = React.useState<DateRange | undefined>({
+    from: addDays(new Date(), -29),
+    to: new Date(),
+  });
+  const [statementFile, setStatementFile] = React.useState<File[]>([]);
   const { toast } = useToast();
 
   const loadData = React.useCallback(async () => {
@@ -149,6 +159,17 @@ export default function FinancesPage() {
   const handleSelectChange = (field: keyof typeof emptyTransaction, value: string) => {
     setNewTransaction(prev => ({...prev, [field]: value}));
   }
+  
+  const handlePresetChange = (value: string) => {
+    const now = new Date();
+    switch (value) {
+      case 'today': setDate({ from: now, to: now }); break;
+      case 'last-7': setDate({ from: addDays(now, -6), to: now }); break;
+      case 'last-30': setDate({ from: addDays(now, -29), to: now }); break;
+      case 'ytd': setDate({ from: new Date(now.getFullYear(), 0, 1), to: now }); break;
+      default: setDate(undefined);
+    }
+  };
 
   const handleAddTransaction = async () => {
     if (!newTransaction.description || newTransaction.amount === 0) {
@@ -285,33 +306,87 @@ export default function FinancesPage() {
         <Card>
             <CardHeader>
                 <CardTitle>Reconciliation</CardTitle>
-                <CardDescription>Match your recorded transactions against your bank or mobile money statements.</CardDescription>
+                <CardDescription>Upload your bank or mobile money statements to match against your recorded transactions.</CardDescription>
             </CardHeader>
-            <CardContent>
-                <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
-                    <div className="bg-primary/10 p-4 rounded-full">
-                        <BarChart className="h-12 w-12 text-primary" />
-                    </div>
-                    <h2 className="text-xl font-semibold">Coming Soon</h2>
-                    <p className="text-muted-foreground max-w-sm mx-auto">Detailed reconciliation tools will be available here to help you match records automatically.</p>
-                </div>
+            <CardContent className="space-y-6">
+                <FileUploader
+                    files={statementFile}
+                    onFilesChange={setStatementFile}
+                    maxFiles={1}
+                    accept={{ 'text/csv': ['.csv'], 'application/pdf': ['.pdf'] }}
+                />
+                <Button disabled={statementFile.length === 0}>
+                    <Upload className="mr-2 h-4 w-4"/>
+                    Start Reconciliation
+                </Button>
             </CardContent>
         </Card>
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reports">
         <Card>
-          <CardHeader>
-            <CardTitle>Financial Reports</CardTitle>
-            <CardDescription>Analyze your income, expenses, and overall financial health.</CardDescription>
+          <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+            <div>
+                <CardTitle>Financial Reports</CardTitle>
+                <CardDescription>Analyze your income, expenses, and overall financial health.</CardDescription>
+            </div>
+            <div className="flex items-center gap-2 w-full lg:w-auto">
+                <Select onValueChange={handlePresetChange} defaultValue="last-30">
+                    <SelectTrigger className="w-full lg:w-[180px]">
+                        <SelectValue placeholder="Select a preset" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="last-7">Last 7 days</SelectItem>
+                        <SelectItem value="last-30">Last 30 days</SelectItem>
+                        <SelectItem value="ytd">Year to date</SelectItem>
+                    </SelectContent>
+                </Select>
+                <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        id="date"
+                        variant={"outline"}
+                        className={cn(
+                        "w-full lg:w-[300px] justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date?.from ? (
+                        date.to ? (
+                            <>
+                            {format(date.from, "LLL dd, y")} -{" "}
+                            {format(date.to, "LLL dd, y")}
+                            </>
+                        ) : (
+                            format(date.from, "LLL dd, y")
+                        )
+                        ) : (
+                        <span>Pick a date</span>
+                        )}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                        initialFocus
+                        mode="range"
+                        defaultMonth={date?.from}
+                        selected={date}
+                        onSelect={setDate}
+                        numberOfMonths={2}
+                    />
+                    </PopoverContent>
+                </Popover>
+            </div>
           </CardHeader>
           <CardContent>
              <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
                 <div className="bg-primary/10 p-4 rounded-full">
                     <BarChart className="h-12 w-12 text-primary" />
                 </div>
-                <h2 className="text-xl font-semibold">Coming Soon</h2>
-                <p className="text-muted-foreground max-w-sm mx-auto">Detailed financial reports and analytics will be available here.</p>
+                <h2 className="text-xl font-semibold">Report Data Not Implemented</h2>
+                <p className="text-muted-foreground max-w-sm mx-auto">The UI is ready, but the logic to generate and display the financial charts and tables for the selected date range has not been implemented yet.</p>
             </div>
           </CardContent>
         </Card>
