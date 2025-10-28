@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useMemo } from 'react';
@@ -37,6 +36,7 @@ import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { ScrollArea } from '../ui/scroll-area';
+import { Badge } from '../ui/badge';
 
 type CommissionRow = {
   staffId: string;
@@ -185,6 +185,7 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
                 type: 'Expense',
                 category: 'Salaries',
                 status: 'Cleared',
+                paymentMethod: 'Bank Transfer'
             });
 
             const newPayout: Payout = {
@@ -319,3 +320,4 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
     );
 }
 
+    

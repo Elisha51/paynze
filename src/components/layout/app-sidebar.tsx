@@ -26,6 +26,8 @@ import {
   Truck,
   Landmark,
   User,
+  DollarSign,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -76,6 +78,31 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
 
         <SidebarContent>
             <SidebarMenu>
+                 <SidebarMenuItem>
+                    <Link href="/dashboard/my-profile" passHref>
+                        <SidebarMenuButton
+                        isActive={pathname === '/dashboard/my-profile'}
+                        tooltip="My Profile"
+                        >
+                        <User className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">My Profile</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+                 <SidebarMenuItem>
+                    <Link href="/dashboard/my-tasks" passHref>
+                        <SidebarMenuButton
+                        isActive={pathname === '/dashboard/my-tasks'}
+                        tooltip="My Tasks"
+                        >
+                        <ClipboardList className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">My Tasks</span>
+                        </SidebarMenuButton>
+                    </Link>
+                </SidebarMenuItem>
+
+            <div className="my-2 border-t -mx-2"></div>
+
             {menuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>
