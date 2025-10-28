@@ -14,6 +14,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
+import { ClipboardCheck } from 'lucide-react';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
@@ -37,6 +38,13 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
         {/* Search form removed */}
       </div>
 
+      <Button variant="ghost" size="icon" className="relative rounded-full" asChild>
+        <Link href="/dashboard/my-tasks">
+            <ClipboardCheck className="h-5 w-5" />
+            <span className="sr-only">My Tasks</span>
+        </Link>
+      </Button>
+
       <NotificationBell />
 
       <DropdownMenu>
@@ -53,7 +61,6 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
           <DropdownMenuLabel>{onboardingData?.businessName || 'My Account'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
            <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
-           <DropdownMenuItem asChild><Link href="/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
           <DropdownMenuItem>Support</DropdownMenuItem>
