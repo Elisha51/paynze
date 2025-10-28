@@ -2,7 +2,7 @@
 
 'use client';
 
-import { PlusCircle, Download } from 'lucide-react';
+import { PlusCircle, Download, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -29,12 +29,17 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { DailySummary } from '@/components/dashboard/daily-summary';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { Upload } from 'lucide-react';
 import { TransactionsTable } from '@/components/dashboard/transactions-table';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { DateRange } from 'react-day-picker';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import { Calendar } from '@/components/ui/calendar';
+import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance-analytics-report';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   description: '',
@@ -54,6 +59,10 @@ export default function FinancesPage() {
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
   const [statementFile, setStatementFile] = React.useState<File[]>([]);
   const { toast } = useToast();
+   const [date, setDate] = React.useState<DateRange | undefined>({
+    from: addDays(new Date(), -29),
+    to: new Date(),
+  });
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
@@ -74,6 +83,27 @@ export default function FinancesPage() {
   const handleSelectChange = (field: keyof typeof emptyTransaction, value: string) => {
     setNewTransaction(prev => ({...prev, [field]: value as any}));
   }
+  
+  const handlePresetChange = (value: string) => {
+    const now = new Date();
+    switch (value) {
+      case 'today':
+        setDate({ from: now, to: now });
+        break;
+      case 'last-7':
+        setDate({ from: addDays(now, -6), to: now });
+        break;
+      case 'last-30':
+        setDate({ from: addDays(now, -29), to: now });
+        break;
+      case 'ytd':
+        setDate({ from: new Date(now.getFullYear(), 0, 1), to: now });
+        break;
+      default:
+        setDate(undefined);
+    }
+  };
+
 
   const handleAddTransaction = async () => {
     if (!newTransaction.description || newTransaction.amount === 0) {
@@ -96,7 +126,8 @@ export default function FinancesPage() {
 
   const mainTabs = [
     { value: 'transactions', label: 'All Transactions' },
-    { value: 'summary', label: 'Daily Summary' },
+    { value: 'summary', label: 'Summary' },
+    { value: 'reports', label: 'Reports' },
     { value: 'reconciliation', label: 'Reconciliation' },
   ];
 
@@ -213,6 +244,71 @@ export default function FinancesPage() {
 
       <DashboardPageLayout.TabContent value="summary">
         <DailySummary transactions={transactions} />
+      </DashboardPageLayout.TabContent>
+
+      <DashboardPageLayout.TabContent value="reports">
+            <Card>
+                <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+                    <div>
+                        <CardTitle>Financial Report</CardTitle>
+                        <CardDescription>
+                            Analyze income, expenses, and profitability over time.
+                        </CardDescription>
+                    </div>
+                     <div className="flex items-center gap-2 w-full lg:w-auto">
+                        <Select onValueChange={handlePresetChange} defaultValue="last-30">
+                            <SelectTrigger className="w-full lg:w-[180px]">
+                                <SelectValue placeholder="Select a preset" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="today">Today</SelectItem>
+                                <SelectItem value="last-7">Last 7 days</SelectItem>
+                                <SelectItem value="last-30">Last 30 days</SelectItem>
+                                <SelectItem value="ytd">Year to date</SelectItem>
+                            </SelectContent>
+                        </Select>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                            <Button
+                                id="date"
+                                variant={"outline"}
+                                className={cn(
+                                "w-full lg:w-[300px] justify-start text-left font-normal",
+                                !date && "text-muted-foreground"
+                                )}
+                            >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date?.from ? (
+                                date.to ? (
+                                    <>
+                                    {format(date.from, "LLL dd, y")} -{" "}
+                                    {format(date.to, "LLL dd, y")}
+                                    </>
+                                ) : (
+                                    format(date.from, "LLL dd, y")
+                                )
+                                ) : (
+                                <span>Pick a date</span>
+                                )}
+                            </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="end">
+                            <Calendar
+                                initialFocus
+                                mode="range"
+                                defaultMonth={date?.from}
+                                selected={date}
+                                onSelect={setDate}
+                                numberOfMonths={2}
+                            />
+                            </PopoverContent>
+                        </Popover>
+                    </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <FinanceAnalyticsReport transactions={transactions} dateRange={date} />
+                </CardContent>
+            </Card>
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="reconciliation">

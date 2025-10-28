@@ -13,7 +13,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Order, Customer, PurchaseOrder } from '@/lib/types';
+import type { Order, Customer, PurchaseOrder, Transaction } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
 
 
 export const ordersColumns: ColumnDef<Order>[] = [
@@ -176,3 +178,39 @@ export const purchaseOrdersColumns: ColumnDef<PurchaseOrder>[] = [
     },
   },
 ];
+
+export const transactionsColumns: ColumnDef<Transaction>[] = [
+    { 
+        accessorKey: 'date', 
+        header: 'Date',
+        cell: ({ row }) => format(new Date(row.getValue('date')), 'PPP')
+    },
+    { accessorKey: 'description', header: 'Description' },
+    { 
+        accessorKey: 'type', 
+        header: 'Type',
+        cell: ({ row }) => {
+            const isIncome = row.getValue('type') === 'Income';
+            return <Badge variant={isIncome ? 'default' : 'secondary'}>{row.getValue('type')}</Badge>
+        }
+    },
+    { accessorKey: 'category', header: 'Category' },
+    {
+        accessorKey: 'amount',
+        header: ({ column }) => (
+          <div className="text-right">
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+              Amount
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        ),
+        cell: ({ row }) => {
+          const amount = parseFloat(row.getValue('amount'));
+          const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(amount);
+          const amountClass = row.original.type === 'Income' ? 'text-green-600' : 'text-red-600';
+          return <div className={cn('text-right font-medium', amountClass)}>{formatted}</div>;
+        },
+    },
+];
+
