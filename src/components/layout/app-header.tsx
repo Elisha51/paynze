@@ -19,6 +19,7 @@ import { Badge } from '../ui/badge';
 import React, { useEffect, useState } from 'react';
 import { getStaffOrders } from '@/services/staff';
 import type { Order } from '@/lib/types';
+import { getTodos } from '@/services/todos';
 
 const LOGGED_IN_STAFF_ID = 'staff-003';
 
@@ -31,9 +32,13 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
 
     useEffect(() => {
         async function loadTaskCount() {
-            const assignedOrders = await getStaffOrders(LOGGED_IN_STAFF_ID);
+            const [assignedOrders, personalTodos] = await Promise.all([
+              getStaffOrders(LOGGED_IN_STAFF_ID),
+              getTodos()
+            ]);
             const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
-            setTaskCount(todoOrders.length);
+            const openTodos = personalTodos.filter(todo => todo.status === 'To Do');
+            setTaskCount(todoOrders.length + openTodos.length);
         }
         loadTaskCount();
     }, []);
@@ -56,20 +61,20 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Link href="/dashboard/my-tasks" className="relative">
-            <Button variant="ghost" size="icon" className="rounded-full">
+        <Button asChild variant="ghost" size="icon" className="rounded-full relative">
+            <Link href="/dashboard/my-tasks">
                 <ClipboardCheck className="h-5 w-5" />
+                {taskCount > 0 && (
+                    <Badge 
+                        variant="destructive" 
+                        className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-1 text-xs"
+                    >
+                        {taskCount}
+                    </Badge>
+                )}
                 <span className="sr-only">My Tasks</span>
-            </Button>
-            {taskCount > 0 && (
-                <Badge 
-                    variant="destructive" 
-                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-1 text-xs"
-                >
-                    {taskCount}
-                </Badge>
-            )}
-        </Link>
+            </Link>
+        </Button>
 
         <NotificationBell />
 
