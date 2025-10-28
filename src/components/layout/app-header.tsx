@@ -16,12 +16,28 @@ import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
 import { ClipboardCheck } from 'lucide-react';
 import { Badge } from '../ui/badge';
+import React, { useEffect, useState } from 'react';
+import { getStaffOrders } from '@/services/staff';
+import type { Order } from '@/lib/types';
+
+const LOGGED_IN_STAFF_ID = 'staff-003';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
 }
 
 export default function AppHeader({ onboardingData }: AppHeaderProps) {
+    const [taskCount, setTaskCount] = useState(0);
+
+    useEffect(() => {
+        async function loadTaskCount() {
+            const assignedOrders = await getStaffOrders(LOGGED_IN_STAFF_ID);
+            const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
+            setTaskCount(todoOrders.length);
+        }
+        loadTaskCount();
+    }, []);
+
     const getInitials = (name: string) => {
         if (!name) return 'AD';
         const names = name.split(' ');
@@ -45,12 +61,14 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
                 <ClipboardCheck className="h-5 w-5" />
                 <span className="sr-only">My Tasks</span>
             </Button>
-            <Badge 
-                variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-1 text-xs"
-            >
-                2
-            </Badge>
+            {taskCount > 0 && (
+                <Badge 
+                    variant="destructive" 
+                    className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-1 text-xs"
+                >
+                    {taskCount}
+                </Badge>
+            )}
         </Link>
 
         <NotificationBell />
