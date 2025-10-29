@@ -9,6 +9,7 @@ import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, DollarSign, MoreHorizontal, Gift, FileText, Award } from 'lucide-react';
 import Link from 'next/link';
+import { useAuth } from '@/context/auth-context';
 
 type CommissionRow = {
   staffId: string;
@@ -17,7 +18,7 @@ type CommissionRow = {
   commission: number;
 };
 
-const getColumns = (currency: string): ColumnDef<CommissionRow>[] => [
+const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow>[] => [
     {
         accessorKey: 'name',
         header: 'Staff Member',
@@ -52,7 +53,7 @@ const getColumns = (currency: string): ColumnDef<CommissionRow>[] => [
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
             const { staffId, commission } = row.original;
-            const canPayout = commission > 0;
+            const canPayout = commission > 0 && canEdit;
 
             return (
                 <div className="text-right">
@@ -70,6 +71,9 @@ const getColumns = (currency: string): ColumnDef<CommissionRow>[] => [
 
 export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus }: { staff: Staff[], roles: Role[], orders: Order[], onPayout: () => void, onAwardBonus: () => void }) {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const { user } = useAuth();
+
+    const canEditStaff = user?.permissions.staff.edit;
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -92,7 +96,7 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
         }));
     }, [staff, roles]);
     
-    const columns = useMemo(() => getColumns(settings?.currency || 'UGX'), [settings?.currency]);
+    const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditStaff), [settings?.currency, canEditStaff]);
 
     return (
         <>
@@ -102,10 +106,12 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
                         <CardTitle>Commission & Bonus Payouts</CardTitle>
                         <CardDescription>View unpaid earnings and process payouts for your staff.</CardDescription>
                     </div>
-                    <Button variant="outline" onClick={onAwardBonus}>
-                        <Award className="mr-2 h-4 w-4" />
-                        Award Bonus / Adjustment
-                    </Button>
+                    {canEditStaff && (
+                        <Button variant="outline" onClick={onAwardBonus}>
+                            <Award className="mr-2 h-4 w-4" />
+                            Award Bonus / Adjustment
+                        </Button>
+                    )}
                 </CardHeader>
                 <CardContent>
                     <DataTable

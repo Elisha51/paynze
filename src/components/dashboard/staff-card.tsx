@@ -10,8 +10,12 @@ import { Badge } from '../ui/badge';
 import { MoreVertical, DollarSign } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
+import { useAuth } from '@/context/auth-context';
 
 export function StaffCard({ member, onAwardBonus }: { member: Staff, onAwardBonus: () => void }) {
+  const { user } = useAuth();
+  const canEditStaff = user?.permissions.staff.edit;
+
   const getInitials = (name: string) => {
     if (!name) return '??';
     const names = name.split(' ');
@@ -47,20 +51,22 @@ export function StaffCard({ member, onAwardBonus }: { member: Staff, onAwardBonu
              </Link>
              <p className="text-sm text-muted-foreground">{member.role}</p>
           </div>
-           <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onSelect={onAwardBonus}>
-                  <DollarSign className="mr-2 h-4 w-4" />
-                  Award Bonus
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          {canEditStaff && (
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem onSelect={onAwardBonus}>
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    Award Bonus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+          )}
         </CardContent>
       </Card>
   );

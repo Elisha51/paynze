@@ -22,12 +22,14 @@ import { Users } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 
 type MessageType = 'WhatsApp' | 'SMS' | null;
 
 const getColumns = (
     currency: string, 
-    onSendMessage: (customer: Customer, type: MessageType) => void
+    onSendMessage: (customer: Customer, type: MessageType) => void,
+    canEdit: boolean,
 ): ColumnDef<Customer>[] => [
   {
     id: 'select',
@@ -152,14 +154,18 @@ const getColumns = (
                     View Details
                 </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onSendMessage(customer, 'WhatsApp')}>
-                <MessageCircle className="mr-2 h-4 w-4" />
-                Send via WhatsApp
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onSendMessage(customer, 'SMS')}>
-                <Phone className="mr-2 h-4 w-4" />
-                Send via SMS
-            </DropdownMenuItem>
+            {canEdit && (
+              <>
+                <DropdownMenuItem onSelect={() => onSendMessage(customer, 'WhatsApp')}>
+                    <MessageCircle className="mr-2 h-4 w-4" />
+                    Send via WhatsApp
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => onSendMessage(customer, 'SMS')}>
+                    <Phone className="mr-2 h-4 w-4" />
+                    Send via SMS
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
         </div>
@@ -178,6 +184,8 @@ export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
     const [messageTarget, setMessageTarget] = React.useState<{customer: Customer, type: MessageType} | null>(null);
     const [messageContent, setMessageContent] = React.useState('');
     const { toast } = useToast();
+    const { user } = useAuth();
+    const canEdit = user?.permissions.customers.edit;
 
     React.useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -207,7 +215,7 @@ export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
         setMessageContent('');
     };
 
-    const columns = React.useMemo(() => getColumns(settings?.currency || 'UGX', handleOpenMessageDialog), [settings?.currency]);
+    const columns = React.useMemo(() => getColumns(settings?.currency || 'UGX', handleOpenMessageDialog, !!canEdit), [settings?.currency, canEdit]);
     
     const customerGroups = [
         { value: 'default', label: 'Default' },

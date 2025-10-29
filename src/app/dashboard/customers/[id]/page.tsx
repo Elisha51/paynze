@@ -21,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { classifyCustomer, ClassifyCustomerOutput } from '@/ai/flows/classify-customers';
@@ -31,6 +32,7 @@ import { getInitials } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 
 type MessageType = 'WhatsApp' | 'SMS' | null;
 
@@ -38,6 +40,7 @@ export default function ViewCustomerPage() {
   const params = useParams();
   const id = params.id as string;
   const { toast } = useToast();
+  const { user } = useAuth();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [classification, setClassification] = useState<ClassifyCustomerOutput | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,6 +49,8 @@ export default function ViewCustomerPage() {
   const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
   const [messageType, setMessageType] = useState<MessageType>(null);
   const [messageContent, setMessageContent] = useState('');
+
+  const canEditCustomers = user?.permissions.customers.edit;
 
   const loadCustomerData = async () => {
     if (!id) return;
@@ -196,12 +201,14 @@ export default function ViewCustomerPage() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" asChild>
-              <Link href={`/dashboard/customers/${customer.id}/edit`}>
-                <Edit className="mr-2 h-4 w-4" />
-                Edit
-              </Link>
-            </Button>
+            {canEditCustomers && (
+                <Button variant="outline" asChild>
+                <Link href={`/dashboard/customers/${customer.id}/edit`}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                </Link>
+                </Button>
+            )}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -210,14 +217,18 @@ export default function ViewCustomerPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => handleOpenMessageDialog('WhatsApp')}>
-                        <MessageCircle className="mr-2 h-4 w-4" />
-                        Send WhatsApp
-                    </DropdownMenuItem>
-                     <DropdownMenuItem onSelect={() => handleOpenMessageDialog('SMS')}>
-                        <Phone className="mr-2 h-4 w-4" />
-                        Send SMS
-                    </DropdownMenuItem>
+                     {canEditCustomers && (
+                        <>
+                            <DropdownMenuItem onSelect={() => handleOpenMessageDialog('WhatsApp')}>
+                                <MessageCircle className="mr-2 h-4 w-4" />
+                                Send WhatsApp
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleOpenMessageDialog('SMS')}>
+                                <Phone className="mr-2 h-4 w-4" />
+                                Send SMS
+                            </DropdownMenuItem>
+                        </>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
