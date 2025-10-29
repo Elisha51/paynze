@@ -2,13 +2,15 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowLeft, Download, Upload, FileCheck2 } from 'lucide-react';
+import { ArrowLeft, Download, Upload, FileCheck2, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Stepper } from '@/components/ui/stepper';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 const steps = [
   { label: 'Download Template' },
@@ -17,9 +19,13 @@ const steps = [
 ];
 
 export default function ImportProductsPage() {
+    const { user } = useAuth();
+    const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
     const [uploadedFile, setUploadedFile] = useState<File[]>([]);
     const { toast } = useToast();
+
+    const canCreate = user?.permissions.products.create;
 
     const handleFileChange = (files: File[]) => {
         if (files.length > 0) {
@@ -58,6 +64,22 @@ export default function ImportProductsPage() {
             });
         };
         reader.readAsText(uploadedFile[0]);
+    }
+    
+    if (!canCreate) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">You do not have permission to import products.</p>
+                     <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                    </Button>
+                </CardContent>
+            </Card>
+        );
     }
 
     return (
