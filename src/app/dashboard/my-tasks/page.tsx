@@ -135,7 +135,7 @@ export default function MyTasksPage() {
 
         const taskContent = (
             <div className="flex items-start gap-3 p-3 bg-background rounded-lg border hover:bg-muted/50 transition-colors">
-                <Checkbox id={task.id} checked={task.isCompleted} onCheckedChange={() => handleToggleTask(task)} className="mt-1" />
+                <Checkbox id={task.id} checked={task.isCompleted} className="mt-1" />
                 <div className="flex-1">
                      <label htmlFor={task.id} className="font-medium cursor-pointer">{task.title}</label>
                      <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
@@ -148,14 +148,37 @@ export default function MyTasksPage() {
             </div>
         );
 
+        const actionText = order?.fulfillmentMethod === 'Delivery' ? 'Delivered' : 'Picked Up';
+        const confirmationTitle = `Mark as ${actionText}?`;
+        const confirmationDescription = `This will mark order #${order?.id} as ${actionText} and update inventory.`;
+
+
         if (isOrder) {
-            return taskContent;
+            return (
+                <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                       <div className="cursor-pointer">{taskContent}</div>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>{confirmationTitle}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                               {confirmationDescription}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleToggleTask(task)}>Confirm</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            );
         }
 
         return (
             <AlertDialog>
                 <AlertDialogTrigger asChild>
-                    {taskContent}
+                    <div className="cursor-pointer">{taskContent}</div>
                 </AlertDialogTrigger>
                 <AlertDialogContent>
                     <AlertDialogHeader>
@@ -257,5 +280,3 @@ export default function MyTasksPage() {
         </div>
     );
 }
-
-    
