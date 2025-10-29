@@ -39,7 +39,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
-import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
 
 export default function DashboardPage() {
@@ -180,7 +179,6 @@ export default function DashboardPage() {
   return (
     <>
     <div className="space-y-4">
-        <Breadcrumbs items={[{ label: 'Dashboard', href: '/dashboard' }]} />
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
              <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
              <div className="flex items-center gap-2 w-full lg:w-auto">

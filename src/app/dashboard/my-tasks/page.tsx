@@ -20,7 +20,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
 const LOGGED_IN_STAFF_ID = 'staff-003';
 
@@ -186,10 +185,6 @@ export default function MyTasksPage({ isDevMode }: { isDevMode?: boolean }) {
 
     return (
         <div className="space-y-6">
-            <Breadcrumbs items={[
-                { label: 'Dashboard', href: '/dashboard' },
-                { label: 'My Tasks', href: '/dashboard/my-tasks' }
-            ]} />
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>

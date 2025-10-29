@@ -9,8 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useSearch } from '@/context/search-context';
 import { Search } from 'lucide-react';
 import { Input } from '../ui/input';
-import { Breadcrumbs } from '../ui/breadcrumbs';
-import { usePathname } from 'next/navigation';
 
 type Tab = { value: string; label: string; className?: string };
 
@@ -73,14 +71,6 @@ TabContent.displayName = 'TabContent';
 
 export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onTabChange }: DashboardPageLayoutProps) {
   const { searchQuery, setSearchQuery } = useSearch();
-  const pathname = usePathname();
-
-  const breadcrumbItems = pathname.split('/').filter(Boolean).map((segment, index, arr) => {
-      const href = '/' + arr.slice(0, index + 1).join('/');
-      // Simple capitalization, can be improved with a mapping for specific routes
-      const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
-      return { href, label };
-  });
 
   const MainTabsWrapper = ({ children }: { children: React.ReactNode }) => {
     if (tabs && tabs.length > 0) {
@@ -101,7 +91,7 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             type="search"
-                            placeholder={`Search ${breadcrumbItems[breadcrumbItems.length - 1]?.label || 'items'}...`}
+                            placeholder={`Search ${title}...`}
                             className="w-full appearance-none bg-background pl-8 shadow-none lg:w-[300px]"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
@@ -117,13 +107,14 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
     // Layout for pages without main tabs
     return (
         <>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-end gap-4">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                 <h2 className="text-3xl font-bold tracking-tight font-headline">{title}</h2>
                  <div className="flex w-full md:w-auto items-center space-x-2">
                     <div className="relative flex-1 md:flex-initial">
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
                         type="search"
-                        placeholder={`Search ${breadcrumbItems[breadcrumbItems.length - 1]?.label || 'items'}...`}
+                        placeholder={`Search...`}
                         className="w-full appearance-none bg-background pl-8 shadow-none md:w-auto lg:w-[300px]"
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
@@ -139,10 +130,6 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
 
   return (
     <>
-      <div className="space-y-2 mb-4">
-         <Breadcrumbs items={breadcrumbItems} />
-        <h2 className="text-3xl font-bold tracking-tight font-headline">{title}</h2>
-      </div>
       <MainTabsWrapper>
         {children}
       </MainTabsWrapper>

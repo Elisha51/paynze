@@ -7,7 +7,6 @@ import { getStaff } from '@/services/staff';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StaffProfileForm } from '@/components/dashboard/staff-profile-form';
 import { PasswordSettings } from '@/components/dashboard/password-settings';
-import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
 const LOGGED_IN_STAFF_ID = 'staff-003';
 
@@ -56,10 +55,6 @@ export default function MyProfilePage() {
 
     return (
         <div className="space-y-6">
-            <Breadcrumbs items={[
-                { label: 'Dashboard', href: '/dashboard' },
-                { label: 'My Profile', href: '/dashboard/my-profile' }
-            ]} />
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>

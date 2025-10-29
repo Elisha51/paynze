@@ -10,6 +10,7 @@ import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationProvider } from '@/context/notification-context';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { usePathname } from 'next/navigation';
+import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
 export default function DashboardLayout({
   children,
@@ -31,6 +32,17 @@ export default function DashboardLayout({
     }
   }, []);
 
+  const breadcrumbItems = pathname.split('/').filter(Boolean).map((segment, index, arr) => {
+      // Don't show breadcrumb for dynamic segments like [id] or [sku]
+      if (segment.startsWith('[') && segment.endsWith(']')) return null;
+
+      const href = '/' + arr.slice(0, index + 1).join('/');
+      // Simple capitalization, can be improved with a mapping for specific routes
+      const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+      return { href, label };
+  }).filter(Boolean) as { href: string; label: string }[];
+
+
   // Pass isDevMode to children
   const childrenWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child)) {
@@ -49,6 +61,7 @@ export default function DashboardLayout({
               <div className="flex flex-col w-full overflow-x-hidden">
                 <AppHeader onboardingData={onboardingData} />
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
+                  <Breadcrumbs items={breadcrumbItems} className="mb-4" />
                   {childrenWithProps}
                 </main>
               </div>
