@@ -1,7 +1,7 @@
 
 
 'use client';
-import { ArrowLeft, PlusCircle, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Save, ShieldAlert, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -37,6 +37,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { format } from 'date-fns';
 import { getStaff } from '@/services/staff';
+import { useAuth } from '@/context/auth-context';
 
 type NewOrderItem = Partial<OrderItem> & { id: number };
 
@@ -54,7 +55,9 @@ export default function AddOrderPage() {
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
 
+  const canCreate = user?.permissions.orders.create;
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
@@ -160,6 +163,22 @@ export default function AddOrderPage() {
         toast({ variant: 'destructive', title: 'Save Failed', description: 'Could not save the new order.' });
         setIsLoading(false);
     }
+  }
+
+  if (!canCreate) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground">You do not have permission to create new orders.</p>
+                 <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                </Button>
+            </CardContent>
+        </Card>
+    );
   }
 
   return (

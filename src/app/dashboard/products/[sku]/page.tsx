@@ -1,16 +1,40 @@
 
 
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { getProducts } from '@/services/products';
 import { ProductDetails } from '@/components/dashboard/product-details';
 import { ProductDetailsAdjustStock } from '@/components/dashboard/product-details-adjust-stock';
+import { useAuth } from '@/context/auth-context';
+import { useEffect, useState } from 'react';
+import type { Product } from '@/lib/types';
 
-export default async function ViewProductPage({ params }: { params: { sku: string } }) {
+
+export default function ViewProductPage({ params }: { params: { sku: string } }) {
   const { sku } = params;
-  const allProducts = await getProducts();
-  const product = allProducts.find(p => p.sku === sku);
+  const { user } = useAuth();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const canEdit = user?.permissions.products.edit;
+
+  useEffect(() => {
+    async function loadProduct() {
+      const allProducts = await getProducts();
+      const foundProduct = allProducts.find(p => p.sku === sku);
+      setProduct(foundProduct || null);
+      setLoading(false);
+    }
+    loadProduct();
+  }, [sku]);
+  
+
+  if (loading) {
+      return <div>Loading product...</div>
+  }
 
   if (!product) {
     return (
@@ -45,14 +69,18 @@ export default async function ViewProductPage({ params }: { params: { sku: strin
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" asChild>
-                 <Link href={`/dashboard/products/${sku}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                </Link>
-            </Button>
-            {product.inventoryTracking !== "Don't Track" && (
-              <ProductDetailsAdjustStock product={product} />
+            {canEdit && (
+              <>
+                <Button variant="outline" asChild>
+                    <Link href={`/dashboard/products/${sku}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                    </Link>
+                </Button>
+                {product.inventoryTracking !== "Don't Track" && (
+                  <ProductDetailsAdjustStock product={product} />
+                )}
+              </>
             )}
         </div>
       </div>
@@ -62,3 +90,5 @@ export default async function ViewProductPage({ params }: { params: { sku: strin
     </div>
   );
 }
+
+    
