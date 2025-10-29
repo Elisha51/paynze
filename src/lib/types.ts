@@ -104,7 +104,7 @@ export type Product = {
 
   // III. Pricing & Taxation
   retailPrice: number;
-  currency: 'KES' | 'UGX' | 'TZS' | 'USD';
+  currency: string;
   compareAtPrice?: number;
   wholesalePricing: WholesalePrice[];
   isTaxable: boolean;
@@ -342,7 +342,6 @@ export type Shift = {
 export type Payout = {
     date: string;
     amount: number;
-    currency: string;
     paidItemIds?: string[];
 };
 

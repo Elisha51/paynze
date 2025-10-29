@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ChevronDown, Gift, FileText } from 'lucide-react';
@@ -15,10 +15,13 @@ import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marke
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
-import { Calendar as CalendarIcon, BarChart, TrendingUp, Info, Edit } from 'lucide-react';
+import { Calendar as CalendarIcon, Info, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
+import { getOrders } from '@/services/orders';
+import type { Order } from '@/lib/types';
+
 
 // Mock data types
 export type Campaign = {
@@ -97,10 +100,19 @@ const getDiscountColumns = (): ColumnDef<Discount>[] => [
 
 export default function MarketingPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [orders, setOrders] = useState<Order[]>([]);
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
   });
+
+  useEffect(() => {
+    async function loadData() {
+        const fetchedOrders = await getOrders();
+        setOrders(fetchedOrders);
+    }
+    loadData();
+  }, [])
 
 
   const tabs = [
@@ -275,7 +287,7 @@ export default function MarketingPage() {
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                <MarketingAnalyticsReport campaigns={mockCampaigns} discounts={mockDiscounts} dateRange={date} />
+                <MarketingAnalyticsReport campaigns={mockCampaigns} discounts={mockDiscounts} orders={orders} dateRange={date} />
             </CardContent>
         </Card>
       </DashboardPageLayout.TabContent>

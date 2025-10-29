@@ -8,10 +8,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Send, Gift, TrendingUp, BarChart } from 'lucide-react';
+import { Send, Gift, TrendingUp, BarChart, DollarSign, ShoppingCart } from 'lucide-react';
 import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { DateRange } from 'react-day-picker';
+import type { Order } from '@/lib/types';
 
 const chartConfig = {
   sent: {
@@ -24,7 +25,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { campaigns: Campaign[], discounts: Discount[], dateRange?: DateRange }) {
+export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRange }: { campaigns: Campaign[], discounts: Discount[], orders: Order[], dateRange?: DateRange }) {
 
   const filteredCampaigns = useMemo(() => {
     return campaigns.filter(c => {
@@ -33,6 +34,14 @@ export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { 
       return startDate >= dateRange.from && startDate <= (dateRange.to || new Date());
     });
   }, [campaigns, dateRange]);
+  
+  const filteredOrders = useMemo(() => {
+    return orders.filter(o => {
+      if (!dateRange?.from) return true;
+      const orderDate = new Date(o.date);
+      return orderDate >= dateRange.from && orderDate <= (dateRange.to || new Date());
+    });
+  }, [orders, dateRange]);
 
 
   const { 
@@ -41,8 +50,12 @@ export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { 
     discountChartData,
    } = useMemo(() => {
     const totalReach = filteredCampaigns.reduce((sum, c) => sum + c.sent, 0);
-    const totalRedemptions = discounts.reduce((sum, d) => sum + d.redemptions, 0); // Note: Discounts aren't filtered by date in mock data
-    
+
+    // Mock discount usage on orders
+    const ordersWithDiscounts = filteredOrders.filter((o, i) => i % 5 === 0);
+    const totalRedemptions = ordersWithDiscounts.length;
+    const revenueFromDiscounts = ordersWithDiscounts.reduce((sum, o) => sum + o.total, 0);
+
     const bestCampaign = [...filteredCampaigns]
         .filter(c => c.status === 'Completed' || c.status === 'Active')
         .sort((a,b) => parseFloat(b.ctr) - parseFloat(a.ctr))[0];
@@ -58,25 +71,42 @@ export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { 
         return acc;
     }, {} as Record<string, number>);
 
-    const campaignData = Object.entries(reachByChannel).map(([name, sent]) => ({ name, sent }));
+    const campaignData = Object.keys(reachByChannel).map((name, index) => ({ name, sent: reachByChannel[name], key: `camp-${index}` }));
     
-    const discountData = discounts.map(d => ({ name: d.code, redemptions: d.redemptions }));
+    const discountData = discounts.map((d, index) => ({ name: d.code, redemptions: d.redemptions, key: `disc-${index}` }));
       
     return {
         summaryMetrics: {
             totalReach,
             totalRedemptions,
             bestCampaign,
-            bestDiscount
+            bestDiscount,
+            revenueFromDiscounts,
+            ordersWithDiscounts: ordersWithDiscounts.length,
         },
         campaignChannelData: campaignData,
         discountChartData: discountData
     };
-  }, [filteredCampaigns, discounts]);
+  }, [filteredCampaigns, discounts, filteredOrders]);
+  
+  const formatCurrency = (amount: number) => {
+    const currency = filteredOrders[0]?.currency || 'UGX';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  }
 
   return (
     <div className="space-y-6">
-       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Revenue from Discounts</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{formatCurrency(summaryMetrics.revenueFromDiscounts)}</div>
+            <p className="text-xs text-muted-foreground">From {summaryMetrics.ordersWithDiscounts} orders in period</p>
+          </CardContent>
+        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Marketing Reach</CardTitle>
@@ -94,27 +124,7 @@ export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{summaryMetrics.totalRedemptions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Total coupons used (all time)</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Best Performing Campaign</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold truncate">{summaryMetrics.bestCampaign?.name || 'N/A'}</div>
-            <p className="text-xs text-muted-foreground">By Click-Through Rate ({summaryMetrics.bestCampaign?.ctr || '0%'})</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Most Used Discount</CardTitle>
-            <BarChart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold truncate">{summaryMetrics.bestDiscount?.code || 'N/A'}</div>
-            <p className="text-xs text-muted-foreground">{summaryMetrics.bestDiscount?.redemptions.toLocaleString() || 0} redemptions (all time)</p>
+            <p className="text-xs text-muted-foreground">Discounted orders in period</p>
           </CardContent>
         </Card>
       </div>
@@ -123,8 +133,8 @@ export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { 
         <CardHeader>
           <CardTitle>Campaign Reach by Channel</CardTitle>
         </CardHeader>
-        <CardContent>
-            <ChartContainer config={chartConfig} className="w-full aspect-video">
+        <CardContent className="w-full aspect-video">
+            <ChartContainer config={chartConfig}>
               <RechartsBarChart data={campaignChannelData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                   <XAxis
                       dataKey="name"
@@ -144,17 +154,21 @@ export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { 
                       cursor={false}
                       content={<ChartTooltipContent indicator="dot" />}
                   />
-                  <Bar dataKey="sent" fill="var(--color-sent)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="sent" fill="var(--color-sent)" radius={[4, 4, 0, 0]}>
+                    {campaignChannelData.map((entry) => (
+                        <div key={entry.key} />
+                    ))}
+                  </Bar>
               </RechartsBarChart>
             </ChartContainer>
         </CardContent>
       </Card>
        <Card>
         <CardHeader>
-          <CardTitle>Discount Redemptions</CardTitle>
+          <CardTitle>Discount Redemptions (All Time)</CardTitle>
         </CardHeader>
-        <CardContent>
-            <ChartContainer config={chartConfig} className="w-full aspect-video">
+        <CardContent className="w-full aspect-video">
+            <ChartContainer config={chartConfig}>
               <RechartsBarChart data={discountChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                   <XAxis
                       dataKey="name"
@@ -174,7 +188,11 @@ export function MarketingAnalyticsReport({ campaigns, discounts, dateRange }: { 
                       cursor={false}
                       content={<ChartTooltipContent indicator="dot" />}
                   />
-                  <Bar dataKey="redemptions" fill="var(--color-redemptions)" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="redemptions" fill="var(--color-redemptions)" radius={[4, 4, 0, 0]}>
+                     {discountChartData.map((entry) => (
+                        <div key={entry.key} />
+                    ))}
+                  </Bar>
               </RechartsBarChart>
             </ChartContainer>
         </CardContent>
