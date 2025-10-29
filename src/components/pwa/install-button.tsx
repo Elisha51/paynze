@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export function InstallButton() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
@@ -39,15 +40,20 @@ export function InstallButton() {
       });
     }
   };
-
-  if (isStandalone || !installPrompt) {
-    return null;
+  
+  if (isStandalone) {
+      return null;
   }
 
   return (
-    <Button onClick={handleInstallClick} variant="outline" size="sm">
-      <Download className="mr-2 h-4 w-4" />
-      Install App
-    </Button>
+    <motion.div
+        animate={installPrompt ? { scale: [1, 1.05, 1] } : {}}
+        transition={installPrompt ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
+    >
+        <Button onClick={handleInstallClick} variant="outline" size="sm" disabled={!installPrompt}>
+            <Download className="mr-2 h-4 w-4" />
+            Install App
+        </Button>
+    </motion.div>
   );
 }
