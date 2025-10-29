@@ -1,7 +1,7 @@
 
 'use client';
 import { useMemo, useState } from 'react';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, OnboardingFormData } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
@@ -25,6 +25,14 @@ type DailySummaryProps = {
 
 export function DailySummary({ transactions }: DailySummaryProps) {
     const [daysToShow, setDaysToShow] = useState(5);
+    const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+
+    useState(() => {
+        const data = localStorage.getItem('onboardingData');
+        if (data) {
+            setSettings(JSON.parse(data));
+        }
+    });
 
     const dailySummaries = useMemo(() => {
         const groups = transactions.reduce((acc, transaction) => {
@@ -35,7 +43,6 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                     transactions: [],
                     income: 0,
                     expense: 0,
-                    currency: transaction.currency, // Assume first transaction currency is day's currency
                 };
             }
             acc[date].transactions.push(transaction);
@@ -45,7 +52,7 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                 acc[date].expense += transaction.amount; // amount is negative for expenses
             }
             return acc;
-        }, {} as Record<string, { date: string, transactions: Transaction[], income: number, expense: number, currency: string }>);
+        }, {} as Record<string, { date: string, transactions: Transaction[], income: number, expense: number }>);
         
         return Object.values(groups).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [transactions]);
@@ -55,6 +62,7 @@ export function DailySummary({ transactions }: DailySummaryProps) {
     }
     
     const visibleSummaries = dailySummaries.slice(0, daysToShow);
+    const currency = settings?.currency || 'UGX';
 
     if (transactions.length === 0) {
         return (
@@ -103,15 +111,15 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                                      <div className="flex items-center gap-4 text-right pr-4">
                                         <div>
                                             <p className="text-xs text-muted-foreground">Income</p>
-                                            <p className="font-semibold text-green-600">{formatCurrency(summary.income, summary.currency)}</p>
+                                            <p className="font-semibold text-green-600">{formatCurrency(summary.income, currency)}</p>
                                         </div>
                                             <div>
                                             <p className="text-xs text-muted-foreground">Expenses</p>
-                                            <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), summary.currency)}</p>
+                                            <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), currency)}</p>
                                         </div>
                                             <div>
                                             <p className="text-xs text-muted-foreground">Net</p>
-                                            <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, summary.currency)}</p>
+                                            <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, currency)}</p>
                                         </div>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
@@ -148,7 +156,7 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                                                     </TableCell>
                                                     <TableCell>{t.category}</TableCell>
                                                     <TableCell className={cn("text-right font-mono", t.type === 'Income' ? 'text-green-600' : 'text-red-600')}>
-                                                        {formatCurrency(t.amount, t.currency)}
+                                                        {formatCurrency(t.amount, currency)}
                                                     </TableCell>
                                                 </TableRow>
                                             ))}

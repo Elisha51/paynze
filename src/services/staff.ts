@@ -1,7 +1,5 @@
 
 
-
-
 import type { Staff, Order, StaffActivity, Bonus } from '@/lib/types';
 import { format, subDays, subHours } from 'date-fns';
 import { getOrders } from './orders';
@@ -27,7 +25,6 @@ async function initializeStaff() {
         assignedOrders: [],
         completionRate: 100,
         totalSales: 550000,
-        currency: 'UGX',
         totalCommission: 0,
       },
       { 
@@ -42,7 +39,6 @@ async function initializeStaff() {
         onlineStatus: 'Online',
         assignedOrders: [],
         totalSales: 125000,
-        currency: 'KES',
         totalCommission: 6250,
         attributes: {
           salesTarget: { goal: 500000, current: 125000 },
@@ -72,7 +68,6 @@ async function initializeStaff() {
         onlineStatus: 'Offline',
         assignedOrders: allOrders.filter(o => o.assignedStaffId === 'staff-003'),
         completionRate: 95.2,
-        currency: 'UGX',
         totalCommission: 4500,
         attributes: {
           deliveryTarget: { current: 18, goal: 20 },
@@ -92,7 +87,6 @@ async function initializeStaff() {
         lastLogin: format(new Date(), 'yyyy-MM-dd HH:mm'),
         onlineStatus: 'Online',
         assignedOrders: [],
-        currency: 'TZS',
         totalCommission: 0,
       },
        { 
@@ -106,7 +100,6 @@ async function initializeStaff() {
         lastLogin: '2024-06-01 10:00',
         onlineStatus: 'Offline',
         assignedOrders: [],
-        currency: 'KES',
         totalCommission: 0,
       },
        { 
@@ -125,7 +118,6 @@ async function initializeStaff() {
         lastLogin: undefined,
         onlineStatus: 'Offline',
         assignedOrders: [],
-        currency: 'KES',
         totalCommission: 0,
       },
     ];

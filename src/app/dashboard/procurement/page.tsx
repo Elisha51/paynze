@@ -17,7 +17,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Supplier, PurchaseOrder } from '@/lib/types';
+import type { Supplier, PurchaseOrder, OnboardingFormData } from '@/lib/types';
 import { getSuppliers, getPurchaseOrders } from '@/services/procurement';
 import { DataTable } from '@/components/dashboard/data-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -103,8 +103,7 @@ const poStatuses = [
     { value: 'Cancelled', label: 'Cancelled' },
 ];
 
-// Columns for Purchase Orders Table
-const poColumns: ColumnDef<PurchaseOrder>[] = [
+const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
   {
     accessorKey: 'id',
     header: 'Order ID',
@@ -151,7 +150,7 @@ const poColumns: ColumnDef<PurchaseOrder>[] = [
     ),
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue('totalCost'));
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(amount);
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
@@ -186,8 +185,13 @@ export default function ProcurementPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('suppliers');
   const [date, setDate] = useState<DateRange | undefined>({ from: addDays(new Date(), -29), to: new Date() });
+  const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
   React.useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
     async function loadData() {
       setIsLoading(true);
       const [fetchedSuppliers, fetchedPOs] = await Promise.all([
@@ -200,6 +204,8 @@ export default function ProcurementPage() {
     }
     loadData();
   }, []);
+
+  const poColumns = getPOColumns(settings?.currency || 'UGX');
 
   const handlePresetChange = (value: string) => {
     const now = new Date();

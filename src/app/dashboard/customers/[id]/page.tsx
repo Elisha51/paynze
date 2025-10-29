@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag } from 'lucide-react';
 import Link from 'next/link';
 import { getCustomerById } from '@/services/customers';
-import type { Customer } from '@/lib/types';
+import type { Customer, OnboardingFormData } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -35,8 +35,13 @@ export default function ViewCustomerPage() {
   const [classification, setClassification] = useState<ClassifyCustomerOutput | null>(null);
   const [loading, setLoading] = useState(true);
   const [isClassifying, setIsClassifying] = useState(false);
+  const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
   useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
     async function loadData() {
         if (!id) return;
         setLoading(true);
@@ -193,7 +198,7 @@ export default function ViewCustomerPage() {
                 <CardContent className="space-y-4">
                      <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Total Spend</span>
-                        <span className="font-semibold">{formatCurrency(totalSpend, customer.currency)}</span>
+                        <span className="font-semibold">{formatCurrency(totalSpend, settings?.currency || 'UGX')}</span>
                      </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Total Orders</span>

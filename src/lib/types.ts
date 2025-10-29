@@ -1,9 +1,7 @@
 
 
-
-
-
-
+import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
+export type OnboardingFormData = OnboardingData;
 
 export type ProductImage = {
   id: string;
@@ -185,7 +183,6 @@ export type Order = {
     channel: 'Online' | 'Manual' | 'POS';
     items: OrderItem[];
     total: number;
-    currency: 'KES' | 'UGX' | 'TZS' | 'USD';
     shippingAddress: {
         street: string;
         city: string;
@@ -222,7 +219,6 @@ export type Customer = {
     customerGroup: 'default' | 'Wholesaler' | 'Retailer';
     lastOrderDate: string;
     totalSpend: number;
-    currency: 'KES' | 'UGX' | 'TZS' | 'USD';
     createdAt?: string;
     orders?: Order[];
     communications?: Communication[];
@@ -234,6 +230,7 @@ export type RecentSale = {
   email: string;
   amount: string;
   avatarId: string;
+  customerId: string;
 };
 
 export type SalesData = {
@@ -268,7 +265,6 @@ export type PurchaseOrder = {
   orderDate: string;
   expectedDelivery: string;
   totalCost: number;
-  currency: 'UGX' | 'KES' | 'TZS' | 'USD';
 };
 
 
@@ -346,7 +342,6 @@ export type Shift = {
 export type Payout = {
     date: string;
     amount: number;
-    currency: string;
 };
 
 export type Bonus = {
@@ -373,7 +368,6 @@ export type Staff = {
   completionRate?: number; // e.g., 98.5
   totalSales?: number; // For sales agents
   totalCommission?: number; // For tracking earned commission
-  currency?: 'UGX' | 'KES' | 'TZS' | 'USD';
   payoutHistory?: Payout[];
   bonuses?: Bonus[];
   // Dynamic attributes based on role
@@ -402,7 +396,6 @@ export type Transaction = {
     date: string;
     description: string;
     amount: number;
-    currency: 'UGX' | 'KES' | 'TZS' | 'USD';
     type: 'Income' | 'Expense';
     category: 'Sales' | 'Inventory' | 'Utilities' | 'Salaries' | 'Marketing' | 'Other';
     status: 'Cleared' | 'Pending';

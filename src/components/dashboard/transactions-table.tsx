@@ -16,13 +16,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Transaction } from '@/lib/types';
+import type { Transaction, OnboardingFormData } from '@/lib/types';
 import { DataTable } from './data-table';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 
-const getColumns = (): ColumnDef<Transaction>[] => [
+const getColumns = (currency: string): ColumnDef<Transaction>[] => [
     { 
         accessorKey: 'date', 
         header: 'Date',
@@ -68,7 +68,7 @@ const getColumns = (): ColumnDef<Transaction>[] => [
         ),
         cell: ({ row }) => {
           const amount = parseFloat(row.getValue('amount'));
-          const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(amount);
+          const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
           const amountClass = row.original.type === 'Income' ? 'text-green-600' : 'text-red-600';
           return <div className={cn('text-right font-medium', amountClass)}>{formatted}</div>;
         },
@@ -118,7 +118,16 @@ const transactionStatuses = [
 
 
 export function TransactionsTable({ transactions, isLoading }: TransactionsTableProps) {
-  const columns = React.useMemo(() => getColumns(), []);
+  const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+  React.useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
+  }, []);
+  
+  const columns = React.useMemo(() => getColumns(settings?.currency || 'UGX'), [settings?.currency]);
 
   return (
     <DataTable

@@ -6,7 +6,7 @@ import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MoreVertical, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
-import type { Supplier, PurchaseOrder, Product } from '@/lib/types';
+import type { Supplier, PurchaseOrder, Product, OnboardingFormData } from '@/lib/types';
 import { getSupplierById, getPurchaseOrdersBySupplierId } from '@/services/procurement';
 import { getProducts } from '@/services/products';
 import {
@@ -31,7 +31,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { FileText } from 'lucide-react';
 
 
-const poColumns: ColumnDef<PurchaseOrder>[] = [
+const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
     {
         accessorKey: 'id',
         header: 'Order ID',
@@ -55,7 +55,7 @@ const poColumns: ColumnDef<PurchaseOrder>[] = [
         header: 'Total',
         cell: ({ row }) => {
             const po = row.original;
-            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: po.currency }).format(po.totalCost);
+            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(po.totalCost);
             return <div className="text-right font-medium">{formatted}</div>;
         },
     }
@@ -68,8 +68,13 @@ export default function ViewSupplierPage() {
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
   useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
     async function loadData() {
         if (!id) return;
         setLoading(true);
@@ -86,9 +91,10 @@ export default function ViewSupplierPage() {
     loadData();
   }, [id]);
 
+  const poColumns = getPOColumns(settings?.currency || 'UGX');
   const suppliedProducts = products.filter(p => supplier?.productsSupplied.includes(p.sku || ''));
 
-  if (loading) {
+  if (loading || !settings) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -250,7 +256,7 @@ export default function ViewSupplierPage() {
                 <CardContent className="space-y-4">
                      <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Total Spend</span>
-                        <span className="font-semibold">{formatCurrency(totalSpend, 'UGX')}</span>
+                        <span className="font-semibold">{formatCurrency(totalSpend, settings.currency)}</span>
                      </div>
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Total Orders</span>

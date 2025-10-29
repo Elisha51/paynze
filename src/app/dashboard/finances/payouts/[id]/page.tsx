@@ -1,10 +1,11 @@
 
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getStaff, updateStaff } from '@/services/staff';
 import { addTransaction } from '@/services/finances';
-import type { Staff, Payout, Order, CommissionRule, Bonus } from '@/lib/types';
+import type { Staff, Payout, Order, CommissionRule, Bonus, OnboardingFormData } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -40,66 +41,72 @@ export default function PayoutReviewPage() {
     const [loading, setLoading] = useState(true);
     const [earningItems, setEarningItems] = useState<EarningItem[]>([]);
     const [payoutAmount, setPayoutAmount] = useState(0);
-
-    const calculateCommissions = (staff: Staff, orders: Order[], roles: any[]): EarningItem[] => {
-        const staffRole = roles.find(r => r.name === staff.role);
-        if (!staffRole?.commissionRules && !staff.bonuses) return [];
-
-        let commissionItems: EarningItem[] = [];
-
-        if (staffRole?.commissionRules) {
-            orders.forEach(order => {
-                staffRole.commissionRules.forEach((rule: CommissionRule) => {
-                    let isTriggered = false;
-                    if (rule.trigger === 'On Order Paid' && order.paymentStatus === 'Paid' && order.salesAgentId === staff.id) {
-                        isTriggered = true;
-                    }
-                    if (rule.trigger === 'On Order Delivered' && (order.status === 'Delivered' || order.status === 'Picked Up') && order.fulfilledByStaffId === staff.id) {
-                        isTriggered = true;
-                    }
-
-                    if (isTriggered) {
-                        let amount = 0;
-                        if (rule.type === 'Fixed Amount') {
-                            amount = rule.rate;
-                        } else if (rule.type === 'Percentage of Sale') {
-                            amount = order.total * (rule.rate / 100);
-                        }
-                        
-                        commissionItems.push({
-                            id: `comm-${order.id}-${rule.id}`,
-                            date: order.date,
-                            description: `${rule.name} on Order #${order.id}`,
-                            amount,
-                            status: 'pending',
-                            type: 'Commission',
-                            original: order
-                        });
-                    }
-                });
-            });
-        }
-
-        const bonusItems: EarningItem[] = (staff.bonuses || []).map(bonus => ({
-            id: bonus.id,
-            date: bonus.date,
-            description: bonus.reason,
-            amount: bonus.amount,
-            status: 'pending',
-            type: 'Bonus',
-            original: bonus
-        }));
-
-        const paidItemIds = new Set(staff.payoutHistory?.flatMap(p => (p as any).paidItemIds || []) || []);
-        
-        return [...commissionItems, ...bonusItems]
-            .filter(item => !paidItemIds.has(item.id))
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    };
+    const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
 
     useEffect(() => {
+        const storedSettings = localStorage.getItem('onboardingData');
+        if (storedSettings) {
+            setSettings(JSON.parse(storedSettings));
+        }
+
         if (!id) return;
+
+        const calculateCommissions = (staff: Staff, orders: Order[], roles: any[]): EarningItem[] => {
+            const staffRole = roles.find(r => r.name === staff.role);
+            if (!staffRole?.commissionRules && !staff.bonuses) return [];
+
+            let commissionItems: EarningItem[] = [];
+
+            if (staffRole?.commissionRules) {
+                orders.forEach(order => {
+                    staffRole.commissionRules.forEach((rule: CommissionRule) => {
+                        let isTriggered = false;
+                        if (rule.trigger === 'On Order Paid' && order.paymentStatus === 'Paid' && order.salesAgentId === staff.id) {
+                            isTriggered = true;
+                        }
+                        if (rule.trigger === 'On Order Delivered' && (order.status === 'Delivered' || order.status === 'Picked Up') && order.fulfilledByStaffId === staff.id) {
+                            isTriggered = true;
+                        }
+
+                        if (isTriggered) {
+                            let amount = 0;
+                            if (rule.type === 'Fixed Amount') {
+                                amount = rule.rate;
+                            } else if (rule.type === 'Percentage of Sale') {
+                                amount = order.total * (rule.rate / 100);
+                            }
+                            
+                            commissionItems.push({
+                                id: `comm-${order.id}-${rule.id}`,
+                                date: order.date,
+                                description: `${rule.name} on Order #${order.id}`,
+                                amount,
+                                status: 'pending',
+                                type: 'Commission',
+                                original: order
+                            });
+                        }
+                    });
+                });
+            }
+
+            const bonusItems: EarningItem[] = (staff.bonuses || []).map(bonus => ({
+                id: bonus.id,
+                date: bonus.date,
+                description: bonus.reason,
+                amount: bonus.amount,
+                status: 'pending',
+                type: 'Bonus',
+                original: bonus
+            }));
+
+            const paidItemIds = new Set(staff.payoutHistory?.flatMap(p => (p as any).paidItemIds || []) || []);
+            
+            return [...commissionItems, ...bonusItems]
+                .filter(item => !paidItemIds.has(item.id))
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        };
         async function loadData() {
             setLoading(true);
             const [staffList, ordersData, rolesData] = await Promise.all([getStaff(), getOrders(), getRoles()]);
@@ -154,7 +161,6 @@ export default function PayoutReviewPage() {
         const newPayout: Payout & { paidItemIds?: string[] } = {
             date: new Date().toISOString(),
             amount: payoutAmount,
-            currency: staffMember.currency || 'UGX',
             paidItemIds: approvedItemIds,
         };
         
@@ -173,7 +179,6 @@ export default function PayoutReviewPage() {
             date: new Date().toISOString(),
             description: `Payout to ${staffMember.name}`,
             amount: -payoutAmount,
-            currency: staffMember.currency || 'UGX',
             type: 'Expense',
             category: 'Salaries',
             status: 'Cleared',
@@ -182,7 +187,7 @@ export default function PayoutReviewPage() {
 
         toast({
             title: 'Payout Processed',
-            description: `${staffMember.name} has been paid ${formatCurrency(payoutAmount, staffMember.currency || 'UGX')}.`,
+            description: `${staffMember.name} has been paid ${formatCurrency(payoutAmount, settings?.currency || 'UGX')}.`,
         });
         
         router.push('/dashboard/finances?tab=payouts');
@@ -192,7 +197,7 @@ export default function PayoutReviewPage() {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
     };
 
-    if (loading) {
+    if (loading || !settings) {
         return (
              <div className="space-y-6">
                 <Skeleton className="h-8 w-48" />
@@ -214,6 +219,7 @@ export default function PayoutReviewPage() {
     }
     
     const approvedTotal = earningItems.filter(i => i.status === 'approved').reduce((sum, item) => sum + item.amount, 0);
+    const currency = settings.currency;
 
     return (
         <div className="space-y-6">
@@ -299,7 +305,7 @@ export default function PayoutReviewPage() {
                         <CardContent className="space-y-4">
                              <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Approved Earnings:</span>
-                                <span className="font-semibold">{formatCurrency(approvedTotal, staffMember.currency || 'UGX')}</span>
+                                <span className="font-semibold">{formatCurrency(approvedTotal, currency)}</span>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="payoutAmount">Payment Amount</Label>
@@ -321,7 +327,7 @@ export default function PayoutReviewPage() {
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Confirm Payout</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                           You are about to process a payment of <strong className="text-foreground">{formatCurrency(payoutAmount, staffMember.currency || 'UGX')}</strong> to {staffMember.name}. This will create an expense record and update their unpaid balance. This action cannot be undone.
+                                           You are about to process a payment of <strong className="text-foreground">{formatCurrency(payoutAmount, currency)}</strong> to {staffMember.name}. This will create an expense record and update their unpaid balance. This action cannot be undone.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -350,7 +356,7 @@ export default function PayoutReviewPage() {
                                         staffMember.payoutHistory.slice().reverse().slice(0, 5).map((payout, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{format(new Date(payout.date), 'PPP')}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(payout.amount, payout.currency)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(payout.amount, currency)}</TableCell>
                                             </TableRow>
                                         ))
                                     ) : (

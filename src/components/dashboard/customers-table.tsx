@@ -16,7 +16,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Customer } from '@/lib/types';
+import type { Customer, OnboardingFormData } from '@/lib/types';
 import { DataTable } from './data-table';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
@@ -29,7 +29,7 @@ const customerGroups = [
 ];
 
 
-const columns: ColumnDef<Customer>[] = [
+const getColumns = (currency: string): ColumnDef<Customer>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -126,7 +126,7 @@ const columns: ColumnDef<Customer>[] = [
       },
     cell: ({ row }) => {
       const customer = row.original;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: customer.currency }).format(customer.totalSpend);
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(customer.totalSpend);
       return <div className="text-right font-medium">{formatted}</div>
     },
   },
@@ -175,6 +175,16 @@ type CustomersTableProps = {
 };
 
 export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
+    const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+    React.useEffect(() => {
+        const data = localStorage.getItem('onboardingData');
+        if (data) {
+            setSettings(JSON.parse(data));
+        }
+    }, []);
+
+    const columns = React.useMemo(() => getColumns(settings?.currency || 'UGX'), [settings?.currency]);
   return (
     <DataTable
       columns={columns}

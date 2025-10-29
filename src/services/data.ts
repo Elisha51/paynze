@@ -1,0 +1,357 @@
+
+
+import type { Product, Order, Customer, RecentSale, SalesData } from './types';
+
+export const products: Product[] = [
+  {
+    productType: 'Physical',
+    name: 'Colorful Kitenge Fabric',
+    shortDescription: 'Vibrant and colorful Kitenge fabric, perfect for making dresses, shirts, and other traditional attire.',
+    longDescription: '<p>High-quality cotton material, sourced ethically from local artisans. Available in multiple patterns and colors.</p>',
+    status: 'published',
+    images: [{ id: 'img1', url: `https://picsum.photos/seed/KIT-001/400/400` }],
+    videoUrl: 'https://www.youtube.com/watch?v=example',
+    sku: 'KIT-001',
+    barcode: '1234567890123',
+    inventoryTracking: 'Track Quantity',
+    unitOfMeasure: 'm',
+    lowStockThreshold: 10,
+    requiresShipping: true,
+    weight: 0.5,
+    dimensions: { length: 100, width: 150, height: 0.1 },
+    retailPrice: 35000,
+    currency: 'UGX',
+    compareAtPrice: 40000,
+    wholesalePricing: [
+      { customerGroup: 'Wholesaler', price: 30000, minOrderQuantity: 20 },
+      { customerGroup: 'Retailer', price: 32000, minOrderQuantity: 5 },
+    ],
+    isTaxable: true,
+    taxClass: 'VAT-18',
+    costPerItem: 25000,
+    category: 'Fabrics',
+    tags: ['kitenge', 'african print', 'cotton'],
+    supplierIds: ['SUP-001'],
+    collections: ['New Arrivals'],
+    productVisibility: ['Online Store', 'POS'],
+    seo: {
+      pageTitle: 'Colorful Kitenge Fabric | AfriStore',
+      metaDescription: 'Buy high-quality, colorful Kitenge fabric for all your fashion needs.',
+      urlHandle: 'colorful-kitenge-fabric',
+    },
+    hasVariants: true,
+    options: [
+        { name: 'Color', values: ['Red', 'Blue'] },
+        { name: 'Pattern', values: ['Floral', 'Geometric'] }
+    ],
+    variants: [
+      {
+        id: 'var1',
+        optionValues: { Color: 'Red', Pattern: 'Floral' },
+        price: 35000,
+        sku: 'KIT-001-RF',
+        status: 'In Stock',
+        stockByLocation: [
+          { locationName: 'Main Warehouse', stock: { onHand: 30, available: 28, reserved: 2, damaged: 0, sold: 17 } },
+          { locationName: 'Downtown Store', stock: { onHand: 20, available: 20, reserved: 0, damaged: 0, sold: 0 } }
+        ],
+        stockAdjustments: [
+            { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import', channel: 'Manual' },
+            { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' },
+            { id: 'adj-005', date: '2023-03-01', type: 'Sale', quantity: -5, reason: 'Order #ORD-012', channel: 'Online' },
+            { id: 'adj-006', date: '2023-03-10', type: 'Sale', quantity: -10, reason: 'Order #ORD-014', channel: 'In-Store' },
+        ]
+      },
+      {
+        id: 'var2',
+        optionValues: { Color: 'Blue', Pattern: 'Geometric' },
+        price: 35000,
+        sku: 'KIT-001-BG',
+        status: 'In Stock',
+        stockByLocation: [
+            { locationName: 'Main Warehouse', stock: { onHand: 20, available: 15, reserved: 5, damaged: 0, sold: 5 } },
+            { locationName: 'Downtown Store', stock: { onHand: 10, available: 10, reserved: 0, damaged: 0, sold: 0 } }
+        ],
+        stockAdjustments: [
+            { id: 'adj-003', date: '2023-01-15', type: 'Initial Stock', quantity: 30, reason: 'Initial import', channel: 'Manual' },
+            { id: 'adj-004', date: '2023-02-22', type: 'Sale', quantity: -5, reason: 'Order #ORD-011', channel: 'In-Store' }
+        ]
+      },
+    ],
+  },
+  {
+    productType: 'Digital',
+    name: 'E-commerce Business Guide',
+    sku: 'EBOOK-001',
+    shortDescription: 'A comprehensive guide to starting your online business in East Africa.',
+    longDescription: '<p>This e-book covers everything from setting up your store to marketing and logistics.</p>',
+    status: 'published',
+    images: [{ id: 'img2', url: `https://picsum.photos/seed/EBOOK-001/400/400` }],
+    digitalFile: undefined, // This would be a File object in the real app
+    downloadLimit: 5,
+    retailPrice: 10000,
+    currency: 'KES',
+    isTaxable: false,
+    hasVariants: false,
+    options: [],
+    variants: [],
+    inventoryTracking: 'Don\'t Track',
+    requiresShipping: false,
+    productVisibility: ['Online Store'],
+    wholesalePricing: [],
+  },
+   {
+    productType: 'Physical',
+    name: 'Handmade Leather Shoes',
+    sku: 'SHOE-002',
+    shortDescription: 'Genuine leather shoes, handcrafted by skilled artisans. Durable, comfortable, and stylish for any occasion.',
+    status: 'published',
+    images: [{ id: 'img3', url: `https://picsum.photos/seed/SHOE-002/400/400` }],
+    inventoryTracking: 'Track with Serial Numbers',
+    unitOfMeasure: 'pair',
+    requiresShipping: true,
+    weight: 1.2,
+    retailPrice: 75000,
+    currency: 'UGX',
+    wholesalePricing: [{ customerGroup: 'Wholesaler', price: 65000, minOrderQuantity: 10 }],
+    isTaxable: true,
+    productVisibility: ['POS', 'Online Store'],
+    hasVariants: true,
+    options: [{ name: 'Size', values: ['42', '43'] }],
+    supplierIds: ['SUP-002'],
+    variants: [
+      {
+        id: 'var3',
+        optionValues: { Size: '42' },
+        price: 75000,
+        sku: 'SHOE-002-42',
+        status: 'Low Stock',
+        stockByLocation: [
+            { locationName: 'Downtown Store', stock: { onHand: 5, available: 2, reserved: 1, damaged: 1, sold: 1 } }
+        ],
+        inventoryItems: [
+          { id: 'inv-001', serialNumber: 'SN-SHOE-42-001', status: 'Available', locationName: 'Downtown Store'},
+          { id: 'inv-002', serialNumber: 'SN-SHOE-42-002', status: 'Available', locationName: 'Downtown Store'},
+          { id: 'inv-003', serialNumber: 'SN-SHOE-42-003', status: 'Sold', locationName: 'Shipped', soldDate: '2023-03-01' },
+          { id: 'inv-004', serialNumber: 'SN-SHOE-42-004', status: 'Damaged', locationName: 'Downtown Store'},
+          { id: 'inv-005', serialNumber: 'SN-SHOE-42-005', status: 'Reserved', locationName: 'Order #ORD-015'},
+          { id: 'inv-006', serialNumber: 'SN-SHOE-42-006', status: 'Returned', locationName: 'Downtown Store'},
+        ],
+         stockAdjustments: [
+            { id: 'adj-shoe-1', date: '2023-03-01T10:00:00Z', type: 'Sale', quantity: -1, reason: 'Order #ORD-013', channel: 'Online' },
+        ]
+      },
+      { id: 'var4', optionValues: { Size: '43' }, price: 75000, sku: 'SHOE-002-43', status: 'In Stock', stockByLocation: [
+          { locationName: 'Downtown Store', stock: { onHand: 10, available: 8, reserved: 2, damaged: 0, sold: 0 } }
+      ] },
+    ],
+  },
+  {
+    productType: 'Service',
+    name: '1-on-1 Business Consultation',
+    sku: 'CONSULT-01',
+    shortDescription: 'Book a one-hour session with our e-commerce experts to accelerate your growth.',
+    longDescription: '<p>Get personalized advice on marketing, sales, and operations for your online store.</p>',
+    status: 'published',
+    images: [{ id: 'img4', url: 'https://picsum.photos/seed/CONSULT-01/400/400'}],
+    serviceDuration: '1 hour',
+    retailPrice: 50000,
+    currency: 'KES',
+    isTaxable: true,
+    hasVariants: false,
+    options: [],
+    variants: [],
+    inventoryTracking: 'Don\'t Track',
+    productVisibility: ['Online Store'],
+    requiresShipping: false,
+    wholesalePricing: [],
+  },
+  {
+    productType: 'Physical',
+    name: 'Rwenzori Coffee Beans',
+    sku: 'COFF-01',
+    shortDescription: 'Rich, aromatic single-origin coffee beans from the Rwenzori mountains.',
+    status: 'published',
+    images: [{ id: 'img5', url: 'https://picsum.photos/seed/COFF-01/400/400' }],
+    inventoryTracking: 'Track Quantity',
+    unitOfMeasure: 'kg',
+    requiresShipping: true,
+    weight: 1,
+    retailPrice: 40000,
+    currency: 'UGX',
+    isTaxable: false,
+    hasVariants: false,
+    options: [],
+    variants: [
+        { id: 'var-coff-1', optionValues: {}, status: 'In Stock', stockByLocation: [
+            { locationName: 'Main Warehouse', stock: { onHand: 100, available: 100, reserved: 0, damaged: 0, sold: 0 } }
+        ]}
+    ],
+    productVisibility: ['Online Store', 'POS'],
+    supplierIds: ['SUP-003'],
+  },
+  {
+    productType: 'Physical',
+    name: 'Maasai Beaded Necklace',
+    sku: 'JEWEL-01',
+    shortDescription: 'Intricate, handcrafted beaded necklace made by Maasai artisans.',
+    status: 'draft',
+    images: [{ id: 'img6', url: 'https://picsum.photos/seed/JEWEL-01/400/400' }],
+    inventoryTracking: 'Track Quantity',
+    requiresShipping: true,
+    weight: 0.2,
+    retailPrice: 25000,
+    currency: 'KES',
+    isTaxable: false,
+    hasVariants: false,
+    options: [],
+    variants: [
+       { id: 'var-jwl-1', optionValues: {}, status: 'In Stock', stockByLocation: [
+            { locationName: 'Downtown Store', stock: { onHand: 15, available: 15, reserved: 0, damaged: 0, sold: 0 } }
+       ]}
+    ],
+    productVisibility: ['Online Store'],
+  }
+];
+
+
+export const orders: Order[] = [
+    { 
+        id: 'ORD-001', 
+        customerId: 'cust-02',
+        customerName: 'Olivia Smith',
+        customerEmail: 'olivia@example.com',
+        date: '2024-07-25', 
+        status: 'Delivered', 
+        fulfillmentMethod: 'Delivery',
+        channel: 'Online',
+        items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
+        total: 75000, 
+        shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+        paymentMethod: 'Mobile Money',
+        paymentStatus: 'Paid',
+    },
+    { 
+        id: 'ORD-002', 
+        customerId: 'cust-01',
+        customerName: 'Liam Johnson', 
+        customerEmail: 'liam@example.com', 
+        date: '2024-07-25', 
+        status: 'Picked Up', 
+        fulfillmentMethod: 'Pickup',
+        channel: 'Manual',
+        items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 5, price: 32000, category: 'Fabrics' }],
+        total: 160000,
+        shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+        paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'Paid'
+    },
+     { 
+        id: 'ORD-003', 
+        customerId: 'cust-03',
+        customerName: 'Noah Williams', 
+        customerEmail: 'noah@example.com', 
+        date: '2024-07-24', 
+        status: 'Paid', 
+        fulfillmentMethod: 'Delivery',
+        channel: 'Online',
+        items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
+        total: 10000,
+        shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
+        paymentMethod: 'Mobile Money',
+        paymentStatus: 'Paid'
+    },
+    { 
+        id: 'ORD-004', 
+        customerId: 'cust-04',
+        customerName: 'Emma Brown', 
+        customerEmail: 'emma@example.com', 
+        date: '2024-07-24', 
+        status: 'Awaiting Payment', 
+        fulfillmentMethod: 'Delivery',
+        channel: 'Online',
+        items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
+        total: 80000,
+        shippingAddress: { street: '222 Rosewood Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+        paymentMethod: 'Mobile Money',
+        paymentStatus: 'Unpaid'
+    },
+    { 
+        id: 'ORD-005', 
+        customerId: 'cust-05',
+        customerName: 'James Jones', 
+        customerEmail: 'james@example.com', 
+        date: '2024-07-23', 
+        status: 'Ready for Pickup', 
+        fulfillmentMethod: 'Pickup',
+        channel: 'POS',
+        items: [{ sku: 'SHOE-002-43', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
+        total: 75000,
+        shippingAddress: { street: '333 Palm Street', city: 'Jinja', postalCode: '12345', country: 'Uganda' },
+        paymentMethod: 'Cash on Delivery',
+        paymentStatus: 'Paid'
+    },
+    { 
+        id: 'ORD-006', 
+        customerId: 'cust-01',
+        customerName: 'Liam Johnson', 
+        customerEmail: 'liam@example.com', 
+        date: '2024-07-23', 
+        status: 'Cancelled', 
+        fulfillmentMethod: 'Delivery',
+        channel: 'Online',
+        items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 10, price: 30000, category: 'Fabrics' }],
+        total: 300000,
+        shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+        paymentMethod: 'Mobile Money',
+        paymentStatus: 'Paid'
+    },
+    { 
+        id: 'ORD-007', 
+        customerId: 'cust-06',
+        customerName: 'Sophia Miller', 
+        customerEmail: 'sophia@example.com', 
+        date: '2024-07-22', 
+        status: 'Shipped', 
+        fulfillmentMethod: 'Delivery',
+        channel: 'Online',
+        items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 2, price: 25000, category: 'Accessories' }],
+        total: 50000,
+        shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+        paymentMethod: 'Mobile Money',
+        paymentStatus: 'Paid'
+    },
+];
+
+export const customers: Customer[] = [
+    { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'Wholesaler', lastOrderDate: '2023-01-23', totalSpend: 250000, createdAt: '2022-11-15' },
+    { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', customerGroup: 'Retailer', lastOrderDate: '2023-02-10', totalSpend: 75000, createdAt: '2023-01-20' },
+    { id: 'cust-03', name: 'Noah Williams', email: 'noah@example.com', phone: '+254734567890', customerGroup: 'default', lastOrderDate: '2023-03-05', totalSpend: 15000, createdAt: '2023-03-01' },
+    { id: 'cust-04', name: 'Emma Brown', email: 'emma@example.com', phone: '+254745678901', customerGroup: 'Retailer', lastOrderDate: '2023-03-15', totalSpend: 43000, createdAt: '2023-03-10' },
+    { id: 'cust-05', name: 'James Jones', email: 'james@example.com', phone: '+254756789012', customerGroup: 'default', lastOrderDate: '2023-03-20', totalSpend: 36000, createdAt: '2023-03-18' },
+    { id: 'cust-06', name: 'Sophia Miller', email: 'sophia@example.com', phone: '+254765432109', customerGroup: 'Retailer', lastOrderDate: '2024-07-22', totalSpend: 50000, createdAt: '2024-07-22' },
+];
+
+
+export const recentSales: RecentSale[] = [
+  { id: 'sale-01', name: 'Olivia Smith', email: 'olivia@example.com', amount: '+UGX 75,000', avatarId: 'avatar-1', customerId: 'cust-02' },
+  { id: 'sale-02', name: 'Liam Johnson', email: 'liam@example.com', amount: '+UGX 160,000', avatarId: 'avatar-2', customerId: 'cust-01' },
+  { id: 'sale-03', name: 'Noah Williams', email: 'noah@example.com', amount: '+KES 10,000', avatarId: 'avatar-3', customerId: 'cust-03' },
+  { id: 'sale-04', name: 'Emma Brown', email: 'emma@example.com', amount: '+UGX 80,000', avatarId: 'avatar-4', customerId: 'cust-04' },
+  { id: 'sale-05', name: 'James Jones', email: 'james@example.com', amount: '+UGX 75,000', avatarId: 'avatar-5', customerId: 'cust-05' },
+];
+
+export const salesData: SalesData[] = [
+    { name: 'Jan', total: 325000 },
+    { name: 'Feb', total: 410000 },
+    { name: 'Mar', total: 280000 },
+    { name: 'Apr', total: 480000 },
+    { name: 'May', total: 390000 },
+    { name: 'Jun', total: 310000 },
+    { name: 'Jul', total: 420000 },
+    { name: 'Aug', total: 0 },
+    { name: 'Sep', total: 0 },
+    { name: 'Oct', total: 0 },
+    { name: 'Nov', total: 0 },
+    { name: 'Dec', total: 0 },
+];

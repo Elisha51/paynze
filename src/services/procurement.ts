@@ -41,7 +41,6 @@ const purchaseOrders: PurchaseOrder[] = [
     orderDate: '2024-05-01',
     expectedDelivery: '2024-05-15',
     totalCost: 1500000,
-    currency: 'UGX',
     items: [
       { productId: 'KIT-001-RF', productName: 'Colorful Kitenge Fabric - Red, Floral', quantity: 50, cost: 30000 },
     ]
@@ -54,7 +53,6 @@ const purchaseOrders: PurchaseOrder[] = [
     orderDate: '2024-06-10',
     expectedDelivery: '2024-07-01',
     totalCost: 1300000,
-    currency: 'UGX',
     items: [
       { productId: 'SHOE-002-42', productName: 'Handmade Leather Shoes - Size 42', quantity: 20, cost: 65000 },
     ]
@@ -67,7 +65,6 @@ const purchaseOrders: PurchaseOrder[] = [
     orderDate: '2024-07-18',
     expectedDelivery: '2024-08-01',
     totalCost: 2000000,
-    currency: 'UGX',
     items: [
       { productId: 'COFF-01', productName: 'Rwenzori Coffee Beans', quantity: 100, cost: 20000 },
     ]

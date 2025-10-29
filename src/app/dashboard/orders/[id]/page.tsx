@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Copy, Store, PackageCheck } from 'lucide-react';
 import Link from 'next/link';
 import { getOrderById, updateOrder, updateProductStock } from '@/services/orders';
-import type { Order } from '@/lib/types';
+import type { Order, OnboardingFormData } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -54,6 +54,14 @@ export default function ViewOrderPage() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+
+  useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
+  }, []);
 
   const loadOrder = async () => {
     if (id) {
@@ -102,7 +110,7 @@ export default function ViewOrderPage() {
     });
   };
   
-  if (loading) {
+  if (loading || !settings) {
     return (
         <div className="grid flex-1 items-start gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
             <div className="mx-auto grid max-w-6xl flex-1 auto-rows-max gap-4">
@@ -143,7 +151,8 @@ export default function ViewOrderPage() {
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
-
+  
+  const currency = settings.currency;
   const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const shipping = order.shippingCost || 0;
   const taxes = order.taxes || 0;
@@ -186,7 +195,7 @@ export default function ViewOrderPage() {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Confirm Mobile Money Payment</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Have you received the mobile money payment of {formatCurrency(order.total, order.currency)} for order #{order.id}? This action cannot be undone.
+                              Have you received the mobile money payment of {formatCurrency(order.total, currency)} for order #{order.id}? This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
@@ -292,7 +301,7 @@ export default function ViewOrderPage() {
                                             <span className="block text-xs">SKU: {item.sku}</span>
                                         </div>
                                     </span>
-                                    <span>{formatCurrency(item.price, order.currency)} x {item.quantity}</span>
+                                    <span>{formatCurrency(item.price, currency)} x {item.quantity}</span>
                                 </li>
                             ))}
                         </ul>
@@ -300,19 +309,19 @@ export default function ViewOrderPage() {
                         <ul className="grid gap-3">
                             <li className="flex items-center justify-between">
                             <span className="text-muted-foreground">Subtotal</span>
-                            <span>{formatCurrency(subtotal, order.currency)}</span>
+                            <span>{formatCurrency(subtotal, currency)}</span>
                             </li>
                             <li className="flex items-center justify-between">
                             <span className="text-muted-foreground">Shipping</span>
-                            <span>{formatCurrency(shipping, order.currency)}</span>
+                            <span>{formatCurrency(shipping, currency)}</span>
                             </li>
                             <li className="flex items-center justify-between">
                             <span className="text-muted-foreground">Tax</span>
-                            <span>{formatCurrency(taxes, order.currency)}</span>
+                            <span>{formatCurrency(taxes, currency)}</span>
                             </li>
                             <li className="flex items-center justify-between font-semibold">
                             <span className="text-muted-foreground">Total</span>
-                            <span>{formatCurrency(total, order.currency)}</span>
+                            <span>{formatCurrency(total, currency)}</span>
                             </li>
                         </ul>
                     </div>

@@ -24,7 +24,7 @@ import { QuickLinks } from '@/components/dashboard/quick-links';
 import { getOrders } from '@/services/orders';
 import { getCustomers } from '@/services/customers';
 import { getProducts } from '@/services/products';
-import type { Order, Customer, RecentSale, Staff, Product } from '@/lib/types';
+import type { Order, Customer, RecentSale, Staff, Product, OnboardingFormData } from '@/lib/types';
 import { StaffWidget } from '@/components/dashboard/staff-widget';
 import { getStaff, updateStaff } from '@/services/staff';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
@@ -55,6 +55,8 @@ export default function DashboardPage() {
     from: addDays(new Date(), -29),
     to: new Date(),
   });
+  const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
@@ -72,6 +74,10 @@ export default function DashboardPage() {
   }, []);
 
   React.useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
     loadData();
   }, [loadData]);
   
@@ -102,8 +108,7 @@ export default function DashboardPage() {
   const salesInPeriod = filteredOrders.length;
   const newCustomersInPeriod = filteredCustomers.length;
   
-  // This is a simplification, a real multi-currency dashboard would need more logic
-  const primaryCurrency = orders.length > 0 ? orders[0].currency : 'UGX';
+  const primaryCurrency = settings?.currency || 'UGX';
 
   // Overall metrics (not affected by date filter)
   const activeProducts = products.filter(p => p.status === 'published').length;
@@ -117,7 +122,7 @@ export default function DashboardPage() {
       id: order.id,
       name: order.customerName,
       email: order.customerEmail,
-      amount: `+${formatCurrency(order.total, order.currency)}`,
+      amount: `+${formatCurrency(order.total, primaryCurrency)}`,
       avatarId: `avatar-${(Math.floor(Math.random() * 5) + 1)}`,
       customerId: order.customerId,
   }));
@@ -143,7 +148,7 @@ export default function DashboardPage() {
       };
       
       await updateStaff(updatedStaffMember);
-      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${formatCurrency(bonusAmount, bonusStaff.currency || 'UGX')}.`});
+      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${formatCurrency(bonusAmount, primaryCurrency)}.`});
       setBonusStaff(null);
       setBonusAmount(0);
       setBonusReason('');
@@ -284,7 +289,7 @@ export default function DashboardPage() {
             <CardTitle>Overview</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <OverviewChart orders={filteredOrders} />
+            <OverviewChart orders={filteredOrders} currency={primaryCurrency} />
           </CardContent>
         </Card>
         <Card className="lg:col-span-3">
@@ -342,7 +347,7 @@ export default function DashboardPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
              <div className="space-y-2">
-              <Label htmlFor="bonusAmount">Bonus Amount ({bonusStaff?.currency})</Label>
+              <Label htmlFor="bonusAmount">Bonus Amount ({primaryCurrency})</Label>
               <Input
                 id="bonusAmount"
                 type="number"

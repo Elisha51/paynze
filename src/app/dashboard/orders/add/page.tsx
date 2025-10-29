@@ -30,7 +30,7 @@ import {
 import { getCustomers } from '@/services/customers';
 import { getProducts } from '@/services/products';
 import { addOrder } from '@/services/orders';
-import type { Customer, Product, OrderItem, Order, Staff } from '@/lib/types';
+import type { Customer, Product, OrderItem, Order, Staff, OnboardingFormData } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -51,11 +51,16 @@ export default function AddOrderPage() {
   const [fulfillmentMethod, setFulfillmentMethod] = useState<Order['fulfillmentMethod']>('Delivery');
   const [orderStatus, setOrderStatus] = useState<Order['status']>('Awaiting Payment');
   const [isLoading, setIsLoading] = useState(false);
+  const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const { toast } = useToast();
   const router = useRouter();
 
 
   useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
     async function fetchData() {
         const [customerData, productData, staffData] = await Promise.all([
             getCustomers(),
@@ -99,7 +104,7 @@ export default function AddOrderPage() {
   const total = subtotal + tax;
 
   const formatCurrency = (amount: number) => {
-    const currency = products.find(p => p.sku === items[0]?.sku)?.currency || 'UGX';
+    const currency = settings?.currency || 'UGX';
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
 
@@ -135,7 +140,6 @@ export default function AddOrderPage() {
       channel: 'Manual',
       items: items as OrderItem[],
       total,
-      currency: products.find(p => p.sku === items[0]?.sku)?.currency || 'UGX',
       shippingAddress: { // Mock address, can be improved
           street: '123 Customer Lane',
           city: 'Kampala',

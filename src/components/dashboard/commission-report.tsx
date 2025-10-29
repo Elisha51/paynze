@@ -1,52 +1,23 @@
+
 'use client';
 
-import { useState, useMemo } from 'react';
-import type { Payout, Staff, Role, Order, Bonus } from '@/lib/types';
+import { useState, useMemo, useEffect } from 'react';
+import type { Payout, Staff, Role, Order, Bonus, OnboardingFormData } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, DollarSign, MoreHorizontal, Gift, FileText } from 'lucide-react';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-    DialogClose,
-    DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { useToast } from '@/hooks/use-toast';
-import { updateStaff } from '@/services/staff';
-import { addTransaction } from '@/services/finances';
-import { format } from 'date-fns';
 import Link from 'next/link';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
-import { ScrollArea } from '../ui/scroll-area';
-import { Badge } from '../ui/badge';
 
 type CommissionRow = {
   staffId: string;
   name: string;
   role: string;
   commission: number;
-  currency: string;
 };
 
-const getColumns = (): ColumnDef<CommissionRow>[] => [
+const getColumns = (currency: string): ColumnDef<CommissionRow>[] => [
     {
         accessorKey: 'name',
         header: 'Staff Member',
@@ -72,7 +43,7 @@ const getColumns = (): ColumnDef<CommissionRow>[] => [
         ),
         cell: ({ row }) => {
             const amount = parseFloat(row.getValue('commission'));
-            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(amount);
+            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
             return <div className="text-right font-bold text-primary">{formatted}</div>;
         },
     },
@@ -98,6 +69,14 @@ const getColumns = (): ColumnDef<CommissionRow>[] => [
 ];
 
 export function CommissionReport({ staff, roles, orders, onPayout }: { staff: Staff[], roles: Role[], orders: Order[], onPayout: () => void }) {
+    const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+
+    useEffect(() => {
+        const data = localStorage.getItem('onboardingData');
+        if (data) {
+            setSettings(JSON.parse(data));
+        }
+    }, []);
     
     const commissionData = useMemo(() => {
         return staff.filter(s => {
@@ -108,11 +87,10 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
             name: s.name,
             role: s.role,
             commission: s.totalCommission || 0,
-            currency: s.currency || 'UGX',
         }));
     }, [staff, roles]);
     
-    const columns = useMemo(() => getColumns(), [staff, onPayout]);
+    const columns = useMemo(() => getColumns(settings?.currency || 'UGX'), [settings?.currency]);
 
     return (
         <>

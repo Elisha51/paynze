@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, ChevronLeft, Truck } from 'lucide-react';
 import Link from 'next/link';
 import { getPurchaseOrderById } from '@/services/procurement';
-import type { PurchaseOrder } from '@/lib/types';
+import type { PurchaseOrder, OnboardingFormData } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -40,8 +41,13 @@ export default function ViewPurchaseOrderPage() {
   const id = params.id as string;
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
   const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
   useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
     if (id) {
         async function loadOrder() {
             setLoading(true);
@@ -53,7 +59,7 @@ export default function ViewPurchaseOrderPage() {
     }
   }, [id]);
   
-  if (loading) {
+  if (loading || !settings) {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -107,6 +113,8 @@ export default function ViewPurchaseOrderPage() {
       Partial: 'outline',
       Cancelled: 'destructive',
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
+  
+  const currency = settings.currency;
 
   return (
     <div className="space-y-6">
@@ -165,15 +173,15 @@ export default function ViewPurchaseOrderPage() {
                                 <TableRow key={index}>
                                     <TableCell className="font-medium">{item.productName}</TableCell>
                                     <TableCell className="text-right">{item.quantity}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(item.cost, order.currency)}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(item.cost * item.quantity, order.currency)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(item.cost, currency)}</TableCell>
+                                    <TableCell className="text-right">{formatCurrency(item.cost * item.quantity, currency)}</TableCell>
                                 </TableRow>
                             ))}
                         </TableBody>
                         <TableFooter>
                             <TableRow>
                                 <TableCell colSpan={3} className="text-right font-semibold text-lg">Grand Total</TableCell>
-                                <TableCell className="text-right font-bold text-lg">{formatCurrency(order.totalCost, order.currency)}</TableCell>
+                                <TableCell className="text-right font-bold text-lg">{formatCurrency(order.totalCost, currency)}</TableCell>
                             </TableRow>
                         </TableFooter>
                     </Table>

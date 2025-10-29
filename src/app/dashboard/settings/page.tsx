@@ -60,6 +60,11 @@ export default function SettingsPage() {
         setSettings(prev => prev ? { ...prev, [id]: value } : null);
     };
 
+    const handleSelectChange = (id: 'currency', value: string) => {
+        if (!settings) return;
+        setSettings(prev => prev ? { ...prev, [id]: value } : null);
+    };
+
     const handleSwitchChange = (id: 'cod' | 'mobileMoney' | 'pickup' | 'enableLowStockAlerts', checked: boolean) => {
         if (!settings) return;
 
@@ -114,6 +119,9 @@ export default function SettingsPage() {
     };
 
     const handleSaveChanges = () => {
+        if (settings) {
+            localStorage.setItem('onboardingData', JSON.stringify(settings));
+        }
         toast({
             title: 'Settings Saved',
             description: 'Your changes have been saved successfully.',
@@ -155,6 +163,20 @@ export default function SettingsPage() {
                     <Input id="subdomain" value={settings?.subdomain || ''} onChange={handleInputChange} />
                     <span className="ml-2 text-muted-foreground">.paynze.app</span>
                 </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="currency">Store Currency</Label>
+                <Select value={settings?.currency || 'UGX'} onValueChange={(v) => handleSelectChange('currency', v)}>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="UGX">UGX - Ugandan Shilling</SelectItem>
+                        <SelectItem value="KES">KES - Kenyan Shilling</SelectItem>
+                        <SelectItem value="TZS">TZS - Tanzanian Shilling</SelectItem>
+                        <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="storeDescription">Store Description</Label>

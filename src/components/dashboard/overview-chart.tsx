@@ -14,7 +14,7 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
-export function OverviewChart({ orders }: { orders: Order[] }) {
+export function OverviewChart({ orders, currency }: { orders: Order[], currency: string }) {
   const salesData = useMemo(() => {
      if (orders.length === 0) return [];
     
@@ -46,8 +46,6 @@ export function OverviewChart({ orders }: { orders: Order[] }) {
       });
     }
   }, [orders]);
-
-  const currency = orders.length > 0 ? orders[0].currency : 'UGX';
 
   const formatYAxis = (value: number) => {
     if (value >= 1000000) return `${currency} ${value / 1000000}M`;
