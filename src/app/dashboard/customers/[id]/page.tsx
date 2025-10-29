@@ -160,9 +160,11 @@ export default function ViewCustomerPage() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline">
+            <Button variant="outline" asChild>
+              <Link href={`/dashboard/customers/${customer.id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
+              </Link>
             </Button>
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
