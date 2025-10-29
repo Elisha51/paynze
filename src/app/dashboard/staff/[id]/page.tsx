@@ -429,7 +429,7 @@ export default function ViewStaffPage() {
                             description: unassignedDeliveryOrders.length > 0 
                                 ? "You can assign one of the pending orders below."
                                 : "There are currently no unassigned orders ready for delivery.",
-                            cta: unassignedDeliveryOrders.length > 0 
+                            cta: unassignedDeliveryOrders.length > 0 && canEditStaff
                                 ? <UnassignedOrders orders={unassignedDeliveryOrders} staffMember={staffMember} onAssign={handleAssignOrder} />
                                 : undefined,
                           }}
@@ -449,7 +449,7 @@ export default function ViewStaffPage() {
                             icon={<Award className="h-12 w-12 text-primary" />}
                             title="No Tasks or Schedule"
                             description="This staff member currently has no assigned orders or schedule to display."
-                            cta={(
+                            cta={( canEditStaff &&
                                 <Button asChild>
                                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
                                         <Edit className="mr-2 h-4 w-4" />
