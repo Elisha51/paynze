@@ -29,6 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useAuth } from '@/context/auth-context';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
@@ -45,8 +46,6 @@ const paymentStatusVariantMap: { [key in Order['paymentStatus']]: 'default' | 's
     'Unpaid': 'destructive',
 };
 
-// Simulate a logged-in user for accountability
-const LOGGED_IN_STAFF = { id: 'staff-003', name: 'Peter Jones' };
 
 export default function ViewOrderPage() {
   const params = useParams();
@@ -55,6 +54,11 @@ export default function ViewOrderPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+  const { user } = useAuth();
+  
+  const canEdit = user?.permissions.orders.edit;
+  const canDelete = user?.permissions.orders.delete;
+
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
@@ -77,7 +81,7 @@ export default function ViewOrderPage() {
   }, [id]);
 
   const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
-    if (!order) return;
+    if (!order || !user) return;
     
     const updates: Partial<Order> = { status };
     if (paymentStatus) {
@@ -86,8 +90,8 @@ export default function ViewOrderPage() {
     
     // Fulfill order and deduct stock
     if (status === 'Delivered' || status === 'Picked Up') {
-        updates.fulfilledByStaffId = LOGGED_IN_STAFF.id;
-        updates.fulfilledByStaffName = LOGGED_IN_STAFF.name;
+        updates.fulfilledByStaffId = user.id;
+        updates.fulfilledByStaffName = user.name;
         for (const item of order.items) {
            await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${order.id}`);
         }
@@ -185,34 +189,38 @@ export default function ViewOrderPage() {
                 {order.status}
             </Badge>
             <div className="hidden items-center gap-2 md:ml-auto md:flex">
-                {canBePaid && (
-                  isMobileMoney ? (
-                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="outline" size="sm">Verify & Mark as Paid</Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Confirm Mobile Money Payment</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              Have you received the mobile money payment of {formatCurrency(order.total, currency)} for order #{order.id}? This action cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleUpdateStatus('Paid', 'Paid')}>
-                              Yes, Payment Received
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                     </AlertDialog>
-                  ) : (
-                    <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</Button>
-                  )
+                {canEdit && (
+                    <>
+                        {canBePaid && (
+                        isMobileMoney ? (
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                <Button variant="outline" size="sm">Verify & Mark as Paid</Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Confirm Mobile Money Payment</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                    Have you received the mobile money payment of {formatCurrency(order.total, currency)} for order #{order.id}? This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleUpdateStatus('Paid', 'Paid')}>
+                                    Yes, Payment Received
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        ) : (
+                            <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</Button>
+                        )
+                        )}
+                        {canReadyForPickup && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</Button>}
+                        {canMarkAsDelivered && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Delivered')}>Mark as Delivered</Button>}
+                        {canMarkAsPickedUp && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Picked Up')}>Mark as Picked Up</Button>}
+                    </>
                 )}
-                {canReadyForPickup && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</Button>}
-                {canMarkAsDelivered && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Delivered')}>Mark as Delivered</Button>}
-                {canMarkAsPickedUp && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Picked Up')}>Mark as Picked Up</Button>}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="icon" className="h-8 w-8">
@@ -221,9 +229,9 @@ export default function ViewOrderPage() {
                     </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Edit Order</DropdownMenuItem>
+                    {canEdit && <DropdownMenuItem>Edit Order</DropdownMenuItem>}
                     <DropdownMenuItem>Export</DropdownMenuItem>
-                    {canBeCancelled && (
+                    {canDelete && canBeCancelled && (
                       <>
                         <DropdownMenuSeparator />
                         <AlertDialog>

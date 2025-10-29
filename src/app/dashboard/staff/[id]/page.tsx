@@ -42,6 +42,7 @@ import { StaffScheduleCard } from '@/components/dashboard/staff-schedule-card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { StaffActivityLog } from '@/components/dashboard/staff-activity-log';
+import { useAuth } from '@/context/auth-context';
 
 
 const orderColumns: ColumnDef<Order>[] = [
@@ -178,6 +179,7 @@ export default function ViewStaffPage() {
   const router = useRouter();
   const id = params.id as string;
   const { toast } = useToast();
+  const { user } = useAuth();
   const [staffMember, setStaffMember] = useState<Staff | null>(null);
   const [role, setRole] = useState<Role | null>(null);
   const [allOrders, setAllOrders] = useState<Order[]>([]);
@@ -299,6 +301,8 @@ export default function ViewStaffPage() {
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
+  
+  const canEditStaff = user?.permissions.staff.edit;
 
 
   return (
@@ -329,12 +333,14 @@ export default function ViewStaffPage() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" asChild>
-                <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                </Link>
-            </Button>
+            {canEditStaff && (
+                <Button variant="outline" asChild>
+                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                    </Link>
+                </Button>
+            )}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon">
@@ -344,13 +350,15 @@ export default function ViewStaffPage() {
                 <DropdownMenuContent>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem>View Activity Log</DropdownMenuItem>
-                    <DropdownMenuItem className="text-destructive">Deactivate Member</DropdownMenuItem>
+                    {canEditStaff && (
+                        <DropdownMenuItem className="text-destructive">Deactivate Member</DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
       </div>
 
-      {isPendingVerification && (
+      {isPendingVerification && canEditStaff && (
          <Card className="border-yellow-400 bg-yellow-50">
               <CardHeader className="flex flex-row items-center justify-between p-4">
                 <div className="flex items-center gap-3">
@@ -541,5 +549,3 @@ export default function ViewStaffPage() {
     </div>
   );
 }
-
-    
