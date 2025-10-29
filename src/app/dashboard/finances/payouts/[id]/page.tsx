@@ -1,7 +1,7 @@
 
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getStaff, updateStaff } from '@/services/staff';
 import { addTransaction } from '@/services/finances';
@@ -11,7 +11,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { ArrowLeft, CheckCircle, Gift, DollarSign, Info } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Gift, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import Link from 'next/link';
@@ -101,7 +101,7 @@ export default function PayoutReviewPage() {
                 original: bonus
             }));
 
-            const paidItemIds = new Set(staff.payoutHistory?.flatMap(p => (p as any).paidItemIds || []) || []);
+            const paidItemIds = new Set(staff.payoutHistory?.flatMap(p => p.paidItemIds || []) || []);
             
             return [...commissionItems, ...bonusItems]
                 .filter(item => !paidItemIds.has(item.id))
