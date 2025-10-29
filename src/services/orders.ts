@@ -184,8 +184,19 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
           await updateProductStock(item.sku, item.quantity, 'Un-reserve', `Order #${orderId} Cancelled`);
       }
   }
+
+  // Merge payment details correctly
+  const finalUpdates = {
+      ...updates,
+      ...(updates.payment && {
+          payment: {
+              ...originalOrder.payment,
+              ...updates.payment,
+          }
+      })
+  };
   
-  const updatedOrder = await orderService.update(orderId, updates);
+  const updatedOrder = await orderService.update(orderId, finalUpdates);
 
   // Handle commissions after the order has been updated in the main array
   if (updates.status === 'Delivered' || updates.status === 'Picked Up') {
