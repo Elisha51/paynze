@@ -31,6 +31,7 @@ import { cn } from '@/lib/utils';
 import { ProcurementAnalyticsReport } from '@/components/dashboard/analytics/procurement-analytics-report';
 import { Calendar } from '@/components/ui/calendar';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 // Columns for Suppliers Table
 const supplierColumns: ColumnDef<Supplier>[] = [
@@ -184,6 +185,7 @@ export default function ProcurementPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const activeTab = searchParams.get('tab') || 'suppliers';
 
@@ -233,29 +235,33 @@ export default function ProcurementPage() {
     { value: 'purchase-orders', label: 'Purchase Orders' },
     { value: 'analytics', label: 'Analytics' },
   ];
+  
+  const canCreate = user?.permissions.procurement.create;
 
   const cta = (
-    <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button>
-            Create New <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/procurement/suppliers/add">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Supplier
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/dashboard/procurement/purchase-orders/add">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Create Purchase Order
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    canCreate && (
+      <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              Create New <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/procurement/suppliers/add">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Supplier
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/procurement/purchase-orders/add">
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Create Purchase Order
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+    )
   );
 
   return (

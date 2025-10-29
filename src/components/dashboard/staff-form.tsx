@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Save, Calendar, X, FileText, Clock, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Save, Calendar, X, FileText, Clock, PlusCircle, ShieldAlert } from 'lucide-react';
 import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import { Separator } from '../ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { useAuth } from '@/context/auth-context';
 
 
 const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any, value: any, onChange: (key: string, value: any) => void }) => {
@@ -122,12 +123,14 @@ const daysOfWeek: Shift['day'][] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday'
 export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     const router = useRouter();
     const { toast } = useToast();
+    const { user } = useAuth();
     const [staffMember, setStaffMember] = useState<Staff | null>(initialStaff || null);
     const [allRoles, setAllRoles] = useState<Role[]>([]);
     const [imageToCrop, setImageToCrop] = useState<string | null>(null);
     const [crop, setCrop] = useState<Crop>();
 
     const selectedRole = allRoles.find(r => r.name === staffMember?.role);
+    const canEdit = user?.permissions?.staff.edit;
 
     useEffect(() => {
         async function loadRoles() {
@@ -139,6 +142,22 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     
     if (!staffMember) {
         return <div>Loading...</div>; // Or a skeleton loader
+    }
+    
+    if (!canEdit) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">You do not have permission to edit staff members.</p>
+                     <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                    </Button>
+                </CardContent>
+            </Card>
+        );
     }
 
     const handleCoreInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,11 +1,12 @@
 
+
 'use client';
 import * as React from 'react';
 import Image from 'next/image';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Package, PlusCircle, PackageCheck, FileArchive, File as FileIcon } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Package, PlusCircle, PackageCheck, FileArchive, File as FileIcon, Edit } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +34,7 @@ import {
 import type { Product } from '@/lib/types';
 import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 
 const productStatuses = [
     { value: 'published', label: 'Published', icon: PackageCheck },
@@ -47,7 +49,9 @@ const productTypes = [
 
 const getColumns = (
   archiveProduct: (sku: string) => void,
-  unarchiveProduct: (sku: string) => void
+  unarchiveProduct: (sku: string) => void,
+  canEdit: boolean,
+  canDelete: boolean,
 ): ColumnDef<Product>[] => [
   {
     id: 'select',
@@ -222,21 +226,23 @@ const getColumns = (
                    <DropdownMenuItem asChild>
                     <Link href={`/dashboard/products/${product.sku}`}>View</Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/products/${product.sku}/edit`}>Edit</Link>
-                  </DropdownMenuItem>
+                  {canEdit && (
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/products/${product.sku}/edit`}>Edit</Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
-                  {product.status !== 'archived' ? (
+                  {canDelete && product.status !== 'archived' ? (
                     <AlertDialogTrigger asChild>
                         <DropdownMenuItem className="text-destructive focus:bg-destructive/10 focus:text-destructive" onSelect={e => e.preventDefault()}>
                         Archive
                         </DropdownMenuItem>
                     </AlertDialogTrigger>
-                  ) : (
+                  ) : canDelete ? (
                     <DropdownMenuItem onClick={() => product.sku && unarchiveProduct(product.sku)}>
                         Unarchive
                     </DropdownMenuItem>
-                  )}
+                  ) : null}
                 </DropdownMenuContent>
               </DropdownMenu>
               <AlertDialogContent>
@@ -271,6 +277,10 @@ type ProductsTableProps = {
 
 export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) {
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const canEdit = user?.permissions.products.edit ?? false;
+  const canDelete = user?.permissions.products.delete ?? false;
   
   const archiveProduct = async (sku: string) => {
     // Optimistically update the UI
@@ -312,7 +322,7 @@ export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) 
     });
   }
 
-  const columns = React.useMemo(() => getColumns(archiveProduct, unarchiveProduct), [setData]);
+  const columns = React.useMemo(() => getColumns(archiveProduct, unarchiveProduct, canEdit, canDelete), [setData, canEdit, canDelete]);
 
   return (
     <DataTable

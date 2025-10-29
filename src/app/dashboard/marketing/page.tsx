@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -22,6 +23,7 @@ import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { getOrders } from '@/services/orders';
 import type { Order, Discount, Campaign } from '@/lib/types';
+import { useAuth } from '@/context/auth-context';
 
 
 // Mock data
@@ -38,7 +40,7 @@ const mockDiscounts: Discount[] = [
   { code: 'FLASH20', type: 'Percentage', value: 20, status: 'Expired', redemptions: 210, minPurchase: 0, customerGroup: 'Everyone', applicableProductIds: [] },
 ];
 
-const getCampaignColumns = (): ColumnDef<Campaign>[] => [
+const getCampaignColumns = (canEdit: boolean): ColumnDef<Campaign>[] => [
     { accessorKey: 'name', header: 'Campaign', cell: ({ row }) => <Link href={`/dashboard/marketing/campaigns/${row.original.id}`} className="font-medium hover:underline">{row.original.name}</Link> },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge> },
     { accessorKey: 'channel', header: 'Channel' },
@@ -64,11 +66,13 @@ const getCampaignColumns = (): ColumnDef<Campaign>[] => [
                             <Info className="mr-2 h-4 w-4" /> View
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/marketing/campaigns/${row.original.id}/edit`}>
-                            <Edit className="mr-2 h-4 w-4" /> Edit
-                        </Link>
-                    </DropdownMenuItem>
+                    {canEdit && (
+                      <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/marketing/campaigns/${row.original.id}/edit`}>
+                              <Edit className="mr-2 h-4 w-4" /> Edit
+                          </Link>
+                      </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -76,7 +80,7 @@ const getCampaignColumns = (): ColumnDef<Campaign>[] => [
     }
 ];
 
-const getDiscountColumns = (): ColumnDef<Discount>[] => [
+const getDiscountColumns = (canEdit: boolean): ColumnDef<Discount>[] => [
     { accessorKey: 'code', header: 'Discount Code', cell: ({ row }) => <Link href={`/dashboard/marketing/discounts/${row.original.code}`} className="font-medium hover:underline"><Badge variant="outline" className="font-mono">{row.original.code}</Badge></Link> },
     { accessorKey: 'type', header: 'Type' },
     { accessorKey: 'value', header: 'Value', cell: ({ row }) => row.original.type === 'Percentage' ? `${row.original.value}%` : `UGX ${row.original.value.toLocaleString()}` },
@@ -101,11 +105,13 @@ const getDiscountColumns = (): ColumnDef<Discount>[] => [
                             <Info className="mr-2 h-4 w-4" /> View Details
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                        <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`}>
-                            <Edit className="mr-2 h-4 w-4" /> Edit
-                        </Link>
-                    </DropdownMenuItem>
+                    {canEdit && (
+                      <DropdownMenuItem asChild>
+                          <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`}>
+                              <Edit className="mr-2 h-4 w-4" /> Edit
+                          </Link>
+                      </DropdownMenuItem>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -118,6 +124,7 @@ export default function MarketingPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const activeTab = searchParams.get('tab') || 'overview';
   
@@ -147,31 +154,36 @@ export default function MarketingPage() {
     { value: 'analytics', label: 'Analytics' },
   ];
   
-  const campaignColumns = getCampaignColumns();
-  const discountColumns = getDiscountColumns();
+  const canEdit = user?.permissions.dashboard.view; // Simplification, should be marketing perm
+  const campaignColumns = getCampaignColumns(!!canEdit);
+  const discountColumns = getDiscountColumns(!!canEdit);
+  
+  const canCreate = user?.permissions.dashboard.view; // Simplification
 
   const cta = (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button>
-            Create New <ChevronDown className="ml-2 h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem asChild>
-             <Link href="/dashboard/marketing/campaigns/add">
-              <FileText className="mr-2 h-4 w-4" />
-              New Campaign
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-             <Link href="/dashboard/marketing/discounts/add">
-              <Gift className="mr-2 h-4 w-4" />
-              New Discount
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      canCreate && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button>
+              Create New <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/marketing/campaigns/add">
+                <FileText className="mr-2 h-4 w-4" />
+                New Campaign
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/dashboard/marketing/discounts/add">
+                <Gift className="mr-2 h-4 w-4" />
+                New Discount
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )
   );
 
   const handlePresetChange = (value: string) => {

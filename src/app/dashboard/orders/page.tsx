@@ -20,12 +20,14 @@ import { Calendar } from '@/components/ui/calendar';
 import React from 'react';
 import { OrdersTable } from '@/components/dashboard/orders-table';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 
 export default function OrdersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const activeTab = searchParams.get('tab') || 'orders';
 
@@ -75,6 +77,8 @@ export default function OrdersPage() {
       { value: 'orders', label: 'Orders' },
       { value: 'analytics', label: 'Analytics' },
   ];
+  
+  const canCreate = user?.permissions.orders.create;
 
   const cta = (
      <div className="flex gap-2">
@@ -84,12 +88,14 @@ export default function OrdersPage() {
                 <span className="hidden sm:inline-flex">Export</span>
             </a>
         </Button>
-        <Button asChild size="sm" className="h-9 px-2.5 sm:px-4">
-        <Link href="/dashboard/orders/add">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create Order
-        </Link>
-        </Button>
+        {canCreate && (
+          <Button asChild size="sm" className="h-9 px-2.5 sm:px-4">
+            <Link href="/dashboard/orders/add">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Order
+            </Link>
+          </Button>
+        )}
     </div>
   );
 

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PlusCircle, Calendar as CalendarIcon, Download } from 'lucide-react';
@@ -19,12 +20,14 @@ import { Customer } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
 import React from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 
 export default function CustomersPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const activeTab = searchParams.get('tab') || 'customers';
   
@@ -73,6 +76,8 @@ export default function CustomersPage() {
       { value: 'customers', label: 'Customers' },
       { value: 'analytics', label: 'Analytics' },
   ];
+  
+  const canCreate = user?.permissions.customers.create;
 
   const cta = (
      <div className="flex gap-2">
@@ -82,12 +87,14 @@ export default function CustomersPage() {
                 <span className="hidden sm:inline-flex">Export</span>
             </a>
         </Button>
-        <Button asChild size="sm" className="h-9 px-2.5 sm:px-4">
-            <Link href="/dashboard/customers/add">
-                <PlusCircle className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline-flex">Add Customer</span>
-            </Link>
-        </Button>
+        {canCreate && (
+          <Button asChild size="sm" className="h-9 px-2.5 sm:px-4">
+              <Link href="/dashboard/customers/add">
+                  <PlusCircle className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline-flex">Add Customer</span>
+              </Link>
+          </Button>
+        )}
      </div>
   );
 
