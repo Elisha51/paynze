@@ -2,8 +2,9 @@
 
 import type { Transaction } from '@/lib/types';
 import { format } from 'date-fns';
+import { DataService } from './data-service';
 
-let transactions: Transaction[] = [
+const mockTransactions: Transaction[] = [
     { id: 'TRN-001', date: '2024-07-25', description: 'Sale from Order #ORD-002', amount: 160000, type: 'Income', category: 'Sales', status: 'Cleared', paymentMethod: 'Cash' },
     { id: 'TRN-002', date: '2024-07-25', description: 'Sale from Order #ORD-001', amount: 75000, type: 'Income', category: 'Sales', status: 'Cleared', paymentMethod: 'Mobile Money' },
     { id: 'TRN-003', date: '2024-07-24', description: 'Sale from Order #ORD-003', amount: 10000, type: 'Income', category: 'Sales', status: 'Cleared', paymentMethod: 'Mobile Money' },
@@ -13,14 +14,15 @@ let transactions: Transaction[] = [
 
 ];
 
+const transactionService = new DataService<Transaction>('transactions', () => mockTransactions);
+
 export async function getTransactions(): Promise<Transaction[]> {
-    await new Promise(resolve => setTimeout(resolve, 400));
+    const transactions = await transactionService.getAll();
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 }
 
 export async function addTransaction(transaction: Omit<Transaction, 'id'>): Promise<Transaction> {
-    await new Promise(resolve => setTimeout(resolve, 400));
     const newTransaction: Transaction = { ...transaction, id: `TRN-${Date.now()}` };
-    transactions.unshift(newTransaction);
+    await transactionService.create(newTransaction, { prepend: true });
     return newTransaction;
 }

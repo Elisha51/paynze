@@ -86,7 +86,7 @@ export type Product = {
   videoUrl?: string;
 
   // II. Inventory & Logistics
-  sku?: string;
+  sku: string;
   barcode?: string; // GTIN, EAN, UPC
   inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | 'Don\'t Track';
   unitOfMeasure?: string;
@@ -183,6 +183,7 @@ export type Order = {
     channel: 'Online' | 'Manual' | 'POS';
     items: OrderItem[];
     total: number;
+    currency: string;
     shippingAddress: {
         street: string;
         city: string;
@@ -219,6 +220,7 @@ export type Customer = {
     customerGroup: 'default' | 'Wholesaler' | 'Retailer';
     lastOrderDate: string;
     totalSpend: number;
+    currency: string;
     createdAt?: string;
     orders?: Order[];
     communications?: Communication[];
@@ -265,6 +267,7 @@ export type PurchaseOrder = {
   orderDate: string;
   expectedDelivery: string;
   totalCost: number;
+  currency: string;
 };
 
 
@@ -342,6 +345,7 @@ export type Shift = {
 export type Payout = {
     date: string;
     amount: number;
+    currency: string;
     paidItemIds?: string[];
 };
 

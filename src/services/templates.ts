@@ -1,8 +1,9 @@
 
 
 import type { ProductTemplate, EmailTemplate, SmsTemplate } from '@/lib/types';
+import { DataService } from './data-service';
 
-export const productTemplates: ProductTemplate[] = [
+export const mockProductTemplates: ProductTemplate[] = [
   {
     id: 'tpl-tshirt',
     name: 'T-Shirt',
@@ -56,7 +57,7 @@ export const productTemplates: ProductTemplate[] = [
   },
 ];
 
-export const emailTemplates: EmailTemplate[] = [
+export const mockEmailTemplates: EmailTemplate[] = [
     {
         id: 'email-welcome',
         name: 'Welcome Email',
@@ -73,7 +74,7 @@ export const emailTemplates: EmailTemplate[] = [
     }
 ]
 
-export const smsTemplates: SmsTemplate[] = [
+export const mockSmsTemplates: SmsTemplate[] = [
     {
         id: 'sms-shipping-update',
         name: 'Shipping Update',
@@ -88,21 +89,19 @@ export const smsTemplates: SmsTemplate[] = [
     }
 ]
 
+const productTemplateService = new DataService<ProductTemplate>('productTemplates', () => mockProductTemplates);
+const emailTemplateService = new DataService<EmailTemplate>('emailTemplates', () => mockEmailTemplates);
+const smsTemplateService = new DataService<SmsTemplate>('smsTemplates', () => mockSmsTemplates);
+
 
 export async function getProductTemplates(): Promise<ProductTemplate[]> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return productTemplates;
+  return await productTemplateService.getAll();
 }
 
 export async function getEmailTemplates(): Promise<EmailTemplate[]> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return emailTemplates;
+  return await emailTemplateService.getAll();
 }
 
 export async function getSmsTemplates(): Promise<SmsTemplate[]> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return smsTemplates;
+  return await smsTemplateService.getAll();
 }
-
-    

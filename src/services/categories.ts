@@ -1,33 +1,29 @@
 
 import type { Category } from '@/lib/types';
+import { DataService } from './data-service';
 
-let categories: Category[] = [
+const mockCategories: Category[] = [
     { id: 'cat-1', name: 'Fabrics', description: 'Woven or knit materials.' },
     { id: 'cat-2', name: 'Apparel', description: 'Ready-made clothing items.' },
     { id: 'cat-3', name: 'Footwear', description: 'Shoes, sandals, and boots.' },
     { id: 'cat-4', name: 'Accessories', description: 'Bags, jewelry, and more.' },
 ];
 
+const categoryService = new DataService<Category>('categories', () => mockCategories);
+
 export async function getCategories(): Promise<Category[]> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return [...categories];
+  return await categoryService.getAll();
 }
 
 export async function addCategory(category: Omit<Category, 'id'>): Promise<Category> {
-  await new Promise(resolve => setTimeout(resolve, 300));
   const newCategory: Category = { ...category, id: `cat-${Date.now()}` };
-  categories.push(newCategory);
-  return newCategory;
+  return await categoryService.create(newCategory);
 }
 
 export async function updateCategory(updatedCategory: Category): Promise<Category> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  categories = categories.map(cat => cat.id === updatedCategory.id ? updatedCategory : cat);
-  return updatedCategory;
+  return await categoryService.update(updatedCategory.id, updatedCategory);
 }
 
 export async function deleteCategory(categoryId: string): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  categories = categories.filter(cat => cat.id !== categoryId);
+  await categoryService.delete(categoryId);
 }

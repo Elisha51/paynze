@@ -1,6 +1,7 @@
 
 
 import type { Role, Permissions, CommissionRule } from '@/lib/types';
+import { DataService } from './data-service';
 
 const defaultPermissions: Permissions = {
   dashboard: { view: true },
@@ -14,7 +15,7 @@ const defaultPermissions: Permissions = {
   settings: { view: false, edit: false },
 };
 
-let roles: Role[] = [
+const mockRoles: Role[] = [
   {
     name: 'Admin',
     description: 'Has access to all features and settings.',
@@ -86,20 +87,16 @@ let roles: Role[] = [
   },
 ];
 
+const roleService = new DataService<Role>('roles', () => mockRoles, 'name');
+
 export async function getRoles(): Promise<Role[]> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  return JSON.parse(JSON.stringify(roles)); // Deep copy to avoid mutation issues
+  return await roleService.getAll();
 }
 
 export async function addRole(role: Role): Promise<Role> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  roles.push(role);
-  return role;
+  return await roleService.create(role);
 }
 
 export async function updateRole(updatedRole: Role): Promise<Role> {
-  await new Promise(resolve => setTimeout(resolve, 300));
-  roles = roles.map(r => r.name === updatedRole.name ? updatedRole : r);
-  return updatedRole;
+  return await roleService.update(updatedRole.name, updatedRole);
 }

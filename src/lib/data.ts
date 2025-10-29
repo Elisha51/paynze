@@ -341,11 +341,11 @@ export const customers: Customer[] = [
 
 
 export const recentSales: RecentSale[] = [
-  { id: 'sale-01', name: 'Olivia Smith', email: 'olivia@example.com', amount: '+UGX 75,000', avatarId: 'avatar-1' },
-  { id: 'sale-02', name: 'Liam Johnson', email: 'liam@example.com', amount: '+UGX 160,000', avatarId: 'avatar-2' },
-  { id: 'sale-03', name: 'Noah Williams', email: 'noah@example.com', amount: '+KES 10,000', avatarId: 'avatar-3' },
-  { id: 'sale-04', name: 'Emma Brown', email: 'emma@example.com', amount: '+UGX 80,000', avatarId: 'avatar-4' },
-  { id: 'sale-05', name: 'James Jones', email: 'james@example.com', amount: '+UGX 75,000', avatarId: 'avatar-5' },
+  { id: 'sale-01', name: 'Olivia Smith', email: 'olivia@example.com', amount: '+UGX 75,000', avatarId: 'avatar-1', customerId: 'cust-02' },
+  { id: 'sale-02', name: 'Liam Johnson', email: 'liam@example.com', amount: '+UGX 160,000', avatarId: 'avatar-2', customerId: 'cust-01' },
+  { id: 'sale-03', name: 'Noah Williams', email: 'noah@example.com', amount: '+KES 10,000', avatarId: 'avatar-3', customerId: 'cust-03' },
+  { id: 'sale-04', name: 'Emma Brown', email: 'emma@example.com', amount: '+UGX 80,000', avatarId: 'avatar-4', customerId: 'cust-04' },
+  { id: 'sale-05', name: 'James Jones', email: 'james@example.com', amount: '+UGX 75,000', avatarId: 'avatar-5', customerId: 'cust-05' },
 ];
 
 export const salesData: SalesData[] = [

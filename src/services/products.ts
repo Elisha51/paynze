@@ -1,34 +1,26 @@
 import { products as mockProducts } from '@/lib/data';
 import type { Product } from '@/lib/types';
+import { DataService } from './data-service';
 
-let products: Product[] = [...mockProducts];
-
-// In a real app, this would fetch from an API.
-// const apiBaseUrl = config.apiBaseUrl;
-// const response = await fetch(`${apiBaseUrl}/products`);
-// const data = await response.json();
-// return data;
+const productService = new DataService<Product>('products', () => mockProducts, 'sku');
 
 export async function getProducts(): Promise<Product[]> {
-  // Simulate network delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return [...products];
+  return await productService.getAll();
 }
 
-export async function addProduct(product: Product): Promise<Product> {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  const newProduct = { ...product, sku: product.sku || `PROD-${Date.now()}` };
-  products.unshift(newProduct);
-  return newProduct;
+export async function addProduct(product: Omit<Product, 'sku'> & { sku?: string }): Promise<Product> {
+  const newProduct: Product = {
+    ...product,
+    sku: product.sku || `PROD-${Date.now()}`,
+  } as Product;
+  return await productService.create(newProduct);
 }
 
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  products = products.map(p => p.sku === updatedProduct.sku ? updatedProduct : p);
-  return updatedProduct;
+  if (!updatedProduct.sku) throw new Error('SKU is required to update a product.');
+  return await productService.update(updatedProduct.sku, updatedProduct);
 }
 
 export async function deleteProduct(sku: string): Promise<void> {
-  await new Promise(resolve => setTimeout(resolve, 500));
-  products = products.filter(p => p.sku !== sku);
+  await productService.delete(sku);
 }
