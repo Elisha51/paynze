@@ -33,7 +33,7 @@ export function NotificationBell() {
                 <span className="sr-only">Toggle notifications</span>
             </Button>
         </SheetTrigger>
-        <SheetContent>
+        <SheetContent className="flex flex-col">
             <SheetHeader>
                 <SheetTitle>Notifications</SheetTitle>
             </SheetHeader>

@@ -1,7 +1,8 @@
 
 import type { Location } from '@/lib/types';
+import { DataService } from './data-service';
 
-const locations: Location[] = [
+const initializeMockLocations: () => Location[] = () => [
     {
         id: 'loc_1',
         name: 'Main Warehouse',
@@ -18,8 +19,22 @@ const locations: Location[] = [
     },
 ];
 
+const locationService = new DataService<Location>('locations', initializeMockLocations);
+
+
 export async function getLocations(): Promise<Location[]> {
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 300));
-    return locations;
+  return await locationService.getAll();
+}
+
+export async function addLocation(location: Omit<Location, 'id'>): Promise<Location> {
+  const newLocation: Location = { ...location, id: `loc_${Date.now()}` };
+  return await locationService.create(newLocation);
+}
+
+export async function updateLocation(updatedLocation: Location): Promise<Location> {
+  return await locationService.update(updatedLocation.id, updatedLocation);
+}
+
+export async function deleteLocation(locationId: string): Promise<void> {
+  await locationService.delete(locationId);
 }

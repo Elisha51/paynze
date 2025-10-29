@@ -2,13 +2,13 @@
 import type { Todo } from '@/lib/types';
 import { DataService } from './data-service';
 
-const mockTodos: Todo[] = [
+const initializeMockTodos: () => Todo[] = () => [
     { id: 'todo-1', title: 'Follow up with Kitenge Kings on PO-002', status: 'To Do', createdAt: new Date().toISOString() },
     { id: 'todo-2', title: 'Prepare end-of-month sales report', status: 'To Do', createdAt: new Date().toISOString() },
     { id: 'todo-3', title: 'Restock shelves in Downtown Store', status: 'Completed', createdAt: new Date().toISOString() },
 ];
 
-const todoService = new DataService<Todo>('todos', () => mockTodos);
+const todoService = new DataService<Todo>('todos', initializeMockTodos);
 
 export async function getTodos(): Promise<Todo[]> {
   const todos = await todoService.getAll();

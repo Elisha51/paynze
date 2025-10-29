@@ -3,7 +3,7 @@
 
 import { OnboardingFormData } from "@/context/onboarding-context";
 
-export class DataService<T extends { id: string | number } | { sku: string } | { name: string }> {
+export class DataService<T extends { [key: string]: any }> {
   private dataKey: string;
   private primaryKey: keyof T;
   private initialize: () => T[] | Promise<T[]>;

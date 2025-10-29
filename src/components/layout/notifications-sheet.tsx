@@ -8,9 +8,10 @@ import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { BellRing, PackageX } from 'lucide-react';
 
-const iconMap = {
-    'new-order': BellRing,
+const iconMap: Record<string, React.ElementType> = {
+    'task-assigned': BellRing,
     'low-stock': PackageX,
+    'new-order': BellRing,
 };
 
 export function NotificationsSheet() {
@@ -25,7 +26,7 @@ export function NotificationsSheet() {
                     Mark all as read
                 </Button>
             </div>
-            <ScrollArea className="flex-1">
+            <ScrollArea className="flex-1 -mx-6">
                 <div className="divide-y">
                     {notifications.map(notification => {
                         const Icon = iconMap[notification.type] || BellRing;
@@ -33,7 +34,7 @@ export function NotificationsSheet() {
                             <div 
                                 key={notification.id} 
                                 className={cn(
-                                    "p-3 space-y-1 hover:bg-muted/50",
+                                    "p-3 px-6 space-y-1 hover:bg-muted/50",
                                     !notification.read && 'bg-primary/5'
                                 )}
                                 onClick={() => markAsRead(notification.id)}

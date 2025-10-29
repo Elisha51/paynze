@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState } from 'react';
@@ -40,6 +39,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { addLocation, updateLocation, deleteLocation } from '@/services/locations';
 
 type LocationsTabProps = {
   locations: Location[];
@@ -77,7 +77,7 @@ export function LocationsTab({ locations, setLocations }: LocationsTabProps) {
     }
   };
 
-  const handleAddLocation = () => {
+  const handleAddLocation = async () => {
     if (!newLocation.name || !newLocation.address) {
       toast({
         variant: 'destructive',
@@ -86,15 +86,13 @@ export function LocationsTab({ locations, setLocations }: LocationsTabProps) {
       });
       return;
     }
-    const finalLocation: Location = {
-      ...newLocation,
-      id: `loc_${Date.now()}`,
-    };
 
-    setLocations(prev => [...prev, finalLocation]);
+    const addedLocation = await addLocation(newLocation);
+
+    setLocations(prev => [...prev, addedLocation]);
     toast({
       title: 'Location Added',
-      description: `Successfully added "${finalLocation.name}".`,
+      description: `Successfully added "${addedLocation.name}".`,
     });
     setNewLocation(emptyLocation);
     setIsAddOpen(false);
@@ -105,19 +103,21 @@ export function LocationsTab({ locations, setLocations }: LocationsTabProps) {
     setIsEditOpen(true);
   };
   
-  const handleUpdateLocation = () => {
+  const handleUpdateLocation = async () => {
     if (!editingLocation) return;
     
-    setLocations(prev => prev.map(loc => loc.id === editingLocation.id ? editingLocation : loc));
+    const updatedLocation = await updateLocation(editingLocation);
+    setLocations(prev => prev.map(loc => loc.id === updatedLocation.id ? updatedLocation : loc));
     toast({
         title: 'Location Updated',
-        description: `Successfully updated "${editingLocation.name}".`,
+        description: `Successfully updated "${updatedLocation.name}".`,
     });
     setIsEditOpen(false);
     setEditingLocation(null);
   }
   
-  const handleDeleteLocation = (locationId: string) => {
+  const handleDeleteLocation = async (locationId: string) => {
+    await deleteLocation(locationId);
     setLocations(prev => prev.filter(loc => loc.id !== locationId));
     toast({
         variant: 'destructive',
