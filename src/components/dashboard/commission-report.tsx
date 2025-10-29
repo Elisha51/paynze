@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, DollarSign, MoreHorizontal, Gift, FileText } from 'lucide-react';
+import { ArrowUpDown, DollarSign, MoreHorizontal, Gift, FileText, Award } from 'lucide-react';
 import Link from 'next/link';
 
 type CommissionRow = {
@@ -68,7 +68,7 @@ const getColumns = (currency: string): ColumnDef<CommissionRow>[] => [
     },
 ];
 
-export function CommissionReport({ staff, roles, orders, onPayout }: { staff: Staff[], roles: Role[], orders: Order[], onPayout: () => void }) {
+export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus }: { staff: Staff[], roles: Role[], orders: Order[], onPayout: () => void, onAwardBonus: () => void }) {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
     useEffect(() => {
@@ -81,7 +81,9 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
     const commissionData = useMemo(() => {
         return staff.filter(s => {
             const role = roles.find(r => r.name === s.role);
-            return role?.commissionRules && role.commissionRules.length > 0 && s.totalCommission && s.totalCommission > 0;
+            const hasCommissionRules = role?.commissionRules && role.commissionRules.length > 0;
+            const hasUnpaidBalance = s.totalCommission && s.totalCommission > 0;
+            return (hasCommissionRules || hasUnpaidBalance); // Show if they can earn or have earned
         }).map(s => ({
             staffId: s.id,
             name: s.name,
@@ -95,9 +97,15 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
     return (
         <>
             <Card>
-                <CardHeader>
-                    <CardTitle>Commission & Bonus Payouts</CardTitle>
-                    <CardDescription>View unpaid earnings and process payouts for your staff.</CardDescription>
+                <CardHeader className="flex-row items-center justify-between">
+                    <div>
+                        <CardTitle>Commission & Bonus Payouts</CardTitle>
+                        <CardDescription>View unpaid earnings and process payouts for your staff.</CardDescription>
+                    </div>
+                    <Button variant="outline" onClick={onAwardBonus}>
+                        <Award className="mr-2 h-4 w-4" />
+                        Award Bonus / Adjustment
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <DataTable

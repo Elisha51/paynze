@@ -1,13 +1,13 @@
 
 'use client';
 
-import { PlusCircle, Download, Calendar as CalendarIcon, Upload } from 'lucide-react';
+import { PlusCircle, Download, Calendar as CalendarIcon, Upload, Award } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
-import type { Transaction, Staff, Role, Order } from '@/lib/types';
+import type { Transaction, Staff, Role, Order, OnboardingFormData, Bonus } from '@/lib/types';
 import { getTransactions, addTransaction } from '@/services/finances';
-import { getStaff } from '@/services/staff';
+import { getStaff, updateStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import { getOrders } from '@/services/orders';
 import {
@@ -48,7 +48,6 @@ import { CommissionReport } from '@/components/dashboard/commission-report';
 const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   description: '',
   amount: 0,
-  currency: 'UGX',
   type: 'Expense',
   category: 'Other',
   status: 'Pending',
@@ -61,7 +60,8 @@ export default function FinancesPage() {
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
-  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isAddTransactionOpen, setIsAddTransactionOpen] = React.useState(false);
+  const [isAwardBonusOpen, setIsAwardBonusOpen] = React.useState(false);
   const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
   const [statementFile, setStatementFile] = React.useState<File[]>([]);
@@ -72,6 +72,12 @@ export default function FinancesPage() {
     from: addDays(new Date(), -29),
     to: new Date(),
   });
+  const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+  
+  // Manual bonus state
+  const [bonusStaffId, setBonusStaffId] = React.useState<string | null>(null);
+  const [bonusAmount, setBonusAmount] = React.useState<number>(0);
+  const [bonusReason, setBonusReason] = React.useState('');
 
   const loadData = React.useCallback(async () => {
     setIsLoading(true);
@@ -89,6 +95,10 @@ export default function FinancesPage() {
   }, []);
 
   React.useEffect(() => {
+    const storedSettings = localStorage.getItem('onboardingData');
+    if (storedSettings) {
+        setSettings(JSON.parse(storedSettings));
+    }
     loadData();
   }, [loadData]);
   
@@ -136,7 +146,7 @@ export default function FinancesPage() {
 
     await addTransaction(transactionToAdd);
     toast({ title: 'Transaction Added' });
-    setIsDialogOpen(false);
+    setIsAddTransactionOpen(false);
     setNewTransaction(emptyTransaction);
     loadData();
   }
@@ -184,6 +194,46 @@ export default function FinancesPage() {
     
     reader.readAsText(file);
   };
+  
+  const handleAwardBonus = async () => {
+    if (!bonusStaffId || !bonusAmount) {
+        toast({ variant: 'destructive', title: 'Please select a staff member and enter an amount.' });
+        return;
+    }
+
+    const staffMember = staff.find(s => s.id === bonusStaffId);
+    if (!staffMember) {
+        toast({ variant: 'destructive', title: 'Staff member not found.' });
+        return;
+    }
+
+    const newBonus: Bonus = {
+        id: `bonus-${Date.now()}`,
+        date: new Date().toISOString(),
+        reason: bonusReason || 'Manual Award',
+        amount: bonusAmount,
+        awardedBy: 'Admin', // In a real app, get current user's name
+    };
+    
+    const updatedStaff: Staff = {
+        ...staffMember,
+        bonuses: [...(staffMember.bonuses || []), newBonus],
+        totalCommission: (staffMember.totalCommission || 0) + bonusAmount,
+    };
+
+    await updateStaff(updatedStaff);
+    toast({
+        title: 'Award Successful',
+        description: `${staffMember.name} has been awarded ${bonusAmount} ${settings?.currency}.`,
+    });
+    
+    // Reset and close
+    setIsAwardBonusOpen(false);
+    setBonusStaffId(null);
+    setBonusAmount(0);
+    setBonusReason('');
+    loadData(); // Reload all data to reflect changes
+  };
 
 
   const mainTabs = [
@@ -202,7 +252,7 @@ export default function FinancesPage() {
                 <span className="hidden sm:inline-flex">Export</span>
             </a>
         </Button>
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
             <DialogTrigger asChild>
                 <Button size="sm" className="h-9 px-2.5 sm:px-4">
                     <PlusCircle className="h-4 w-4 sm:mr-2" />
@@ -236,11 +286,13 @@ export default function FinancesPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="currency">Currency</Label>
-                            <Select onValueChange={(v) => handleSelectChange('currency', v)} defaultValue={newTransaction.currency}>
+                            <Select onValueChange={(v) => handleSelectChange('currency', v)} defaultValue={settings?.currency}>
                                 <SelectTrigger><SelectValue/></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="UGX">UGX</SelectItem>
                                     <SelectItem value="KES">KES</SelectItem>
+                                    <SelectItem value="TZS">TZS</SelectItem>
+                                    <SelectItem value="USD">USD</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -293,6 +345,7 @@ export default function FinancesPage() {
   );
 
   return (
+    <>
     <DashboardPageLayout 
         title="Finances" 
         tabs={mainTabs} 
@@ -396,7 +449,13 @@ export default function FinancesPage() {
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="payouts">
-        <CommissionReport staff={staff} roles={roles} orders={orders} onPayout={loadData} />
+        <CommissionReport 
+            staff={staff} 
+            roles={roles} 
+            orders={orders} 
+            onPayout={loadData}
+            onAwardBonus={() => setIsAwardBonusOpen(true)}
+        />
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="analytics">
@@ -464,5 +523,45 @@ export default function FinancesPage() {
             </Card>
       </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
+
+    <Dialog open={isAwardBonusOpen} onOpenChange={setIsAwardBonusOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Award Bonus or Manual Payout</DialogTitle>
+                <DialogDescription>
+                    Manually add a bonus or commission adjustment for a staff member. This will be added to their unpaid balance.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="bonus-staff">Staff Member</Label>
+                    <Select value={bonusStaffId || undefined} onValueChange={setBonusStaffId}>
+                        <SelectTrigger id="bonus-staff">
+                            <SelectValue placeholder="Select a staff member" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {staff.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="bonus-amount">Amount ({settings?.currency})</Label>
+                    <Input id="bonus-amount" type="number" value={bonusAmount} onChange={e => setBonusAmount(Number(e.target.value))} />
+                 </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="bonus-reason">Reason</Label>
+                    <Textarea id="bonus-reason" value={bonusReason} onChange={e => setBonusReason(e.target.value)} placeholder="e.g., End of year bonus, Commission for offline sale" />
+                 </div>
+            </div>
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button onClick={handleAwardBonus}>
+                    <Award className="mr-2 h-4 w-4" />
+                    Award
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
