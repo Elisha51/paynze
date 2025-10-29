@@ -528,7 +528,7 @@ export default function ViewStaffPage() {
                                 <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
                                     <FileText className="h-5 w-5 text-primary"/>
                                     <span className="text-sm font-medium">{doc.name}</span>
-                                </a>
+                                a>
                             ))}
                         </div>
                     </CardContent>
@@ -549,3 +549,5 @@ export default function ViewStaffPage() {
     </div>
   );
 }
+
+    
