@@ -9,13 +9,24 @@ const withPWA = withPWAInit({
   },
   runtimeCaching: [
     {
-      urlPattern: ({ url }) => url.pathname.startsWith('/login'),
-      handler: 'NetworkFirst' as const,
+      urlPattern: ({ request }) => request.mode === 'navigate',
+      handler: 'NetworkFirst',
       options: {
-        cacheName: 'login-page-cache',
+        cacheName: 'pages-cache',
         expiration: {
-          maxEntries: 1,
-          maxAgeSeconds: 24 * 60 * 60, // 1 day
+          maxEntries: 60,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+        },
+      },
+    },
+     {
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif)$/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'images-cache',
+        expiration: {
+          maxEntries: 60,
+          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 Days
         },
       },
     },
