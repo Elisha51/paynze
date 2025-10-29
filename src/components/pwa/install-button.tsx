@@ -8,16 +8,16 @@ import { motion } from 'framer-motion';
 
 export function InstallButton() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
-  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event);
     };
-    
+
+    // This check is to prevent the button from showing if the app is already installed.
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      setIsStandalone(true);
+      return;
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -41,16 +41,17 @@ export function InstallButton() {
     }
   };
   
-  if (isStandalone) {
+  if (!installPrompt) {
       return null;
   }
 
   return (
     <motion.div
-        animate={installPrompt ? { scale: [1, 1.05, 1] } : {}}
-        transition={installPrompt ? { duration: 1.5, repeat: Infinity, ease: "easeInOut" } : {}}
+        initial={{ scale: 0 }}
+        animate={{ scale: [1, 1.05, 1] }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
     >
-        <Button onClick={handleInstallClick} variant="outline" size="sm" disabled={!installPrompt}>
+        <Button onClick={handleInstallClick} variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
             Install App
         </Button>
