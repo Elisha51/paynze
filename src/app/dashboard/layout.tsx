@@ -12,6 +12,18 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { usePathname } from 'next/navigation';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
+const tabRoutes: Record<string, string[]> = {
+  '/dashboard/marketing': ['overview', 'campaigns', 'discounts', 'analytics'],
+  '/dashboard/customers': ['customers', 'analytics'],
+  '/dashboard/finances': ['transactions', 'summary', 'reconciliation', 'payouts', 'analytics'],
+  '/dashboard/orders': ['orders', 'analytics'],
+  '/dashboard/products': ['products', 'categories', 'analytics'],
+  '/dashboard/procurement': ['suppliers', 'purchase-orders', 'analytics'],
+  '/dashboard/staff': ['staff', 'permissions', 'all-logs', 'analytics'],
+  '/dashboard/templates': ['products', 'email', 'sms'],
+};
+
+
 export default function DashboardLayout({
   children,
 }: {
@@ -32,12 +44,24 @@ export default function DashboardLayout({
     }
   }, []);
 
-  const breadcrumbItems = pathname.split('/').filter(Boolean).map((segment, index, arr) => {
-      const href = '/' + arr.slice(0, index + 1).join('/');
-      // Capitalize segment and replace dashes. For IDs, this provides a readable, if not perfect, label.
-      const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
-      return { href, label };
-  });
+  const breadcrumbItems = React.useMemo(() => {
+    const pathSegments = pathname.split('/').filter(Boolean);
+    let cumulativePath = '';
+    
+    return pathSegments.map((segment, index) => {
+        let href = `${cumulativePath}/${segment}`;
+        const parentPath = cumulativePath;
+        cumulativePath = href;
+        
+        // Check if the current segment is a tab for its parent path
+        if (tabRoutes[parentPath] && tabRoutes[parentPath].includes(segment)) {
+            href = `${parentPath}?tab=${segment}`;
+        }
+        
+        const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
+        return { href, label };
+    });
+  }, [pathname]);
 
 
   // Pass isDevMode to children
@@ -58,7 +82,7 @@ export default function DashboardLayout({
               <div className="flex flex-col w-full overflow-x-hidden">
                 <AppHeader onboardingData={onboardingData} />
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 bg-muted/40">
-                  <Breadcrumbs items={breadcrumbItems} className="mb-4" />
+                  {breadcrumbItems.length > 1 && <Breadcrumbs items={breadcrumbItems} className="mb-4" />}
                   {childrenWithProps}
                 </main>
               </div>
