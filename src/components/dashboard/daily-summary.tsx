@@ -35,6 +35,7 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                     transactions: [],
                     income: 0,
                     expense: 0,
+                    currency: transaction.currency, // Assume first transaction currency is day's currency
                 };
             }
             acc[date].transactions.push(transaction);
@@ -44,7 +45,7 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                 acc[date].expense += transaction.amount; // amount is negative for expenses
             }
             return acc;
-        }, {} as Record<string, { date: string, transactions: Transaction[], income: number, expense: number }>);
+        }, {} as Record<string, { date: string, transactions: Transaction[], income: number, expense: number, currency: string }>);
         
         return Object.values(groups).sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [transactions]);
@@ -102,15 +103,15 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                                      <div className="flex items-center gap-4 text-right pr-4">
                                         <div>
                                             <p className="text-xs text-muted-foreground">Income</p>
-                                            <p className="font-semibold text-green-600">{formatCurrency(summary.income, 'UGX')}</p>
+                                            <p className="font-semibold text-green-600">{formatCurrency(summary.income, summary.currency)}</p>
                                         </div>
                                             <div>
                                             <p className="text-xs text-muted-foreground">Expenses</p>
-                                            <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), 'UGX')}</p>
+                                            <p className="font-semibold text-red-600">{formatCurrency(Math.abs(summary.expense), summary.currency)}</p>
                                         </div>
                                             <div>
                                             <p className="text-xs text-muted-foreground">Net</p>
-                                            <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, 'UGX')}</p>
+                                            <p className={cn("font-bold", netTotal >= 0 ? 'text-green-700' : 'text-red-700')}>{formatCurrency(netTotal, summary.currency)}</p>
                                         </div>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>

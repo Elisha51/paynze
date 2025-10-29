@@ -46,7 +46,7 @@ type CommissionRow = {
   currency: string;
 };
 
-const getColumns = (onPayout: () => void): ColumnDef<CommissionRow>[] => [
+const getColumns = (): ColumnDef<CommissionRow>[] => [
     {
         accessorKey: 'name',
         header: 'Staff Member',
@@ -112,7 +112,7 @@ export function CommissionReport({ staff, roles, orders, onPayout }: { staff: St
         }));
     }, [staff, roles]);
     
-    const columns = useMemo(() => getColumns(onPayout), [staff, onPayout]);
+    const columns = useMemo(() => getColumns(), [staff, onPayout]);
 
     return (
         <>

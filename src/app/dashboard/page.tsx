@@ -101,13 +101,15 @@ export default function DashboardPage() {
   const revenueInPeriod = filteredOrders.reduce((sum, order) => sum + (order.paymentStatus === 'Paid' ? order.total : 0), 0);
   const salesInPeriod = filteredOrders.length;
   const newCustomersInPeriod = filteredCustomers.length;
-  const currency = orders.length > 0 ? orders[0].currency : 'UGX';
+  
+  // This is a simplification, a real multi-currency dashboard would need more logic
+  const primaryCurrency = orders.length > 0 ? orders[0].currency : 'UGX';
 
   // Overall metrics (not affected by date filter)
   const activeProducts = products.filter(p => p.status === 'published').length;
   const pendingOrders = orders.filter(o => ['Awaiting Payment', 'Paid', 'Ready for Pickup'].includes(o.status)).length;
   
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   };
   
@@ -115,7 +117,7 @@ export default function DashboardPage() {
       id: order.id,
       name: order.customerName,
       email: order.customerEmail,
-      amount: `+${formatCurrency(order.total)}`,
+      amount: `+${formatCurrency(order.total, order.currency)}`,
       avatarId: `avatar-${(Math.floor(Math.random() * 5) + 1)}`,
       customerId: order.customerId,
   }));
@@ -141,7 +143,7 @@ export default function DashboardPage() {
       };
       
       await updateStaff(updatedStaffMember);
-      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${formatCurrency(bonusAmount)}.`});
+      toast({ title: 'Bonus Awarded!', description: `${bonusStaff.name} has been awarded a bonus of ${formatCurrency(bonusAmount, bonusStaff.currency || 'UGX')}.`});
       setBonusStaff(null);
       setBonusAmount(0);
       setBonusReason('');
@@ -232,7 +234,7 @@ export default function DashboardPage() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(revenueInPeriod)}</div>
+            <div className="text-2xl font-bold">{formatCurrency(revenueInPeriod, primaryCurrency)}</div>
             <p className="text-xs text-muted-foreground">
               In selected period
             </p>
