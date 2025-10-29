@@ -44,7 +44,6 @@ export default function MyProfilePage() {
                 <div className="flex items-center justify-between">
                     <Skeleton className="h-10 w-64" />
                 </div>
-                <Skeleton className="h-10 w-96" />
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Skeleton className="h-96" />
                     <Skeleton className="h-64" />
@@ -55,13 +54,6 @@ export default function MyProfilePage() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-                    <p className="text-muted-foreground">Manage your personal information and account settings.</p>
-                </div>
-            </div>
-            
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <StaffProfileForm 
                     staff={staffMember}

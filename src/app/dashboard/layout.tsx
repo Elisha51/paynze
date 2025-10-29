@@ -33,14 +33,11 @@ export default function DashboardLayout({
   }, []);
 
   const breadcrumbItems = pathname.split('/').filter(Boolean).map((segment, index, arr) => {
-      // Don't show breadcrumb for dynamic segments like [id] or [sku]
-      if (segment.startsWith('[') && segment.endsWith(']')) return null;
-
       const href = '/' + arr.slice(0, index + 1).join('/');
-      // Simple capitalization, can be improved with a mapping for specific routes
+      // Capitalize segment and replace dashes. For IDs, this provides a readable, if not perfect, label.
       const label = segment.charAt(0).toUpperCase() + segment.slice(1).replace(/-/g, ' ');
       return { href, label };
-  }).filter(Boolean) as { href: string; label: string }[];
+  });
 
 
   // Pass isDevMode to children
