@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -6,12 +7,17 @@ import { Download } from 'lucide-react';
 
 export function InstallButton() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [isStandalone, setIsStandalone] = useState(false);
 
   useEffect(() => {
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
       setInstallPrompt(event);
     };
+    
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setIsStandalone(true);
+    }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
@@ -34,7 +40,7 @@ export function InstallButton() {
     }
   };
 
-  if (!installPrompt) {
+  if (isStandalone || !installPrompt) {
     return null;
   }
 
