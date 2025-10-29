@@ -1,3 +1,4 @@
+
 'use client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -46,7 +47,7 @@ export function ReconciliationReport({ result }: ReconciliationReportProps) {
                   <TableCell className="text-muted-foreground">{item.statementDetails}</TableCell>
                   <TableCell>
                     <Button variant="link" asChild className="p-0 h-auto">
-                        <Link href={`/dashboard/orders/${item.transactionId}`}>{item.transactionId}</Link>
+                        <Link href={`/dashboard/transactions/${item.transactionId}`}>TRN-{item.transactionId.substring(0, 8)}...</Link>
                     </Button>
                   </TableCell>
                   <TableCell>
