@@ -1,6 +1,6 @@
 
 'use client';
-import { ArrowLeft, Save, Percent, DollarSign } from 'lucide-react';
+import { ArrowLeft, Save, Percent, DollarSign, Check, ChevronsUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -19,13 +19,39 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { getProducts } from '@/services/products';
+import type { Product } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 export default function AddDiscountPage() {
     const [discountType, setDiscountType] = useState<'Percentage' | 'Fixed Amount'>('Percentage');
     const [hasMinPurchase, setHasMinPurchase] = useState(false);
+    const [appliesTo, setAppliesTo] = useState('all'); // 'all' or 'specific'
+    const [products, setProducts] = useState<Product[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+
+    useEffect(() => {
+        async function loadProducts() {
+            const fetchedProducts = await getProducts();
+            setProducts(fetchedProducts);
+        }
+        loadProducts();
+    }, []);
+
+    const handleProductSelect = (productSku: string) => {
+        setSelectedProducts(prev => {
+            const newSelection = prev.includes(productSku)
+                ? prev.filter(sku => sku !== productSku)
+                : [...prev, productSku];
+            return newSelection;
+        });
+    }
 
   return (
     <div className="space-y-6">
@@ -78,6 +104,83 @@ export default function AddDiscountPage() {
                         <Label htmlFor="value">Value</Label>
                         <Input id="value" type="number" placeholder={discountType === 'Percentage' ? 'e.g., 15' : 'e.g., 5000'} />
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Applies To</CardTitle>
+                    <CardDescription>Specify which products this discount can be used with.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <RadioGroup value={appliesTo} onValueChange={setAppliesTo} className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="all" id="all-products" />
+                            <Label htmlFor="all-products">All products</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="specific" id="specific-products" />
+                            <Label htmlFor="specific-products">Specific products</Label>
+                        </div>
+                    </RadioGroup>
+                    {appliesTo === 'specific' && (
+                        <div className="pt-4 pl-6 space-y-2">
+                             <Label>Products</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className="w-full justify-between"
+                                    >
+                                        <span className="truncate">
+                                            {selectedProducts.length > 0 
+                                                ? `${selectedProducts.length} selected`
+                                                : "Select products..."
+                                            }
+                                        </span>
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search products..." />
+                                        <CommandEmpty>No products found.</CommandEmpty>
+                                        <CommandGroup>
+                                            {products.map((product) => (
+                                            <CommandItem
+                                                key={product.sku}
+                                                value={product.name}
+                                                onSelect={() => handleProductSelect(product.sku || '')}
+                                            >
+                                                <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    selectedProducts.includes(product.sku || '') ? "opacity-100" : "opacity-0"
+                                                )}
+                                                />
+                                                {product.name}
+                                            </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                             <div className="flex flex-wrap gap-1 pt-1">
+                              {selectedProducts.map(sku => {
+                                const product = products.find(p => p.sku === sku);
+                                return product ? (
+                                   <Badge key={sku} variant="secondary" className="flex items-center gap-1">
+                                    {product.name}
+                                    <button onClick={() => handleProductSelect(sku)} className="rounded-full hover:bg-muted-foreground/20">
+                                        <X className="h-3 w-3"/>
+                                    </button>
+                                   </Badge>
+                                ) : null;
+                              })}
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

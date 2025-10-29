@@ -429,3 +429,30 @@ export type Todo = {
   status: 'To Do' | 'Completed';
   createdAt: string;
 };
+
+// Marketing Types
+export type Campaign = {
+  id: string;
+  name: string;
+  status: 'Active' | 'Scheduled' | 'Draft' | 'Completed';
+  channel: 'Email' | 'SMS' | 'Push';
+  sent: number;
+  openRate: string;
+  ctr: string;
+  audience: string;
+  startDate: string;
+  endDate?: string;
+  description: string;
+  applicableProductIds?: string[];
+};
+
+export type Discount = {
+  code: string;
+  type: 'Percentage' | 'Fixed Amount';
+  value: number;
+  status: 'Active' | 'Expired' | 'Scheduled';
+  redemptions: number;
+  minPurchase: number;
+  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers';
+  applicableProductIds?: string[];
+};

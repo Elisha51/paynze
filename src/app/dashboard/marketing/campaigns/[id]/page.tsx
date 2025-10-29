@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, BarChart, Users, Calendar, Clock, Send } from 'lucide-react';
+import { ArrowLeft, Edit, BarChart, Users, Calendar, Clock, Send, Package } from 'lucide-react';
 import Link from 'next/link';
-import type { Campaign } from '@/app/dashboard/marketing/page';
+import type { Campaign, Product } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -15,11 +15,12 @@ import {
 } from "@/components/ui/card"
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getProducts } from '@/services/products';
 
 // Mock data fetching
 const mockCampaigns: Campaign[] = [
-  { id: 'CAM-001', name: 'Eid al-Adha Sale', status: 'Completed', channel: 'Email', sent: 5203, openRate: '25.4%', ctr: '3.1%', audience: 'All Subscribers', startDate: '2024-06-10', endDate: '2024-06-17', description: 'A week-long sale for the Eid al-Adha holiday.' },
-  { id: 'CAM-002', name: 'New Fabric Launch', status: 'Active', channel: 'SMS', sent: 1250, openRate: 'N/A', ctr: '8.2%', audience: 'Previous Fabric Buyers', startDate: '2024-07-20', description: 'Announcing our new line of premium Kitenge fabrics.' },
+  { id: 'CAM-001', name: 'Eid al-Adha Sale', status: 'Completed', channel: 'Email', sent: 5203, openRate: '25.4%', ctr: '3.1%', audience: 'All Subscribers', startDate: '2024-06-10', endDate: '2024-06-17', description: 'A week-long sale for the Eid al-Adha holiday.', applicableProductIds: ['KIT-001-RF', 'KIT-001-BG'] },
+  { id: 'CAM-002', name: 'New Fabric Launch', status: 'Active', channel: 'SMS', sent: 1250, openRate: 'N/A', ctr: '8.2%', audience: 'Previous Fabric Buyers', startDate: '2024-07-20', description: 'Announcing our new line of premium Kitenge fabrics.', applicableProductIds: ['KIT-001'] },
   { id: 'CAM-003', name: 'Weekend Flash Sale', status: 'Scheduled', channel: 'Push', sent: 0, openRate: 'N/A', ctr: 'N/A', audience: 'App Users', startDate: '2024-08-02', endDate: '2024-08-04', description: 'A 48-hour flash sale for users with our app.' },
   { id: 'CAM-004', name: 'Abandoned Cart Reminder', status: 'Active', channel: 'Email', sent: 842, openRate: '45.1%', ctr: '12.5%', audience: 'Cart Abandoners', startDate: '2024-01-01', description: 'Automated email to recover abandoned carts.' },
 ];
@@ -32,17 +33,22 @@ export default function ViewCampaignPage() {
   const params = useParams();
   const id = params.id as string;
   const [campaign, setCampaign] = useState<Campaign | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function loadCampaign() {
+    async function loadData() {
         if (!id) return;
         setLoading(true);
-        const fetchedCampaign = await getCampaignById(id);
+        const [fetchedCampaign, fetchedProducts] = await Promise.all([
+          getCampaignById(id),
+          getProducts()
+        ]);
         setCampaign(fetchedCampaign || null);
+        setProducts(fetchedProducts);
         setLoading(false);
     }
-    loadCampaign();
+    loadData();
   }, [id]);
 
   if (loading) {
@@ -73,6 +79,8 @@ export default function ViewCampaignPage() {
         </div>
     );
   }
+
+  const campaignProducts = products.filter(p => campaign.applicableProductIds?.includes(p.sku || ''));
 
   return (
     <div className="space-y-6">
@@ -120,6 +128,25 @@ export default function ViewCampaignPage() {
                 <CardContent>
                     <p className="text-muted-foreground">{campaign.description}</p>
                     {/* In a real app, you would render the email/sms content here */}
+                </CardContent>
+             </Card>
+              <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Package className="h-5 w-5" /> Included Products</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {campaignProducts.length > 0 ? (
+                        <ul className="divide-y divide-border">
+                            {campaignProducts.map(p => (
+                                <li key={p.sku} className="py-2">
+                                    <Link href={`/dashboard/products/${p.sku}`} className="font-medium hover:underline">{p.name}</Link>
+                                    <p className="text-sm text-muted-foreground">SKU: {p.sku}</p>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-muted-foreground">This campaign applies to all products.</p>
+                    )}
                 </CardContent>
              </Card>
         </div>

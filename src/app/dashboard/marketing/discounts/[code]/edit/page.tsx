@@ -1,6 +1,6 @@
 
 'use client';
-import { ArrowLeft, Save, Percent, DollarSign, Trash2 } from 'lucide-react';
+import { ArrowLeft, Save, Percent, DollarSign, Trash2, Check, ChevronsUpDown, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -23,12 +23,17 @@ import { useState, useEffect } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useParams } from 'next/navigation';
-import type { Discount } from '../../../page';
+import type { Discount, Product } from '../../../page';
+import { getProducts } from '@/services/products';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const mockDiscounts: Discount[] = [
-  { code: 'NEWBIE10', type: 'Percentage', value: 10, status: 'Active', redemptions: 152, minPurchase: 0, customerGroup: 'New Customers' },
-  { code: 'SALE5K', type: 'Fixed Amount', value: 5000, status: 'Active', redemptions: 88, minPurchase: 50000, customerGroup: 'Everyone' },
-  { code: 'FLASH20', type: 'Percentage', value: 20, status: 'Expired', redemptions: 210, minPurchase: 0, customerGroup: 'Everyone' },
+  { code: 'NEWBIE10', type: 'Percentage', value: 10, status: 'Active', redemptions: 152, minPurchase: 0, customerGroup: 'New Customers', applicableProductIds: [] },
+  { code: 'SALE5K', type: 'Fixed Amount', value: 5000, status: 'Active', redemptions: 88, minPurchase: 50000, customerGroup: 'Everyone', applicableProductIds: ['KIT-001-RF', 'KIT-001-BG'] },
+  { code: 'FLASH20', type: 'Percentage', value: 20, status: 'Expired', redemptions: 210, minPurchase: 0, customerGroup: 'Everyone', applicableProductIds: [] },
 ];
 
 export default function EditDiscountPage() {
@@ -36,14 +41,38 @@ export default function EditDiscountPage() {
     const code = params.code as string;
     const [discount, setDiscount] = useState<Discount | null>(null);
     const [hasMinPurchase, setHasMinPurchase] = useState(false);
+    const [appliesTo, setAppliesTo] = useState('all');
+    const [products, setProducts] = useState<Product[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
     useEffect(() => {
+        async function loadProducts() {
+            const fetchedProducts = await getProducts();
+            setProducts(fetchedProducts);
+        }
+        loadProducts();
+
         const found = mockDiscounts.find(d => d.code === code);
         if (found) {
             setDiscount(found);
             setHasMinPurchase(found.minPurchase > 0);
+            if(found.applicableProductIds && found.applicableProductIds.length > 0) {
+              setAppliesTo('specific');
+              setSelectedProducts(found.applicableProductIds);
+            } else {
+              setAppliesTo('all');
+            }
         }
     }, [code]);
+    
+    const handleProductSelect = (productSku: string) => {
+        setSelectedProducts(prev => {
+            const newSelection = prev.includes(productSku)
+                ? prev.filter(sku => sku !== productSku)
+                : [...prev, productSku];
+            return newSelection;
+        });
+    }
 
     if (!discount) {
         return <div>Discount not found</div>
@@ -101,6 +130,83 @@ export default function EditDiscountPage() {
                         <Label htmlFor="value">Value</Label>
                         <Input id="value" type="number" value={discount.value} />
                     </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Applies To</CardTitle>
+                    <CardDescription>Specify which products this discount can be used with.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <RadioGroup value={appliesTo} onValueChange={setAppliesTo} className="space-y-2">
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="all" id="all-products" />
+                            <Label htmlFor="all-products">All products</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="specific" id="specific-products" />
+                            <Label htmlFor="specific-products">Specific products</Label>
+                        </div>
+                    </RadioGroup>
+                    {appliesTo === 'specific' && (
+                        <div className="pt-4 pl-6 space-y-2">
+                             <Label>Products</Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        className="w-full justify-between"
+                                    >
+                                        <span className="truncate">
+                                            {selectedProducts.length > 0 
+                                                ? `${selectedProducts.length} selected`
+                                                : "Select products..."
+                                            }
+                                        </span>
+                                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        <CommandInput placeholder="Search products..." />
+                                        <CommandEmpty>No products found.</CommandEmpty>
+                                        <CommandGroup>
+                                            {products.map((product) => (
+                                            <CommandItem
+                                                key={product.sku}
+                                                value={product.name}
+                                                onSelect={() => handleProductSelect(product.sku || '')}
+                                            >
+                                                <Check
+                                                className={cn(
+                                                    "mr-2 h-4 w-4",
+                                                    selectedProducts.includes(product.sku || '') ? "opacity-100" : "opacity-0"
+                                                )}
+                                                />
+                                                {product.name}
+                                            </CommandItem>
+                                            ))}
+                                        </CommandGroup>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                             <div className="flex flex-wrap gap-1 pt-2">
+                              {selectedProducts.map(sku => {
+                                const product = products.find(p => p.sku === sku);
+                                return product ? (
+                                   <Badge key={sku} variant="secondary" className="flex items-center gap-1">
+                                    {product.name}
+                                    <button onClick={() => handleProductSelect(sku)} className="rounded-full hover:bg-muted-foreground/20">
+                                        <X className="h-3 w-3"/>
+                                    </button>
+                                   </Badge>
+                                ) : null;
+                              })}
+                            </div>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 

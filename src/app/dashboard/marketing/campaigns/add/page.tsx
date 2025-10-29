@@ -1,6 +1,6 @@
 
 'use client';
-import { ArrowLeft, Save, Sparkles, Calendar as CalendarIcon } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Calendar as CalendarIcon, Package, X, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,14 +22,37 @@ import {
 } from '@/components/ui/select';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { getProducts } from '@/services/products';
+import type { Product } from '@/lib/types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
 
 export default function AddCampaignPage() {
     const [startDate, setStartDate] = useState<Date>();
     const [endDate, setEndDate] = useState<Date>();
     const [isEndDate, setIsEndDate] = useState(false);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+
+    useEffect(() => {
+        async function loadProducts() {
+            const fetchedProducts = await getProducts();
+            setProducts(fetchedProducts);
+        }
+        loadProducts();
+    }, []);
+
+    const handleProductSelect = (productSku: string) => {
+        setSelectedProducts(prev => {
+            const newSelection = prev.includes(productSku)
+                ? prev.filter(sku => sku !== productSku)
+                : [...prev, productSku];
+            return newSelection;
+        });
+    }
 
   return (
     <div className="space-y-6">
@@ -111,6 +134,70 @@ export default function AddCampaignPage() {
                  </div>
             </CardContent>
           </Card>
+           <Card>
+                <CardHeader>
+                    <CardTitle>Target Products</CardTitle>
+                    <CardDescription>Optionally, select specific products for this campaign. Leave blank to apply to all.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="space-y-2">
+                        <Label>Products</Label>
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-full justify-between"
+                                >
+                                    <span className="truncate">
+                                        {selectedProducts.length > 0 
+                                            ? `${selectedProducts.length} selected`
+                                            : "Select products..."
+                                        }
+                                    </span>
+                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                <Command>
+                                    <CommandInput placeholder="Search products..." />
+                                    <CommandEmpty>No products found.</CommandEmpty>
+                                    <CommandGroup>
+                                        {products.map((product) => (
+                                        <CommandItem
+                                            key={product.sku}
+                                            value={product.name}
+                                            onSelect={() => handleProductSelect(product.sku || '')}
+                                        >
+                                            <Check
+                                            className={cn(
+                                                "mr-2 h-4 w-4",
+                                                selectedProducts.includes(product.sku || '') ? "opacity-100" : "opacity-0"
+                                            )}
+                                            />
+                                            {product.name}
+                                        </CommandItem>
+                                        ))}
+                                    </CommandGroup>
+                                </Command>
+                            </PopoverContent>
+                        </Popover>
+                         <div className="flex flex-wrap gap-1 pt-2">
+                          {selectedProducts.map(sku => {
+                            const product = products.find(p => p.sku === sku);
+                            return product ? (
+                               <Badge key={sku} variant="secondary" className="flex items-center gap-1">
+                                {product.name}
+                                <button onClick={() => handleProductSelect(sku)} className="rounded-full hover:bg-muted-foreground/20">
+                                    <X className="h-3 w-3"/>
+                                </button>
+                               </Badge>
+                            ) : null;
+                          })}
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
         </div>
         <div className="lg:col-span-1 space-y-6">
              <Card>
