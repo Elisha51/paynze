@@ -3,10 +3,11 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MoreVertical, ArrowRight } from 'lucide-react';
+import { ArrowRight, Users } from 'lucide-react';
 import type { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { StaffCard } from './staff-card';
+import { Avatar, AvatarFallback } from '../ui/avatar';
 
 export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[], isLoading: boolean, onAwardBonus: (member: Staff) => void }) {
   const staffToShow = staff.slice(0, 3);
@@ -37,11 +38,17 @@ export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[]
       ))}
       {staff.length > 3 && (
         <Link href="/dashboard/staff" className="flex h-full">
-            <Card className="flex flex-col items-center justify-center text-center bg-muted/50 hover:bg-muted transition-colors cursor-pointer w-full h-full">
-                <CardContent className="p-6 flex flex-col items-center justify-center">
-                    <ArrowRight className="h-8 w-8 text-muted-foreground mb-2" />
-                    <h3 className="font-semibold">View All Staff</h3>
-                    <p className="text-sm text-muted-foreground">{staff.length} members total</p>
+            <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
+                <CardContent className="p-4 flex items-center gap-4 h-full">
+                    <Avatar className="h-12 w-12 bg-muted">
+                        <AvatarFallback>
+                            <Users className="h-6 w-6 text-muted-foreground"/>
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                        <p className="font-semibold truncate">View All Staff</p>
+                        <p className="text-sm text-muted-foreground">{staff.length} members total</p>
+                    </div>
                 </CardContent>
             </Card>
         </Link>
