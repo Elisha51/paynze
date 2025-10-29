@@ -113,9 +113,9 @@ export function MarketingAnalyticsReport({ campaigns, discounts }: { campaigns: 
         <CardHeader>
           <CardTitle>Campaign Reach by Channel</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] w-full">
-            <ChartContainer config={chartConfig}>
-              <RechartsBarChart data={campaignChannelData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+        <CardContent>
+            <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+              <RechartsBarChart data={campaignChannelData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                   <XAxis
                       dataKey="name"
                       stroke="#888888"
@@ -143,9 +143,9 @@ export function MarketingAnalyticsReport({ campaigns, discounts }: { campaigns: 
         <CardHeader>
           <CardTitle>Discount Redemptions</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] w-full">
-            <ChartContainer config={chartConfig}>
-              <RechartsBarChart data={discountChartData} margin={{ top: 20, right: 20, left: -10, bottom: 5 }}>
+        <CardContent>
+            <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+              <RechartsBarChart data={discountChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                   <XAxis
                       dataKey="name"
                       stroke="#888888"
