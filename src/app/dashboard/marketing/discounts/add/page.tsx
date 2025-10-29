@@ -25,16 +25,22 @@ import { Switch } from '@/components/ui/switch';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { getProducts } from '@/services/products';
-import type { Product } from '@/lib/types';
+import type { Product, Discount } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function AddDiscountPage() {
+    const [discountCode, setDiscountCode] = useState('');
     const [discountType, setDiscountType] = useState<'Percentage' | 'Fixed Amount'>('Percentage');
     const [hasMinPurchase, setHasMinPurchase] = useState(false);
     const [appliesTo, setAppliesTo] = useState('all'); // 'all' or 'specific'
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+    const { toast } = useToast();
+    const router = useRouter();
+
 
     useEffect(() => {
         async function loadProducts() {
@@ -53,6 +59,20 @@ export default function AddDiscountPage() {
         });
     }
 
+    const generateCode = () => {
+        const code = `SUMMER${Math.floor(10 + Math.random() * 90)}`;
+        setDiscountCode(code);
+    }
+
+    const handleSave = () => {
+        // Mock save logic
+        toast({
+            title: "Discount Created",
+            description: `Discount code "${discountCode}" has been created.`
+        });
+        router.push('/dashboard/marketing?tab=discounts');
+    }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -67,7 +87,7 @@ export default function AddDiscountPage() {
           <p className="text-muted-foreground text-sm">Configure a new discount code for your store.</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button>
+            <Button onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
               Save Discount
             </Button>
@@ -84,8 +104,8 @@ export default function AddDiscountPage() {
                     <div className="space-y-2">
                         <Label htmlFor="code">Discount Code</Label>
                         <div className="flex gap-2">
-                            <Input id="code" placeholder="e.g., EID2024" />
-                            <Button variant="outline">Generate Code</Button>
+                            <Input id="code" placeholder="e.g., EID2024" value={discountCode} onChange={(e) => setDiscountCode(e.target.value.toUpperCase())} />
+                            <Button variant="outline" onClick={generateCode}>Generate Code</Button>
                         </div>
                     </div>
                     <RadioGroup value={discountType} onValueChange={(v) => setDiscountType(v as any)} className="flex gap-4">

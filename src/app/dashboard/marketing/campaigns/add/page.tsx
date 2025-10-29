@@ -26,9 +26,11 @@ import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { getProducts } from '@/services/products';
-import type { Product } from '@/lib/types';
+import type { Product, Campaign } from '@/lib/types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
 
 export default function AddCampaignPage() {
     const [startDate, setStartDate] = useState<Date>();
@@ -36,6 +38,8 @@ export default function AddCampaignPage() {
     const [isEndDate, setIsEndDate] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+    const router = useRouter();
+    const { toast } = useToast();
 
     useEffect(() => {
         async function loadProducts() {
@@ -54,6 +58,15 @@ export default function AddCampaignPage() {
         });
     }
 
+    const handleSave = () => {
+        // Mock save logic
+        toast({
+            title: "Campaign Saved",
+            description: "Your new campaign has been created successfully."
+        });
+        router.push('/dashboard/marketing?tab=campaigns');
+    };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -68,7 +81,7 @@ export default function AddCampaignPage() {
           <p className="text-muted-foreground text-sm">Fill in the details to launch a new marketing campaign.</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button>
+            <Button onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
               Save Campaign
             </Button>
