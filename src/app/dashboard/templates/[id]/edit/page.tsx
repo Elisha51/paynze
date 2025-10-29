@@ -1,15 +1,24 @@
 
+
 'use client';
 
 import { ProductTemplateForm } from '@/components/dashboard/product-template-form';
 import { getProductTemplates } from '@/services/templates';
 import { useState, useEffect } from 'react';
 import type { ProductTemplate } from '@/lib/types';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/context/auth-context';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { ShieldAlert, ArrowLeft } from 'lucide-react';
 
 export default function EditProductTemplatePage() {
   const params = useParams();
+  const router = useRouter();
+  const { user } = useAuth();
+  const canEditProducts = user?.permissions.products.edit;
+
   const id = params.id as string;
   const [template, setTemplate] = useState<ProductTemplate | null>(null);
   const [loading, setLoading] = useState(true);
@@ -37,6 +46,22 @@ export default function EditProductTemplatePage() {
     }
     loadTemplate();
   }, [id]);
+
+  if (!canEditProducts) {
+      return (
+           <Card>
+              <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+              </CardHeader>
+              <CardContent>
+                  <p className="text-muted-foreground">You do not have permission to edit product templates.</p>
+                   <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                      <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                  </Button>
+              </CardContent>
+          </Card>
+      )
+  }
   
   if (loading) {
     return (

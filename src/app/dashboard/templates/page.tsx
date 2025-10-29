@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -11,11 +12,14 @@ import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 export default function TemplatesPage() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const { user } = useAuth();
+    const canEditProducts = user?.permissions.products.edit;
 
     const activeTab = searchParams.get('tab') || 'products';
 
@@ -30,12 +34,14 @@ export default function TemplatesPage() {
     ];
 
     const cta = (
-      <Button asChild>
-        <Link href="/dashboard/templates/add">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Template
-        </Link>
-      </Button>
+      canEditProducts && (
+        <Button asChild>
+          <Link href="/dashboard/templates/add">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Template
+          </Link>
+        </Button>
+      )
   );
 
     return (

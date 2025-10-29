@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getCountryList } from '@/services/countries';
+import { useAuth } from '@/context/auth-context';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -32,6 +33,9 @@ export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState('store');
     const [countryList, setCountryList] = useState<{name: string, code: string}[]>([]);
     const { toast } = useToast();
+    const { user } = useAuth();
+
+    const canEdit = user?.permissions.settings.edit;
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -155,18 +159,18 @@ export default function SettingsPage() {
             <CardContent className="space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="businessName">Business Name</Label>
-                <Input id="businessName" value={settings?.businessName || ''} onChange={handleInputChange} />
+                <Input id="businessName" value={settings?.businessName || ''} onChange={handleInputChange} disabled={!canEdit} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="subdomain">Subdomain</Label>
                 <div className="flex items-center">
-                    <Input id="subdomain" value={settings?.subdomain || ''} onChange={handleInputChange} />
+                    <Input id="subdomain" value={settings?.subdomain || ''} onChange={handleInputChange} disabled={!canEdit} />
                     <span className="ml-2 text-muted-foreground">.paynze.app</span>
                 </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="currency">Store Currency</Label>
-                <Select value={settings?.currency || 'UGX'} onValueChange={(v) => handleSelectChange('currency', v)}>
+                <Select value={settings?.currency || 'UGX'} onValueChange={(v) => handleSelectChange('currency', v)} disabled={!canEdit}>
                     <SelectTrigger>
                         <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
@@ -180,7 +184,7 @@ export default function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="storeDescription">Store Description</Label>
-                <Textarea id="storeDescription" placeholder="A brief description of your store." />
+                <Textarea id="storeDescription" placeholder="A brief description of your store." disabled={!canEdit} />
               </div>
             </CardContent>
           </Card>
@@ -205,7 +209,7 @@ export default function SettingsPage() {
                       Accept cash payments upon delivery.
                     </span>
                   </Label>
-                  <Switch id="cod" checked={settings?.paymentOptions.cod} onCheckedChange={(c) => handleSwitchChange('cod', c)} />
+                  <Switch id="cod" checked={settings?.paymentOptions.cod} onCheckedChange={(c) => handleSwitchChange('cod', c)} disabled={!canEdit} />
                 </CardHeader>
               </Card>
                <Card>
@@ -217,12 +221,12 @@ export default function SettingsPage() {
                             Accept payments via M-Pesa, MTN, Airtel etc.
                         </span>
                      </Label>
-                     <Switch id="mobileMoney" checked={settings?.paymentOptions.mobileMoney} onCheckedChange={(c) => handleSwitchChange('mobileMoney', c)} />
+                     <Switch id="mobileMoney" checked={settings?.paymentOptions.mobileMoney} onCheckedChange={(c) => handleSwitchChange('mobileMoney', c)} disabled={!canEdit} />
                   </div>
                 </CardHeader>
                 <CardContent className={!settings?.paymentOptions.mobileMoney ? 'hidden' : ''}>
                     <Label htmlFor="mpesaTill">M-Pesa Till Number (Optional)</Label>
-                    <Input id="mpesaTill" placeholder="e.g. 123456" />
+                    <Input id="mpesaTill" placeholder="e.g. 123456" disabled={!canEdit} />
                 </CardContent>
               </Card>
             </CardContent>
@@ -265,8 +269,9 @@ export default function SettingsPage() {
                                         className="text-lg font-semibold border-0 shadow-none -ml-3 w-full p-0 focus-visible:ring-0 focus-visible:ring-offset-0 h-auto"
                                         value={zone.name}
                                         onChange={(e) => handleZoneChange(zone.id, 'name', e.target.value)}
+                                        disabled={!canEdit}
                                     />
-                                    <Select value={zone.countries[0]} onValueChange={(v) => handleZoneChange(zone.id, 'countries', [v])}>
+                                    <Select value={zone.countries[0]} onValueChange={(v) => handleZoneChange(zone.id, 'countries', [v])} disabled={!canEdit}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select a country" />
                                         </SelectTrigger>
@@ -277,7 +282,7 @@ export default function SettingsPage() {
                                         </SelectContent>
                                     </Select>
                                  </div>
-                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveZone(zone.id)}>
+                                  <Button variant="ghost" size="icon" onClick={() => handleRemoveZone(zone.id)} disabled={!canEdit}>
                                     <Trash2 className="h-4 w-4 text-destructive" />
                                   </Button>
                                </CardHeader>
@@ -288,11 +293,12 @@ export default function SettingsPage() {
                                         type="number"
                                         value={zone.deliveryMethods[0].price}
                                         onChange={(e) => handleZoneChange(zone.id, 'price', e.target.value)}
+                                        disabled={!canEdit}
                                     />
                                </CardContent>
                            </Card>
                         ))}
-                         <Button variant="outline" onClick={handleAddZone}>
+                         <Button variant="outline" onClick={handleAddZone} disabled={!canEdit}>
                            <PlusCircle className="mr-2 h-4 w-4" /> Add Shipping Zone
                          </Button>
                     </CardContent>
@@ -316,16 +322,18 @@ export default function SettingsPage() {
                                     Receive notifications when inventory drops below a defined threshold.
                                 </span>
                             </Label>
-                            <Switch id="enableLowStockAlerts" checked={settings?.inventory?.enableLowStockAlerts} onCheckedChange={(c) => handleSwitchChange('enableLowStockAlerts', c)} />
+                            <Switch id="enableLowStockAlerts" checked={settings?.inventory?.enableLowStockAlerts} onCheckedChange={(c) => handleSwitchChange('enableLowStockAlerts', c)} disabled={!canEdit} />
                         </CardHeader>
                     </Card>
                 </CardContent>
             </Card>
         </TabsContent>
       </Tabs>
-      <div className="mt-8 flex justify-end">
-        <Button onClick={handleSaveChanges}>Save Changes</Button>
-      </div>
+      {canEdit && (
+        <div className="mt-8 flex justify-end">
+            <Button onClick={handleSaveChanges}>Save Changes</Button>
+        </div>
+      )}
     </>
   );
 }
