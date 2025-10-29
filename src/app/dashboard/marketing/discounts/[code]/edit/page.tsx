@@ -23,12 +23,14 @@ import { useState, useEffect } from 'react';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { useParams } from 'next/navigation';
-import type { Discount, Product } from '../../../page';
+import type { Discount } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import type { Product } from '@/lib/types';
+
 
 const mockDiscounts: Discount[] = [
   { code: 'NEWBIE10', type: 'Percentage', value: 10, status: 'Active', redemptions: 152, minPurchase: 0, customerGroup: 'New Customers', applicableProductIds: [] },
@@ -64,12 +66,17 @@ export default function EditDiscountPage() {
             }
         }
     }, [code]);
+
+    const handleDiscountChange = (field: keyof Discount, value: any) => {
+        setDiscount(prev => prev ? { ...prev, [field]: value } : null);
+    }
     
     const handleProductSelect = (productSku: string) => {
         setSelectedProducts(prev => {
             const newSelection = prev.includes(productSku)
                 ? prev.filter(sku => sku !== productSku)
                 : [...prev, productSku];
+            handleDiscountChange('applicableProductIds', newSelection);
             return newSelection;
         });
     }
@@ -114,7 +121,7 @@ export default function EditDiscountPage() {
                         <Label htmlFor="code">Discount Code</Label>
                         <Input id="code" value={discount.code} disabled />
                     </div>
-                    <RadioGroup value={discount.type} className="flex gap-4">
+                    <RadioGroup value={discount.type} onValueChange={(v) => handleDiscountChange('type', v)} className="flex gap-4">
                         <Label htmlFor="percentage" className="flex items-center gap-2 border p-4 rounded-md flex-1 cursor-pointer hover:bg-muted/50">
                             <RadioGroupItem value="Percentage" id="percentage" />
                             <Percent className="h-5 w-5" />
@@ -128,7 +135,7 @@ export default function EditDiscountPage() {
                     </RadioGroup>
                     <div className="space-y-2">
                         <Label htmlFor="value">Value</Label>
-                        <Input id="value" type="number" value={discount.value} />
+                        <Input id="value" type="number" value={discount.value} onChange={(e) => handleDiscountChange('value', Number(e.target.value))} />
                     </div>
                 </CardContent>
             </Card>
@@ -225,14 +232,14 @@ export default function EditDiscountPage() {
                             </p>
                             {hasMinPurchase && (
                                 <div className="pt-2">
-                                     <Input type="number" value={discount.minPurchase > 0 ? discount.minPurchase : ''} placeholder="e.g., 50000" />
+                                     <Input type="number" value={discount.minPurchase > 0 ? discount.minPurchase : ''} placeholder="e.g., 50000" onChange={(e) => handleDiscountChange('minPurchase', Number(e.target.value))} />
                                 </div>
                             )}
                         </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="customerGroup">Customer eligibility</Label>
-                        <Select value={discount.customerGroup}>
+                        <Select value={discount.customerGroup} onValueChange={(v) => handleDiscountChange('customerGroup', v)}>
                             <SelectTrigger id="customerGroup">
                                 <SelectValue placeholder="Select who can use this" />
                             </SelectTrigger>
@@ -253,7 +260,7 @@ export default function EditDiscountPage() {
                     <CardTitle>Status</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                     <Select value={discount.status}>
+                     <Select value={discount.status} onValueChange={(v) => handleDiscountChange('status', v)}>
                         <SelectTrigger>
                             <SelectValue placeholder="Select status" />
                         </SelectTrigger>

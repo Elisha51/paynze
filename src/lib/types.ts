@@ -453,6 +453,6 @@ export type Discount = {
   status: 'Active' | 'Expired' | 'Scheduled';
   redemptions: number;
   minPurchase: number;
-  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers';
+  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers';
   applicableProductIds?: string[];
 };
