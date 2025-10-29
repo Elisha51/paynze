@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Gift, TrendingUp, BarChart, Users } from 'lucide-react';
 import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { Bar, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip } from 'recharts';
 
 const chartConfig = {
   sent: {
@@ -44,7 +44,7 @@ export function MarketingAnalyticsReport({ campaigns, discounts }: { campaigns: 
         </CardHeader>
         <CardContent className="h-[300px] w-full">
             <ChartContainer config={chartConfig}>
-              <Bar data={campaignChartData} dataKey="sent" fill="var(--color-sent)" radius={[4, 4, 0, 0]}>
+              <RechartsBarChart data={campaignChartData}>
                   <XAxis
                       dataKey="name"
                       stroke="#888888"
@@ -63,7 +63,8 @@ export function MarketingAnalyticsReport({ campaigns, discounts }: { campaigns: 
                       cursor={false}
                       content={<ChartTooltipContent indicator="dot" />}
                   />
-              </Bar>
+                  <Bar dataKey="sent" fill="var(--color-sent)" radius={[4, 4, 0, 0]} />
+              </RechartsBarChart>
             </ChartContainer>
         </CardContent>
       </Card>
@@ -73,7 +74,7 @@ export function MarketingAnalyticsReport({ campaigns, discounts }: { campaigns: 
         </CardHeader>
         <CardContent className="h-[300px] w-full">
             <ChartContainer config={chartConfig}>
-              <Bar data={discountChartData} dataKey="redemptions" fill="var(--color-redemptions)" radius={[4, 4, 0, 0]}>
+              <RechartsBarChart data={discountChartData}>
                   <XAxis
                       dataKey="name"
                       stroke="#888888"
@@ -92,7 +93,8 @@ export function MarketingAnalyticsReport({ campaigns, discounts }: { campaigns: 
                       cursor={false}
                       content={<ChartTooltipContent indicator="dot" />}
                   />
-              </Bar>
+                  <Bar dataKey="redemptions" fill="var(--color-redemptions)" radius={[4, 4, 0, 0]} />
+              </RechartsBarChart>
             </ChartContainer>
         </CardContent>
       </Card>
