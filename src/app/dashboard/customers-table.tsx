@@ -153,11 +153,11 @@ const columns: ColumnDef<Customer>[] = [
                     View Details
                 </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Send via WhatsApp
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                 <Phone className="mr-2 h-4 w-4" />
                 Send via SMS
             </DropdownMenuItem>

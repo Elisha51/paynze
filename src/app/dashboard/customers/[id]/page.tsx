@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag } from 'lucide-react';
+import { ArrowLeft, MoreVertical, Edit, MessageCircle, Phone, Tag, Send } from 'lucide-react';
 import Link from 'next/link';
 import { getCustomerById } from '@/services/customers';
 import type { Customer, OnboardingFormData } from '@/lib/types';
@@ -27,34 +27,44 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { CustomerActivityLog } from '@/components/dashboard/customer-activity-log';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
+
+type MessageType = 'WhatsApp' | 'SMS' | null;
 
 export default function ViewCustomerPage() {
   const params = useParams();
   const id = params.id as string;
+  const { toast } = useToast();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [classification, setClassification] = useState<ClassifyCustomerOutput | null>(null);
   const [loading, setLoading] = useState(true);
   const [isClassifying, setIsClassifying] = useState(false);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
+  const [messageType, setMessageType] = useState<MessageType>(null);
+  const [messageContent, setMessageContent] = useState('');
+
+  const loadCustomerData = async () => {
+    if (!id) return;
+    setLoading(true);
+    try {
+        const fetchedCustomer = await getCustomerById(id);
+        setCustomer(fetchedCustomer || null);
+    } catch (error) {
+        console.error("Failed to fetch customer data:", error);
+        setCustomer(null);
+    }
+    setLoading(false);
+  }
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
     if (data) {
         setSettings(JSON.parse(data));
     }
-    async function loadData() {
-        if (!id) return;
-        setLoading(true);
-        try {
-            const fetchedCustomer = await getCustomerById(id);
-            setCustomer(fetchedCustomer || null);
-        } catch (error) {
-            console.error("Failed to fetch customer data:", error);
-            setCustomer(null);
-        }
-        setLoading(false);
-    }
-    loadData();
+    loadCustomerData();
   }, [id]);
 
   useEffect(() => {
@@ -87,6 +97,30 @@ export default function ViewCustomerPage() {
       }
       runClassification();
   }, [customer]);
+  
+  const handleOpenMessageDialog = (type: MessageType) => {
+    setMessageType(type);
+    setIsMessageDialogOpen(true);
+  };
+
+  const handleSendMessage = () => {
+    if (!messageContent.trim()) {
+        toast({ variant: 'destructive', title: 'Message cannot be empty.' });
+        return;
+    }
+    // Simulate sending message and updating activity log
+    console.log(`Sending ${messageType} to ${customer?.name}: ${messageContent}`);
+    
+    // In a real app, you would add this communication to the customer's record in the backend.
+    // For this simulation, we'll just reload the customer data to mimic the update.
+    // A more sophisticated approach would be to update the state locally.
+    loadCustomerData();
+    
+    toast({ title: 'Message Sent', description: `Your ${messageType} has been sent to ${customer?.name}.` });
+    setIsMessageDialogOpen(false);
+    setMessageContent('');
+  };
+
 
   if (loading) {
     return (
@@ -140,6 +174,7 @@ export default function ViewCustomerPage() {
 
 
   return (
+    <>
     <div className="space-y-6">
        <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
@@ -174,11 +209,11 @@ export default function ViewCustomerPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => handleOpenMessageDialog('WhatsApp')}>
                         <MessageCircle className="mr-2 h-4 w-4" />
                         Send WhatsApp
                     </DropdownMenuItem>
-                     <DropdownMenuItem>
+                     <DropdownMenuItem onSelect={() => handleOpenMessageDialog('SMS')}>
                         <Phone className="mr-2 h-4 w-4" />
                         Send SMS
                     </DropdownMenuItem>
@@ -253,5 +288,33 @@ export default function ViewCustomerPage() {
         </div>
       </div>
     </div>
+    <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Send {messageType} to {customer.name}</DialogTitle>
+                <DialogDescription>
+                    Compose your message below. This will be sent via our simulated messaging service and logged in the customer's activity feed.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <Textarea 
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    placeholder="Type your message here..."
+                    className="min-h-[120px]"
+                />
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleSendMessage}>
+                    <Send className="mr-2 h-4 w-4" />
+                    Send Message
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
