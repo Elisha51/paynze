@@ -1,7 +1,7 @@
 
 'use client';
 import { useMemo } from 'react';
-import type { Order } from '@/lib/types';
+import type { Order, OnboardingFormData } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -14,6 +14,7 @@ import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, PieChar
 import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ordersColumns } from './report-columns';
+import React from 'react';
 
 const chartConfig = {
   sales: {
@@ -35,6 +36,14 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], dateRange?: DateRange }) {
+    const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+    React.useEffect(() => {
+        const storedSettings = localStorage.getItem('onboardingData');
+        if (storedSettings) {
+            setSettings(JSON.parse(storedSettings));
+        }
+    }, []);
 
   const reportData = useMemo(() => {
     return orders.filter(order => {
@@ -45,7 +54,7 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
   }, [orders, dateRange]);
 
   const { summaryMetrics, chartData, channelData } = useMemo(() => {
-    const currency = reportData.length > 0 ? reportData[0].currency : 'UGX';
+    const currency = settings?.currency || 'UGX';
     
     if (reportData.length === 0) {
       return { 
@@ -97,7 +106,7 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
       chartData: formattedChartData,
       channelData: Object.values(salesByChannel),
     };
-  }, [reportData]);
+  }, [reportData, settings]);
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency: summaryMetrics.currency }).format(amount);

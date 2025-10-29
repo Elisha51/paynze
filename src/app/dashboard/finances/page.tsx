@@ -286,15 +286,7 @@ export default function FinancesPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="currency">Currency</Label>
-                            <Select onValueChange={(v) => handleSelectChange('currency', v)} defaultValue={settings?.currency}>
-                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="UGX">UGX</SelectItem>
-                                    <SelectItem value="KES">KES</SelectItem>
-                                    <SelectItem value="TZS">TZS</SelectItem>
-                                    <SelectItem value="USD">USD</SelectItem>
-                                </SelectContent>
-                            </Select>
+                            <Input id="currency" value={settings?.currency} disabled/>
                         </div>
                     </div>
                     <div className="space-y-2">

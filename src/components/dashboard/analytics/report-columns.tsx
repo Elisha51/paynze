@@ -13,9 +13,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Order, Customer, PurchaseOrder, Transaction } from '@/lib/types';
+import type { Order, Customer, PurchaseOrder, Transaction, OnboardingFormData } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import React from 'react';
 
 
 export const ordersColumns: ColumnDef<Order>[] = [
@@ -68,6 +69,14 @@ export const ordersColumns: ColumnDef<Order>[] = [
   {
     accessorKey: 'total',
     header: ({ column }) => {
+        const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+        React.useEffect(() => {
+            const storedSettings = localStorage.getItem('onboardingData');
+            if (storedSettings) {
+                setSettings(JSON.parse(storedSettings));
+            }
+        }, []);
         return (
             <div className="text-right">
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
@@ -78,8 +87,16 @@ export const ordersColumns: ColumnDef<Order>[] = [
         );
       },
     cell: ({ row }) => {
+        const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+        React.useEffect(() => {
+            const storedSettings = localStorage.getItem('onboardingData');
+            if (storedSettings) {
+                setSettings(JSON.parse(storedSettings));
+            }
+        }, []);
       const order = row.original;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total);
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: settings?.currency || 'UGX' }).format(order.total);
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
@@ -120,8 +137,17 @@ export const customersColumns: ColumnDef<Customer>[] = [
         );
       },
     cell: ({ row }) => {
+        const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+        React.useEffect(() => {
+            const storedSettings = localStorage.getItem('onboardingData');
+            if (storedSettings) {
+                setSettings(JSON.parse(storedSettings));
+            }
+        }, []);
+
       const customer = row.original;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: customer.currency }).format(customer.totalSpend);
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: settings?.currency || 'UGX' }).format(customer.totalSpend);
       return <div className="text-right font-medium">{formatted}</div>
     },
   },
@@ -171,9 +197,16 @@ export const purchaseOrdersColumns: ColumnDef<PurchaseOrder>[] = [
     accessorKey: 'totalCost',
     header: 'Total',
     cell: ({ row }) => {
+      const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+        React.useEffect(() => {
+            const storedSettings = localStorage.getItem('onboardingData');
+            if (storedSettings) {
+                setSettings(JSON.parse(storedSettings));
+            }
+        }, []);
       const amount = parseFloat(row.getValue('totalCost'));
-      const currency = row.original.currency;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: settings?.currency || 'UGX' }).format(amount);
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
@@ -206,11 +239,18 @@ export const transactionsColumns: ColumnDef<Transaction>[] = [
           </div>
         ),
         cell: ({ row }) => {
+            const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+
+            React.useEffect(() => {
+                const storedSettings = localStorage.getItem('onboardingData');
+                if (storedSettings) {
+                    setSettings(JSON.parse(storedSettings));
+                }
+            }, []);
           const amount = parseFloat(row.getValue('amount'));
-          const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(amount);
+          const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: settings?.currency || 'UGX' }).format(amount);
           const amountClass = row.original.type === 'Income' ? 'text-green-600' : 'text-red-600';
           return <div className={cn('text-right font-medium', amountClass)}>{formatted}</div>;
         },
     },
 ];
-

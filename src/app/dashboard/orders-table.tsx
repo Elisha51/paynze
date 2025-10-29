@@ -19,7 +19,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import type { Order } from '@/lib/types';
+import type { Order, OnboardingFormData } from '@/lib/types';
 import { DataTable } from './data-table';
 import {
   Dialog,
@@ -205,7 +205,7 @@ const fulfillmentMethods = [
 ];
 
 
-const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[] => [
+const getColumns = (onUpdate: (updatedOrder: Order) => void, currency: string): ColumnDef<Order>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -359,7 +359,7 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void): ColumnDef<Order>[]
       },
     cell: ({ row }) => {
       const order = row.original;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total);
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(order.total);
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
@@ -468,16 +468,21 @@ type OrdersTableProps = {
 
 export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>(orders);
+  const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
 
   React.useEffect(() => {
     setData(orders);
+    const storedSettings = localStorage.getItem('onboardingData');
+    if (storedSettings) {
+        setSettings(JSON.parse(storedSettings));
+    }
   }, [orders]);
 
   const handleUpdate = (updatedOrder: Order) => {
     setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
   };
   
-  const columns = React.useMemo(() => getColumns(handleUpdate), []);
+  const columns = React.useMemo(() => getColumns(handleUpdate, settings?.currency || 'UGX'), [handleUpdate, settings?.currency]);
 
   return (
     <DataTable
