@@ -36,15 +36,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
   const [isCollapsed, setIsCollapsed] = React.useState(true); // Default to collapsed
   const [isSheetOpen, setSheetOpen] = React.useState(false);
-
-  React.useEffect(() => {
-    if (isMobile) {
-        setIsCollapsed(false);
-    } else {
-        setIsCollapsed(true);
-    }
-  }, [isMobile]);
-
+  
   const toggleSidebar = () => {
     if (isMobile) {
       setSheetOpen(prev => !prev);

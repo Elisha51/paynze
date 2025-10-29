@@ -11,6 +11,8 @@ import { NotificationProvider } from '@/context/notification-context';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { usePathname } from 'next/navigation';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
+import { AuthProvider, useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 const tabRoutes: Record<string, string[]> = {
   '/dashboard/marketing': ['overview', 'campaigns', 'discounts', 'analytics'],
@@ -23,15 +25,18 @@ const tabRoutes: Record<string, string[]> = {
   '/dashboard/templates': ['products', 'email', 'sms'],
 };
 
-
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function ProtectedDashboardLayout({ children }: { children: React.ReactNode }) {
   const [onboardingData, setOnboardingData] = useState<OnboardingFormData | null>(null);
   const [isDevMode, setIsDevMode] = useState(false);
   const pathname = usePathname();
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
@@ -49,9 +54,9 @@ export default function DashboardLayout({
     let cumulativePath = '';
     
     return pathSegments.map((segment, index) => {
-        let href = `${cumulativePath}/${segment}`;
-        const parentPath = cumulativePath;
-        cumulativePath = href;
+        let href = `/${cumulativePath}/${segment}`;
+        const parentPath = `/${cumulativePath}`;
+        cumulativePath = `${cumulativePath}/${segment}`;
         
         // Check if the current segment is a tab for its parent path
         if (tabRoutes[parentPath] && tabRoutes[parentPath].includes(segment)) {
@@ -63,7 +68,6 @@ export default function DashboardLayout({
     });
   }, [pathname]);
 
-
   // Pass isDevMode to children
   const childrenWithProps = React.Children.map(children, child => {
     if (React.isValidElement(child)) {
@@ -71,6 +75,14 @@ export default function DashboardLayout({
     }
     return child;
   });
+  
+  if (isLoading || !user) {
+      return (
+          <div className="flex items-center justify-center h-screen">
+              <p>Loading...</p>
+          </div>
+      )
+  }
 
   return (
     <NotificationProvider>
@@ -92,4 +104,17 @@ export default function DashboardLayout({
       </SearchProvider>
     </NotificationProvider>
   );
+}
+
+
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <AuthProvider>
+      <ProtectedDashboardLayout>{children}</ProtectedDashboardLayout>
+    </AuthProvider>
+  )
 }

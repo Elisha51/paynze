@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { BellRing, PackageX } from 'lucide-react';
+import { BellRing, PackageX, Bell } from 'lucide-react';
 
 const iconMap: Record<string, React.ElementType> = {
     'task-assigned': BellRing,
@@ -29,7 +29,7 @@ export function NotificationsSheet() {
             <ScrollArea className="flex-1 -mx-6">
                 <div className="divide-y">
                     {notifications.map(notification => {
-                        const Icon = iconMap[notification.type] || BellRing;
+                        const Icon = iconMap[notification.type] || Bell;
                         return (
                             <div 
                                 key={notification.id} 

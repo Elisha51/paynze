@@ -7,38 +7,25 @@ import { getStaff } from '@/services/staff';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StaffProfileForm } from '@/components/dashboard/staff-profile-form';
 import { PasswordSettings } from '@/components/dashboard/password-settings';
+import { useAuth } from '@/context/auth-context';
 
-const LOGGED_IN_STAFF_ID = 'staff-003';
 
 export default function MyProfilePage() {
-    const [staffMember, setStaffMember] = useState<Staff | null>(null);
-    const [loading, setLoading] = useState(true);
-
-    const loadStaffData = async () => {
-        setLoading(true);
-        const [staffList] = await Promise.all([
-            getStaff(),
-        ]);
-        const member = staffList.find(s => s.id === LOGGED_IN_STAFF_ID);
-        
-        if (member) {
-            setStaffMember(member);
-        }
-        
-        setLoading(false);
-    };
+    const { user, setUser } = useAuth();
+    const [staffMember, setStaffMember] = useState<Staff | null>(user);
 
     useEffect(() => {
-        loadStaffData();
-    }, []);
+        setStaffMember(user);
+    }, [user]);
 
     const handleProfileUpdate = async (updatedStaff: Staff) => {
         // In a real app, this would call the service.
-        // For now, we just update the state to reflect the change.
+        // For our simulation, we just update the state in the context.
+        setUser(updatedStaff);
         setStaffMember(updatedStaff);
     };
     
-    if (loading || !staffMember) {
+    if (!staffMember) {
         return (
              <div className="space-y-6">
                 <div className="flex items-center justify-between">

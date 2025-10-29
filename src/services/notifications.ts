@@ -4,10 +4,8 @@ import { subHours, subMinutes, subDays } from 'date-fns';
 import { getStaffOrders } from './staff';
 import { DataService } from './data-service';
 
-const LOGGED_IN_STAFF_ID = 'staff-003';
-
-const initializeMockNotifications: () => Promise<Notification[]> = async () => {
-    const assignedOrders = await getStaffOrders(LOGGED_IN_STAFF_ID);
+const initializeMockNotifications: (userId: string) => Promise<Notification[]> = async (userId: string) => {
+    const assignedOrders = await getStaffOrders(userId);
     const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
 
     const generatedNotifications: Notification[] = [];
@@ -48,6 +46,7 @@ const initializeMockNotifications: () => Promise<Notification[]> = async () => {
     return generatedNotifications.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
+// @ts-ignore
 const notificationService = new DataService<Notification>('notifications', initializeMockNotifications);
 
 export async function getNotifications(): Promise<Notification[]> {

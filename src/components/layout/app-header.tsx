@@ -18,22 +18,24 @@ import { ClipboardCheck } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import React, { useEffect, useState } from 'react';
 import { getStaffOrders } from '@/services/staff';
-import type { Order } from '@/lib/types';
+import type { Order, Staff } from '@/lib/types';
 import { getTodos } from '@/services/todos';
+import { useAuth } from '@/context/auth-context';
 
-const LOGGED_IN_STAFF_ID = 'staff-003';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
 }
 
 export default function AppHeader({ onboardingData }: AppHeaderProps) {
+    const { user } = useAuth();
     const [taskCount, setTaskCount] = useState(0);
 
     useEffect(() => {
         async function loadTaskCount() {
+            if (!user) return;
             const [assignedOrders, personalTodos] = await Promise.all([
-              getStaffOrders(LOGGED_IN_STAFF_ID),
+              getStaffOrders(user.id),
               getTodos()
             ]);
             const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
@@ -41,7 +43,7 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
             setTaskCount(todoOrders.length + openTodos.length);
         }
         loadTaskCount();
-    }, []);
+    }, [user]);
 
     const getInitials = (name: string) => {
         if (!name) return 'AD';
@@ -82,14 +84,14 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
             <DropdownMenuTrigger asChild>
             <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar>
-                <AvatarImage src="https://picsum.photos/seed/admin/40/40" alt="Admin" />
-                <AvatarFallback>{onboardingData ? getInitials(onboardingData.businessName) : 'AD'}</AvatarFallback>
+                <AvatarImage src={user?.avatarUrl} alt={user?.name} />
+                <AvatarFallback>{user ? getInitials(user.name) : '...'}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
             </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-            <DropdownMenuLabel>{onboardingData?.businessName || 'My Account'}</DropdownMenuLabel>
+            <DropdownMenuLabel>{user?.name || 'My Account'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link href="/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>

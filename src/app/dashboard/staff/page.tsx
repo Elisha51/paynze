@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PlusCircle, BarChart, DollarSign, Wallet } from 'lucide-react';
@@ -36,6 +35,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { getOrders } from '@/services/orders';
 import { StaffActivityLog } from '@/components/dashboard/staff-activity-log';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
+
 
 const emptyStaff: Omit<Staff, 'id'> = {
   name: '',
@@ -48,6 +49,7 @@ export default function StaffPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const activeTab = searchParams.get('tab') || 'staff';
 
@@ -124,7 +126,7 @@ export default function StaffPage() {
           date: new Date().toISOString(),
           reason: bonusReason || 'Performance Bonus',
           amount: bonusAmount,
-          awardedBy: 'admin', // In a real app, get the logged-in admin's ID
+          awardedBy: user?.name || 'Admin',
       };
       
       const updatedStaff = {
@@ -153,7 +155,10 @@ export default function StaffPage() {
       { value: 'analytics', label: 'Analytics' },
   ];
 
+  const canAddStaff = user?.permissions.staff.create;
+
   const cta = (
+    canAddStaff ? (
      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
         <DialogTrigger asChild>
             <Button>
@@ -216,6 +221,7 @@ export default function StaffPage() {
             </DialogFooter>
         </DialogContent>
     </Dialog>
+    ) : null
   );
 
   return (
@@ -316,5 +322,3 @@ export default function StaffPage() {
     </>
   );
 }
-
-    

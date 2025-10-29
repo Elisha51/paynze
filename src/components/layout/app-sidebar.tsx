@@ -33,24 +33,23 @@ import { useSidebar } from '../ui/sidebar';
 import { cn } from '@/lib/utils';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { Badge } from '../ui/badge';
+import { useAuth } from '@/context/auth-context';
 
 const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart },
-  { href: '/dashboard/products', label: 'Products', icon: Package },
-  { href: '/dashboard/customers', label: 'Customers', icon: Users },
-  { href: '/dashboard/procurement', label: 'Procurement', icon: Truck },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: any) => p.dashboard.view },
+  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, permission: (p: any) => p.orders.view },
+  { href: '/dashboard/products', label: 'Products', icon: Package, permission: (p: any) => p.products.view },
+  { href: '/dashboard/customers', label: 'Customers', icon: Users, permission: (p: any) => p.customers.view },
+  { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: any) => p.procurement.view },
+  { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, permission: (p: any) => p.dashboard.view }, // Simplification
+  { href: '/dashboard/finances', label: 'Finances', icon: Landmark, permission: (p: any) => p.finances.view },
+  { href: '/dashboard/staff', label: 'Staff', icon: UserCog, permission: (p: any) => p.staff.view },
 ];
 
-const premiumMenuItems = [
-    { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, plan: 'Premium' },
-    { href: '/dashboard/finances', label: 'Finances', icon: Landmark, plan: 'Premium' },
-    { href: '/dashboard/staff', label: 'Staff', icon: UserCog, plan: 'Premium' },
-];
 
 const bottomMenuItems = [
-  { href: '/dashboard/templates', label: 'Templates', icon: FileText },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
+  { href: '/dashboard/templates', label: 'Templates', icon: FileText, permission: (p: any) => p.products.view }, // Linked to product permissions
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings, permission: (p: any) => p.settings.view },
 ]
 
 type AppSidebarProps = {
@@ -61,9 +60,16 @@ type AppSidebarProps = {
 export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
-  const isPremium = onboardingData?.plan === 'Premium';
+  const { user } = useAuth();
 
-  const showPremiumFeatures = isDevMode || isPremium;
+  const userPermissions = user?.permissions;
+
+  if (!userPermissions) {
+      return null;
+  }
+
+  const allowedMenuItems = menuItems.filter(item => item.permission(userPermissions));
+  const allowedBottomMenuItems = bottomMenuItems.filter(item => item.permission(userPermissions));
 
   return (
     <Sidebar>
@@ -78,7 +84,7 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
 
         <SidebarContent>
             <SidebarMenu>
-            {menuItems.map((item) => (
+            {allowedMenuItems.map((item) => (
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>
                     <SidebarMenuButton
@@ -91,27 +97,12 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
                 </Link>
                 </SidebarMenuItem>
             ))}
-             {premiumMenuItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
-                    <SidebarMenuButton
-                        isActive={pathname.startsWith(item.href)}
-                        tooltip={item.label}
-                        disabled={!showPremiumFeatures}
-                    >
-                        <item.icon className="h-5 w-5 shrink-0" />
-                        <span className="flex-1">{item.label}</span>
-                        {!showPremiumFeatures && <Badge variant="secondary" className="text-xs">Premium</Badge>}
-                    </SidebarMenuButton>
-                </Link>
-                </SidebarMenuItem>
-             ))}
             </SidebarMenu>
         </SidebarContent>
 
         <SidebarFooter>
             <SidebarMenu>
-            {bottomMenuItems.map((item) => (
+            {allowedBottomMenuItems.map((item) => (
                  <SidebarMenuItem key={item.href}>
                  <Link href={item.href} passHref>
                      <SidebarMenuButton

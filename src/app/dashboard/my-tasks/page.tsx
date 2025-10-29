@@ -20,8 +20,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAuth } from '@/context/auth-context';
 
-const LOGGED_IN_STAFF_ID = 'staff-003';
 
 type UnifiedTask = {
   id: string;
@@ -33,7 +33,7 @@ type UnifiedTask = {
 };
 
 export default function MyTasksPage({ isDevMode }: { isDevMode?: boolean }) {
-    const [staffMember, setStaffMember] = useState<Staff | null>(null);
+    const { user: staffMember } = useAuth();
     const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
     const [roles, setRoles] = useState<Role[]>([]);
@@ -43,16 +43,13 @@ export default function MyTasksPage({ isDevMode }: { isDevMode?: boolean }) {
     const { toast } = useToast();
 
     const loadData = async () => {
+        if (!staffMember) return;
         setLoading(true);
-        const [staffList, orderData, todoData, roleData] = await Promise.all([
-            getStaff(),
-            getStaffOrders(LOGGED_IN_STAFF_ID),
+        const [orderData, todoData, roleData] = await Promise.all([
+            getStaffOrders(staffMember.id),
             getTodos(),
             getRoles(),
         ]);
-        const member = staffList.find(s => s.id === LOGGED_IN_STAFF_ID);
-        
-        setStaffMember(member || null);
         setAssignedOrders(orderData);
         setTodos(todoData);
         setRoles(roleData);
@@ -61,7 +58,7 @@ export default function MyTasksPage({ isDevMode }: { isDevMode?: boolean }) {
 
     useEffect(() => {
         loadData();
-    }, []);
+    }, [staffMember]);
 
     const unifiedTasks = useMemo(() => {
         const orderTasks: UnifiedTask[] = assignedOrders.map(order => ({
