@@ -57,7 +57,7 @@ const getCampaignColumns = (): ColumnDef<Campaign>[] => [
 ];
 
 const getDiscountColumns = (): ColumnDef<Discount>[] => [
-    { accessorKey: 'code', header: 'Discount Code', cell: ({ row }) => <Badge variant="outline" className="font-mono">{row.original.code}</Badge> },
+    { accessorKey: 'code', header: 'Discount Code', cell: ({ row }) => <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`} className="font-medium hover:underline"><Badge variant="outline" className="font-mono">{row.original.code}</Badge></Link> },
     { accessorKey: 'type', header: 'Type' },
     { accessorKey: 'value', header: 'Value', cell: ({ row }) => row.original.type === 'Percentage' ? `${row.original.value}%` : `UGX ${row.original.value.toLocaleString()}` },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge> },
