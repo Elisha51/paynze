@@ -172,6 +172,13 @@ export type OrderItem = {
     category?: string;
 }
 
+export type PaymentDetails = {
+    method: 'Mobile Money' | 'Cash on Delivery';
+    status: 'pending' | 'completed' | 'failed' | 'refunded';
+    transactionId?: string;
+    provider?: 'MTN' | 'Airtel' | 'M-Pesa';
+}
+
 export type Order = {
     id: string;
     customerId: string;
@@ -190,8 +197,7 @@ export type Order = {
         postalCode: string;
         country: string;
     };
-    paymentMethod: 'Mobile Money' | 'Cash on Delivery';
-    paymentStatus: 'Paid' | 'Unpaid';
+    payment: PaymentDetails;
     shippingCost?: number;
     taxes?: number;
     salesAgentId?: string;

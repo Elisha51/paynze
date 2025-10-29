@@ -1,4 +1,5 @@
 
+
 import type { Order, Product, Staff, Role } from '@/lib/types';
 import { updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -7,7 +8,7 @@ import { DataService } from './data-service';
 
 
 function initializeMockOrders(): Order[] {
-    const mockOrders: Omit<Order, 'channel' | 'currency'>[] = [
+    const mockOrders: Omit<Order, 'channel' | 'currency' | 'payment'>[] = [
         { 
             id: 'ORD-001', 
             customerId: 'cust-02',
@@ -19,8 +20,6 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
             total: 75000, 
             shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-            paymentMethod: 'Mobile Money',
-            paymentStatus: 'Paid',
         },
         { 
             id: 'ORD-002', 
@@ -33,8 +32,6 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 5, price: 32000, category: 'Fabrics' }],
             total: 160000,
             shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
-            paymentMethod: 'Cash on Delivery',
-            paymentStatus: 'Paid'
         },
          { 
             id: 'ORD-003', 
@@ -47,8 +44,6 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
             total: 10000,
             shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
-            paymentMethod: 'Mobile Money',
-            paymentStatus: 'Paid'
         },
         { 
             id: 'ORD-004', 
@@ -61,8 +56,6 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
             total: 80000,
             shippingAddress: { street: '222 Rosewood Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-            paymentMethod: 'Mobile Money',
-            paymentStatus: 'Unpaid'
         },
         { 
             id: 'ORD-005', 
@@ -75,8 +68,6 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'SHOE-002-43', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
             total: 75000,
             shippingAddress: { street: '333 Palm Street', city: 'Jinja', postalCode: '12345', country: 'Uganda' },
-            paymentMethod: 'Cash on Delivery',
-            paymentStatus: 'Paid'
         },
         { 
             id: 'ORD-006', 
@@ -89,8 +80,6 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 10, price: 30000, category: 'Fabrics' }],
             total: 300000,
             shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
-            paymentMethod: 'Mobile Money',
-            paymentStatus: 'Paid'
         },
         { 
             id: 'ORD-007', 
@@ -103,15 +92,21 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 2, price: 25000, category: 'Accessories' }],
             total: 50000,
             shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
-            paymentMethod: 'Mobile Money',
-            paymentStatus: 'Paid'
         },
     ];
     return [...mockOrders].map((order, index) => {
+        const isPaid = order.status !== 'Awaiting Payment';
+        const isMobileMoney = index % 3 !== 0;
+
         const fullOrder = {
             ...order,
             currency: index % 2 === 0 ? 'UGX' : 'KES',
-            channel: index % 2 === 0 ? 'Online' : 'Manual' as const
+            channel: index % 2 === 0 ? 'Online' : 'Manual' as const,
+            payment: {
+                method: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery' as const,
+                status: isPaid ? 'completed' : 'pending' as const,
+                transactionId: isPaid ? `txn_${order.id}` : undefined,
+            }
         }
         if (index === 0) { // Assign the first order for delivery
             return {
@@ -142,7 +137,7 @@ function initializeMockOrders(): Order[] {
             return {
                 ...fullOrder,
                 status: 'Paid' as const,
-                paymentStatus: 'Paid' as const,
+                payment: { ...fullOrder.payment, status: 'completed' as const },
                 fulfillmentMethod: 'Delivery' as const,
                 assignedStaffId: undefined,
                 assignedStaffName: undefined,
@@ -196,7 +191,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   if (updates.status === 'Delivered' || updates.status === 'Picked Up') {
     await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
   }
-  if (updates.paymentStatus === 'Paid' || (updates.status === 'Paid' && originalOrder?.paymentStatus !== 'Paid')) {
+  if (updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed') {
     await handleCommission(updatedOrder.salesAgentId, updatedOrder, 'On Order Paid');
   }
 

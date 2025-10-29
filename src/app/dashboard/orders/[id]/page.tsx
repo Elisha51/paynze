@@ -41,9 +41,11 @@ const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'o
   Cancelled: 'destructive',
 };
 
-const paymentStatusVariantMap: { [key in Order['paymentStatus']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
-    'Paid': 'default',
-    'Unpaid': 'destructive',
+const paymentStatusVariantMap: { [key in Order['payment']['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
+    'completed': 'default',
+    'pending': 'destructive',
+    'failed': 'destructive',
+    'refunded': 'outline'
 };
 
 
@@ -80,12 +82,12 @@ export default function ViewOrderPage() {
     loadOrder();
   }, [id]);
 
-  const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
+  const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['payment']['status']) => {
     if (!order || !user) return;
     
     const updates: Partial<Order> = { status };
     if (paymentStatus) {
-      updates.paymentStatus = paymentStatus;
+      updates.payment = { ...order.payment, status: paymentStatus };
     }
     
     // Fulfill order and deduct stock
@@ -97,7 +99,7 @@ export default function ViewOrderPage() {
         }
     }
     
-    if (status === 'Cancelled' && order.paymentStatus === 'Paid') {
+    if (status === 'Cancelled' && order.payment.status === 'completed') {
         // Here you would also trigger a refund process
         toast({
             title: 'Action Required',
@@ -112,6 +114,30 @@ export default function ViewOrderPage() {
         title: `Order #${order.id} Updated`,
         description: `Status changed to ${status}.`
     });
+  };
+
+  const handleSimulateWebhook = async () => {
+    if (!order) return;
+    try {
+      const response = await fetch('/api/payments/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id, status: 'SUCCESS' }),
+      });
+      if (!response.ok) throw new Error('Webhook simulation failed');
+      const updatedOrder = await response.json();
+      setOrder(updatedOrder);
+      toast({
+        title: 'Payment Confirmed',
+        description: `Webhook simulated successfully. Order #${order.id} is now paid.`,
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Webhook Error',
+        description: 'Could not simulate webhook.',
+      });
+    }
   };
   
   if (loading || !settings) {
@@ -167,9 +193,9 @@ export default function ViewOrderPage() {
   const canMarkAsDelivered = order.status === 'Shipped';
   const canMarkAsPickedUp = order.status === 'Ready for Pickup';
   const canReadyForPickup = order.status === 'Paid' && order.fulfillmentMethod === 'Pickup';
-  const canBePaid = order.paymentStatus === 'Unpaid';
+  const canBePaid = order.payment.status === 'pending';
   const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
-  const isMobileMoney = order.paymentMethod === 'Mobile Money';
+  const isMobileMoney = order.payment.method === 'Mobile Money';
 
 
   return (
@@ -201,19 +227,19 @@ export default function ViewOrderPage() {
                                 <AlertDialogHeader>
                                     <AlertDialogTitle>Confirm Mobile Money Payment</AlertDialogTitle>
                                     <AlertDialogDescription>
-                                    Have you received the mobile money payment of {formatCurrency(order.total, currency)} for order #{order.id}? This action cannot be undone.
+                                    Have you received the mobile money payment of {formatCurrency(order.total, currency)} for order #{order.id}? This action will simulate the provider webhook to confirm payment.
                                     </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                     <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                    <AlertDialogAction onClick={() => handleUpdateStatus('Paid', 'Paid')}>
+                                    <AlertDialogAction onClick={handleSimulateWebhook}>
                                     Yes, Payment Received
                                     </AlertDialogAction>
                                 </AlertDialogFooter>
                                 </AlertDialogContent>
                             </AlertDialog>
                         ) : (
-                            <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</Button>
+                            <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Paid', 'completed')}>Mark as Paid</Button>
                         )
                         )}
                         {canReadyForPickup && <Button variant="outline" size="sm" onClick={() => handleUpdateStatus('Ready for Pickup')}>Mark as Ready for Pickup</Button>}
@@ -243,9 +269,9 @@ export default function ViewOrderPage() {
                           <AlertDialogContent>
                             <AlertDialogHeader>
                               <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
+                              <CardDescription>
                                 This will cancel order #{order.id}. This action cannot be undone.
-                              </AlertDialogDescription>
+                              </CardDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Back</AlertDialogCancel>
@@ -393,9 +419,9 @@ export default function ViewOrderPage() {
                          <div>
                             <p className="font-medium mb-1">Payment</p>
                             <div className="flex items-center gap-2">
-                                <Badge variant="outline">{order.paymentMethod}</Badge>
+                                <Badge variant="outline">{order.payment.method}</Badge>
                                 <span>-</span>
-                                <Badge variant={paymentStatusVariantMap[order.paymentStatus]}>{order.paymentStatus}</Badge>
+                                <Badge variant={paymentStatusVariantMap[order.payment.status] || 'secondary'} className="capitalize">{order.payment.status}</Badge>
                             </div>
                         </div>
                     </CardContent>

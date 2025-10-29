@@ -30,7 +30,7 @@ import {
 import { getCustomers } from '@/services/customers';
 import { getProducts } from '@/services/products';
 import { addOrder } from '@/services/orders';
-import type { Customer, Product, OrderItem, Order, Staff, OnboardingFormData } from '@/lib/types';
+import type { Customer, Product, OrderItem, Order, Staff, OnboardingFormData, PaymentDetails } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
@@ -48,7 +48,7 @@ export default function AddOrderPage() {
   const [items, setItems] = useState<NewOrderItem[]>([{ id: Date.now(), quantity: 1 }]);
   const [selectedCustomerId, setSelectedCustomerId] = useState<string | undefined>();
   const [selectedAgentId, setSelectedAgentId] = useState<string | undefined>();
-  const [paymentMethod, setPaymentMethod] = useState<Order['paymentMethod']>('Cash on Delivery');
+  const [paymentMethod, setPaymentMethod] = useState<PaymentDetails['method']>('Cash on Delivery');
   const [fulfillmentMethod, setFulfillmentMethod] = useState<Order['fulfillmentMethod']>('Delivery');
   const [orderStatus, setOrderStatus] = useState<Order['status']>('Awaiting Payment');
   const [isLoading, setIsLoading] = useState(false);
@@ -149,8 +149,10 @@ export default function AddOrderPage() {
           postalCode: '12345',
           country: 'Uganda',
       },
-      paymentMethod,
-      paymentStatus: orderStatus === 'Paid' ? 'Paid' : 'Unpaid',
+      payment: {
+        method: paymentMethod,
+        status: orderStatus === 'Paid' ? 'completed' : 'pending',
+      },
       shippingCost: 0, // Mock data
       taxes: tax,
     };
@@ -321,7 +323,7 @@ export default function AddOrderPage() {
                     </div>
                     <div className='space-y-2'>
                         <Label htmlFor="paymentMethod">Payment Method</Label>
-                        <Select value={paymentMethod} onValueChange={(v: Order['paymentMethod']) => setPaymentMethod(v)}>
+                        <Select value={paymentMethod} onValueChange={(v: PaymentDetails['method']) => setPaymentMethod(v)}>
                             <SelectTrigger id="paymentMethod">
                                 <SelectValue placeholder="Select method" />
                             </SelectTrigger>
