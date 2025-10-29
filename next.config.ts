@@ -18,6 +18,12 @@ const withPWA = withPWAInit({
           maxEntries: 60,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
         },
+      },
+    },
+    {
+      urlPattern: ({ request }) => request.method === 'POST',
+      handler: 'NetworkOnly',
+      options: {
         backgroundSync: {
           name: 'offline-queue',
           options: {
