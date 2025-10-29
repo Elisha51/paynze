@@ -57,7 +57,7 @@ const getCampaignColumns = (): ColumnDef<Campaign>[] => [
 ];
 
 const getDiscountColumns = (): ColumnDef<Discount>[] => [
-    { accessorKey: 'code', header: 'Discount Code', cell: ({ row }) => <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`} className="font-medium hover:underline"><Badge variant="outline" className="font-mono">{row.original.code}</Badge></Link> },
+    { accessorKey: 'code', header: 'Discount Code', cell: ({ row }) => <Link href={`/dashboard/marketing/discounts/${row.original.code}`} className="font-medium hover:underline"><Badge variant="outline" className="font-mono">{row.original.code}</Badge></Link> },
     { accessorKey: 'type', header: 'Type' },
     { accessorKey: 'value', header: 'Value', cell: ({ row }) => row.original.type === 'Percentage' ? `${row.original.value}%` : `UGX ${row.original.value.toLocaleString()}` },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge> },
@@ -66,9 +66,14 @@ const getDiscountColumns = (): ColumnDef<Discount>[] => [
       id: 'actions',
       header: 'Actions',
       cell: ({ row }) => (
-        <Button asChild variant="outline" size="sm">
-            <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
-        </Button>
+        <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+                <Link href={`/dashboard/marketing/discounts/${row.original.code}`}><Info className="mr-2 h-4 w-4" /> View</Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+                <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
+            </Button>
+        </div>
       )
     }
 ];
