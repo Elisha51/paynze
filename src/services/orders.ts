@@ -1,6 +1,4 @@
 
-
-import { orders as mockOrders } from '@/lib/data';
 import type { Order, Product, Staff, Role } from '@/lib/types';
 import { updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -9,38 +7,140 @@ import { DataService } from './data-service';
 
 
 function initializeMockOrders(): Order[] {
+    const mockOrders: Omit<Order, 'channel' | 'currency'>[] = [
+        { 
+            id: 'ORD-001', 
+            customerId: 'cust-02',
+            customerName: 'Olivia Smith',
+            customerEmail: 'olivia@example.com',
+            date: '2024-07-25', 
+            status: 'Delivered', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
+            total: 75000, 
+            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            paymentMethod: 'Mobile Money',
+            paymentStatus: 'Paid',
+        },
+        { 
+            id: 'ORD-002', 
+            customerId: 'cust-01',
+            customerName: 'Liam Johnson', 
+            customerEmail: 'liam@example.com', 
+            date: '2024-07-25', 
+            status: 'Picked Up', 
+            fulfillmentMethod: 'Pickup',
+            items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 5, price: 32000, category: 'Fabrics' }],
+            total: 160000,
+            shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+            paymentMethod: 'Cash on Delivery',
+            paymentStatus: 'Paid'
+        },
+         { 
+            id: 'ORD-003', 
+            customerId: 'cust-03',
+            customerName: 'Noah Williams', 
+            customerEmail: 'noah@example.com', 
+            date: '2024-07-24', 
+            status: 'Paid', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
+            total: 10000,
+            shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
+            paymentMethod: 'Mobile Money',
+            paymentStatus: 'Paid'
+        },
+        { 
+            id: 'ORD-004', 
+            customerId: 'cust-04',
+            customerName: 'Emma Brown', 
+            customerEmail: 'emma@example.com', 
+            date: '2024-07-24', 
+            status: 'Awaiting Payment', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
+            total: 80000,
+            shippingAddress: { street: '222 Rosewood Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            paymentMethod: 'Mobile Money',
+            paymentStatus: 'Unpaid'
+        },
+        { 
+            id: 'ORD-005', 
+            customerId: 'cust-05',
+            customerName: 'James Jones', 
+            customerEmail: 'james@example.com', 
+            date: '2024-07-23', 
+            status: 'Ready for Pickup', 
+            fulfillmentMethod: 'Pickup',
+            items: [{ sku: 'SHOE-002-43', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
+            total: 75000,
+            shippingAddress: { street: '333 Palm Street', city: 'Jinja', postalCode: '12345', country: 'Uganda' },
+            paymentMethod: 'Cash on Delivery',
+            paymentStatus: 'Paid'
+        },
+        { 
+            id: 'ORD-006', 
+            customerId: 'cust-01',
+            customerName: 'Liam Johnson', 
+            customerEmail: 'liam@example.com', 
+            date: '2024-07-23', 
+            status: 'Cancelled', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 10, price: 30000, category: 'Fabrics' }],
+            total: 300000,
+            shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+            paymentMethod: 'Mobile Money',
+            paymentStatus: 'Paid'
+        },
+        { 
+            id: 'ORD-007', 
+            customerId: 'cust-06',
+            customerName: 'Sophia Miller', 
+            customerEmail: 'sophia@example.com', 
+            date: '2024-07-22', 
+            status: 'Shipped', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 2, price: 25000, category: 'Accessories' }],
+            total: 50000,
+            shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+            paymentMethod: 'Mobile Money',
+            paymentStatus: 'Paid'
+        },
+    ];
     return [...mockOrders].map((order, index) => {
+        const fullOrder = {
+            ...order,
+            currency: index % 2 === 0 ? 'UGX' : 'KES',
+            channel: index % 2 === 0 ? 'Online' : 'Manual' as const
+        }
         if (index === 0) { // Assign the first order for delivery
             return {
-                ...order,
+                ...fullOrder,
                 assignedStaffId: 'staff-003',
                 assignedStaffName: 'Peter Jones',
                 fulfilledByStaffId: 'staff-003',
                 fulfilledByStaffName: 'Peter Jones',
-                channel: 'Online' as const,
             };
         }
         if (index === 1) { // Mark second order as a pickup
             return {
-                ...order,
+                ...fullOrder,
                 status: 'Picked Up' as const,
                 fulfillmentMethod: 'Pickup' as const,
                 fulfilledByStaffId: 'staff-002', // Sales agent handled the pickup
                 fulfilledByStaffName: 'Jane Smith',
-                channel: 'Manual' as const,
             }
         }
         if (index === 2) {
             return {
-                ...order,
+                ...fullOrder,
                 status: 'Ready for Pickup' as const,
                 fulfillmentMethod: 'Pickup' as const,
-                channel: 'Online' as const,
             }
         }
         if (order.id === 'ORD-003') { // Make one explicitly unassigned
             return {
-                ...order,
+                ...fullOrder,
                 status: 'Paid' as const,
                 paymentStatus: 'Paid' as const,
                 fulfillmentMethod: 'Delivery' as const,
@@ -48,10 +148,7 @@ function initializeMockOrders(): Order[] {
                 assignedStaffName: undefined,
             }
         }
-        return {
-            ...order,
-            channel: index % 2 === 0 ? 'Online' : 'Manual' as const,
-        };
+        return fullOrder;
     });
 }
 
