@@ -30,6 +30,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { ProcurementAnalyticsReport } from '@/components/dashboard/analytics/procurement-analytics-report';
 import { Calendar } from '@/components/ui/calendar';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 // Columns for Suppliers Table
 const supplierColumns: ColumnDef<Supplier>[] = [
@@ -180,10 +181,15 @@ const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
 ];
 
 export default function ProcurementPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = searchParams.get('tab') || 'suppliers';
+
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('suppliers');
   const [date, setDate] = useState<DateRange | undefined>({ from: addDays(new Date(), -29), to: new Date() });
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
@@ -206,6 +212,10 @@ export default function ProcurementPage() {
   }, []);
 
   const poColumns = getPOColumns(settings?.currency || 'UGX');
+  
+  const handleTabChange = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`);
+  };
 
   const handlePresetChange = (value: string) => {
     const now = new Date();
@@ -254,7 +264,7 @@ export default function ProcurementPage() {
         tabs={mainTabs} 
         cta={cta} 
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
     >
       <DashboardPageLayout.TabContent value="suppliers">
         <DataTable columns={supplierColumns} data={suppliers} />

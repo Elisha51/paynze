@@ -44,6 +44,7 @@ import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance
 import { reconcileTransactions, type ReconciliationOutput } from '@/ai/flows/reconcile-transactions';
 import { ReconciliationReport } from '@/components/dashboard/reconciliation-report';
 import { CommissionReport } from '@/components/dashboard/commission-report';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
   description: '',
@@ -55,6 +56,12 @@ const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
 };
 
 export default function FinancesPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = searchParams.get('tab') || 'transactions';
+
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
   const [staff, setStaff] = React.useState<Staff[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
@@ -62,7 +69,6 @@ export default function FinancesPage() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddTransactionOpen, setIsAddTransactionOpen] = React.useState(false);
   const [isAwardBonusOpen, setIsAwardBonusOpen] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState('transactions');
   const [newTransaction, setNewTransaction] = React.useState(emptyTransaction);
   const [statementFile, setStatementFile] = React.useState<File[]>([]);
   const [isReconciling, setIsReconciling] = React.useState(false);
@@ -110,6 +116,10 @@ export default function FinancesPage() {
   const handleSelectChange = (field: keyof typeof emptyTransaction, value: string) => {
     setNewTransaction(prev => ({...prev, [field]: value as any}));
   }
+  
+  const handleTabChange = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`);
+  };
   
   const handlePresetChange = (value: string) => {
     const now = new Date();
@@ -343,7 +353,7 @@ export default function FinancesPage() {
         tabs={mainTabs} 
         cta={cta}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
     >
       <DashboardPageLayout.TabContent value="transactions">
         <TransactionsTable

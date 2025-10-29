@@ -30,12 +30,18 @@ import { Calendar } from '@/components/ui/calendar';
 import { addDays, format } from 'date-fns';
 import type { DateRange } from 'react-day-picker';
 import { cn } from '@/lib/utils';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = searchParams.get('tab') || 'products';
+
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('products');
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
@@ -50,6 +56,10 @@ export default function ProductsPage() {
     }
     loadProducts();
   }, []);
+
+  const handleTabChange = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`);
+  };
 
   const handlePresetChange = (value: string) => {
     const now = new Date();
@@ -115,7 +125,7 @@ export default function ProductsPage() {
         tabs={tabs}
         cta={cta}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
     >
         <DashboardPageLayout.TabContent value="products">
             <ProductsTable

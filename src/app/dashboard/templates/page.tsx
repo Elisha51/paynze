@@ -10,9 +10,18 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 export default function TemplatesPage() {
-    const [activeTab, setActiveTab] = useState('products');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const pathname = usePathname();
+
+    const activeTab = searchParams.get('tab') || 'products';
+
+    const handleTabChange = (tab: string) => {
+        router.push(`${pathname}?tab=${tab}`);
+    };
 
     const tabs = [
         { value: 'products', label: 'Product Templates' },
@@ -35,7 +44,7 @@ export default function TemplatesPage() {
             tabs={tabs} 
             cta={cta} 
             activeTab={activeTab} 
-            onTabChange={setActiveTab}
+            onTabChange={handleTabChange}
         >
             <TabsContent value="products">
                 <ProductTemplatesTab />

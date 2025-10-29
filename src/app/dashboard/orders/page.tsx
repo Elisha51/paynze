@@ -18,12 +18,18 @@ import { Order } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
 import React from 'react';
 import { OrdersTable } from '@/components/dashboard/orders-table';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 
 export default function OrdersPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = searchParams.get('tab') || 'orders';
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('orders');
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
@@ -38,6 +44,10 @@ export default function OrdersPage() {
     }
     loadOrders();
   }, []);
+
+  const handleTabChange = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`);
+  };
 
   const handlePresetChange = (value: string) => {
     const now = new Date();
@@ -88,7 +98,7 @@ export default function OrdersPage() {
       tabs={mainTabs}
       cta={cta}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
     >
         <DashboardPageLayout.TabContent value="orders">
             <OrdersTable orders={orders} isLoading={isLoading} />

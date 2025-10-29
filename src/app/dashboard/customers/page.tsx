@@ -18,12 +18,18 @@ import { getCustomers } from '@/services/customers';
 import { Customer } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
 import React from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 
 export default function CustomersPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = searchParams.get('tab') || 'customers';
+  
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('customers');
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
     to: new Date(),
@@ -38,6 +44,10 @@ export default function CustomersPage() {
     }
     loadCustomers();
   }, []);
+  
+  const handleTabChange = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`);
+  };
 
   const handlePresetChange = (value: string) => {
     const now = new Date();
@@ -87,7 +97,7 @@ export default function CustomersPage() {
       tabs={mainTabs}
       cta={cta}
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
     >
       <DashboardPageLayout.TabContent value="customers">
           <CustomersTable

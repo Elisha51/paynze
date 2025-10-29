@@ -35,6 +35,7 @@ import { StaffCard } from '@/components/dashboard/staff-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getOrders } from '@/services/orders';
 import { StaffActivityLog } from '@/components/dashboard/staff-activity-log';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
 const emptyStaff: Omit<Staff, 'id'> = {
   name: '',
@@ -44,12 +45,17 @@ const emptyStaff: Omit<Staff, 'id'> = {
 };
 
 export default function StaffPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = searchParams.get('tab') || 'staff';
+
   const [staff, setStaff] = React.useState<Staff[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
-  const [activeTab, setActiveTab] = React.useState('staff');
   const [newStaffMember, setNewStaffMember] = React.useState<Partial<Staff>>(emptyStaff);
   const [addMode, setAddMode] = React.useState<'invite' | 'manual'>('invite');
   const [bonusStaff, setBonusStaff] = React.useState<Staff | null>(null);
@@ -70,6 +76,10 @@ export default function StaffPage() {
     loadData();
   }, [loadData]);
   
+  const handleTabChange = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setNewStaffMember(prev => ({...prev, [id]: value}));
@@ -215,7 +225,7 @@ export default function StaffPage() {
         tabs={mainTabs} 
         cta={cta} 
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
     >
         <DashboardPageLayout.TabContent value="staff">
             {isLoading ? (

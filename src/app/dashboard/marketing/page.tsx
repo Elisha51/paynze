@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, ChevronDown, Gift, FileText } from 'lucide-react';
@@ -20,46 +21,21 @@ import { cn } from '@/lib/utils';
 import { DateRange } from 'react-day-picker';
 import { addDays, format } from 'date-fns';
 import { getOrders } from '@/services/orders';
-import type { Order } from '@/lib/types';
+import type { Order, Discount, Campaign } from '@/lib/types';
 
-
-// Mock data types
-export type Campaign = {
-  id: string;
-  name: string;
-  status: 'Active' | 'Scheduled' | 'Draft' | 'Completed';
-  channel: 'Email' | 'SMS' | 'Push';
-  sent: number;
-  openRate: string;
-  ctr: string;
-  audience: string;
-  startDate: string;
-  endDate?: string;
-  description: string;
-};
-
-export type Discount = {
-  code: string;
-  type: 'Percentage' | 'Fixed Amount';
-  value: number;
-  status: 'Active' | 'Expired' | 'Scheduled';
-  redemptions: number;
-  minPurchase: number;
-  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers';
-};
 
 // Mock data
 const mockCampaigns: Campaign[] = [
-  { id: 'CAM-001', name: 'Eid al-Adha Sale', status: 'Completed', channel: 'Email', sent: 5203, openRate: '25.4%', ctr: '3.1%', audience: 'All Subscribers', startDate: '2024-06-10', endDate: '2024-06-17', description: 'A week-long sale for the Eid al-Adha holiday.' },
-  { id: 'CAM-002', name: 'New Fabric Launch', status: 'Active', channel: 'SMS', sent: 1250, openRate: 'N/A', ctr: '8.2%', audience: 'Previous Fabric Buyers', startDate: '2024-07-20', description: 'Announcing our new line of premium Kitenge fabrics.' },
+  { id: 'CAM-001', name: 'Eid al-Adha Sale', status: 'Completed', channel: 'Email', sent: 5203, openRate: '25.4%', ctr: '3.1%', audience: 'All Subscribers', startDate: '2024-06-10', endDate: '2024-06-17', description: 'A week-long sale for the Eid al-Adha holiday.', applicableProductIds: ['KIT-001-RF', 'KIT-001-BG'] },
+  { id: 'CAM-002', name: 'New Fabric Launch', status: 'Active', channel: 'SMS', sent: 1250, openRate: 'N/A', ctr: '8.2%', audience: 'Previous Fabric Buyers', startDate: '2024-07-20', description: 'Announcing our new line of premium Kitenge fabrics.', applicableProductIds: ['KIT-001'] },
   { id: 'CAM-003', name: 'Weekend Flash Sale', status: 'Scheduled', channel: 'Push', sent: 0, openRate: 'N/A', ctr: 'N/A', audience: 'App Users', startDate: '2024-08-02', endDate: '2024-08-04', description: 'A 48-hour flash sale for users with our app.' },
   { id: 'CAM-004', name: 'Abandoned Cart Reminder', status: 'Active', channel: 'Email', sent: 842, openRate: '45.1%', ctr: '12.5%', audience: 'Cart Abandoners', startDate: '2024-01-01', description: 'Automated email to recover abandoned carts.' },
 ];
 
 const mockDiscounts: Discount[] = [
-  { code: 'NEWBIE10', type: 'Percentage', value: 10, status: 'Active', redemptions: 152, minPurchase: 0, customerGroup: 'New Customers' },
-  { code: 'SALE5K', type: 'Fixed Amount', value: 5000, status: 'Active', redemptions: 88, minPurchase: 50000, customerGroup: 'Everyone' },
-  { code: 'FLASH20', type: 'Percentage', value: 20, status: 'Expired', redemptions: 210, minPurchase: 0, customerGroup: 'Everyone' },
+  { code: 'NEWBIE10', type: 'Percentage', value: 10, status: 'Active', redemptions: 152, minPurchase: 0, customerGroup: 'New Customers', applicableProductIds: [] },
+  { code: 'SALE5K', type: 'Fixed Amount', value: 5000, status: 'Active', redemptions: 88, minPurchase: 50000, customerGroup: 'Everyone', applicableProductIds: ['KIT-001-RF', 'KIT-001-BG'] },
+  { code: 'FLASH20', type: 'Percentage', value: 20, status: 'Expired', redemptions: 210, minPurchase: 0, customerGroup: 'Everyone', applicableProductIds: [] },
 ];
 
 const getCampaignColumns = (): ColumnDef<Campaign>[] => [
@@ -99,7 +75,12 @@ const getDiscountColumns = (): ColumnDef<Discount>[] => [
 
 
 export default function MarketingPage() {
-  const [activeTab, setActiveTab] = useState('overview');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const activeTab = searchParams.get('tab') || 'overview';
+  
   const [orders, setOrders] = useState<Order[]>([]);
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
@@ -113,6 +94,10 @@ export default function MarketingPage() {
     }
     loadData();
   }, [])
+
+  const handleTabChange = (tab: string) => {
+    router.push(`${pathname}?tab=${tab}`);
+  };
 
 
   const tabs = [
@@ -176,7 +161,7 @@ export default function MarketingPage() {
         tabs={tabs} 
         cta={cta} 
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
     >
       <DashboardPageLayout.TabContent value="overview">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
