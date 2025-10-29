@@ -1,7 +1,7 @@
 
 
 'use client';
-import { ArrowLeft, Save, Sparkles, Calendar as CalendarIcon, Package, X, Check, ChevronsUpDown, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Calendar as CalendarIcon, Package, X, Check, ChevronsUpDown, ShieldAlert, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -31,28 +31,58 @@ import type { Product, Campaign } from '@/lib/types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 
-export default function AddCampaignPage() {
+// Mock data fetching
+const mockCampaigns: Campaign[] = [
+  { id: 'CAM-001', name: 'Eid al-Adha Sale', status: 'Completed', channel: 'Email', sent: 5203, openRate: '25.4%', ctr: '3.1%', audience: 'All Subscribers', startDate: '2024-06-10', endDate: '2024-06-17', description: 'A week-long sale for the Eid al-Adha holiday.', applicableProductIds: ['KIT-001-RF', 'KIT-001-BG'] },
+  { id: 'CAM-002', name: 'New Fabric Launch', status: 'Active', channel: 'SMS', sent: 1250, openRate: 'N/A', ctr: '8.2%', audience: 'Previous Fabric Buyers', startDate: '2024-07-20', description: 'Announcing our new line of premium Kitenge fabrics.', applicableProductIds: ['KIT-001'] },
+  { id: 'CAM-003', name: 'Weekend Flash Sale', status: 'Scheduled', channel: 'Push', sent: 0, openRate: 'N/A', ctr: 'N/A', audience: 'App Users', startDate: '2024-08-02', endDate: '2024-08-04', description: 'A 48-hour flash sale for users with our app.' },
+  { id: 'CAM-004', name: 'Abandoned Cart Reminder', status: 'Active', channel: 'Email', sent: 842, openRate: '45.1%', ctr: '12.5%', audience: 'Cart Abandoners', startDate: '2024-01-01', description: 'Automated email to recover abandoned carts.' },
+];
+
+async function getCampaignById(id: string): Promise<Campaign | undefined> {
+    return mockCampaigns.find(c => c.id === id);
+}
+
+export default function EditCampaignPage() {
+    const params = useParams();
+    const router = useRouter();
+    const { user } = useAuth();
+    const id = params.id as string;
+    
+    const [campaign, setCampaign] = useState<Campaign | null>(null);
     const [startDate, setStartDate] = useState<Date>();
     const [endDate, setEndDate] = useState<Date>();
     const [isEndDate, setIsEndDate] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-    const router = useRouter();
-    const { toast } = useToast();
-    const { user } = useAuth();
     
-    const canCreate = user?.permissions.marketing.create;
+    const { toast } = useToast();
+
+    const canEdit = user?.permissions.marketing.edit;
 
     useEffect(() => {
-        async function loadProducts() {
-            const fetchedProducts = await getProducts();
+        async function loadData() {
+            if (!id) return;
+            const [fetchedCampaign, fetchedProducts] = await Promise.all([
+                getCampaignById(id),
+                getProducts()
+            ]);
+            setCampaign(fetchedCampaign || null);
+            if (fetchedCampaign) {
+                setStartDate(new Date(fetchedCampaign.startDate));
+                if (fetchedCampaign.endDate) {
+                    setIsEndDate(true);
+                    setEndDate(new Date(fetchedCampaign.endDate));
+                }
+                setSelectedProducts(fetchedCampaign.applicableProductIds || []);
+            }
             setProducts(fetchedProducts);
         }
-        loadProducts();
-    }, []);
+        loadData();
+    }, [id]);
 
     const handleProductSelect = (productSku: string) => {
         setSelectedProducts(prev => {
@@ -70,26 +100,30 @@ export default function AddCampaignPage() {
     const handleSave = () => {
         // Mock save logic
         toast({
-            title: "Campaign Saved",
-            description: "Your new campaign has been created successfully."
+            title: "Campaign Updated",
+            description: "Your campaign has been updated successfully."
         });
         router.push('/dashboard/marketing?tab=campaigns');
     };
-    
-    if (!canCreate) {
+
+    if (!canEdit) {
         return (
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">You do not have permission to create new campaigns.</p>
+                    <p className="text-muted-foreground">You do not have permission to edit campaigns.</p>
                      <Button variant="outline" onClick={() => router.back()} className="mt-4">
                         <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
                     </Button>
                 </CardContent>
             </Card>
         );
+    }
+    
+    if (!campaign) {
+        return <div>Loading...</div>
     }
 
   return (
@@ -100,13 +134,14 @@ export default function AddCampaignPage() {
           <span className="sr-only">Back</span>
         </Button>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Create New Campaign</h1>
-          <p className="text-muted-foreground text-sm">Fill in the details to launch a new marketing campaign.</p>
+          <h1 className="text-2xl font-bold tracking-tight">Edit Campaign</h1>
+          <p className="text-muted-foreground text-sm">Editing campaign: {campaign.name}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
+            <Button variant="destructive" ><Trash2 className="h-4 w-4 mr-2" /> Delete</Button>
             <Button onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />
-              Save Campaign
+              Save Changes
             </Button>
         </div>
       </div>
@@ -120,7 +155,7 @@ export default function AddCampaignPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Campaign Name</Label>
-                <Input id="name" placeholder="e.g., Summer Sale" />
+                <Input id="name" value={campaign.name} />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
@@ -130,7 +165,7 @@ export default function AddCampaignPage() {
                         Generate with AI
                     </Button>
                 </div>
-                <Textarea id="description" placeholder="A brief description of the campaign's goals." />
+                <Textarea id="description" value={campaign.description}/>
               </div>
             </CardContent>
           </Card>
@@ -142,28 +177,28 @@ export default function AddCampaignPage() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="channel">Channel</Label>
-                        <Select>
+                        <Select value={campaign.channel}>
                             <SelectTrigger id="channel">
                                 <SelectValue placeholder="Select a channel" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="email">Email</SelectItem>
-                                <SelectItem value="sms">SMS</SelectItem>
-                                <SelectItem value="push">Push Notification</SelectItem>
+                                <SelectItem value="Email">Email</SelectItem>
+                                <SelectItem value="SMS">SMS</SelectItem>
+                                <SelectItem value="Push">Push Notification</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="audience">Audience</Label>
-                        <Select>
+                        <Select value={campaign.audience}>
                             <SelectTrigger id="audience">
                                 <SelectValue placeholder="Select an audience" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Customers</SelectItem>
-                                <SelectItem value="new">New Customers</SelectItem>
-                                <SelectItem value="wholesalers">Wholesalers</SelectItem>
-                                <SelectItem value="abandoned">Abandoned Carts (Last 7 days)</SelectItem>
+                                <SelectItem value="All Subscribers">All Customers</SelectItem>
+                                <SelectItem value="New Customers">New Customers</SelectItem>
+                                <SelectItem value="Previous Fabric Buyers">Wholesalers</SelectItem>
+                                <SelectItem value="Cart Abandoners">Abandoned Carts (Last 7 days)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -16,6 +17,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { getProducts } from '@/services/products';
+import { useAuth } from '@/context/auth-context';
 
 // Mock data fetching
 const mockCampaigns: Campaign[] = [
@@ -32,10 +34,13 @@ async function getCampaignById(id: string): Promise<Campaign | undefined> {
 export default function ViewCampaignPage() {
   const params = useParams();
   const router = useRouter();
+  const { user } = useAuth();
   const id = params.id as string;
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const canEdit = user?.permissions.marketing.edit;
 
   useEffect(() => {
     async function loadData() {
@@ -96,9 +101,15 @@ export default function ViewCampaignPage() {
           <h1 className="text-2xl font-bold tracking-tight">{campaign.name}</h1>
            <Badge variant={campaign.status === 'Active' ? 'default' : 'secondary'}>{campaign.status}</Badge>
         </div>
-        <div className="ml-auto">
-            <Button variant="outline"><Edit className="mr-2 h-4 w-4" /> Edit</Button>
-        </div>
+        {canEdit && (
+            <div className="ml-auto">
+                <Button asChild variant="outline">
+                    <Link href={`/dashboard/marketing/campaigns/${campaign.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" /> Edit
+                    </Link>
+                </Button>
+            </div>
+        )}
       </div>
       
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

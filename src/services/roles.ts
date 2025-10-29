@@ -9,6 +9,7 @@ const defaultPermissions: Permissions = {
   orders: { view: false, create: false, edit: false, delete: false },
   customers: { view: false, create: false, edit: false, delete: false },
   procurement: { view: false, create: false, edit: false, delete: false },
+  marketing: { view: false, create: false, edit: false, delete: false },
   finances: { view: false, create: false, edit: false, delete: false },
   staff: { view: false, create: false, edit: false, delete: false },
   tasks: { view: false, create: false, edit: false, delete: false },
@@ -25,6 +26,7 @@ const mockRoles: Role[] = [
       orders: { view: true, create: true, edit: true, delete: true },
       customers: { view: true, create: true, edit: true, delete: true },
       procurement: { view: true, create: true, edit: true, delete: true },
+      marketing: { view: true, create: true, edit: true, delete: true },
       finances: { view: true, create: true, edit: true, delete: true },
       staff: { view: true, create: true, edit: true, delete: true },
       tasks: { view: true, create: true, edit: true, delete: true },
@@ -42,6 +44,7 @@ const mockRoles: Role[] = [
       products: { view: true, create: true, edit: true, delete: false },
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
+      marketing: { view: true, create: true, edit: true, delete: false },
       tasks: { view: true, create: true, edit: false, delete: false },
     },
     commissionRules: [

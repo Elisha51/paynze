@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -32,7 +33,7 @@ type UnifiedTask = {
   original: Order | Todo;
 };
 
-export default function MyTasksPage({ isDevMode }: { isDevMode?: boolean }) {
+export default function MyTasksPage() {
     const { user: staffMember } = useAuth();
     const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
@@ -82,14 +83,7 @@ export default function MyTasksPage({ isDevMode }: { isDevMode?: boolean }) {
         return [...orderTasks, ...personalTasks].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [assignedOrders, todos]);
     
-    const staffRole = useMemo(() => {
-        if (staffMember) {
-            return roles.find(r => r.name === staffMember.role);
-        }
-        return undefined;
-    }, [staffMember, roles]);
-
-    const canCreateTasks = isDevMode || (staffRole?.permissions.tasks.create === true);
+    const canCreateTasks = staffMember?.permissions.tasks.create;
 
     const handleToggleTask = async (task: UnifiedTask) => {
         if (task.type === 'Todo') {

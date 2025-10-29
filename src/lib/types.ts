@@ -309,6 +309,7 @@ export type Permissions = {
   orders: CrudPermissions;
   customers: CrudPermissions;
   procurement: CrudPermissions;
+  marketing: CrudPermissions;
   finances: CrudPermissions;
   staff: CrudPermissions;
   tasks: CrudPermissions;

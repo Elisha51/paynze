@@ -154,11 +154,11 @@ export default function MarketingPage() {
     { value: 'analytics', label: 'Analytics' },
   ];
   
-  const canEdit = user?.permissions.dashboard.view; // Simplification, should be marketing perm
+  const canEdit = user?.permissions.marketing.edit;
   const campaignColumns = getCampaignColumns(!!canEdit);
   const discountColumns = getDiscountColumns(!!canEdit);
   
-  const canCreate = user?.permissions.dashboard.view; // Simplification
+  const canCreate = user?.permissions.marketing.create;
 
   const cta = (
       canCreate && (
