@@ -8,7 +8,7 @@ import { DataService } from './data-service';
 
 
 function initializeMockOrders(): Order[] {
-    const mockOrders: Omit<Order, 'channel' | 'currency' | 'payment' | 'paymentMethod' | 'paymentStatus'>[] = [
+    const mockOrders: Omit<Order, 'channel' | 'currency' | 'payment'>[] = [
         { 
             id: 'ORD-001', 
             customerId: 'cust-02',
@@ -98,17 +98,15 @@ function initializeMockOrders(): Order[] {
         const isPaid = order.status !== 'Awaiting Payment';
         const isMobileMoney = index % 3 !== 0;
 
-        const fullOrder = {
+        const fullOrder: Order = {
             ...order,
             currency: index % 2 === 0 ? 'UGX' : 'KES',
-            channel: index % 2 === 0 ? 'Online' : 'Manual' as const,
+            channel: index % 2 === 0 ? 'Online' : 'Manual',
             payment: {
-                method: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery' as const,
-                status: isPaid ? 'completed' : 'pending' as const,
+                method: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery',
+                status: isPaid ? 'completed' : 'pending',
                 transactionId: isPaid ? `txn_${order.id}` : undefined,
             },
-            paymentMethod: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery' as const,
-            paymentStatus: isPaid ? 'Paid' : 'Unpaid' as const,
         }
         if (index === 0) { // Assign the first order for delivery
             return {

@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { updateOrder } from '@/services/orders';
 import { getOrderById } from '@/services/orders';
+import { addTransaction } from '@/services/finances';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,12 +23,25 @@ export async function POST(req: NextRequest) {
     }
 
     if (status === 'SUCCESS') {
+      const transactionId = `txn_${Date.now()}`;
       // Update the order status to 'Paid' and payment status to 'completed'
       const updatedOrder = await updateOrder(orderId, { 
         status: 'Paid', 
-        payment: { ...order.payment, status: 'completed', transactionId: `txn_${Date.now()}` }
+        payment: { ...order.payment, status: 'completed', transactionId }
       });
-      console.log(`Webhook: Order ${orderId} successfully updated to Paid.`);
+      
+      // Add a corresponding transaction to the financial ledger
+      await addTransaction({
+          date: new Date().toISOString(),
+          description: `Sale from Order #${orderId}`,
+          amount: order.total,
+          type: 'Income',
+          category: 'Sales',
+          status: 'Cleared',
+          paymentMethod: order.payment.method,
+      });
+      
+      console.log(`Webhook: Order ${orderId} successfully updated to Paid and transaction recorded.`);
       return NextResponse.json(updatedOrder);
 
     } else if (status === 'FAILED') {
