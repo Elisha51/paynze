@@ -3,7 +3,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowRight, Users } from 'lucide-react';
+import { Users } from 'lucide-react';
 import type { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { StaffCard } from './staff-card';
@@ -38,14 +38,14 @@ export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[]
       ))}
       {staff.length > 3 && (
         <Link href="/dashboard/staff" className="flex h-full">
-            <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
+            <Card className="h-full w-full transition-all hover:shadow-lg hover:border-primary/50">
                 <CardContent className="p-4 flex items-center gap-4 h-full">
                     <Avatar className="h-12 w-12 bg-muted">
                         <AvatarFallback>
                             <Users className="h-6 w-6 text-muted-foreground"/>
                         </AvatarFallback>
                     </Avatar>
-                    <div className="flex-1">
+                    <div className="flex-1 overflow-hidden">
                         <p className="font-semibold truncate">View All Staff</p>
                         <p className="text-sm text-muted-foreground">{staff.length} members total</p>
                     </div>
