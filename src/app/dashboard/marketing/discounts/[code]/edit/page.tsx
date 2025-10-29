@@ -1,6 +1,5 @@
-
 'use client';
-import { ArrowLeft, Save, Percent, DollarSign, Trash2, Check, ChevronsUpDown, X } from 'lucide-react';
+import { ArrowLeft, Save, Percent, DollarSign, Trash2, Check, ChevronsUpDown, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -30,6 +29,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
+import { useAuth } from '@/context/auth-context';
 
 
 const mockDiscounts: Discount[] = [
@@ -41,12 +41,15 @@ const mockDiscounts: Discount[] = [
 export default function EditDiscountPage() {
     const params = useParams();
     const router = useRouter();
+    const { user } = useAuth();
     const code = params.code as string;
     const [discount, setDiscount] = useState<Discount | null>(null);
     const [hasMinPurchase, setHasMinPurchase] = useState(false);
     const [appliesTo, setAppliesTo] = useState('all');
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+    
+    const canEdit = user?.permissions.dashboard.view; // Simplification, should be marketing perm
 
     useEffect(() => {
         async function loadProducts() {
@@ -86,6 +89,22 @@ export default function EditDiscountPage() {
         router.back();
     }
 
+    if (!canEdit) {
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">You do not have permission to edit discounts.</p>
+                     <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                        <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                    </Button>
+                </CardContent>
+            </Card>
+        );
+    }
+
     if (!discount) {
         return <div>Discount not found</div>
     }
@@ -102,7 +121,7 @@ export default function EditDiscountPage() {
           <p className="text-muted-foreground text-sm">Editing discount code: {discount.code}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            <Button variant="destructive" variant="outline">
+            <Button variant="destructive" >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete
             </Button>

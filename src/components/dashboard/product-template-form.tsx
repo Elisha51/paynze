@@ -1,8 +1,7 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, PlusCircle, X } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,6 +25,8 @@ import {
   SelectValue,
 } from '../ui/select';
 import { Checkbox } from '../ui/checkbox';
+import { useAuth } from '@/context/auth-context';
+import { useRouter } from 'next/navigation';
 
 const emptyTemplate: Partial<ProductTemplate> = {
   name: '',
@@ -59,6 +60,10 @@ const availableIcons = Object.keys(Lucide).filter(key =>
 export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Partial<ProductTemplate> | null }) {
   const [template, setTemplate] = useState<Partial<ProductTemplate>>(initialTemplate || emptyTemplate);
   const { toast } = useToast();
+  const { user } = useAuth();
+  const router = useRouter();
+
+  const canEdit = user?.permissions.products.edit; // Templates are tied to product permissions
   
   useEffect(() => {
     if (initialTemplate) {
@@ -118,12 +123,30 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
     });
     // In a real app, you'd POST this to your API
     console.log("Saving template:", template);
+    router.push('/dashboard/templates');
   };
   
   const pageTitle = initialTemplate?.id ? 'Edit Product Template' : 'Create Product Template';
   const pageDescription = initialTemplate?.id ? 'Update the details of this template.' : 'Design a new reusable template for your products.';
 
   const productOptions = template.product?.options || [];
+
+  if (!canEdit) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground">You do not have permission to edit templates.</p>
+                 <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                </Button>
+            </CardContent>
+        </Card>
+    );
+  }
+
 
   return (
     <div className="space-y-6">

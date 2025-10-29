@@ -1,6 +1,5 @@
-
 'use client';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -23,6 +22,7 @@ import { getCountryList } from '@/services/countries';
 import type { Customer } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
 
 const emptyCustomer: Partial<Customer> = {
     name: '',
@@ -36,6 +36,11 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
   const router = useRouter();
   const { toast } = useToast();
+  const { user } = useAuth();
+
+  const canCreate = user?.permissions.customers.create;
+  const canEdit = user?.permissions.customers.edit;
+  const isEditing = !!initialCustomer;
 
   useEffect(() => {
     async function loadCountries() {
@@ -72,6 +77,22 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
         description: `Customer ${customer.name} has been saved.`
     });
     router.push('/dashboard/customers');
+  }
+
+  if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground">You do not have permission to perform this action.</p>
+                 <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                </Button>
+            </CardContent>
+        </Card>
+    );
   }
 
   return (

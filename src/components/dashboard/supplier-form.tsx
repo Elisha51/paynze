@@ -1,7 +1,5 @@
-
-
 'use client';
-import { ArrowLeft, Save, Check, ChevronsUpDown, X } from 'lucide-react';
+import { ArrowLeft, Save, Check, ChevronsUpDown, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,6 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import type { Product, Supplier } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 const emptySupplier = {
     name: '',
@@ -40,7 +39,12 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
   const [products, setProducts] = useState<Product[]>([]);
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useAuth();
   
+  const canCreate = user?.permissions.procurement.create;
+  const canEdit = user?.permissions.procurement.edit;
+  const isEditing = !!initialSupplier;
+
   useEffect(() => {
     async function loadData() {
         const [countryList, productList] = await Promise.all([
@@ -79,6 +83,22 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
 
   const handleBack = () => {
       router.back();
+  }
+
+  if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
+            </CardHeader>
+            <CardContent>
+                <p className="text-muted-foreground">You do not have permission to perform this action.</p>
+                 <Button variant="outline" onClick={() => router.back()} className="mt-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
+                </Button>
+            </CardContent>
+        </Card>
+    );
   }
 
   return (
