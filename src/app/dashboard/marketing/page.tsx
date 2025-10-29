@@ -5,8 +5,8 @@ import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ChevronDown, Gift, FileText } from 'lucide-react';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import { PlusCircle, ChevronDown, Gift, FileText, MoreHorizontal } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { DataTable } from '@/components/dashboard/data-table';
@@ -47,11 +47,29 @@ const getCampaignColumns = (): ColumnDef<Campaign>[] => [
     { accessorKey: 'ctr', header: 'CTR' },
     {
       id: 'actions',
-      header: 'Actions',
+      header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => (
-        <Button asChild variant="outline" size="sm">
-            <Link href={`/dashboard/marketing/campaigns/${row.original.id}`}><Info className="mr-2 h-4 w-4" /> View</Link>
-        </Button>
+        <div className="text-right">
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/marketing/campaigns/${row.original.id}`}>
+                            <Info className="mr-2 h-4 w-4" /> View
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                        <Edit className="mr-2 h-4 w-4" /> Edit
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
       )
     }
 ];
@@ -64,15 +82,30 @@ const getDiscountColumns = (): ColumnDef<Discount>[] => [
     { accessorKey: 'redemptions', header: 'Redemptions' },
     {
       id: 'actions',
-      header: 'Actions',
+      header: () => <div className="text-right">Actions</div>,
       cell: ({ row }) => (
-        <div className="flex gap-2">
-            <Button asChild variant="outline" size="sm">
-                <Link href={`/dashboard/marketing/discounts/${row.original.code}`}><Info className="mr-2 h-4 w-4" /> View</Link>
-            </Button>
-            <Button asChild variant="ghost" size="sm">
-                <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
-            </Button>
+        <div className="text-right">
+             <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/marketing/discounts/${row.original.code}`}>
+                            <Info className="mr-2 h-4 w-4" /> View Details
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       )
     }
