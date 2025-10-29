@@ -1,7 +1,7 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, BarChart, Users, Calendar, Clock, Send, Package } from 'lucide-react';
 import Link from 'next/link';
@@ -31,6 +31,7 @@ async function getCampaignById(id: string): Promise<Campaign | undefined> {
 
 export default function ViewCampaignPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -50,6 +51,10 @@ export default function ViewCampaignPage() {
     }
     loadData();
   }, [id]);
+
+  const handleBack = () => {
+    router.back();
+  }
 
   if (loading) {
     return (
@@ -73,9 +78,7 @@ export default function ViewCampaignPage() {
         <div className="text-center">
             <h1 className="text-2xl font-bold">Campaign not found</h1>
             <p className="text-muted-foreground">The campaign you are looking for does not exist.</p>
-            <Button asChild className="mt-4">
-                <Link href="/dashboard/marketing?tab=campaigns"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Campaigns</Link>
-            </Button>
+            <Button onClick={handleBack} className="mt-4"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Campaigns</Button>
         </div>
     );
   }
@@ -85,11 +88,9 @@ export default function ViewCampaignPage() {
   return (
     <div className="space-y-6">
        <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/marketing?tab=campaigns">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Link>
+        <Button variant="outline" size="icon" onClick={handleBack}>
+          <ArrowLeft className="h-4 w-4" />
+          <span className="sr-only">Back</span>
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{campaign.name}</h1>
