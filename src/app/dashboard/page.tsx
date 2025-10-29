@@ -309,10 +309,8 @@ export default function DashboardPage() {
                       <AvatarFallback>{sale.name.charAt(0)}</AvatarFallback>
                     </Avatar>
                     <div className="ml-4 space-y-1">
-                      <Link href={`/dashboard/customers/${sale.customerId}`}>
-                        <p className="text-sm font-medium leading-none hover:underline">
+                      <Link href={`/dashboard/customers/${sale.customerId}`} className="text-sm font-medium leading-none hover:underline">
                           {sale.name}
-                        </p>
                       </Link>
                       <p className="text-sm text-muted-foreground">
                         {sale.email}
