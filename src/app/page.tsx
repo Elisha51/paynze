@@ -1,9 +1,14 @@
+// src/app/page.tsx
+'use client';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Check, CreditCard, ShoppingCart, Truck, Users, BarChart2 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { InstallButton } from '@/components/pwa/install-button';
 
 const features = [
   {
@@ -49,6 +54,14 @@ const testimonials = [
 ]
 
 export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // Redirect to login if the app is running in standalone mode (installed PWA)
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      router.push('/login');
+    }
+  }, [router]);
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -59,6 +72,7 @@ export default function Home() {
             <span className="font-bold text-xl font-headline">Paynze</span>
           </Link>
           <nav className="ml-auto flex items-center space-x-2">
+            <InstallButton />
             <Button variant="ghost" asChild>
               <Link href="/login">Log In</Link>
             </Button>

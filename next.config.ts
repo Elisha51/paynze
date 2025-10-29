@@ -4,6 +4,19 @@ import withPWAInit from '@ducanh2912/next-pwa';
 const withPWA = withPWAInit({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
+  runtimeCaching: [
+    {
+      urlPattern: ({ url }) => url.pathname.startsWith('/login'),
+      handler: 'NetworkFirst' as const,
+      options: {
+        cacheName: 'login-page-cache',
+        expiration: {
+          maxEntries: 1,
+          maxAgeSeconds: 24 * 60 * 60, // 1 day
+        },
+      },
+    },
+  ],
 });
 
 const nextConfig: NextConfig = {
