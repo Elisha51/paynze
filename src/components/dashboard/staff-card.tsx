@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -43,10 +42,10 @@ export function StaffCard({ member, onAwardBonus }: { member: Staff, onAwardBonu
             )}></span>
           </Link>
           <div className="flex-1 overflow-hidden">
-             <Link href={`/dashboard/staff/${member.id}`} className="block">
-                <p className="font-semibold truncate">{member.name}</p>
-                <p className="text-sm text-muted-foreground">{member.role}</p>
+             <Link href={`/dashboard/staff/${member.id}`} className="block font-semibold truncate hover:underline">
+                {member.name}
              </Link>
+             <p className="text-sm text-muted-foreground">{member.role}</p>
           </div>
            <DropdownMenu>
               <DropdownMenuTrigger asChild>

@@ -9,6 +9,7 @@ import { getStaffActivity } from '@/services/staff';
 import type { Staff, StaffActivity } from '@/lib/types';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { Button } from '../ui/button';
 
 type StaffActivityLogProps = {
   staffId?: string;
@@ -44,9 +45,11 @@ const getColumns = (staff?: Staff[]): ColumnDef<StaffActivity>[] => [
       const details = row.getValue('details') as { text: string; link?: string };
       if (details.link) {
         return (
-          <Link href={details.link} className="hover:underline text-primary">
-            {details.text}
-          </Link>
+          <Button variant="link" asChild className="p-0 h-auto">
+            <Link href={details.link}>
+              {details.text}
+            </Link>
+          </Button>
         );
       }
       return details.text;

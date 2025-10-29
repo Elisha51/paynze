@@ -16,8 +16,6 @@ import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/components/ui/sheet';
 
-const SIDEBAR_COOKIE_NAME = 'sidebar_state';
-
 type SidebarContextValue = {
   state: 'expanded' | 'collapsed';
   isMobile: boolean;
@@ -36,20 +34,14 @@ export function useSidebar() {
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const isMobile = useIsMobile();
-  const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [isCollapsed, setIsCollapsed] = React.useState(true); // Default to collapsed
   const [isSheetOpen, setSheetOpen] = React.useState(false);
 
   React.useEffect(() => {
-    if (!isMobile) {
-      const storedState = document.cookie
-        .split('; ')
-        .find(row => row.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
-        ?.split('=')[1];
-      if (storedState) {
-        setIsCollapsed(storedState === 'collapsed');
-      }
-    } else {
+    if (isMobile) {
         setIsCollapsed(false);
+    } else {
+        setIsCollapsed(true);
     }
   }, [isMobile]);
 
@@ -57,11 +49,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     if (isMobile) {
       setSheetOpen(prev => !prev);
     } else {
-      setIsCollapsed(prev => {
-        const newState = !prev;
-        document.cookie = `${SIDEBAR_COOKIE_NAME}=${newState ? 'collapsed' : 'expanded'}; path=/; max-age=${60 * 60 * 24 * 365}`;
-        return newState;
-      });
+      setIsCollapsed(prev => !prev);
     }
   };
 
