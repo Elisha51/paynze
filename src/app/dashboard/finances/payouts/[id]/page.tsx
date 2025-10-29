@@ -126,11 +126,21 @@ export default function PayoutReviewPage() {
             item.id === itemId ? { ...item, status: checked ? 'approved' : 'rejected' } : item
         );
         setEarningItems(newItems);
-        const total = newItems
+    };
+
+    const handleItemAmountChange = (itemId: string, newAmount: number) => {
+        const newItems = earningItems.map(item =>
+            item.id === itemId ? { ...item, amount: newAmount } : item
+        );
+        setEarningItems(newItems);
+    };
+    
+    useEffect(() => {
+        const total = earningItems
             .filter(item => item.status === 'approved')
             .reduce((sum, item) => sum + item.amount, 0);
         setPayoutAmount(total);
-    };
+    }, [earningItems]);
     
     const handleProcessPayout = async () => {
         if (!staffMember || payoutAmount <= 0) {
@@ -224,7 +234,7 @@ export default function PayoutReviewPage() {
                      <Card>
                         <CardHeader>
                             <CardTitle>Unpaid Earnings</CardTitle>
-                            <CardDescription>Select items to include in this payout. Uncheck items to reject or defer them.</CardDescription>
+                            <CardDescription>Select items to include in this payout. You can adjust the amount for each item before finalizing.</CardDescription>
                         </CardHeader>
                         <CardContent>
                              <Table>
@@ -237,17 +247,13 @@ export default function PayoutReviewPage() {
                                                     const newStatus = checked ? 'approved' : 'rejected';
                                                     const newItems = earningItems.map(i => ({...i, status: newStatus as 'approved' | 'rejected' }));
                                                     setEarningItems(newItems);
-                                                     const total = newItems
-                                                        .filter(item => item.status === 'approved')
-                                                        .reduce((sum, item) => sum + item.amount, 0);
-                                                    setPayoutAmount(total);
                                                 }}
                                              />
                                         </TableHead>
                                         <TableHead>Date</TableHead>
                                         <TableHead>Description</TableHead>
                                         <TableHead>Details</TableHead>
-                                        <TableHead className="text-right">Amount</TableHead>
+                                        <TableHead className="text-right w-40">Amount</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -264,9 +270,17 @@ export default function PayoutReviewPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-muted-foreground text-xs">
-                                                {item.type === 'Bonus' ? `Awarded by ${item.original.awardedBy}` : `Order #${(item.original as Order).id}`}
+                                                {item.type === 'Bonus' ? `Awarded by ${(item.original as Bonus).awardedBy}` : `Order #${(item.original as Order).id}`}
                                             </TableCell>
-                                            <TableCell className="text-right font-medium">{formatCurrency(item.amount, staffMember.currency || 'UGX')}</TableCell>
+                                            <TableCell className="text-right font-medium">
+                                                <Input 
+                                                    type="number"
+                                                    value={item.amount}
+                                                    onChange={(e) => handleItemAmountChange(item.id, Number(e.target.value))}
+                                                    className="h-8 text-right"
+                                                    disabled={item.status === 'rejected'}
+                                                />
+                                            </TableCell>
                                         </TableRow>
                                     )) : (
                                         <TableRow><TableCell colSpan={5} className="text-center h-24">No unpaid earnings found.</TableCell></TableRow>

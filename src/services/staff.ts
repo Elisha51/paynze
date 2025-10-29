@@ -1,7 +1,8 @@
 
 
 
-import type { Staff, Order, StaffActivity } from '@/lib/types';
+
+import type { Staff, Order, StaffActivity, Bonus } from '@/lib/types';
 import { format, subDays, subHours } from 'date-fns';
 import { getOrders } from './orders';
 
