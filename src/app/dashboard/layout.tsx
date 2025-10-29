@@ -9,6 +9,7 @@ import { SearchProvider } from '@/context/search-context';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationProvider } from '@/context/notification-context';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { usePathname } from 'next/navigation';
 
 export default function DashboardLayout({
   children,
@@ -17,6 +18,7 @@ export default function DashboardLayout({
 }) {
   const [onboardingData, setOnboardingData] = useState<OnboardingFormData | null>(null);
   const [isDevMode, setIsDevMode] = useState(false);
+  const pathname = usePathname();
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
@@ -39,7 +41,7 @@ export default function DashboardLayout({
 
   return (
     <NotificationProvider>
-      <SearchProvider>
+      <SearchProvider key={pathname}>
         <TooltipProvider>
           <SidebarProvider>
             <div className="flex min-h-screen w-full">

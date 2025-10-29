@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { getCountryList } from '@/services/countries';
+import { Breadcrumbs } from '@/components/ui/breadcrumbs';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -131,6 +132,10 @@ export default function SettingsPage() {
   return (
     <>
       <div className="space-y-2 mb-8">
+        <Breadcrumbs items={[
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Settings', href: '/dashboard/settings' }
+        ]} />
         <h2 className="text-3xl font-bold tracking-tight font-headline">Settings</h2>
         <p className="text-muted-foreground">
           Manage your store's settings, locations, payment methods, and delivery options.
