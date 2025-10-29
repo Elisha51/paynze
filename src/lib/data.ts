@@ -229,8 +229,7 @@ export const orders: Order[] = [
         total: 75000, 
         currency: 'UGX',
         shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-        paymentMethod: 'Mobile Money',
-        paymentStatus: 'Paid',
+        payment: { method: 'Mobile Money', status: 'completed', transactionId: 'txn_ORD-001' },
     },
     { 
         id: 'ORD-002', 
@@ -245,8 +244,7 @@ export const orders: Order[] = [
         total: 160000,
         currency: 'UGX',
         shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
-        paymentMethod: 'Cash on Delivery',
-        paymentStatus: 'Paid'
+        payment: { method: 'Cash on Delivery', status: 'completed', transactionId: 'txn_ORD-002' },
     },
      { 
         id: 'ORD-003', 
@@ -261,8 +259,7 @@ export const orders: Order[] = [
         total: 10000,
         currency: 'KES',
         shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
-        paymentMethod: 'Mobile Money',
-        paymentStatus: 'Paid'
+        payment: { method: 'Mobile Money', status: 'completed', transactionId: 'txn_ORD-003' },
     },
     { 
         id: 'ORD-004', 
@@ -277,8 +274,7 @@ export const orders: Order[] = [
         total: 80000,
         currency: 'UGX',
         shippingAddress: { street: '222 Rosewood Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-        paymentMethod: 'Mobile Money',
-        paymentStatus: 'Unpaid'
+        payment: { method: 'Mobile Money', status: 'pending' },
     },
     { 
         id: 'ORD-005', 
@@ -293,8 +289,7 @@ export const orders: Order[] = [
         total: 75000,
         currency: 'UGX',
         shippingAddress: { street: '333 Palm Street', city: 'Jinja', postalCode: '12345', country: 'Uganda' },
-        paymentMethod: 'Cash on Delivery',
-        paymentStatus: 'Paid'
+        payment: { method: 'Cash on Delivery', status: 'completed', transactionId: 'txn_ORD-005' },
     },
     { 
         id: 'ORD-006', 
@@ -309,8 +304,7 @@ export const orders: Order[] = [
         total: 300000,
         currency: 'UGX',
         shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
-        paymentMethod: 'Mobile Money',
-        paymentStatus: 'Paid'
+        payment: { method: 'Mobile Money', status: 'completed', transactionId: 'txn_ORD-006' },
     },
     { 
         id: 'ORD-007', 
@@ -325,8 +319,7 @@ export const orders: Order[] = [
         total: 50000,
         currency: 'KES',
         shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
-        paymentMethod: 'Mobile Money',
-        paymentStatus: 'Paid'
+        payment: { method: 'Mobile Money', status: 'completed', transactionId: 'txn_ORD-007' },
     },
 ];
 

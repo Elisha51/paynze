@@ -198,6 +198,8 @@ export type Order = {
         country: string;
     };
     payment: PaymentDetails;
+    paymentMethod: PaymentDetails['method']; // Backward compatibility
+    paymentStatus: 'Paid' | 'Unpaid'; // Backward compatibility
     shippingCost?: number;
     taxes?: number;
     salesAgentId?: string;

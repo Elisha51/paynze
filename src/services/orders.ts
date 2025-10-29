@@ -8,7 +8,7 @@ import { DataService } from './data-service';
 
 
 function initializeMockOrders(): Order[] {
-    const mockOrders: Omit<Order, 'channel' | 'currency' | 'payment'>[] = [
+    const mockOrders: Omit<Order, 'channel' | 'currency' | 'payment' | 'paymentMethod' | 'paymentStatus'>[] = [
         { 
             id: 'ORD-001', 
             customerId: 'cust-02',
@@ -106,7 +106,9 @@ function initializeMockOrders(): Order[] {
                 method: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery' as const,
                 status: isPaid ? 'completed' : 'pending' as const,
                 transactionId: isPaid ? `txn_${order.id}` : undefined,
-            }
+            },
+            paymentMethod: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery' as const,
+            paymentStatus: isPaid ? 'Paid' : 'Unpaid' as const,
         }
         if (index === 0) { // Assign the first order for delivery
             return {

@@ -27,7 +27,7 @@ export function OverviewChart({ orders, currency }: { orders: Order[], currency:
       const days = eachDayOfInterval({ start: minDate, end: maxDate });
       return days.map(day => {
         const total = orders
-          .filter(order => new Date(order.date).toDateString() === day.toDateString() && order.paymentStatus === 'Paid')
+          .filter(order => new Date(order.date).toDateString() === day.toDateString() && order.payment.status === 'completed')
           .reduce((sum, order) => sum + order.total, 0);
         return { name: format(day, 'MMM d'), total };
       });
@@ -39,7 +39,7 @@ export function OverviewChart({ orders, currency }: { orders: Order[], currency:
         const total = orders
           .filter(order => {
             const orderDate = new Date(order.date);
-            return order.paymentStatus === 'Paid' && orderDate >= monthStart && orderDate <= monthEnd;
+            return order.payment.status === 'completed' && orderDate >= monthStart && orderDate <= monthEnd;
           })
           .reduce((sum, order) => sum + order.total, 0);
         return { name: format(month, 'MMM'), total };

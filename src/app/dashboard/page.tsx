@@ -104,7 +104,7 @@ export default function DashboardPage() {
 
 
   // Metrics for the selected period
-  const revenueInPeriod = filteredOrders.reduce((sum, order) => sum + (order.paymentStatus === 'Paid' ? order.total : 0), 0);
+  const revenueInPeriod = filteredOrders.reduce((sum, order) => sum + (order.payment.status === 'completed' ? order.total : 0), 0);
   const salesInPeriod = filteredOrders.length;
   const newCustomersInPeriod = filteredCustomers.length;
   

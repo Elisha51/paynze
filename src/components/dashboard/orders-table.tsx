@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import {
@@ -205,7 +204,11 @@ const fulfillmentMethods = [
 ];
 
 
-const getColumns = (onUpdate: (updatedOrder: Order) => void, currency: string): ColumnDef<Order>[] => [
+const getColumns = (
+  onUpdate: (updatedOrder: Order) => void,
+  currency: string,
+  canEdit: boolean
+): ColumnDef<Order>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -369,21 +372,13 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void, currency: string): 
     header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
       const order = row.original;
-      const isAwaitingPayment = order.status === 'Awaiting Payment';
       const isPaid = order.status === 'Paid';
       const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
-      const { toast } = useToast();
-
-      const handleUpdateStatus = async (status: Order['status'], paymentStatus?: Order['paymentStatus']) => {
-        const updates: Partial<Order> = { status };
-        if (paymentStatus) {
-            updates.paymentStatus = paymentStatus;
-        }
-        const updatedOrder = await updateOrder(order.id, updates);
+      
+      const handleCancel = async () => {
+        const updatedOrder = await updateOrder(order.id, { status: 'Cancelled' });
         onUpdate(updatedOrder);
-        toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${status}.`});
       }
-
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
@@ -401,38 +396,39 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void, currency: string): 
                             <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                         </DropdownMenuItem>
 
-                         {isAwaitingPayment && (
-                            <DropdownMenuItem onClick={() => handleUpdateStatus('Paid', 'Paid')}>Mark as Paid</DropdownMenuItem>
-                        )}
-                        {isPaid && order.fulfillmentMethod === 'Delivery' && (
-                            <AssignOrderDialog order={order} onUpdate={onUpdate} asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
-                            </AssignOrderDialog>
-                        )}
-                        {isPaid && order.fulfillmentMethod === 'Pickup' && (
-                             <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Ready for Pickup</DropdownMenuItem>
-                            </FulfillOrderDialog>
-                        )}
-                        {order.status === 'Ready for Pickup' && (
-                             <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
-                            </FulfillOrderDialog>
-                        )}
-                        {order.status === 'Shipped' && (
-                            <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Delivered</DropdownMenuItem>
-                            </FulfillOrderDialog>
-                        )}
-                        
-                        {canBeCancelled && (
+                        {canEdit && (
                           <>
-                            <DropdownMenuSeparator />
-                            <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                    Cancel Order
-                                </DropdownMenuItem>
-                            </AlertDialogTrigger>
+                            {isPaid && order.fulfillmentMethod === 'Delivery' && (
+                                <AssignOrderDialog order={order} onUpdate={onUpdate} asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
+                                </AssignOrderDialog>
+                            )}
+                            {isPaid && order.fulfillmentMethod === 'Pickup' && (
+                                <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Ready for Pickup</DropdownMenuItem>
+                                </FulfillOrderDialog>
+                            )}
+                            {order.status === 'Ready for Pickup' && (
+                                <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
+                                </FulfillOrderDialog>
+                            )}
+                            {order.status === 'Shipped' && (
+                                <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Delivered</DropdownMenuItem>
+                                </FulfillOrderDialog>
+                            )}
+                            
+                            {canBeCancelled && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                        Cancel Order
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                              </>
+                            )}
                           </>
                         )}
                     </DropdownMenuContent>
@@ -448,7 +444,7 @@ const getColumns = (onUpdate: (updatedOrder: Order) => void, currency: string): 
                     <AlertDialogCancel>Back</AlertDialogCancel>
                     <AlertDialogAction
                         className="bg-destructive hover:bg-destructive/90"
-                        onClick={() => handleUpdateStatus('Cancelled')}
+                        onClick={handleCancel}
                     >
                         Cancel Order
                     </AlertDialogAction>
@@ -469,6 +465,8 @@ type OrdersTableProps = {
 export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>(orders);
   const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+  const { user } = useAuth();
+  const canEdit = user?.permissions.orders.edit;
 
   React.useEffect(() => {
     setData(orders);
@@ -482,7 +480,7 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
     setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
   };
   
-  const columns = React.useMemo(() => getColumns(handleUpdate, settings?.currency || 'UGX'), [handleUpdate, settings?.currency]);
+  const columns = React.useMemo(() => getColumns(handleUpdate, settings?.currency || 'UGX', !!canEdit), [handleUpdate, settings?.currency, canEdit]);
 
   return (
     <DataTable
