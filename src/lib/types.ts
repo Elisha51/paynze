@@ -190,7 +190,6 @@ export type Order = {
     channel: 'Online' | 'Manual' | 'POS';
     items: OrderItem[];
     total: number;
-    currency: string;
     shippingAddress: {
         street: string;
         city: string;
@@ -408,6 +407,7 @@ export type Transaction = {
     date: string;
     description: string;
     amount: number;
+    currency: string;
     type: 'Income' | 'Expense';
     category: 'Sales' | 'Inventory' | 'Utilities' | 'Salaries' | 'Marketing' | 'Other';
     status: 'Cleared' | 'Pending';

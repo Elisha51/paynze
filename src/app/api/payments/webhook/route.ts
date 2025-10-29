@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
           date: new Date().toISOString(),
           description: `Sale from Order #${orderId}`,
           amount: order.total,
+          currency: order.currency,
           type: 'Income',
           category: 'Sales',
           status: 'Cleared',

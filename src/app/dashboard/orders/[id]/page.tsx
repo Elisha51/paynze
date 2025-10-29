@@ -299,7 +299,7 @@ export default function ViewOrderPage() {
                         Order Details
                     </CardTitle>
                     <CardDescription>
-                        Date: {order.date}
+                        Date: {new Date(order.date).toLocaleDateString()}
                     </CardDescription>
                     </div>
                      <div className="ml-auto flex items-center gap-1">
