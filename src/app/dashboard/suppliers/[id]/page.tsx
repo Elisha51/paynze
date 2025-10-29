@@ -36,7 +36,7 @@ const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
         accessorKey: 'id',
         header: 'Order ID',
         cell: ({ row }) => (
-            <Link href={`/dashboard/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
+            <Link href={`/dashboard/procurement/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
                 {row.getValue('id')}
             </Link>
         )
@@ -147,7 +147,7 @@ export default function ViewSupplierPage() {
     <div className="space-y-6">
        <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/procurement">
+          <Link href="/dashboard/procurement?tab=suppliers">
             <ArrowLeft className="h-4 w-4" />
             <span className="sr-only">Back to Procurement</span>
           </Link>
@@ -162,13 +162,13 @@ export default function ViewSupplierPage() {
         </div>
         <div className="ml-auto flex items-center gap-2">
             <Button variant="outline" asChild>
-                <Link href="/dashboard/purchase-orders/add">
+                <Link href="/dashboard/procurement/purchase-orders/add">
                     <PlusCircle className="mr-2 h-4 w-4" />
                     New PO
                 </Link>
             </Button>
             <Button variant="outline" asChild>
-                 <Link href={`/dashboard/suppliers/${supplier.id}/edit`}>
+                 <Link href={`/dashboard/procurement/suppliers/${supplier.id}/edit`}>
                     <Edit className="mr-2 h-4 w-4" />
                     Edit
                 </Link>
@@ -204,7 +204,7 @@ export default function ViewSupplierPage() {
                         description: "You haven't sent any purchase orders to this supplier.",
                         cta: (
                             <Button asChild>
-                                <Link href="/dashboard/purchase-orders/add">
+                                <Link href="/dashboard/procurement/purchase-orders/add">
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Create Purchase Order
                                 </Link>

@@ -38,7 +38,7 @@ const supplierColumns: ColumnDef<Supplier>[] = [
     accessorKey: 'name',
     header: 'Supplier Name',
     cell: ({ row }) => (
-      <Link href={`/dashboard/suppliers/${row.original.id}`} className="font-medium hover:underline">
+      <Link href={`/dashboard/procurement/suppliers/${row.original.id}`} className="font-medium hover:underline">
         {row.original.name}
       </Link>
     ),
@@ -81,10 +81,10 @@ const supplierColumns: ColumnDef<Supplier>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem asChild>
-              <Link href={`/dashboard/suppliers/${row.original.id}`}>View Details</Link>
+              <Link href={`/dashboard/procurement/suppliers/${row.original.id}`}>View Details</Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
-              <Link href={`/dashboard/suppliers/${row.original.id}/edit`}>
+              <Link href={`/dashboard/procurement/suppliers/${row.original.id}/edit`}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Supplier
               </Link>
@@ -109,7 +109,7 @@ const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
     accessorKey: 'id',
     header: 'Order ID',
     cell: ({ row }) => (
-      <Link href={`/dashboard/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
+      <Link href={`/dashboard/procurement/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
         {row.original.id}
       </Link>
     ),
@@ -118,7 +118,7 @@ const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
     accessorKey: 'supplierName',
     header: 'Supplier',
     cell: ({ row }) => (
-      <Link href={`/dashboard/suppliers/${row.original.supplierId}`} className="font-medium hover:underline">
+      <Link href={`/dashboard/procurement/suppliers/${row.original.supplierId}`} className="font-medium hover:underline">
         {row.original.supplierName}
       </Link>
     ),
@@ -170,7 +170,7 @@ const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem asChild>
-              <Link href={`/dashboard/purchase-orders/${row.original.id}`}>View Details</Link>
+              <Link href={`/dashboard/procurement/purchase-orders/${row.original.id}`}>View Details</Link>
             </DropdownMenuItem>
             <DropdownMenuItem>Mark as Received</DropdownMenuItem>
           </DropdownMenuContent>
@@ -243,13 +243,13 @@ export default function ProcurementPage() {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/suppliers/add">
+            <Link href="/dashboard/procurement/suppliers/add">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Add Supplier
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href="/dashboard/purchase-orders/add">
+            <Link href="/dashboard/procurement/purchase-orders/add">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Purchase Order
             </Link>
