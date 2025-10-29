@@ -342,6 +342,7 @@ export type Shift = {
 export type Payout = {
     date: string;
     amount: number;
+    paidItemIds?: string[];
 };
 
 export type Bonus = {

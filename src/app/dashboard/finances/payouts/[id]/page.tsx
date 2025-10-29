@@ -1,7 +1,7 @@
 
 
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getStaff, updateStaff } from '@/services/staff';
 import { addTransaction } from '@/services/finances';
@@ -158,7 +158,7 @@ export default function PayoutReviewPage() {
         const approvedItems = earningItems.filter(item => item.status === 'approved');
         const approvedItemIds = approvedItems.map(item => item.id);
 
-        const newPayout: Payout & { paidItemIds?: string[] } = {
+        const newPayout: Payout = {
             date: new Date().toISOString(),
             amount: payoutAmount,
             paidItemIds: approvedItemIds,
@@ -187,14 +187,15 @@ export default function PayoutReviewPage() {
 
         toast({
             title: 'Payout Processed',
-            description: `${staffMember.name} has been paid ${formatCurrency(payoutAmount, settings?.currency || 'UGX')}.`,
+            description: `${staffMember.name} has been paid ${formatCurrency(payoutAmount)}.`,
         });
         
         router.push('/dashboard/finances?tab=payouts');
     };
 
-    const formatCurrency = (amount: number, currency: string) => {
-        return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    const formatCurrency = (amount: number) => {
+        if (!settings) return amount.toString();
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency: settings.currency }).format(amount);
     };
 
     if (loading || !settings) {
@@ -259,7 +260,7 @@ export default function PayoutReviewPage() {
                                         <TableHead>Date</TableHead>
                                         <TableHead>Description</TableHead>
                                         <TableHead>Details</TableHead>
-                                        <TableHead className="text-right w-40">Amount</TableHead>
+                                        <TableHead className="text-right w-40">Amount ({currency})</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -305,13 +306,13 @@ export default function PayoutReviewPage() {
                         <CardContent className="space-y-4">
                              <div className="flex justify-between text-sm">
                                 <span className="text-muted-foreground">Approved Earnings:</span>
-                                <span className="font-semibold">{formatCurrency(approvedTotal, currency)}</span>
+                                <span className="font-semibold">{formatCurrency(approvedTotal)}</span>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="payoutAmount">Payment Amount</Label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                    <Input id="payoutAmount" type="number" value={payoutAmount} onChange={(e) => setPayoutAmount(Number(e.target.value))} className="pl-8" />
+                                    <span className="absolute left-2.5 top-2.5 text-sm text-muted-foreground">{currency}</span>
+                                    <Input id="payoutAmount" type="number" value={payoutAmount} onChange={(e) => setPayoutAmount(Number(e.target.value))} className="pl-12" />
                                 </div>
                             </div>
                         </CardContent>
@@ -327,7 +328,7 @@ export default function PayoutReviewPage() {
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>Confirm Payout</AlertDialogTitle>
                                         <AlertDialogDescription>
-                                           You are about to process a payment of <strong className="text-foreground">{formatCurrency(payoutAmount, currency)}</strong> to {staffMember.name}. This will create an expense record and update their unpaid balance. This action cannot be undone.
+                                           You are about to process a payment of <strong className="text-foreground">{formatCurrency(payoutAmount)}</strong> to {staffMember.name}. This will create an expense record and update their unpaid balance. This action cannot be undone.
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
@@ -356,7 +357,7 @@ export default function PayoutReviewPage() {
                                         staffMember.payoutHistory.slice().reverse().slice(0, 5).map((payout, index) => (
                                             <TableRow key={index}>
                                                 <TableCell>{format(new Date(payout.date), 'PPP')}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(payout.amount, currency)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(payout.amount)}</TableCell>
                                             </TableRow>
                                         ))
                                     ) : (
