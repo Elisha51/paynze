@@ -8,6 +8,7 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { useEffect, useState } from 'react';
+import { AuthProvider } from '@/context/auth-context';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -52,7 +53,9 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={cn("font-sans antialiased", inter.variable)}>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         <Toaster />
       </body>
     </html>

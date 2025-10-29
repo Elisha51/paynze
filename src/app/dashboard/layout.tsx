@@ -9,10 +9,9 @@ import { SearchProvider } from '@/context/search-context';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationProvider } from '@/context/notification-context';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Breadcrumbs } from '@/components/ui/breadcrumbs';
-import { AuthProvider, useAuth } from '@/context/auth-context';
-import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth-context';
 
 const tabRoutes: Record<string, string[]> = {
   '/dashboard/marketing': ['overview', 'campaigns', 'discounts', 'analytics'],
@@ -113,8 +112,6 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider>
-      <ProtectedDashboardLayout>{children}</ProtectedDashboardLayout>
-    </AuthProvider>
+    <ProtectedDashboardLayout>{children}</ProtectedDashboardLayout>
   )
 }

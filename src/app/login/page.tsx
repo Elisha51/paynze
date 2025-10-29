@@ -1,6 +1,6 @@
 
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -16,13 +16,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, user, isLoading } = useAuth();
+  const router = useRouter();
   const [staff, setStaff] = useState<Staff[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>('');
 
-  useState(() => {
+  useEffect(() => {
     async function loadStaff() {
         const staffData = await getStaff();
         setStaff(staffData);
@@ -31,13 +33,19 @@ export default function LoginPage() {
         }
     }
     loadStaff();
-  });
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && user) {
+        router.push('/dashboard');
+    }
+  }, [user, isLoading, router]);
   
   const handleLogin = () => {
     if (selectedStaffId) {
-        const user = staff.find(s => s.id === selectedStaffId);
-        if (user) {
-            login(user);
+        const userToLogin = staff.find(s => s.id === selectedStaffId);
+        if (userToLogin) {
+            login(userToLogin);
         }
     }
   }
