@@ -467,3 +467,5 @@ export type Discount = {
   customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers';
   applicableProductIds?: string[];
 };
+
+    
