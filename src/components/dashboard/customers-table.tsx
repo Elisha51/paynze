@@ -4,7 +4,7 @@ import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, PlusCircle, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,16 +19,16 @@ import type { Customer, OnboardingFormData } from '@/lib/types';
 import { DataTable } from './data-table';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { useToast } from '@/hooks/use-toast';
 
+type MessageType = 'WhatsApp' | 'SMS' | null;
 
-const customerGroups = [
-    { value: 'default', label: 'Default' },
-    { value: 'Wholesaler', label: 'Wholesaler' },
-    { value: 'Retailer', label: 'Retailer' },
-];
-
-
-const getColumns = (currency: string): ColumnDef<Customer>[] => [
+const getColumns = (
+    currency: string, 
+    onSendMessage: (customer: Customer, type: MessageType) => void
+): ColumnDef<Customer>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -152,11 +152,11 @@ const getColumns = (currency: string): ColumnDef<Customer>[] => [
                     View Details
                 </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onSendMessage(customer, 'WhatsApp')}>
                 <MessageCircle className="mr-2 h-4 w-4" />
                 Send via WhatsApp
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onSendMessage(customer, 'SMS')}>
                 <Phone className="mr-2 h-4 w-4" />
                 Send via SMS
             </DropdownMenuItem>
@@ -175,6 +175,9 @@ type CustomersTableProps = {
 
 export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
     const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
+    const [messageTarget, setMessageTarget] = React.useState<{customer: Customer, type: MessageType} | null>(null);
+    const [messageContent, setMessageContent] = React.useState('');
+    const { toast } = useToast();
 
     React.useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -182,9 +185,39 @@ export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
             setSettings(JSON.parse(data));
         }
     }, []);
+    
+    const handleOpenMessageDialog = (customer: Customer, type: MessageType) => {
+        setMessageTarget({ customer, type });
+    };
 
-    const columns = React.useMemo(() => getColumns(settings?.currency || 'UGX'), [settings?.currency]);
+    const handleSendMessage = () => {
+        if (!messageTarget) return;
+        if (!messageContent.trim()) {
+            toast({ variant: 'destructive', title: 'Message cannot be empty.' });
+            return;
+        }
+        
+        console.log(`Sending ${messageTarget.type} to ${messageTarget.customer.name}: ${messageContent}`);
+        
+        // This is a simulation. In a real app, you would save this to the backend.
+        // For now, we'll just show a toast. A refresh would show the new activity on the detail page.
+        
+        toast({ title: 'Message Sent', description: `Your ${messageTarget.type} has been sent to ${messageTarget.customer.name}.` });
+        setMessageTarget(null);
+        setMessageContent('');
+    };
+
+    const columns = React.useMemo(() => getColumns(settings?.currency || 'UGX', handleOpenMessageDialog), [settings?.currency]);
+    
+    const customerGroups = [
+        { value: 'default', label: 'Default' },
+        { value: 'Wholesaler', label: 'Wholesaler' },
+        { value: 'Retailer', label: 'Retailer' },
+    ];
+
+
   return (
+    <>
     <DataTable
       columns={columns}
       data={customers}
@@ -207,5 +240,33 @@ export function CustomersTable({ customers, isLoading }: CustomersTableProps) {
         )
       }}
     />
+    <Dialog open={!!messageTarget} onOpenChange={(open) => !open && setMessageTarget(null)}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Send {messageTarget?.type} to {messageTarget?.customer.name}</DialogTitle>
+                <DialogDescription>
+                    Compose your message below. This will be sent via our simulated messaging service and logged in the customer's activity feed.
+                </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+                <Textarea 
+                    value={messageContent}
+                    onChange={(e) => setMessageContent(e.target.value)}
+                    placeholder="Type your message here..."
+                    className="min-h-[120px]"
+                />
+            </div>
+            <DialogFooter>
+                <DialogClose asChild>
+                    <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <Button onClick={handleSendMessage}>
+                    <Send className="mr-2 h-4 w-4" />
+                    Send Message
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+    </Dialog>
+    </>
   );
 }
