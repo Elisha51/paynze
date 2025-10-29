@@ -1,3 +1,4 @@
+
 import type {NextConfig} from 'next';
 import withPWAInit from '@ducanh2912/next-pwa';
 
@@ -16,6 +17,12 @@ const withPWA = withPWAInit({
         expiration: {
           maxEntries: 60,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+        },
+        backgroundSync: {
+          name: 'offline-queue',
+          options: {
+            maxRetentionTime: 24 * 60, // 24 hours
+          },
         },
       },
     },
