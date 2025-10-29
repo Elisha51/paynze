@@ -30,6 +30,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/context/auth-context';
+import { addTransaction } from '@/services/finances';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
@@ -90,6 +91,20 @@ export default function ViewOrderPage() {
       updates.payment = { ...order.payment, status: paymentStatus };
     }
     
+    // If marking as paid, create a transaction record.
+    if (status === 'Paid' && paymentStatus === 'completed' && order.payment.status !== 'completed') {
+        await addTransaction({
+          date: new Date().toISOString(),
+          description: `Sale from Order #${order.id}`,
+          amount: order.total,
+          currency: order.currency,
+          type: 'Income',
+          category: 'Sales',
+          status: 'Cleared',
+          paymentMethod: order.payment.method,
+        });
+    }
+
     // Fulfill order and deduct stock
     if (status === 'Delivered' || status === 'Picked Up') {
         updates.fulfilledByStaffId = user.id;
