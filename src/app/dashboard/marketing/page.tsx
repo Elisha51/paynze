@@ -64,8 +64,10 @@ const getCampaignColumns = (): ColumnDef<Campaign>[] => [
                             <Info className="mr-2 h-4 w-4" /> View
                         </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" /> Edit
+                    <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/marketing/campaigns/${row.original.id}/edit`}>
+                            <Edit className="mr-2 h-4 w-4" /> Edit
+                        </Link>
                     </DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
