@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ChevronDown, BarChart, FileText, Gift, TrendingUp, Edit, Info } from 'lucide-react';
+import { PlusCircle, ChevronDown, Gift, FileText } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,13 @@ import { DataTable } from '@/components/dashboard/data-table';
 import { Badge } from '@/components/ui/badge';
 import type { ColumnDef } from '@tanstack/react-table';
 import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marketing-analytics-report';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar } from '@/components/ui/calendar';
+import { Calendar as CalendarIcon, BarChart, TrendingUp, Info, Edit } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { DateRange } from 'react-day-picker';
+import { addDays, format } from 'date-fns';
 
 // Mock data types
 export type Campaign = {
@@ -90,6 +97,11 @@ const getDiscountColumns = (): ColumnDef<Discount>[] => [
 
 export default function MarketingPage() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: addDays(new Date(), -29),
+    to: new Date(),
+  });
+
 
   const tabs = [
     { value: 'overview', label: 'Overview' },
@@ -124,6 +136,27 @@ export default function MarketingPage() {
         </DropdownMenuContent>
       </DropdownMenu>
   );
+
+  const handlePresetChange = (value: string) => {
+    const now = new Date();
+    switch (value) {
+      case 'today':
+        setDate({ from: now, to: now });
+        break;
+      case 'last-7':
+        setDate({ from: addDays(now, -6), to: now });
+        break;
+      case 'last-30':
+        setDate({ from: addDays(now, -29), to: now });
+        break;
+      case 'ytd':
+        setDate({ from: new Date(now.getFullYear(), 0, 1), to: now });
+        break;
+      default:
+        setDate(undefined);
+    }
+  };
+
 
   return (
     <DashboardPageLayout 
@@ -183,7 +216,68 @@ export default function MarketingPage() {
       </DashboardPageLayout.TabContent>
       
       <DashboardPageLayout.TabContent value="analytics">
-         <MarketingAnalyticsReport campaigns={mockCampaigns} discounts={mockDiscounts} />
+         <Card>
+            <CardHeader className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2">
+                <div>
+                    <CardTitle>Marketing Analytics</CardTitle>
+                    <CardDescription>
+                        Analyze campaign reach and discount performance.
+                    </CardDescription>
+                </div>
+                 <div className="flex items-center gap-2 w-full lg:w-auto">
+                    <Select onValueChange={handlePresetChange} defaultValue="last-30">
+                        <SelectTrigger className="w-full lg:w-[180px]">
+                            <SelectValue placeholder="Select a preset" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="today">Today</SelectItem>
+                            <SelectItem value="last-7">Last 7 days</SelectItem>
+                            <SelectItem value="last-30">Last 30 days</SelectItem>
+                            <SelectItem value="ytd">Year to date</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <Popover>
+                        <PopoverTrigger asChild>
+                        <Button
+                            id="date"
+                            variant={"outline"}
+                            className={cn(
+                            "w-full lg:w-[300px] justify-start text-left font-normal",
+                            !date && "text-muted-foreground"
+                            )}
+                        >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date?.from ? (
+                            date.to ? (
+                                <>
+                                {format(date.from, "LLL dd, y")} -{" "}
+                                {format(date.to, "LLL dd, y")}
+                                </>
+                            ) : (
+                                format(date.from, "LLL dd, y")
+                            )
+                            ) : (
+                            <span>Pick a date</span>
+                            )}
+                        </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="end">
+                        <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={date?.from}
+                            selected={date}
+                            onSelect={setDate}
+                            numberOfMonths={2}
+                        />
+                        </PopoverContent>
+                    </Popover>
+                </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <MarketingAnalyticsReport campaigns={mockCampaigns} discounts={mockDiscounts} dateRange={date} />
+            </CardContent>
+        </Card>
       </DashboardPageLayout.TabContent>
 
     </DashboardPageLayout>
