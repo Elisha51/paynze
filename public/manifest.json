@@ -1,11 +1,12 @@
 {
   "name": "Paynze",
   "short_name": "Paynze",
-  "description": "Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants in Africa.",
+  "description": "Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants.",
   "start_url": "/login?source=pwa",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#2563eb",
+  "theme_color": "#ffffff",
+  "scope": "/",
   "icons": [
     {
       "src": "/icon-192x192.png",
