@@ -36,7 +36,7 @@ export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[]
         <StaffCard key={member.id} member={member} onAwardBonus={() => onAwardBonus(member)} />
       ))}
       {staff.length > 3 && (
-        <Link href="/dashboard/staff" className="flex">
+        <Link href="/dashboard/staff" className="flex h-full">
             <Card className="flex flex-col items-center justify-center text-center bg-muted/50 hover:bg-muted transition-colors cursor-pointer w-full h-full">
                 <CardContent className="p-6 flex flex-col items-center justify-center">
                     <ArrowRight className="h-8 w-8 text-muted-foreground mb-2" />
