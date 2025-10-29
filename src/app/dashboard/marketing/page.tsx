@@ -4,26 +4,17 @@
 import { useState } from 'react';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, ChevronDown, BarChart, FileText, Gift, MessageCircle, TrendingUp } from 'lucide-react';
+import { PlusCircle, ChevronDown, BarChart, FileText, Gift, TrendingUp, Edit, Info } from 'lucide-react';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogClose,
-} from '@/components/ui/dialog';
 import { DataTable } from '@/components/dashboard/data-table';
 import { Badge } from '@/components/ui/badge';
 import type { ColumnDef } from '@tanstack/react-table';
+import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marketing-analytics-report';
 
 // Mock data types
-type Campaign = {
+export type Campaign = {
   id: string;
   name: string;
   status: 'Active' | 'Scheduled' | 'Draft' | 'Completed';
@@ -31,47 +22,69 @@ type Campaign = {
   sent: number;
   openRate: string;
   ctr: string;
+  audience: string;
+  startDate: string;
+  endDate?: string;
+  description: string;
 };
 
-type Discount = {
+export type Discount = {
   code: string;
   type: 'Percentage' | 'Fixed Amount';
   value: number;
-  status: 'Active' | 'Expired';
+  status: 'Active' | 'Expired' | 'Scheduled';
   redemptions: number;
+  minPurchase: number;
+  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers';
 };
 
 // Mock data
 const mockCampaigns: Campaign[] = [
-  { id: 'CAM-001', name: 'Eid al-Adha Sale', status: 'Completed', channel: 'Email', sent: 5203, openRate: '25.4%', ctr: '3.1%' },
-  { id: 'CAM-002', name: 'New Fabric Launch', status: 'Active', channel: 'SMS', sent: 1250, openRate: 'N/A', ctr: '8.2%' },
-  { id: 'CAM-003', name: 'Weekend Flash Sale', status: 'Scheduled', channel: 'Push', sent: 0, openRate: 'N/A', ctr: 'N/A' },
-  { id: 'CAM-004', name: 'Abandoned Cart Reminder', status: 'Active', channel: 'Email', sent: 842, openRate: '45.1%', ctr: '12.5%' },
+  { id: 'CAM-001', name: 'Eid al-Adha Sale', status: 'Completed', channel: 'Email', sent: 5203, openRate: '25.4%', ctr: '3.1%', audience: 'All Subscribers', startDate: '2024-06-10', endDate: '2024-06-17', description: 'A week-long sale for the Eid al-Adha holiday.' },
+  { id: 'CAM-002', name: 'New Fabric Launch', status: 'Active', channel: 'SMS', sent: 1250, openRate: 'N/A', ctr: '8.2%', audience: 'Previous Fabric Buyers', startDate: '2024-07-20', description: 'Announcing our new line of premium Kitenge fabrics.' },
+  { id: 'CAM-003', name: 'Weekend Flash Sale', status: 'Scheduled', channel: 'Push', sent: 0, openRate: 'N/A', ctr: 'N/A', audience: 'App Users', startDate: '2024-08-02', endDate: '2024-08-04', description: 'A 48-hour flash sale for users with our app.' },
+  { id: 'CAM-004', name: 'Abandoned Cart Reminder', status: 'Active', channel: 'Email', sent: 842, openRate: '45.1%', ctr: '12.5%', audience: 'Cart Abandoners', startDate: '2024-01-01', description: 'Automated email to recover abandoned carts.' },
 ];
 
 const mockDiscounts: Discount[] = [
-  { code: 'NEWBIE10', type: 'Percentage', value: 10, status: 'Active', redemptions: 152 },
-  { code: 'SALE5K', type: 'Fixed Amount', value: 5000, status: 'Active', redemptions: 88 },
-  { code: 'FLASH20', type: 'Percentage', value: 20, status: 'Expired', redemptions: 210 },
+  { code: 'NEWBIE10', type: 'Percentage', value: 10, status: 'Active', redemptions: 152, minPurchase: 0, customerGroup: 'New Customers' },
+  { code: 'SALE5K', type: 'Fixed Amount', value: 5000, status: 'Active', redemptions: 88, minPurchase: 50000, customerGroup: 'Everyone' },
+  { code: 'FLASH20', type: 'Percentage', value: 20, status: 'Expired', redemptions: 210, minPurchase: 0, customerGroup: 'Everyone' },
 ];
 
-// Columns for Campaigns Table
-const campaignColumns: ColumnDef<Campaign>[] = [
-    { accessorKey: 'name', header: 'Campaign' },
+const getCampaignColumns = (): ColumnDef<Campaign>[] => [
+    { accessorKey: 'name', header: 'Campaign', cell: ({ row }) => <Link href={`/dashboard/marketing/campaigns/${row.original.id}`} className="font-medium hover:underline">{row.original.name}</Link> },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge> },
     { accessorKey: 'channel', header: 'Channel' },
     { accessorKey: 'sent', header: 'Sent' },
     { accessorKey: 'openRate', header: 'Open Rate' },
     { accessorKey: 'ctr', header: 'CTR' },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <Button asChild variant="outline" size="sm">
+            <Link href={`/dashboard/marketing/campaigns/${row.original.id}`}><Info className="mr-2 h-4 w-4" /> View</Link>
+        </Button>
+      )
+    }
 ];
 
-// Columns for Discounts Table
-const discountColumns: ColumnDef<Discount>[] = [
+const getDiscountColumns = (): ColumnDef<Discount>[] => [
     { accessorKey: 'code', header: 'Discount Code', cell: ({ row }) => <Badge variant="outline" className="font-mono">{row.original.code}</Badge> },
     { accessorKey: 'type', header: 'Type' },
     { accessorKey: 'value', header: 'Value', cell: ({ row }) => row.original.type === 'Percentage' ? `${row.original.value}%` : `UGX ${row.original.value.toLocaleString()}` },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge> },
     { accessorKey: 'redemptions', header: 'Redemptions' },
+    {
+      id: 'actions',
+      header: 'Actions',
+      cell: ({ row }) => (
+        <Button asChild variant="outline" size="sm">
+            <Link href={`/dashboard/marketing/discounts/${row.original.code}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
+        </Button>
+      )
+    }
 ];
 
 
@@ -82,12 +95,13 @@ export default function MarketingPage() {
     { value: 'overview', label: 'Overview' },
     { value: 'campaigns', label: 'Campaigns' },
     { value: 'discounts', label: 'Discounts' },
-    { value: 'communication', label: 'Communication' },
     { value: 'analytics', label: 'Analytics' },
   ];
+  
+  const campaignColumns = getCampaignColumns();
+  const discountColumns = getDiscountColumns();
 
   const cta = (
-    <Dialog>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button>
@@ -95,34 +109,20 @@ export default function MarketingPage() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DialogTrigger asChild>
-            <DropdownMenuItem>
+          <DropdownMenuItem asChild>
+             <Link href="/dashboard/marketing/campaigns/add">
               <FileText className="mr-2 h-4 w-4" />
               New Campaign
-            </DropdownMenuItem>
-          </DialogTrigger>
-          <DialogTrigger asChild>
-            <DropdownMenuItem>
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+             <Link href="/dashboard/marketing/discounts/add">
               <Gift className="mr-2 h-4 w-4" />
               New Discount
-            </DropdownMenuItem>
-          </DialogTrigger>
+            </Link>
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-      <DialogContent>
-        <DialogHeader>
-            <DialogTitle>Create New Campaign</DialogTitle>
-            <DialogDescription>A modal/wizard to create a new campaign will be here.</DialogDescription>
-        </DialogHeader>
-        <div className="py-8 text-center text-muted-foreground">
-            <p>(Campaign creation form will go here)</p>
-        </div>
-        <DialogFooter>
-            <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-            <Button>Save Campaign</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 
   return (
@@ -134,21 +134,28 @@ export default function MarketingPage() {
         onTabChange={setActiveTab}
     >
       <DashboardPageLayout.TabContent value="overview">
-        <Card>
-            <CardHeader>
-                <CardTitle>Marketing Overview</CardTitle>
-                <CardDescription>A summary of your recent marketing performance.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
-                    <div className="bg-primary/10 p-4 rounded-full">
-                        <TrendingUp className="h-12 w-12 text-primary" />
-                    </div>
-                    <h2 className="text-xl font-semibold">Coming Soon</h2>
-                    <p className="text-muted-foreground max-w-sm mx-auto">A central panel showing campaign performance, discount usage, and engagement metrics will be available here.</p>
-                </div>
-            </CardContent>
-        </Card>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Campaigns</CardTitle>
+                    <FileText className="h-4 w-4 text-muted-foreground"/>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{mockCampaigns.filter(c => c.status === 'Active').length}</div>
+                    <p className="text-xs text-muted-foreground">Currently running marketing campaigns</p>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Active Discounts</CardTitle>
+                    <Gift className="h-4 w-4 text-muted-foreground"/>
+                </CardHeader>
+                <CardContent>
+                    <div className="text-2xl font-bold">{mockDiscounts.filter(d => d.status === 'Active').length}</div>
+                    <p className="text-xs text-muted-foreground">Active discount codes</p>
+                </CardContent>
+            </Card>
+        </div>
       </DashboardPageLayout.TabContent>
       
       <DashboardPageLayout.TabContent value="campaigns">
@@ -174,41 +181,9 @@ export default function MarketingPage() {
             </CardContent>
         </Card>
       </DashboardPageLayout.TabContent>
-
-      <DashboardPageLayout.TabContent value="communication">
-         <Card>
-            <CardHeader>
-                <CardTitle>Communication</CardTitle>
-                <CardDescription>Tools for Email, SMS, WhatsApp and Push Notifications.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
-                    <div className="bg-primary/10 p-4 rounded-full">
-                        <MessageCircle className="h-12 w-12 text-primary" />
-                    </div>
-                    <h2 className="text-xl font-semibold">Coming Soon</h2>
-                    <p className="text-muted-foreground max-w-sm mx-auto">Integrations with Email, SMS, and WhatsApp marketing platforms will be available here.</p>
-                </div>
-            </CardContent>
-        </Card>
-      </DashboardPageLayout.TabContent>
       
       <DashboardPageLayout.TabContent value="analytics">
-         <Card>
-            <CardHeader>
-                <CardTitle>Analytics</CardTitle>
-                <CardDescription>Measure the impact of your marketing efforts.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <div className="flex flex-col items-center justify-center text-center gap-4 py-12">
-                    <div className="bg-primary/10 p-4 rounded-full">
-                        <BarChart className="h-12 w-12 text-primary" />
-                    </div>
-                    <h2 className="text-xl font-semibold">Coming Soon</h2>
-                    <p className="text-muted-foreground max-w-sm mx-auto">Detailed reports on campaign ROI, conversion rates, and audience segmentation will be available here.</p>
-                </div>
-            </CardContent>
-        </Card>
+         <MarketingAnalyticsReport campaigns={mockCampaigns} discounts={mockDiscounts} />
       </DashboardPageLayout.TabContent>
 
     </DashboardPageLayout>
