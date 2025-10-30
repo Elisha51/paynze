@@ -49,10 +49,16 @@ export default function PayoutReviewPage() {
         if (storedSettings) {
             const parsedSettings = JSON.parse(storedSettings);
             setSettings(parsedSettings);
-            // In a real app, affiliate settings would be fetched from a service.
-            // For this simulation, we assume they might be part of the main settings object
-            // or also stored in localStorage. We will mock getting them.
-            setAffiliateSettings({
+        }
+        
+        // In a real app, affiliate settings would be fetched from a service.
+        // For this simulation, we'll retrieve them from localStorage where the settings page saves them.
+        const storedAffiliateSettings = localStorage.getItem('affiliateSettings');
+        if (storedAffiliateSettings) {
+          setAffiliateSettings(JSON.parse(storedAffiliateSettings));
+        } else {
+           // Fallback to default mock settings if none are saved
+           setAffiliateSettings({
                 programStatus: 'Active',
                 commissionType: 'Percentage',
                 commissionRate: 10,
@@ -408,7 +414,5 @@ export default function PayoutReviewPage() {
         </div>
     );
 }
-
-    
 
     

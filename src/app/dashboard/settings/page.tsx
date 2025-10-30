@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -49,7 +48,12 @@ export default function SettingsPage() {
         if (data) {
             setSettings(JSON.parse(data));
         }
-        // In real app, you'd fetch affiliate settings from a service
+        
+        const affiliateData = localStorage.getItem('affiliateSettings');
+        if (affiliateData) {
+            setAffiliateSettings(JSON.parse(affiliateData));
+        }
+
         async function loadData() {
             const [fetchedLocations, fetchedCountries] = await Promise.all([
                 fetchLocations(),
@@ -138,7 +142,7 @@ export default function SettingsPage() {
         if (settings) {
             localStorage.setItem('onboardingData', JSON.stringify(settings));
         }
-        // Save other settings like affiliate...
+        localStorage.setItem('affiliateSettings', JSON.stringify(affiliateSettings));
         toast({
             title: 'Settings Saved',
             description: 'Your changes have been saved successfully.',
@@ -440,3 +444,5 @@ export default function SettingsPage() {
     </>
   );
 }
+
+    
