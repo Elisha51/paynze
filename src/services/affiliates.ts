@@ -8,6 +8,7 @@ const mockAffiliates: Affiliate[] = [
     { id: 'aff-002', name: 'David Odhiambo', status: 'Active', contact: '0712345678', uniqueId: 'DAVIDO', linkClicks: 850, conversions: 45, totalSales: 2800000, pendingCommission: 140000, paidCommission: 550000, payoutHistory: [] },
     { id: 'aff-003', name: 'Brenda Wanjiku', status: 'Pending', contact: '0723456789', uniqueId: 'BRENDA24', linkClicks: 50, conversions: 2, totalSales: 150000, pendingCommission: 7500, paidCommission: 0, payoutHistory: [] },
     { id: 'aff-004', name: 'Suspended Sally', status: 'Suspended', contact: '0734567890', uniqueId: 'SALLY', linkClicks: 2300, conversions: 150, totalSales: 8000000, pendingCommission: 400000, paidCommission: 1200000, payoutHistory: [] },
+    { id: 'aff-005', name: 'Rejected Ron', status: 'Rejected', contact: '0745678901', uniqueId: 'RONNIE', linkClicks: 0, conversions: 0, totalSales: 0, pendingCommission: 0, paidCommission: 0, payoutHistory: [] },
 
 ];
 

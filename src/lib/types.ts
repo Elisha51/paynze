@@ -482,7 +482,7 @@ export type Discount = {
 export type Affiliate = {
     id: string;
     name: string;
-    status: 'Active' | 'Pending' | 'Suspended' | 'Rejected';
+    status: 'Active' | 'Pending' | 'Suspended' | 'Rejected' | 'Deactivated';
     contact: string; // Mobile Money or Bank details
     uniqueId: string; // e.g. FATUMA123
     linkClicks: number;
