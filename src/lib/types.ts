@@ -468,4 +468,23 @@ export type Discount = {
   applicableProductIds?: string[];
 };
 
-    
+export type AffiliateProgramSettings = {
+    programStatus: 'Active' | 'Inactive';
+    commissionType: 'Percentage' | 'Fixed Amount';
+    commissionRate: number;
+    payoutThreshold: number;
+    cookieDuration: 7 | 30 | 60;
+};
+
+export type Affiliate = {
+    id: string;
+    name: string;
+    status: 'Active' | 'Pending';
+    contact: string; // Mobile Money or Bank details
+    uniqueId: string; // e.g. FATUMA123
+    linkClicks: number;
+    conversions: number;
+    totalSales: number;
+    pendingCommission: number;
+    paidCommission: number;
+};

@@ -24,6 +24,7 @@ import { addDays, format } from 'date-fns';
 import { getOrders } from '@/services/orders';
 import type { Order, Discount, Campaign } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
+import { AffiliatesTab } from '@/components/dashboard/affiliates-tab';
 
 
 // Mock data
@@ -151,6 +152,7 @@ export default function MarketingPage() {
     { value: 'overview', label: 'Overview' },
     { value: 'campaigns', label: 'Campaigns' },
     { value: 'discounts', label: 'Discounts' },
+    { value: 'affiliates', label: 'Affiliates' },
     { value: 'analytics', label: 'Analytics' },
   ];
   
@@ -262,6 +264,10 @@ export default function MarketingPage() {
                 <DataTable columns={discountColumns} data={mockDiscounts} />
             </CardContent>
         </Card>
+      </DashboardPageLayout.TabContent>
+      
+      <DashboardPageLayout.TabContent value="affiliates">
+        <AffiliatesTab />
       </DashboardPageLayout.TabContent>
       
       <DashboardPageLayout.TabContent value="analytics">
