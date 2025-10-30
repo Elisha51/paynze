@@ -70,7 +70,7 @@ export default function PayoutReviewPage() {
             if (staff.role === 'Affiliate' && affiliateSettings && affiliateSettings.programStatus === 'Active') {
                  orders.forEach(order => {
                     // Check if the order was referred by this affiliate and is paid
-                    if (order.salesAgentId === staff.id && order.payment.status === 'completed') {
+                    if (order.salesAgentId === staff.id && order.payment?.status === 'completed') {
                         let amount = 0;
                         if (affiliateSettings.commissionType === 'Percentage') {
                             amount = order.total * (affiliateSettings.commissionRate / 100);
@@ -90,7 +90,7 @@ export default function PayoutReviewPage() {
                  });
             } else if (staffRole?.commissionRules) { // Staff commission calculation
                 orders.forEach(order => {
-                    if (order.payment.status !== 'completed') return;
+                    if (order.payment?.status !== 'completed') return;
 
                     staffRole.commissionRules.forEach((rule: CommissionRule) => {
                         let isTriggered = false;
