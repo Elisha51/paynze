@@ -126,7 +126,7 @@ async function initializeMockStaff(): Promise<(Staff | Affiliate)[]> {
         totalCommission: 0,
         currency: 'KES',
       },
-      { id: 'aff-001', name: 'Fatuma Asha', role: 'Affiliate', status: 'Active', email: 'fatuma@email.com', totalCommission: 225000, currency: 'UGX' } as Staff,
+      { id: 'aff-001', name: 'Fatuma Asha', role: 'Affiliate', status: 'Active', email: 'fatuma@email.com', totalCommission: 17000, currency: 'UGX' } as Staff,
       { id: 'aff-002', name: 'David Odhiambo', role: 'Affiliate', status: 'Active', email: 'david@email.com', totalCommission: 140000, currency: 'UGX' } as Staff,
       { id: 'aff-003', name: 'Brenda Wanjiku', role: 'Affiliate', status: 'Pending', email: 'brenda@email.com', totalCommission: 7500, currency: 'UGX' } as Staff,
     ];

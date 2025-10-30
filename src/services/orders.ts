@@ -94,6 +94,38 @@ function initializeMockOrders(): Order[] {
             total: 50000,
             shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
         },
+        { 
+            id: 'ORD-008',
+            customerId: 'cust-07',
+            customerName: 'Ben Carter',
+            customerEmail: 'ben@example.com',
+            salesAgentId: 'aff-001', // Referred by Fatuma Asha
+            salesAgentName: 'Fatuma Asha',
+            date: '2024-07-21', 
+            status: 'Delivered', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 1, price: 50000, category: 'Groceries' }],
+            total: 50000,
+            currency: 'UGX',
+            shippingAddress: { street: '777 Test Road', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            payment: { method: 'Mobile Money', status: 'completed', transactionId: 'txn_ORD-008' },
+        },
+        { 
+            id: 'ORD-009',
+            customerId: 'cust-08',
+            customerName: 'Chloe Davis',
+            customerEmail: 'chloe@example.com',
+            salesAgentId: 'aff-001', // Referred by Fatuma Asha
+            salesAgentName: 'Fatuma Asha',
+            date: '2024-07-20', 
+            status: 'Picked Up', 
+            fulfillmentMethod: 'Pickup',
+            items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 4, price: 30000, category: 'Fabrics' }],
+            total: 120000,
+            currency: 'UGX',
+            shippingAddress: { street: '888 Demo Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            payment: { method: 'Cash on Delivery', status: 'completed', transactionId: 'txn_ORD-009' },
+        },
     ];
     return [...mockOrders].map((order, index) => {
         const isPaid = order.status !== 'Awaiting Payment';
@@ -101,9 +133,9 @@ function initializeMockOrders(): Order[] {
 
         const fullOrder: Order = {
             ...order,
-            currency: index % 2 === 0 ? 'UGX' : 'KES',
-            channel: index % 2 === 0 ? 'Online' : 'Manual',
-            payment: {
+            currency: order.currency || (index % 2 === 0 ? 'UGX' : 'KES'),
+            channel: order.channel || (index % 2 === 0 ? 'Online' : 'Manual'),
+            payment: order.payment || {
                 method: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery',
                 status: isPaid ? 'completed' : 'pending',
                 transactionId: isPaid ? `txn_${order.id}` : undefined,
