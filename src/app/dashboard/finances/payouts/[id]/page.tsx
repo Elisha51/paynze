@@ -53,21 +53,22 @@ export default function PayoutReviewPage() {
 
         const calculateCommissions = (staff: Staff, orders: Order[], roles: any[]): EarningItem[] => {
             const staffRole = roles.find(r => r.name === staff.role);
-            if (!staffRole?.commissionRules && !staff.bonuses) return [];
+            if (!staffRole) return [];
 
             let commissionItems: EarningItem[] = [];
             
             // Affiliate commission calculation
             if (staff.role === 'Affiliate') {
                  orders.forEach(order => {
-                    // This is a simplification. A real app would check if the order came from the affiliate's link.
-                    // For demo, we'll assume some orders are from this affiliate.
-                    if (order.id.endsWith(staff.id.slice(-1))) { // Simple logic to assign some orders to affiliates
+                    // Check if the order was referred by this affiliate
+                    if (order.salesAgentId === staff.id) {
+                         const affiliateRule = staffRole.commissionRules.find(r => r.name === 'Standard Affiliate Commission');
+                         const rate = affiliateRule ? affiliateRule.rate / 100 : 0.1; // Default 10% if rule not found
                          commissionItems.push({
                             id: `comm-${order.id}-affiliate`,
                             date: order.date,
                             description: `Affiliate commission on Order #${order.id}`,
-                            amount: order.total * 0.1, // Assuming 10% affiliate commission for demo
+                            amount: order.total * rate, 
                             status: 'pending',
                             type: 'Commission',
                             original: order

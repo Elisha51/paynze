@@ -19,9 +19,10 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/context/auth-context';
+import { getAffiliates, updateAffiliate } from '@/services/affiliates';
 
 
-const getAffiliateColumns = (canEdit: boolean): ColumnDef<Affiliate>[] => [
+const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => void): ColumnDef<Affiliate>[] => [
     {
         accessorKey: 'name',
         header: 'Affiliate',
@@ -76,13 +77,15 @@ const getAffiliateColumns = (canEdit: boolean): ColumnDef<Affiliate>[] => [
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             {affiliate.status === 'Pending' && canEdit && (
-                                <DropdownMenuItem>Approve</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleApprove(affiliate.id)}>Approve</DropdownMenuItem>
                             )}
-                            <DropdownMenuItem asChild>
-                                <Link href={`/dashboard/finances?tab=payouts`}>
-                                    <Edit className="mr-2 h-4 w-4" /> Go to Payouts
-                                </Link>
-                            </DropdownMenuItem>
+                            {affiliate.status === 'Active' && canEdit && (
+                                 <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/finances?tab=payouts`}>
+                                        <Edit className="mr-2 h-4 w-4" /> Go to Payouts
+                                    </Link>
+                                </DropdownMenuItem>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -94,23 +97,34 @@ const getAffiliateColumns = (canEdit: boolean): ColumnDef<Affiliate>[] => [
 export function AffiliatesTab() {
     const { toast } = useToast();
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const signupLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/affiliate-signup`;
     const { user } = useAuth();
     const canEdit = user?.permissions.marketing?.edit;
-    
-    const affiliateColumns = getAffiliateColumns(!!canEdit);
 
-    const mockAffiliates: Affiliate[] = [
-        { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 225000, paidCommission: 980000 },
-        { id: 'aff-002', name: 'David Odhiambo', status: 'Active', contact: '0712345678', uniqueId: 'DAVIDO', linkClicks: 850, conversions: 45, totalSales: 2800000, pendingCommission: 140000, paidCommission: 550000 },
-        { id: 'aff-003', name: 'Brenda Wanjiku', status: 'Pending', contact: '0723456789', uniqueId: 'BRENDA24', linkClicks: 50, conversions: 2, totalSales: 150000, pendingCommission: 7500, paidCommission: 0 },
-    ];
+    const handleApproveAffiliate = async (id: string) => {
+        try {
+            await updateAffiliate(id, { status: 'Active' });
+            setAffiliates(prev => prev.map(a => a.id === id ? { ...a, status: 'Active' } : a));
+            toast({ title: "Affiliate Approved!" });
+        } catch (error) {
+            toast({ variant: 'destructive', title: "Approval Failed" });
+        }
+    };
+    
+    const affiliateColumns = getAffiliateColumns(!!canEdit, handleApproveAffiliate);
+
     
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
         if (data) {
             setSettings(JSON.parse(data));
         }
+        async function loadAffiliates() {
+            const data = await getAffiliates();
+            setAffiliates(data);
+        }
+        loadAffiliates();
     }, []);
 
     const copySignupLink = () => {
@@ -144,7 +158,7 @@ export function AffiliatesTab() {
                 <CardContent>
                     <DataTable 
                         columns={affiliateColumns} 
-                        data={mockAffiliates} 
+                        data={affiliates} 
                         emptyState={{
                             icon: UserPlus,
                             title: "No Affiliates Yet",

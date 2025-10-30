@@ -5,6 +5,7 @@ import { updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
 import { DataService } from './data-service';
+import { getAffiliates } from './affiliates';
 
 
 function initializeMockOrders(): Order[] {
@@ -162,6 +163,20 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
     ...order,
     id: `ORD-${Date.now()}`,
   };
+
+  if (newOrder.channel === 'Online' && typeof window !== 'undefined') {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get('ref');
+    if (ref) {
+      const affiliates = await getAffiliates();
+      const affiliate = affiliates.find(a => a.uniqueId === ref && a.status === 'Active');
+      if (affiliate) {
+        newOrder.salesAgentId = affiliate.id;
+        newOrder.salesAgentName = affiliate.name;
+        console.log(`Order attributed to affiliate: ${affiliate.name}`);
+      }
+    }
+  }
   
   // Reserve stock
   for (const item of newOrder.items) {
