@@ -62,6 +62,7 @@ export default function ViewAffiliatePage() {
   const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+  const [dialogAction, setDialogAction] = useState<'reject' | 'deactivate' | 'suspend' | null>(null);
 
   const canEdit = user?.permissions.marketing?.edit;
 
@@ -91,6 +92,19 @@ export default function ViewAffiliatePage() {
         toast({ variant: 'destructive', title: "Action Failed" });
     }
   };
+  
+  const handleDialogConfirm = () => {
+      if (!dialogAction) return;
+      
+      const statusMap = {
+          reject: 'Rejected',
+          deactivate: 'Deactivated',
+          suspend: 'Suspended',
+      };
+      
+      handleStatusChange(statusMap[dialogAction] as Affiliate['status']);
+      setDialogAction(null);
+  }
 
   const handleBack = () => {
     router.push('/dashboard/marketing?tab=affiliates');
@@ -135,6 +149,16 @@ export default function ViewAffiliatePage() {
         navigator.clipboard.writeText(referralLink);
         toast({ title: "Referral Link Copied!" });
     }
+    
+  const getDialogDescription = () => {
+    switch (dialogAction) {
+        case 'reject': return `This will reject the affiliate "${affiliate.name}". Their application will be denied.`;
+        case 'suspend': return `This will suspend the affiliate "${affiliate.name}". Their link will be temporarily disabled.`;
+        case 'deactivate': return `This will deactivate the affiliate "${affiliate.name}". Their account will be disabled permanently.`;
+        default: return "Please confirm this action.";
+    }
+  }
+
 
   return (
     <div className="space-y-6">
@@ -167,7 +191,7 @@ export default function ViewAffiliatePage() {
                                             <CheckCircle className="mr-2 h-4 w-4" /> Approve
                                         </DropdownMenuItem>
                                         <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                            <DropdownMenuItem onSelect={() => {setDialogAction('reject'); e.preventDefault()}} className="text-destructive focus:text-destructive">
                                                 <XCircle className="mr-2 h-4 w-4" /> Reject
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
@@ -176,12 +200,12 @@ export default function ViewAffiliatePage() {
                                 {affiliate.status === 'Active' && (
                                     <>
                                          <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-orange-600 focus:text-orange-600">
+                                            <DropdownMenuItem onSelect={() => {setDialogAction('suspend'); e.preventDefault()}} className="text-orange-600 focus:text-orange-600">
                                                 <Ban className="mr-2 h-4 w-4" /> Suspend
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
                                          <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                            <DropdownMenuItem onSelect={() => {setDialogAction('deactivate'); e.preventDefault()}} className="text-destructive focus:text-destructive">
                                                 <XCircle className="mr-2 h-4 w-4" /> Deactivate
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
@@ -206,15 +230,12 @@ export default function ViewAffiliatePage() {
                     <AlertDialogHeader>
                         <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                         <AlertDialogDescription>
-                           This will change the affiliate's status. Please confirm this action.
+                           {getDialogDescription()}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => {
-                            if(affiliate.status === 'Pending') handleStatusChange('Rejected')
-                            else if(affiliate.status === 'Active') handleStatusChange('Deactivated')
-                        }} className="bg-destructive hover:bg-destructive/90">
+                        <AlertDialogAction onClick={handleDialogConfirm} className="bg-destructive hover:bg-destructive/90">
                             Confirm
                         </AlertDialogAction>
                     </AlertDialogFooter>
@@ -330,4 +351,5 @@ export default function ViewAffiliatePage() {
       </div>
     </div>
   );
-}
+
+    
