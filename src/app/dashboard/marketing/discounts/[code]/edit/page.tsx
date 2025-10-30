@@ -49,7 +49,7 @@ export default function EditDiscountPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
     
-    const canEdit = user?.permissions.dashboard.view; // Simplification, should be marketing perm
+    const canEdit = user?.permissions.marketing?.edit;
 
     useEffect(() => {
         async function loadProducts() {

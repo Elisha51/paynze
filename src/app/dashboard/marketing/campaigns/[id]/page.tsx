@@ -40,7 +40,7 @@ export default function ViewCampaignPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const canEdit = user?.permissions.marketing.edit;
+  const canEdit = user?.permissions.marketing?.edit;
 
   useEffect(() => {
     async function loadData() {

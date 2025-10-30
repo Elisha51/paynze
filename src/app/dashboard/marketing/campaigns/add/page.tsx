@@ -44,7 +44,7 @@ export default function AddCampaignPage() {
     const { toast } = useToast();
     const { user } = useAuth();
     
-    const canCreate = user?.permissions.marketing.create;
+    const canCreate = user?.permissions.marketing?.create;
 
     useEffect(() => {
         async function loadProducts() {

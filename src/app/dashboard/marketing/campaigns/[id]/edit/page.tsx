@@ -61,7 +61,7 @@ export default function EditCampaignPage() {
     
     const { toast } = useToast();
 
-    const canEdit = user?.permissions.marketing.edit;
+    const canEdit = user?.permissions.marketing?.edit;
 
     useEffect(() => {
         async function loadData() {
