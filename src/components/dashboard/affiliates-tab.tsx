@@ -5,17 +5,15 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Users, Link as LinkIcon, UserPlus, CheckCircle, MoreHorizontal, DollarSign } from 'lucide-react';
+import { Copy, Users, Link as LinkIcon, UserPlus } from 'lucide-react';
 import type { OnboardingFormData, Affiliate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
-import { getAffiliates, updateAffiliate } from '@/services/affiliates';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
-const getAffiliateColumns = (onApprove: (id: string) => void): ColumnDef<Affiliate>[] => [
+const affiliateColumns: ColumnDef<Affiliate>[] = [
     {
         accessorKey: 'name',
         header: 'Affiliate',
@@ -54,68 +52,35 @@ const getAffiliateColumns = (onApprove: (id: string) => void): ColumnDef<Affilia
         }
     },
     {
-      id: 'actions',
-      header: () => <div className="text-right">Actions</div>,
-      cell: ({ row }) => {
-          const affiliate = row.original;
-          const needsApproval = affiliate.status === 'Pending';
-
-          return (
-              <div className="text-right">
-                  <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" className="h-8 w-8 p-0">
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                          {needsApproval && (
-                              <DropdownMenuItem onClick={() => onApprove(affiliate.id)}>
-                                  <CheckCircle className="mr-2 h-4 w-4" />
-                                  Approve
-                              </DropdownMenuItem>
-                          )}
-                           <DropdownMenuItem asChild>
-                                <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
-                                    <DollarSign className="mr-2 h-4 w-4" />
-                                    View Payouts
-                                </Link>
-                            </DropdownMenuItem>
-                      </DropdownMenuContent>
-                  </DropdownMenu>
-              </div>
-          )
-      }
+        id: 'actions',
+        header: 'Actions',
+        cell: ({ row }) => {
+            const affiliate = row.original;
+            return (
+                <div className="flex gap-2">
+                    {affiliate.status === 'Pending' && <Button size="sm">Approve</Button>}
+                </div>
+            )
+        }
     }
 ];
 
 export function AffiliatesTab() {
     const { toast } = useToast();
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
-    const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const signupLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/affiliate-signup`;
+    const mockAffiliates: Affiliate[] = [
+        { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 225000, paidCommission: 980000 },
+        { id: 'aff-002', name: 'David Odhiambo', status: 'Active', contact: '0712345678', uniqueId: 'DAVIDO', linkClicks: 850, conversions: 45, totalSales: 2800000, pendingCommission: 140000, paidCommission: 550000 },
+        { id: 'aff-003', name: 'Brenda Wanjiku', status: 'Pending', contact: '0723456789', uniqueId: 'BRENDA24', linkClicks: 50, conversions: 2, totalSales: 150000, pendingCommission: 7500, paidCommission: 0 },
+    ];
     
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
         if (data) {
             setSettings(JSON.parse(data));
         }
-        async function loadAffiliates() {
-            const fetchedAffiliates = await getAffiliates();
-            setAffiliates(fetchedAffiliates);
-        }
-        loadAffiliates();
     }, []);
-
-    const handleApproveAffiliate = async (id: string) => {
-        const updated = await updateAffiliate(id, { status: 'Active' });
-        setAffiliates(prev => prev.map(a => a.id === id ? updated : a));
-        toast({ title: "Affiliate Approved", description: `${updated.name} is now an active affiliate.`});
-    };
-    
-    const affiliateColumns = getAffiliateColumns(handleApproveAffiliate);
 
     const copySignupLink = () => {
         navigator.clipboard.writeText(signupLink);
@@ -148,7 +113,7 @@ export function AffiliatesTab() {
                 <CardContent>
                     <DataTable 
                         columns={affiliateColumns} 
-                        data={affiliates} 
+                        data={mockAffiliates} 
                         emptyState={{
                             icon: UserPlus,
                             title: "No Affiliates Yet",
