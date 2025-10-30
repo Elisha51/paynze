@@ -63,7 +63,7 @@ export default function FinancesPage() {
   const activeTab = searchParams.get('tab') || 'transactions';
 
   const [transactions, setTransactions] = React.useState<Transaction[]>([]);
-  const [staff, setStaff] = React.useState<Staff[]>([]);
+  const [staffAndAffiliates, setStaffAndAffiliates] = React.useState<Staff[]>([]);
   const [roles, setRoles] = React.useState<Role[]>([]);
   const [orders, setOrders] = React.useState<Order[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
@@ -94,7 +94,7 @@ export default function FinancesPage() {
       getOrders()
     ]);
     setTransactions(fetchedTransactions);
-    setStaff(fetchedStaff);
+    setStaffAndAffiliates(fetchedStaff);
     setRoles(fetchedRoles);
     setOrders(fetchedOrders);
     setIsLoading(false);
@@ -212,7 +212,7 @@ export default function FinancesPage() {
         return;
     }
 
-    const staffMember = staff.find(s => s.id === bonusStaffId);
+    const staffMember = staffAndAffiliates.find(s => s.id === bonusStaffId);
     if (!staffMember) {
         toast({ variant: 'destructive', title: 'Staff member not found.' });
         return;
@@ -245,6 +245,9 @@ export default function FinancesPage() {
     setBonusReason('');
     loadData(); // Reload all data to reflect changes
   };
+
+  const staffMembers = staffAndAffiliates.filter(s => s.role !== 'Affiliate');
+  const affiliates = staffAndAffiliates.filter(s => s.role === 'Affiliate');
 
 
   const mainTabs = [
@@ -452,13 +455,28 @@ export default function FinancesPage() {
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="payouts">
-        <CommissionReport 
-            staff={staff} 
-            roles={roles} 
-            orders={orders} 
-            onPayout={loadData}
-            onAwardBonus={() => setIsAwardBonusOpen(true)}
-        />
+        <div className="space-y-6">
+            <CommissionReport 
+                type="staff"
+                title="Staff Commissions & Bonuses"
+                description="View unpaid earnings and process payouts for your internal team members."
+                staff={staffMembers} 
+                roles={roles} 
+                orders={orders} 
+                onPayout={loadData}
+                onAwardBonus={() => setIsAwardBonusOpen(true)}
+            />
+             <CommissionReport 
+                type="affiliate"
+                title="Affiliate Payouts"
+                description="View unpaid earnings and process payouts for your marketing affiliates."
+                staff={affiliates} 
+                roles={roles} 
+                orders={orders} 
+                onPayout={loadData}
+                onAwardBonus={() => setIsAwardBonusOpen(true)}
+            />
+        </div>
       </DashboardPageLayout.TabContent>
 
       <DashboardPageLayout.TabContent value="analytics">
@@ -543,7 +561,7 @@ export default function FinancesPage() {
                             <SelectValue placeholder="Select a staff member" />
                         </SelectTrigger>
                         <SelectContent>
-                            {staff.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                            {staffAndAffiliates.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                         </SelectContent>
                     </Select>
                  </div>

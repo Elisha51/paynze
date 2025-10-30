@@ -2,12 +2,12 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import type { Payout, Staff, Role, Order, Bonus, OnboardingFormData } from '@/lib/types';
+import type { Staff, Role, Order, OnboardingFormData } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, DollarSign, MoreHorizontal, Gift, FileText, Award } from 'lucide-react';
+import { ArrowUpDown, DollarSign, MoreHorizontal, FileText, Award, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from '../ui/dropdown-menu';
@@ -22,7 +22,7 @@ type CommissionRow = {
 const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow>[] => [
     {
         accessorKey: 'name',
-        header: 'Staff Member',
+        header: 'Staff Member / Affiliate',
         cell: ({ row }) => (
             <Link href={`/dashboard/staff/${row.original.staffId}`} className="font-medium hover:underline">
                 {row.getValue('name')}
@@ -81,7 +81,18 @@ const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow
     },
 ];
 
-export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus }: { staff: Staff[], roles: Role[], orders: Order[], onPayout: () => void, onAwardBonus: () => void }) {
+type CommissionReportProps = {
+    type: 'staff' | 'affiliate';
+    title: string;
+    description: string;
+    staff: Staff[];
+    roles: Role[];
+    orders: Order[];
+    onPayout: () => void;
+    onAwardBonus: () => void;
+}
+
+export function CommissionReport({ type, title, description, staff, roles, orders, onPayout, onAwardBonus }: CommissionReportProps) {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const { user } = useAuth();
 
@@ -99,9 +110,7 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
             const role = roles.find(r => r.name === s.role);
             const hasCommissionRules = role?.commissionRules && role.commissionRules.length > 0;
             const hasUnpaidBalance = s.totalCommission && s.totalCommission > 0;
-            // Also include affiliates in the payout report
-            const isAffiliate = s.role === 'Affiliate';
-            return (hasCommissionRules || hasUnpaidBalance || isAffiliate);
+            return hasCommissionRules || hasUnpaidBalance;
         }).map(s => ({
             staffId: s.id,
             name: s.name,
@@ -112,33 +121,38 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
     
     const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditFinances), [settings?.currency, canEditFinances]);
 
+    const Icon = type === 'staff' ? User : Users;
+
     return (
-        <>
-            <Card>
-                <CardHeader className="flex-row items-center justify-between">
-                    <div>
-                        <CardTitle>Commission & Bonus Payouts</CardTitle>
-                        <CardDescription>View unpaid earnings and process payouts for your staff and affiliates.</CardDescription>
+        <Card>
+            <CardHeader className="flex-row items-start justify-between">
+                <div className="flex items-start gap-4">
+                    <div className="bg-muted p-3 rounded-md">
+                        <Icon className="h-6 w-6 text-muted-foreground" />
                     </div>
-                    {canEditFinances && (
-                        <Button variant="outline" onClick={onAwardBonus}>
-                            <Award className="mr-2 h-4 w-4" />
-                            Award Bonus / Adjustment
-                        </Button>
-                    )}
-                </CardHeader>
-                <CardContent>
-                    <DataTable
-                        columns={columns}
-                        data={commissionData}
-                        emptyState={{
-                            icon: DollarSign,
-                            title: 'No Unpaid Commissions',
-                            description: 'There are currently no staff members or affiliates with pending commission payouts.',
-                        }}
-                    />
-                </CardContent>
-            </Card>
-        </>
+                    <div>
+                        <CardTitle>{title}</CardTitle>
+                        <CardDescription>{description}</CardDescription>
+                    </div>
+                </div>
+                {type === 'staff' && canEditFinances && (
+                    <Button variant="outline" onClick={onAwardBonus}>
+                        <Award className="mr-2 h-4 w-4" />
+                        Award Bonus / Adjustment
+                    </Button>
+                )}
+            </CardHeader>
+            <CardContent>
+                <DataTable
+                    columns={columns}
+                    data={commissionData}
+                    emptyState={{
+                        icon: DollarSign,
+                        title: `No Unpaid ${type === 'staff' ? 'Commissions' : 'Payouts'}`,
+                        description: `There are currently no ${type} with pending payouts.`,
+                    }}
+                />
+            </CardContent>
+        </Card>
     );
 }
