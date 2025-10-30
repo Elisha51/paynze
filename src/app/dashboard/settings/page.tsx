@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { OnboardingFormData } from '@/context/onboarding-context';
 import { LocationsTab } from '@/components/settings/locations-tab';
-import type { Location, ShippingZone } from '@/lib/types';
+import type { Location, ShippingZone, AffiliateProgramSettings } from '@/lib/types';
 import { getLocations as fetchLocations } from '@/services/locations';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -28,6 +28,13 @@ import { useAuth } from '@/context/auth-context';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [affiliateSettings, setAffiliateSettings] = useState<AffiliateProgramSettings>({
+        programStatus: 'Inactive',
+        commissionType: 'Percentage',
+        commissionRate: 10,
+        payoutThreshold: 50000,
+        cookieDuration: 30,
+    });
     const [locations, setLocations] = useState<Location[]>([]);
     const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
     const [activeTab, setActiveTab] = useState('store');
@@ -42,6 +49,7 @@ export default function SettingsPage() {
         if (data) {
             setSettings(JSON.parse(data));
         }
+        // In real app, you'd fetch affiliate settings from a service
         async function loadData() {
             const [fetchedLocations, fetchedCountries] = await Promise.all([
                 fetchLocations(),
@@ -122,10 +130,15 @@ export default function SettingsPage() {
         setShippingZones(prev => prev.filter(zone => zone.id !== zoneId));
     };
 
+    const handleAffiliateSettingChange = (field: keyof AffiliateProgramSettings, value: any) => {
+        setAffiliateSettings(prev => ({...prev, [field]: value}));
+    };
+
     const handleSaveChanges = () => {
         if (settings) {
             localStorage.setItem('onboardingData', JSON.stringify(settings));
         }
+        // Save other settings like affiliate...
         toast({
             title: 'Settings Saved',
             description: 'Your changes have been saved successfully.',
@@ -141,11 +154,12 @@ export default function SettingsPage() {
         </p>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="store">Store</TabsTrigger>
           <TabsTrigger value="locations">Locations</TabsTrigger>
           <TabsTrigger value="payments">Payments</TabsTrigger>
           <TabsTrigger value="delivery">Delivery</TabsTrigger>
+          <TabsTrigger value="affiliates">Affiliates</TabsTrigger>
           <TabsTrigger value="inventory">Inventory</TabsTrigger>
         </TabsList>
         <TabsContent value="store">
@@ -304,6 +318,95 @@ export default function SettingsPage() {
                     </CardContent>
                 </Card>
             </div>
+        </TabsContent>
+         <TabsContent value="affiliates">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Affiliate Program</CardTitle>
+                    <CardDescription>
+                        Configure settings for your affiliate marketing program.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-4">
+                            <div>
+                                <Label htmlFor="programStatus" className="text-base font-semibold">Program Status</Label>
+                                <p className="text-sm text-muted-foreground">Enable or disable your entire affiliate program.</p>
+                            </div>
+                            <Switch 
+                                id="programStatus" 
+                                checked={affiliateSettings.programStatus === 'Active'}
+                                onCheckedChange={(checked) => handleAffiliateSettingChange('programStatus', checked ? 'Active' : 'Inactive')}
+                                disabled={!canEdit}
+                            />
+                        </CardHeader>
+                    </Card>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Commission & Tracking</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label>Commission Type & Rate</Label>
+                                    <div className="flex gap-2">
+                                        <Select
+                                            value={affiliateSettings.commissionType}
+                                            onValueChange={(v) => handleAffiliateSettingChange('commissionType', v)}
+                                            disabled={!canEdit}
+                                        >
+                                            <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Percentage">Percentage</SelectItem>
+                                                <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <Input 
+                                            type="number" 
+                                            value={affiliateSettings.commissionRate}
+                                            onChange={(e) => handleAffiliateSettingChange('commissionRate', Number(e.target.value))}
+                                            disabled={!canEdit}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="cookieDuration">Cookie Duration</Label>
+                                    <Select
+                                        value={String(affiliateSettings.cookieDuration)}
+                                        onValueChange={(v) => handleAffiliateSettingChange('cookieDuration', Number(v))}
+                                        disabled={!canEdit}
+                                    >
+                                        <SelectTrigger id="cookieDuration"><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="7">7 Days</SelectItem>
+                                            <SelectItem value="30">30 Days (Recommended)</SelectItem>
+                                            <SelectItem value="60">60 Days</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </CardContent>
+                        </Card>
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Payout Settings</CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="payoutThreshold">Minimum Payout Threshold ({settings?.currency})</Label>
+                                    <Input 
+                                        id="payoutThreshold" 
+                                        type="number"
+                                        value={affiliateSettings.payoutThreshold}
+                                        onChange={(e) => handleAffiliateSettingChange('payoutThreshold', Number(e.target.value))}
+                                        disabled={!canEdit}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+                </CardContent>
+            </Card>
         </TabsContent>
         <TabsContent value="inventory">
             <Card>
