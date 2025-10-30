@@ -70,16 +70,22 @@ export default function PayoutReviewPage() {
             let commissionItems: EarningItem[] = [];
             
             // Affiliate commission calculation
-            if (staff.role === 'Affiliate' && affiliateSettings) {
+            if (staff.role === 'Affiliate' && affiliateSettings && affiliateSettings.programStatus === 'Active') {
                  orders.forEach(order => {
-                    // Check if the order was referred by this affiliate
+                    // Check if the order was referred by this affiliate and is paid
                     if (order.salesAgentId === staff.id && order.payment.status === 'completed') {
-                         const rate = affiliateSettings.commissionRate / 100;
+                        let amount = 0;
+                        if (affiliateSettings.commissionType === 'Percentage') {
+                            amount = order.total * (affiliateSettings.commissionRate / 100);
+                        } else { // Fixed Amount
+                            amount = affiliateSettings.commissionRate;
+                        }
+
                          commissionItems.push({
                             id: `comm-${order.id}-affiliate`,
                             date: order.date,
                             description: `Affiliate commission on Order #${order.id}`,
-                            amount: order.total * rate, 
+                            amount, 
                             status: 'pending',
                             type: 'Commission',
                             original: order
@@ -402,5 +408,7 @@ export default function PayoutReviewPage() {
         </div>
     );
 }
+
+    
 
     
