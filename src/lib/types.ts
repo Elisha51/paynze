@@ -489,4 +489,5 @@ export type Affiliate = {
     totalSales: number;
     pendingCommission: number;
     paidCommission: number;
+    payoutHistory?: Payout[];
 };

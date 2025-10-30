@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit, ArrowUpDown } from 'lucide-react';
+import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit, ArrowUpDown, Info } from 'lucide-react';
 import type { OnboardingFormData, Affiliate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
@@ -37,10 +37,10 @@ const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => vo
             </Button>
         ),
         cell: ({ row }) => (
-            <div>
+            <Link href={`/dashboard/marketing/affiliates/${row.original.id}`} className="hover:underline">
                 <p className="font-medium">{row.original.name}</p>
                 <p className="text-xs text-muted-foreground">{row.original.uniqueId}</p>
-            </div>
+            </Link>
         )
     },
     {
@@ -108,6 +108,11 @@ const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => vo
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/marketing/affiliates/${affiliate.id}`}>
+                                    <Info className="mr-2 h-4 w-4" /> View Details
+                                </Link>
+                            </DropdownMenuItem>
                             {affiliate.status === 'Pending' && canEdit && (
                                 <DropdownMenuItem onClick={() => handleApprove(affiliate.id)}>Approve</DropdownMenuItem>
                             )}
