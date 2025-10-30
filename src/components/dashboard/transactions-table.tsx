@@ -20,18 +20,59 @@ import type { Transaction, OnboardingFormData } from '@/lib/types';
 import { DataTable } from './data-table';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
+import { Checkbox } from '../ui/checkbox';
 
 
 const getColumns = (currency: string): ColumnDef<Transaction>[] => [
+    {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
     { 
         accessorKey: 'date', 
-        header: 'Date',
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Date
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
         cell: ({ row }) => format(new Date(row.getValue('date')), 'PPP p')
     },
-    { accessorKey: 'description', header: 'Description' },
+    { 
+        accessorKey: 'description', 
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Description
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        )
+    },
     { 
         accessorKey: 'type', 
-        header: 'Type',
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Type
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
         cell: ({ row }) => {
             const isIncome = row.getValue('type') === 'Income';
             return <Badge variant={isIncome ? 'default' : 'secondary'}>{row.getValue('type')}</Badge>
@@ -47,7 +88,15 @@ const getColumns = (currency: string): ColumnDef<Transaction>[] => [
             return value.includes(row.getValue(id))
         },
     },
-    { accessorKey: 'category', header: 'Category' },
+    { 
+        accessorKey: 'category', 
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Category
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
+    },
     { 
         accessorKey: 'status', 
         header: 'Status',

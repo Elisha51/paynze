@@ -2,7 +2,7 @@
 
 'use client';
 
-import { PlusCircle, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, ChevronDown, Checkbox } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -36,8 +36,35 @@ import { useAuth } from '@/context/auth-context';
 // Columns for Suppliers Table
 const supplierColumns: ColumnDef<Supplier>[] = [
   {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: 'name',
-    header: 'Supplier Name',
+    header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Supplier Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    ),
     cell: ({ row }) => (
       <Link href={`/dashboard/procurement/suppliers/${row.original.id}`} className="font-medium hover:underline">
         {row.original.name}
@@ -46,7 +73,12 @@ const supplierColumns: ColumnDef<Supplier>[] = [
   },
   {
     accessorKey: 'contactName',
-    header: 'Contact Name',
+    header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Contact Name
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    ),
   },
   {
     accessorKey: 'email',
@@ -106,6 +138,28 @@ const poStatuses = [
 ];
 
 const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
+    {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'id',
     header: 'Order ID',
@@ -117,7 +171,12 @@ const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
   },
   {
     accessorKey: 'supplierName',
-    header: 'Supplier',
+    header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Supplier
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    ),
     cell: ({ row }) => (
       <Link href={`/dashboard/procurement/suppliers/${row.original.supplierId}`} className="font-medium hover:underline">
         {row.original.supplierName}
@@ -126,7 +185,12 @@ const getPOColumns = (currency: string): ColumnDef<PurchaseOrder>[] => [
   },
   {
     accessorKey: 'orderDate',
-    header: 'Order Date',
+    header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Order Date
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    ),
   },
   {
     accessorKey: 'status',

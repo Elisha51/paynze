@@ -11,6 +11,7 @@ import { ArrowUpDown, DollarSign, MoreHorizontal, FileText, Award, User, Users }
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from '../ui/dropdown-menu';
+import { Checkbox } from '../ui/checkbox';
 
 type CommissionRow = {
   staffId: string;
@@ -21,8 +22,35 @@ type CommissionRow = {
 
 const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow>[] => [
     {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+    {
         accessorKey: 'name',
-        header: 'Staff Member / Affiliate',
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Staff Member / Affiliate
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
         cell: ({ row }) => (
             <Link href={`/dashboard/staff/${row.original.staffId}`} className="font-medium hover:underline">
                 {row.getValue('name')}
@@ -31,7 +59,12 @@ const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow
     },
     {
         accessorKey: 'role',
-        header: 'Role',
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Role
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
     },
     {
         accessorKey: 'commission',
