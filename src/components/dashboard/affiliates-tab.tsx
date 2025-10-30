@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit, ArrowUpDown, Info, XCircle, CheckCircle, RotateCcw } from 'lucide-react';
+import { Copy, Users, Link as LinkIcon, MoreHorizontal, ArrowUpDown, Info, XCircle, CheckCircle, RotateCcw } from 'lucide-react';
 import type { OnboardingFormData, Affiliate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
@@ -191,7 +191,7 @@ const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, 
                                         {affiliate.status === 'Active' && (
                                             <DropdownMenuItem asChild>
                                                 <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
-                                                    <Edit className="mr-2 h-4 w-4" /> Review & Payout
+                                                    <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
                                                 </Link>
                                             </DropdownMenuItem>
                                         )}
