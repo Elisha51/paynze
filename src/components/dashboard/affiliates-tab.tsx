@@ -1,19 +1,27 @@
 
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Users, Link as LinkIcon, UserPlus } from 'lucide-react';
+import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit } from 'lucide-react';
 import type { OnboardingFormData, Affiliate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/context/auth-context';
 
-const affiliateColumns: ColumnDef<Affiliate>[] = [
+
+const getAffiliateColumns = (canEdit: boolean): ColumnDef<Affiliate>[] => [
     {
         accessorKey: 'name',
         header: 'Affiliate',
@@ -45,7 +53,7 @@ const affiliateColumns: ColumnDef<Affiliate>[] = [
     },
     {
         accessorKey: 'pendingCommission',
-        header: 'Pending Commission',
+        header: 'Unpaid Commission',
         cell: ({ row }) => {
             // In a real app, currency would be dynamic
             return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(row.original.pendingCommission)
@@ -53,12 +61,30 @@ const affiliateColumns: ColumnDef<Affiliate>[] = [
     },
     {
         id: 'actions',
-        header: 'Actions',
+        header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
             const affiliate = row.original;
             return (
-                <div className="flex gap-2">
-                    {affiliate.status === 'Pending' && <Button size="sm">Approve</Button>}
+                <div className="text-right">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            {affiliate.status === 'Pending' && canEdit && (
+                                <DropdownMenuItem>Approve</DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/finances?tab=payouts`}>
+                                    <Edit className="mr-2 h-4 w-4" /> Go to Payouts
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             )
         }
@@ -69,6 +95,11 @@ export function AffiliatesTab() {
     const { toast } = useToast();
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const signupLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/affiliate-signup`;
+    const { user } = useAuth();
+    const canEdit = user?.permissions.marketing.edit;
+    
+    const affiliateColumns = getAffiliateColumns(!!canEdit);
+
     const mockAffiliates: Affiliate[] = [
         { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 225000, paidCommission: 980000 },
         { id: 'aff-002', name: 'David Odhiambo', status: 'Active', contact: '0712345678', uniqueId: 'DAVIDO', linkClicks: 850, conversions: 45, totalSales: 2800000, pendingCommission: 140000, paidCommission: 550000 },
@@ -108,7 +139,7 @@ export function AffiliatesTab() {
              <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" /> Your Affiliates</CardTitle>
-                    <CardDescription>Manage, track, and pay your registered affiliates.</CardDescription>
+                    <CardDescription>Manage, track, and approve your registered affiliates. Payouts are handled in the Finances tab.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <DataTable 
