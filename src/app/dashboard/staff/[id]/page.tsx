@@ -217,6 +217,13 @@ export default function ViewStaffPage() {
     loadData();
   }, [id]);
 
+  const handleStatusChange = async (newStatus: Staff['status']) => {
+    if (!staffMember) return;
+    const updatedStaff = await updateStaff({ ...staffMember, status: newStatus });
+    setStaffMember(updatedStaff);
+    toast({ title: `Staff Member ${newStatus}`});
+  };
+
   const handleVerification = async (action: 'approve' | 'reject') => {
       if (!staffMember) return;
 
@@ -226,7 +233,7 @@ export default function ViewStaffPage() {
           updatedStaff = await updateStaff({ ...staffMember, status: 'Active' });
           toast({ title: 'Staff Member Approved', description: `${staffMember.name} is now an active staff member.`});
       } else {
-          updatedStaff = await updateStaff({ ...staffMember, status: 'Inactive', rejectionReason });
+          updatedStaff = await updateStaff({ ...staffMember, status: 'Deactivated', rejectionReason });
            toast({ variant: 'destructive', title: 'Staff Member Rejected', description: `${staffMember.name}'s application has been rejected.`});
       }
       setStaffMember(updatedStaff);
@@ -350,8 +357,24 @@ export default function ViewStaffPage() {
                 <DropdownMenuContent>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem>View Activity Log</DropdownMenuItem>
-                    {canEditStaff && (
-                        <DropdownMenuItem className="text-destructive">Deactivate Member</DropdownMenuItem>
+                    {canEditStaff && staffMember.status !== 'Deactivated' && (
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Deactivate Member</DropdownMenuItem>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>Are you sure you want to deactivate this member?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        This will permanently revoke their access. This action cannot be undone.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                    <AlertDialogAction onClick={() => handleStatusChange('Deactivated')} className="bg-destructive hover:bg-destructive/90">Deactivate</AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
                     )}
                 </DropdownMenuContent>
             </DropdownMenu>

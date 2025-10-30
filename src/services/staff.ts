@@ -100,7 +100,7 @@ async function initializeMockStaff(): Promise<(Staff | Affiliate)[]> {
         phone: '+254709876543',
         avatarUrl: 'https://picsum.photos/seed/chris-green/100/100',
         role: 'Sales Agent', 
-        status: 'Inactive', 
+        status: 'Deactivated', 
         lastLogin: '2024-06-01 10:00',
         onlineStatus: 'Offline',
         assignedOrders: [],
@@ -128,7 +128,7 @@ async function initializeMockStaff(): Promise<(Staff | Affiliate)[]> {
       },
       { id: 'aff-001', name: 'Fatuma Asha', role: 'Affiliate', status: 'Active', email: 'fatuma@email.com', totalCommission: 17000, currency: 'UGX' } as Staff,
       { id: 'aff-002', name: 'David Odhiambo', role: 'Affiliate', status: 'Active', email: 'david@email.com', totalCommission: 140000, currency: 'UGX' } as Staff,
-      { id: 'aff-003', name: 'Brenda Wanjiku', role: 'Affiliate', status: 'Pending', email: 'brenda@email.com', totalCommission: 7500, currency: 'UGX' } as Staff,
+      { id: 'aff-003', name: 'Brenda Wanjiku', role: 'Affiliate', status: 'Pending Verification', email: 'brenda@email.com', totalCommission: 7500, currency: 'UGX' } as Staff,
     ];
 }
 

@@ -380,7 +380,7 @@ export type Staff = {
   phone?: string;
   avatarUrl?: string;
   role: StaffRoleName;
-  status: 'Active' | 'Inactive' | 'Pending Verification';
+  status: 'Active' | 'Pending Verification' | 'Suspended' | 'Deactivated';
   rejectionReason?: string;
   verificationDocuments?: { name: string; url: string }[];
   lastLogin?: string;
