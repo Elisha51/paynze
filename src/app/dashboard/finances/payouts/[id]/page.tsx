@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { getStaff, updateStaff } from '@/services/staff';
 import { addTransaction } from '@/services/finances';
-import type { Staff, Payout, Order, CommissionRule, Bonus, OnboardingFormData } from '@/lib/types';
+import type { Staff, Payout, Order, CommissionRule, Bonus, OnboardingFormData, AffiliateProgramSettings } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -41,12 +41,24 @@ export default function PayoutReviewPage() {
     const [earningItems, setEarningItems] = useState<EarningItem[]>([]);
     const [payoutAmount, setPayoutAmount] = useState(0);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [affiliateSettings, setAffiliateSettings] = useState<AffiliateProgramSettings | null>(null);
 
 
     useEffect(() => {
         const storedSettings = localStorage.getItem('onboardingData');
         if (storedSettings) {
-            setSettings(JSON.parse(storedSettings));
+            const parsedSettings = JSON.parse(storedSettings);
+            setSettings(parsedSettings);
+            // In a real app, affiliate settings would be fetched from a service.
+            // For this simulation, we assume they might be part of the main settings object
+            // or also stored in localStorage. We will mock getting them.
+            setAffiliateSettings({
+                programStatus: 'Active',
+                commissionType: 'Percentage',
+                commissionRate: 10,
+                payoutThreshold: 50000,
+                cookieDuration: 30,
+            });
         }
 
         if (!id) return;
@@ -58,12 +70,11 @@ export default function PayoutReviewPage() {
             let commissionItems: EarningItem[] = [];
             
             // Affiliate commission calculation
-            if (staff.role === 'Affiliate') {
+            if (staff.role === 'Affiliate' && affiliateSettings) {
                  orders.forEach(order => {
                     // Check if the order was referred by this affiliate
-                    if (order.salesAgentId === staff.id) {
-                         const affiliateRule = staffRole.commissionRules.find(r => r.name === 'Standard Affiliate Commission');
-                         const rate = affiliateRule ? affiliateRule.rate / 100 : 0.1; // Default 10% if rule not found
+                    if (order.salesAgentId === staff.id && order.payment.status === 'completed') {
+                         const rate = affiliateSettings.commissionRate / 100;
                          commissionItems.push({
                             id: `comm-${order.id}-affiliate`,
                             date: order.date,
@@ -143,7 +154,7 @@ export default function PayoutReviewPage() {
             setLoading(false);
         }
         loadData();
-    }, [id]);
+    }, [id, affiliateSettings]);
 
     const handleItemToggle = (itemId: string, checked: boolean) => {
         const newItems = earningItems.map(item => 
@@ -391,3 +402,5 @@ export default function PayoutReviewPage() {
         </div>
     );
 }
+
+    
