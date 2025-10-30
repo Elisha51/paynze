@@ -88,6 +88,18 @@ const mockRoles: Role[] = [
     assignableAttributes: [],
     commissionRules: [],
   },
+  {
+    name: 'Affiliate',
+    description: 'A marketing partner who earns commission on referred sales.',
+    permissions: {
+        ...defaultPermissions,
+        dashboard: { view: false }, // Affiliates have their own separate dashboard
+    },
+    assignableAttributes: [],
+    commissionRules: [
+        { id: 'affiliate-1', name: 'Standard Affiliate Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 10 }
+    ],
+  }
 ];
 
 const roleService = new DataService<Role>('roles', () => mockRoles, 'name');

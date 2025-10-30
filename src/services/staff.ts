@@ -1,12 +1,12 @@
 
 
-import type { Staff, Order, StaffActivity, Bonus } from '@/lib/types';
+import type { Staff, Order, StaffActivity, Bonus, Affiliate } from '@/lib/types';
 import { format, subDays, subHours } from 'date-fns';
 import { getOrders } from './orders';
 import { DataService } from './data-service';
 
 
-async function initializeMockStaff(): Promise<Staff[]> {
+async function initializeMockStaff(): Promise<(Staff | Affiliate)[]> {
     const allOrders = await getOrders();
     return [
       { 
@@ -126,6 +126,9 @@ async function initializeMockStaff(): Promise<Staff[]> {
         totalCommission: 0,
         currency: 'KES',
       },
+      { id: 'aff-001', name: 'Fatuma Asha', role: 'Affiliate', status: 'Active', email: 'fatuma@email.com', totalCommission: 225000, currency: 'UGX' } as Staff,
+      { id: 'aff-002', name: 'David Odhiambo', role: 'Affiliate', status: 'Active', email: 'david@email.com', totalCommission: 140000, currency: 'UGX' } as Staff,
+      { id: 'aff-003', name: 'Brenda Wanjiku', role: 'Affiliate', status: 'Pending', email: 'brenda@email.com', totalCommission: 7500, currency: 'UGX' } as Staff,
     ];
 }
 
@@ -138,11 +141,12 @@ const mockActivities: StaffActivity[] = [
     { id: 'act-6', staffId: 'staff-002', staffName: 'Jane Smith', activity: 'Product Edited', details: { text: 'Handmade Leather Shoes', link: '/dashboard/products/SHOE-002' }, timestamp: subDays(new Date(), 4).toISOString() },
 ];
 
-const staffService = new DataService<Staff>('staff', initializeMockStaff);
+const staffService = new DataService<(Staff | Affiliate)>('staff', initializeMockStaff);
 const activityService = new DataService<StaffActivity>('staffActivity', () => mockActivities);
 
 export async function getStaff(): Promise<Staff[]> {
-  return await staffService.getAll();
+  const staffOrAffiliates = await staffService.getAll();
+  return staffOrAffiliates as Staff[];
 }
 
 export async function getStaffOrders(staffId: string): Promise<Order[]> {

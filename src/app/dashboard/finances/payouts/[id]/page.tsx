@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -56,8 +57,25 @@ export default function PayoutReviewPage() {
             if (!staffRole?.commissionRules && !staff.bonuses) return [];
 
             let commissionItems: EarningItem[] = [];
-
-            if (staffRole?.commissionRules) {
+            
+            // Affiliate commission calculation
+            if (staff.role === 'Affiliate') {
+                 orders.forEach(order => {
+                    // This is a simplification. A real app would check if the order came from the affiliate's link.
+                    // For demo, we'll assume some orders are from this affiliate.
+                    if (order.id.endsWith(staff.id.slice(-1))) { // Simple logic to assign some orders to affiliates
+                         commissionItems.push({
+                            id: `comm-${order.id}-affiliate`,
+                            date: order.date,
+                            description: `Affiliate commission on Order #${order.id}`,
+                            amount: order.total * 0.1, // Assuming 10% affiliate commission for demo
+                            status: 'pending',
+                            type: 'Commission',
+                            original: order
+                        });
+                    }
+                 });
+            } else if (staffRole?.commissionRules) { // Staff commission calculation
                 orders.forEach(order => {
                     staffRole.commissionRules.forEach((rule: CommissionRule) => {
                         let isTriggered = false;

@@ -100,7 +100,9 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
             const role = roles.find(r => r.name === s.role);
             const hasCommissionRules = role?.commissionRules && role.commissionRules.length > 0;
             const hasUnpaidBalance = s.totalCommission && s.totalCommission > 0;
-            return (hasCommissionRules || hasUnpaidBalance); // Show if they can earn or have earned
+            // Also include affiliates in the payout report
+            const isAffiliate = s.role === 'Affiliate';
+            return (hasCommissionRules || hasUnpaidBalance || isAffiliate);
         }).map(s => ({
             staffId: s.id,
             name: s.name,
@@ -117,7 +119,7 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
                 <CardHeader className="flex-row items-center justify-between">
                     <div>
                         <CardTitle>Commission & Bonus Payouts</CardTitle>
-                        <CardDescription>View unpaid earnings and process payouts for your staff.</CardDescription>
+                        <CardDescription>View unpaid earnings and process payouts for your staff and affiliates.</CardDescription>
                     </div>
                     {canEditFinances && (
                         <Button variant="outline" onClick={onAwardBonus}>
@@ -133,7 +135,7 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
                         emptyState={{
                             icon: DollarSign,
                             title: 'No Unpaid Commissions',
-                            description: 'There are currently no staff members with pending commission payouts.',
+                            description: 'There are currently no staff members or affiliates with pending commission payouts.',
                         }}
                     />
                 </CardContent>

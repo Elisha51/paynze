@@ -63,7 +63,6 @@ const getAffiliateColumns = (currency: string, onApprove: (id: string) => void):
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
             const affiliate = row.original;
-            const canPayout = affiliate.pendingCommission > 0 && affiliate.status === 'Active';
             const needsApproval = affiliate.status === 'Pending';
 
             return (
@@ -83,14 +82,12 @@ const getAffiliateColumns = (currency: string, onApprove: (id: string) => void):
                                     Approve
                                 </DropdownMenuItem>
                             )}
-                            {canPayout && (
-                                 <DropdownMenuItem asChild>
-                                    <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
-                                        <DollarSign className="mr-2 h-4 w-4" />
-                                        Payout
-                                    </Link>
-                                </DropdownMenuItem>
-                            )}
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
+                                    <DollarSign className="mr-2 h-4 w-4" />
+                                    View Payouts
+                                </Link>
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
