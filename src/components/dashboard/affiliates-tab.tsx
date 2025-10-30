@@ -96,7 +96,7 @@ export function AffiliatesTab() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const signupLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/affiliate-signup`;
     const { user } = useAuth();
-    const canEdit = user?.permissions.marketing.edit;
+    const canEdit = user?.permissions.marketing?.edit;
     
     const affiliateColumns = getAffiliateColumns(!!canEdit);
 
@@ -123,7 +123,7 @@ export function AffiliatesTab() {
             <Card>
                 <CardHeader>
                     <CardTitle>Onboard Your Affiliates</CardTitle>
-                    <CardDescription>Share this unique link to allow marketers and influencers to sign up for your program. Program settings can be configured in the main settings menu.</CardDescription>
+                    <CardDescription>Share this unique link to allow marketers and influencers to sign up for your program.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="flex w-full max-w-lg items-center space-x-2">
