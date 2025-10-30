@@ -51,20 +51,9 @@ export default function PayoutReviewPage() {
             setSettings(parsedSettings);
         }
         
-        // In a real app, affiliate settings would be fetched from a service.
-        // For this simulation, we'll retrieve them from localStorage where the settings page saves them.
         const storedAffiliateSettings = localStorage.getItem('affiliateSettings');
         if (storedAffiliateSettings) {
           setAffiliateSettings(JSON.parse(storedAffiliateSettings));
-        } else {
-           // Fallback to default mock settings if none are saved
-           setAffiliateSettings({
-                programStatus: 'Active',
-                commissionType: 'Percentage',
-                commissionRate: 10,
-                payoutThreshold: 50000,
-                cookieDuration: 30,
-            });
         }
 
         if (!id) return;
@@ -100,9 +89,11 @@ export default function PayoutReviewPage() {
                  });
             } else if (staffRole?.commissionRules) { // Staff commission calculation
                 orders.forEach(order => {
+                    if (order.payment.status !== 'completed') return;
+
                     staffRole.commissionRules.forEach((rule: CommissionRule) => {
                         let isTriggered = false;
-                        if (rule.trigger === 'On Order Paid' && order.payment.status === 'completed' && order.salesAgentId === staff.id) {
+                        if (rule.trigger === 'On Order Paid' && order.salesAgentId === staff.id) {
                             isTriggered = true;
                         }
                         if (rule.trigger === 'On Order Delivered' && (order.status === 'Delivered' || order.status === 'Picked Up') && order.fulfilledByStaffId === staff.id) {
@@ -414,5 +405,3 @@ export default function PayoutReviewPage() {
         </div>
     );
 }
-
-    

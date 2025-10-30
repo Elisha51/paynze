@@ -214,7 +214,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   const updatedOrder = await orderService.update(orderId, finalUpdates);
 
   // Handle commissions after the order has been updated in the main array
-  if (updates.status === 'Delivered' || updates.status === 'Picked Up') {
+  if ((updates.status === 'Delivered' || updates.status === 'Picked Up') && originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up') {
     await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
   }
   if (updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed') {
@@ -233,19 +233,36 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
 
     const allRoles = await getRoles();
     const staffRole = allRoles.find(r => r.name === staffMember.role);
-    if (!staffRole?.commissionRules || staffRole.commissionRules.length === 0) return;
+    if (!staffRole) return;
 
     let totalEarnedCommission = 0;
-    
-    staffRole.commissionRules.forEach(rule => {
-        if (rule.trigger === trigger) {
-            if (rule.type === 'Fixed Amount') {
-                totalEarnedCommission += rule.rate;
-            } else if (rule.type === 'Percentage of Sale') {
-                totalEarnedCommission += order.total * (rule.rate / 100);
+
+    // Handle Affiliate Commissions
+    if (staffRole.name === 'Affiliate') {
+        const affiliateSettingsData = localStorage.getItem('affiliateSettings');
+        if (affiliateSettingsData) {
+            const affiliateSettings = JSON.parse(affiliateSettingsData);
+            if (affiliateSettings.programStatus === 'Active' && trigger === 'On Order Paid') {
+                 if (affiliateSettings.commissionType === 'Percentage') {
+                    totalEarnedCommission += order.total * (affiliateSettings.commissionRate / 100);
+                } else {
+                    totalEarnedCommission += affiliateSettings.commissionRate;
+                }
             }
         }
-    });
+    } 
+    // Handle other staff roles
+    else if (staffRole.commissionRules && staffRole.commissionRules.length > 0) {
+        staffRole.commissionRules.forEach(rule => {
+            if (rule.trigger === trigger) {
+                if (rule.type === 'Fixed Amount') {
+                    totalEarnedCommission += rule.rate;
+                } else if (rule.type === 'Percentage of Sale') {
+                    totalEarnedCommission += order.total * (rule.rate / 100);
+                }
+            }
+        });
+    }
 
     if (totalEarnedCommission > 0 || trigger === 'On Order Delivered') { // Update KPIs even if no commission
         let shouldUpdateStaff = totalEarnedCommission > 0;
@@ -281,5 +298,4 @@ export async function updateProductStock(
     // However, the logic for finding the product and updating its stock is complex
     // and best kept within the `updateProduct` function itself.
     // For now, we will assume `updateProduct` can handle these granular adjustments.
-    // A more robust solution might involve a dedicated `productService.adjustStock` method.
 }

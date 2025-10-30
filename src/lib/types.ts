@@ -400,7 +400,7 @@ export type StaffActivity = {
         link?: string; // "/dashboard/orders/123"
     };
     timestamp: string;
-}
+};
 
 
 // Finance Types
