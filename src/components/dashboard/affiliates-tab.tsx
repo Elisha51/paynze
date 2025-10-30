@@ -8,21 +8,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, Copy, Users, Link as LinkIcon, UserPlus } from 'lucide-react';
+import { DollarSign, Copy, Users, Link as LinkIcon, UserPlus, CheckCircle } from 'lucide-react';
 import type { OnboardingFormData, Affiliate, AffiliateProgramSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
+import { getAffiliates, updateAffiliate } from '@/services/affiliates';
 
-const mockAffiliates: Affiliate[] = [
-    { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '07..', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 225000, paidCommission: 980000 },
-    { id: 'aff-002', name: 'David Odhiambo', status: 'Active', contact: '07..', uniqueId: 'DAVIDO', linkClicks: 850, conversions: 45, totalSales: 2800000, pendingCommission: 140000, paidCommission: 550000 },
-    { id: 'aff-003', name: 'Brenda Wanjiku', status: 'Pending', contact: '07..', uniqueId: 'BRENDA24', linkClicks: 50, conversions: 2, totalSales: 150000, pendingCommission: 7500, paidCommission: 0 },
-];
-
-const getAffiliateColumns = (currency: string): ColumnDef<Affiliate>[] => [
+const getAffiliateColumns = (currency: string, onApprove: (id: string) => void): ColumnDef<Affiliate>[] => [
     {
         accessorKey: 'name',
         header: 'Affiliate',
@@ -66,10 +61,21 @@ const getAffiliateColumns = (currency: string): ColumnDef<Affiliate>[] => [
         id: 'actions',
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
-            const canPayout = row.original.pendingCommission > 0 && row.original.status === 'Active';
+            const affiliate = row.original;
+            const canPayout = affiliate.pendingCommission > 0 && affiliate.status === 'Active';
+            const needsApproval = affiliate.status === 'Pending';
+
+            if (needsApproval) {
+                return (
+                    <div className="text-right">
+                        <Button size="sm" onClick={() => onApprove(affiliate.id)}><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
+                    </div>
+                )
+            }
+
             return (
                 <div className="text-right">
-                    <Button disabled={!canPayout}><DollarSign className="mr-2 h-4 w-4" />Payout</Button>
+                    <Button disabled={!canPayout} size="sm"><DollarSign className="mr-2 h-4 w-4" />Payout</Button>
                 </div>
             )
         }
@@ -86,17 +92,29 @@ export function AffiliatesTab() {
         payoutThreshold: 50000,
         cookieDuration: 30,
     });
-    const [affiliates, setAffiliates] = useState<Affiliate[]>(mockAffiliates);
-    const affiliateColumns = getAffiliateColumns(settings?.currency || 'UGX');
+    const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const signupLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/affiliate-signup`;
-
+    
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
         if (data) {
             setSettings(JSON.parse(data));
         }
         // In real app, you'd fetch affiliate settings from a service
+        async function loadAffiliates() {
+            const fetchedAffiliates = await getAffiliates();
+            setAffiliates(fetchedAffiliates);
+        }
+        loadAffiliates();
     }, []);
+
+    const handleApproveAffiliate = async (id: string) => {
+        const updated = await updateAffiliate(id, { status: 'Active' });
+        setAffiliates(prev => prev.map(a => a.id === id ? updated : a));
+        toast({ title: "Affiliate Approved", description: `${updated.name} is now an active affiliate.`});
+    };
+    
+    const affiliateColumns = getAffiliateColumns(settings?.currency || 'UGX', handleApproveAffiliate);
 
     const handleSettingChange = (field: keyof AffiliateProgramSettings, value: any) => {
         setAffiliateSettings(prev => ({...prev, [field]: value}));
