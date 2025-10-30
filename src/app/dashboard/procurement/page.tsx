@@ -2,7 +2,8 @@
 
 'use client';
 
-import { PlusCircle, Calendar as CalendarIcon, ChevronDown, Checkbox } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, ChevronDown } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
