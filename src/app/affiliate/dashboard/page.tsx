@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Input } from '@/components/ui/input';
 
 // Mock data for a logged-in affiliate
-const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 225000, paidCommission: 980000 };
-const mockPayouts = [
-    { date: '2024-07-01', amount: 500000 },
-    { date: '2024-06-01', amount: 480000 },
-];
+const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 17000, paidCommission: 980000, payoutHistory: [{ date: '2024-07-01', amount: 500000, currency: 'UGX' }, { date: '2024-06-01', amount: 480000, currency: 'UGX' }] };
 
 export default function AffiliateDashboardPage() {
     const { toast } = useToast();
@@ -131,12 +126,18 @@ export default function AffiliateDashboardPage() {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {mockPayouts.map(payout => (
-                                        <TableRow key={payout.date}>
-                                            <TableCell>{payout.date}</TableCell>
-                                            <TableCell className="text-right">{formatCurrency(payout.amount)}</TableCell>
+                                    {affiliate.payoutHistory && affiliate.payoutHistory.length > 0 ? (
+                                        affiliate.payoutHistory.map(payout => (
+                                            <TableRow key={payout.date}>
+                                                <TableCell>{payout.date}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(payout.amount)}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={2} className="h-24 text-center">No payouts have been made yet.</TableCell>
                                         </TableRow>
-                                    ))}
+                                    )}
                                 </TableBody>
                             </Table>
                         </CardContent>
