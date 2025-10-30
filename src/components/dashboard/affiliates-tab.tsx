@@ -83,7 +83,7 @@ const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => vo
             <div className="text-right">
                 <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
                     Unpaid Commission
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                    <ArrowUpDown className="mr-2 h-4 w-4" />
                 </Button>
             </div>
         ),
