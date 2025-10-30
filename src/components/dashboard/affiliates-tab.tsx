@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit } from 'lucide-react';
+import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit, ArrowUpDown } from 'lucide-react';
 import type { OnboardingFormData, Affiliate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
@@ -21,11 +21,21 @@ import {
 import { useAuth } from '@/context/auth-context';
 import { getAffiliates, updateAffiliate } from '@/services/affiliates';
 
+const affiliateStatuses = [
+    { value: 'Active', label: 'Active' },
+    { value: 'Pending', label: 'Pending' },
+];
+
 
 const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => void): ColumnDef<Affiliate>[] => [
     {
         accessorKey: 'name',
-        header: 'Affiliate',
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Affiliate
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
         cell: ({ row }) => (
             <div>
                 <p className="font-medium">{row.original.name}</p>
@@ -36,25 +46,47 @@ const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => vo
     {
         accessorKey: 'status',
         header: 'Status',
-        cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge>
+        cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge>,
+        filterFn: (row, id, value) => {
+            return value.includes(row.getValue(id))
+        },
     },
     {
         accessorKey: 'linkClicks',
-        header: 'Clicks',
+        header: ({ column }) => (
+            <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Clicks
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
     },
     {
         accessorKey: 'conversions',
-        header: 'Sales',
+        header: ({ column }) => (
+             <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                Sales
+                <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+        ),
         cell: ({ row }) => (
             <div>
                 <p>{row.original.conversions}</p>
-                <p className="text-xs text-muted-foreground">{((row.original.conversions / row.original.linkClicks) * 100).toFixed(1)}%</p>
+                <p className="text-xs text-muted-foreground">
+                    {row.original.linkClicks > 0 ? `${((row.original.conversions / row.original.linkClicks) * 100).toFixed(1)}%` : '0.0%'}
+                </p>
             </div>
         )
     },
     {
         accessorKey: 'pendingCommission',
-        header: 'Unpaid Commission',
+        header: ({ column }) => (
+            <div className="text-right">
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Unpaid Commission
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            </div>
+        ),
         cell: ({ row }) => {
             // In a real app, currency would be dynamic
             return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(row.original.pendingCommission)
@@ -81,8 +113,8 @@ const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => vo
                             )}
                             {affiliate.status === 'Active' && canEdit && (
                                  <DropdownMenuItem asChild>
-                                    <Link href={`/dashboard/finances?tab=payouts`}>
-                                        <Edit className="mr-2 h-4 w-4" /> Go to Payouts
+                                    <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
+                                        <Edit className="mr-2 h-4 w-4" /> Review & Payout
                                     </Link>
                                 </DropdownMenuItem>
                             )}
@@ -159,6 +191,11 @@ export function AffiliatesTab() {
                     <DataTable 
                         columns={affiliateColumns} 
                         data={affiliates} 
+                        filters={[{
+                            columnId: 'status',
+                            title: 'Status',
+                            options: affiliateStatuses
+                        }]}
                         emptyState={{
                             icon: UserPlus,
                             title: "No Affiliates Yet",
