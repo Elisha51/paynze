@@ -11,6 +11,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { ArrowUpDown, DollarSign, MoreHorizontal, Gift, FileText, Award } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from '../ui/dropdown-menu';
 
 type CommissionRow = {
   staffId: string;
@@ -58,12 +59,23 @@ const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow
 
             return (
                 <div className="text-right">
-                    <Button asChild disabled={!canPayout}>
-                        <Link href={`/dashboard/finances/payouts/${staffId}`}>
-                         <FileText className="mr-2 h-4 w-4" />
-                         Review & Payout
-                       </Link>
-                    </Button>
+                     <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0" disabled={!canPayout}>
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild disabled={!canPayout}>
+                                <Link href={`/dashboard/finances/payouts/${staffId}`}>
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    Review & Payout
+                                </Link>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             );
         },

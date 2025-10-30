@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, Copy, Users, Link as LinkIcon, UserPlus, CheckCircle } from 'lucide-react';
+import { DollarSign, Copy, Users, Link as LinkIcon, UserPlus, CheckCircle, MoreHorizontal } from 'lucide-react';
 import type { OnboardingFormData, Affiliate, AffiliateProgramSettings } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
@@ -16,6 +16,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
 import Link from 'next/link';
 import { getAffiliates, updateAffiliate } from '@/services/affiliates';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 
 const getAffiliateColumns = (currency: string, onApprove: (id: string) => void): ColumnDef<Affiliate>[] => [
     {
@@ -65,17 +66,33 @@ const getAffiliateColumns = (currency: string, onApprove: (id: string) => void):
             const canPayout = affiliate.pendingCommission > 0 && affiliate.status === 'Active';
             const needsApproval = affiliate.status === 'Pending';
 
-            if (needsApproval) {
-                return (
-                    <div className="text-right">
-                        <Button size="sm" onClick={() => onApprove(affiliate.id)}><CheckCircle className="mr-2 h-4 w-4" />Approve</Button>
-                    </div>
-                )
-            }
-
             return (
                 <div className="text-right">
-                    <Button disabled={!canPayout} size="sm"><DollarSign className="mr-2 h-4 w-4" />Payout</Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            {needsApproval && (
+                                <DropdownMenuItem onClick={() => onApprove(affiliate.id)}>
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    Approve
+                                </DropdownMenuItem>
+                            )}
+                            {canPayout && (
+                                 <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
+                                        <DollarSign className="mr-2 h-4 w-4" />
+                                        Payout
+                                    </Link>
+                                </DropdownMenuItem>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             )
         }
