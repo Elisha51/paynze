@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit, ArrowUpDown, Info } from 'lucide-react';
+import { Copy, Users, Link as LinkIcon, UserPlus, MoreHorizontal, Edit, ArrowUpDown, Info, XCircle, CheckCircle, RotateCcw } from 'lucide-react';
 import type { OnboardingFormData, Affiliate } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from './data-table';
@@ -17,7 +17,19 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { useAuth } from '@/context/auth-context';
 import { getAffiliates, updateAffiliate } from '@/services/affiliates';
 import { Checkbox } from '../ui/checkbox';
@@ -25,10 +37,22 @@ import { Checkbox } from '../ui/checkbox';
 const affiliateStatuses = [
     { value: 'Active', label: 'Active' },
     { value: 'Pending', label: 'Pending' },
+    { value: 'Suspended', label: 'Suspended' },
+    { value: 'Rejected', label: 'Rejected' },
 ];
 
+const getStatusBadge = (status: Affiliate['status']) => {
+    const variants: Record<Affiliate['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
+        Active: 'default',
+        Pending: 'secondary',
+        Suspended: 'destructive',
+        Rejected: 'outline',
+    };
+    return <Badge variant={variants[status]}>{status}</Badge>;
+}
 
-const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => void): ColumnDef<Affiliate>[] => [
+
+const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, status: Affiliate['status']) => void): ColumnDef<Affiliate>[] => [
     {
     id: 'select',
     header: ({ table }) => (
@@ -69,7 +93,7 @@ const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => vo
     {
         accessorKey: 'status',
         header: 'Status',
-        cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge>,
+        cell: ({ row }) => getStatusBadge(row.original.status),
         filterFn: (row, id, value) => {
             return value.includes(row.getValue(id))
         },
@@ -122,32 +146,74 @@ const getAffiliateColumns = (canEdit: boolean, handleApprove: (id: string) => vo
             const affiliate = row.original;
             return (
                 <div className="text-right">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <span className="sr-only">Open menu</span>
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem asChild>
-                                <Link href={`/dashboard/marketing/affiliates/${affiliate.id}`}>
-                                    <Info className="mr-2 h-4 w-4" /> View Details
-                                </Link>
-                            </DropdownMenuItem>
-                            {affiliate.status === 'Pending' && canEdit && (
-                                <DropdownMenuItem onClick={() => handleApprove(affiliate.id)}>Approve</DropdownMenuItem>
-                            )}
-                            {affiliate.status === 'Active' && canEdit && (
-                                 <DropdownMenuItem asChild>
-                                    <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
-                                        <Edit className="mr-2 h-4 w-4" /> Review & Payout
+                    <AlertDialog>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/marketing/affiliates/${affiliate.id}`}>
+                                        <Info className="mr-2 h-4 w-4" /> View Details
                                     </Link>
                                 </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                                {canEdit && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        {affiliate.status === 'Pending' && (
+                                            <>
+                                                <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
+                                                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                                </DropdownMenuItem>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                        <XCircle className="mr-2 h-4 w-4" /> Reject
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                            </>
+                                        )}
+                                         {affiliate.status === 'Active' && (
+                                            <AlertDialogTrigger asChild>
+                                                <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                    <XCircle className="mr-2 h-4 w-4" /> Suspend
+                                                </DropdownMenuItem>
+                                            </AlertDialogTrigger>
+                                        )}
+                                        {affiliate.status === 'Suspended' && (
+                                            <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
+                                                <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
+                                            </DropdownMenuItem>
+                                        )}
+                                        {affiliate.status === 'Active' && (
+                                            <DropdownMenuItem asChild>
+                                                <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
+                                                    <Edit className="mr-2 h-4 w-4" /> Review & Payout
+                                                </Link>
+                                            </DropdownMenuItem>
+                                        )}
+                                    </>
+                                )}
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                         <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This will {affiliate.status === 'Pending' ? 'reject' : 'suspend'} the affiliate "{affiliate.name}". Their referral link will be disabled.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleStatusChange(affiliate.id, affiliate.status === 'Pending' ? 'Rejected' : 'Suspended')} className="bg-destructive hover:bg-destructive/90">
+                                    Confirm
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             )
         }
@@ -162,18 +228,17 @@ export function AffiliatesTab() {
     const { user } = useAuth();
     const canEdit = user?.permissions.marketing?.edit;
 
-    const handleApproveAffiliate = async (id: string) => {
+    const handleStatusChange = async (id: string, status: Affiliate['status']) => {
         try {
-            await updateAffiliate(id, { status: 'Active' });
-            setAffiliates(prev => prev.map(a => a.id === id ? { ...a, status: 'Active' } : a));
-            toast({ title: "Affiliate Approved!" });
+            await updateAffiliate(id, { status });
+            setAffiliates(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+            toast({ title: `Affiliate ${status}!` });
         } catch (error) {
-            toast({ variant: 'destructive', title: "Approval Failed" });
+            toast({ variant: 'destructive', title: "Action Failed" });
         }
     };
     
-    const affiliateColumns = getAffiliateColumns(!!canEdit, handleApproveAffiliate);
-
+    const affiliateColumns = getAffiliateColumns(!!canEdit, handleStatusChange);
     
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
