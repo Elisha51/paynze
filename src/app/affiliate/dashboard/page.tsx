@@ -3,19 +3,23 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AuthLayout } from '@/components/layout/auth-layout';
 import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Affiliate, OnboardingFormData } from '@/lib/types';
+import type { Affiliate, OnboardingFormData, Order, AffiliateProgramSettings } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
+import { getOrdersByAffiliate } from '@/services/orders';
+import { format } from 'date-fns';
 
 // Mock data for a logged-in affiliate
-const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 17000, paidCommission: 980000, payoutHistory: [{ date: '2024-07-01', amount: 500000, currency: 'UGX' }, { date: '2024-06-01', amount: 480000, currency: 'UGX' }] };
+const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 84, totalSales: 4670000, pendingCommission: 17000, paidCommission: 980000, payoutHistory: [{ date: '2024-07-01', amount: 500000, currency: 'UGX' }, { date: '2024-06-01', amount: 480000, currency: 'UGX' }] };
+
 
 export default function AffiliateDashboardPage() {
     const { toast } = useToast();
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [affiliateSettings, setAffiliateSettings] = useState<AffiliateProgramSettings | null>(null);
+    const [referredOrders, setReferredOrders] = useState<Order[]>([]);
     const affiliate = mockAffiliateData; // In a real app, this would be fetched based on auth
 
     useEffect(() => {
@@ -23,7 +27,20 @@ export default function AffiliateDashboardPage() {
         if (data) {
             setSettings(JSON.parse(data));
         }
-    }, []);
+        const affSettingsData = localStorage.getItem('affiliateSettings');
+        if (affSettingsData) {
+            setAffiliateSettings(JSON.parse(affSettingsData));
+        }
+        
+        async function loadReferredOrders() {
+            if (affiliate) {
+                const orders = await getOrdersByAffiliate(affiliate.id);
+                setReferredOrders(orders.filter(o => o.payment.status === 'completed'));
+            }
+        }
+        loadReferredOrders();
+
+    }, [affiliate]);
 
     const referralLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/?ref=${affiliate.uniqueId}`;
     const currency = settings?.currency || 'UGX';
@@ -31,6 +48,14 @@ export default function AffiliateDashboardPage() {
     
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    }
+    
+    const calculateCommission = (orderTotal: number) => {
+        if (!affiliateSettings) return 0;
+        if (affiliateSettings.commissionType === 'Percentage') {
+            return orderTotal * (affiliateSettings.commissionRate / 100);
+        }
+        return affiliateSettings.commissionRate;
     }
 
     const copyReferralLink = () => {
@@ -40,7 +65,7 @@ export default function AffiliateDashboardPage() {
 
     if (affiliate.status === 'Pending') {
         return (
-            <AuthLayout>
+            <div className="flex items-center justify-center min-h-screen">
                 <Card className="mx-auto max-w-sm text-center">
                     <CardHeader>
                         <CardTitle className="text-2xl">Application Pending</CardTitle>
@@ -49,7 +74,7 @@ export default function AffiliateDashboardPage() {
                         </CardDescription>
                     </CardHeader>
                 </Card>
-            </AuthLayout>
+            </div>
         )
     }
 
@@ -112,6 +137,41 @@ export default function AffiliateDashboardPage() {
                             </CardContent>
                         </Card>
                     </div>
+
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Your Referred Sales</CardTitle>
+                            <CardDescription>A list of completed sales you have referred.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Order</TableHead>
+                                        <TableHead>Date</TableHead>
+                                        <TableHead className="text-right">Sale Amount</TableHead>
+                                        <TableHead className="text-right">Commission Earned</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {referredOrders.length > 0 ? (
+                                        referredOrders.map(order => (
+                                            <TableRow key={order.id}>
+                                                <TableCell className="font-mono">{order.id}</TableCell>
+                                                <TableCell>{format(new Date(order.date), 'PPP')}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(order.total)}</TableCell>
+                                                <TableCell className="text-right font-semibold text-primary">{formatCurrency(calculateCommission(order.total))}</TableCell>
+                                            </TableRow>
+                                        ))
+                                    ) : (
+                                        <TableRow>
+                                            <TableCell colSpan={4} className="h-24 text-center">No referred sales found yet.</TableCell>
+                                        </TableRow>
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
 
                     <Card>
                         <CardHeader>

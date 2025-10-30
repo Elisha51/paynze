@@ -190,6 +190,12 @@ export async function getOrderById(orderId: string): Promise<Order | undefined> 
   return await orderService.getById(orderId);
 }
 
+export async function getOrdersByAffiliate(affiliateId: string): Promise<Order[]> {
+    const allOrders = await getOrders();
+    return allOrders.filter(o => o.salesAgentId === affiliateId);
+}
+
+
 export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
   const newOrder: Order = {
     ...order,
