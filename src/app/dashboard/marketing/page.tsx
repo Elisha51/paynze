@@ -25,6 +25,7 @@ import { getOrders } from '@/services/orders';
 import type { Order, Discount, Campaign } from '@/lib/types';
 import { useAuth } from '@/context/auth-context';
 import { AffiliatesTab } from '@/components/dashboard/affiliates-tab';
+import { Checkbox } from '@/components/ui/checkbox';
 
 
 // Mock data
@@ -42,6 +43,28 @@ const mockDiscounts: Discount[] = [
 ];
 
 const getCampaignColumns = (canEdit: boolean): ColumnDef<Campaign>[] => [
+    {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
     { accessorKey: 'name', header: 'Campaign', cell: ({ row }) => <Link href={`/dashboard/marketing/campaigns/${row.original.id}`} className="font-medium hover:underline">{row.original.name}</Link> },
     { accessorKey: 'status', header: 'Status', cell: ({ row }) => <Badge variant={row.original.status === 'Active' ? 'default' : 'secondary'}>{row.original.status}</Badge> },
     { accessorKey: 'channel', header: 'Channel' },
@@ -82,6 +105,28 @@ const getCampaignColumns = (canEdit: boolean): ColumnDef<Campaign>[] => [
 ];
 
 const getDiscountColumns = (canEdit: boolean): ColumnDef<Discount>[] => [
+    {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
     { accessorKey: 'code', header: 'Discount Code', cell: ({ row }) => <Link href={`/dashboard/marketing/discounts/${row.original.code}`} className="font-medium hover:underline"><Badge variant="outline" className="font-mono">{row.original.code}</Badge></Link> },
     { accessorKey: 'type', header: 'Type' },
     { accessorKey: 'value', header: 'Value', cell: ({ row }) => row.original.type === 'Percentage' ? `${row.original.value}%` : `UGX ${row.original.value.toLocaleString()}` },
