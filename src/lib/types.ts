@@ -299,6 +299,15 @@ export type ShippingZone = {
     }[];
 };
 
+export type AffiliateProgramSettings = {
+    programStatus: 'Active' | 'Inactive';
+    commissionType: 'Percentage' | 'Fixed Amount';
+    commissionRate: number;
+    payoutThreshold: number;
+    cookieDuration: 7 | 30 | 60;
+};
+
+
 // Staff Management
 export type StaffRoleName = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager' | string;
 
@@ -468,14 +477,6 @@ export type Discount = {
   minPurchase: number;
   customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers';
   applicableProductIds?: string[];
-};
-
-export type AffiliateProgramSettings = {
-    programStatus: 'Active' | 'Inactive';
-    commissionType: 'Percentage' | 'Fixed Amount';
-    commissionRate: number;
-    payoutThreshold: number;
-    cookieDuration: 7 | 30 | 60;
 };
 
 export type Affiliate = {
