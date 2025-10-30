@@ -9,6 +9,7 @@ import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart } from 'luci
 import { useToast } from '@/hooks/use-toast';
 import type { Affiliate, OnboardingFormData } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
 
 // Mock data for a logged-in affiliate
 const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 82, totalSales: 4500000, pendingCommission: 225000, paidCommission: 980000 };
@@ -145,4 +146,3 @@ export default function AffiliateDashboardPage() {
         </div>
     );
 }
-

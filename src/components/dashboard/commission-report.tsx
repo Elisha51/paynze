@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
@@ -73,7 +74,7 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const { user } = useAuth();
 
-    const canEditStaff = user?.permissions.staff.edit;
+    const canEditFinances = user?.permissions.finances.edit;
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -96,7 +97,7 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
         }));
     }, [staff, roles]);
     
-    const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditStaff), [settings?.currency, canEditStaff]);
+    const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditFinances), [settings?.currency, canEditFinances]);
 
     return (
         <>
@@ -106,7 +107,7 @@ export function CommissionReport({ staff, roles, orders, onPayout, onAwardBonus 
                         <CardTitle>Commission & Bonus Payouts</CardTitle>
                         <CardDescription>View unpaid earnings and process payouts for your staff.</CardDescription>
                     </div>
-                    {canEditStaff && (
+                    {canEditFinances && (
                         <Button variant="outline" onClick={onAwardBonus}>
                             <Award className="mr-2 h-4 w-4" />
                             Award Bonus / Adjustment

@@ -190,6 +190,7 @@ export type Order = {
     channel: 'Online' | 'Manual' | 'POS';
     items: OrderItem[];
     total: number;
+    currency: string;
     shippingAddress: {
         street: string;
         city: string;
@@ -386,6 +387,7 @@ export type Staff = {
     [key: string]: PerformanceTarget | string[] | string | number | boolean | Date;
   },
   schedule?: Shift[];
+  currency?: string;
 };
 
 export type StaffActivity = {

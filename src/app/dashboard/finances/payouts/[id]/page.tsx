@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -62,7 +61,7 @@ export default function PayoutReviewPage() {
                 orders.forEach(order => {
                     staffRole.commissionRules.forEach((rule: CommissionRule) => {
                         let isTriggered = false;
-                        if (rule.trigger === 'On Order Paid' && order.paymentStatus === 'Paid' && order.salesAgentId === staff.id) {
+                        if (rule.trigger === 'On Order Paid' && order.payment.status === 'completed' && order.salesAgentId === staff.id) {
                             isTriggered = true;
                         }
                         if (rule.trigger === 'On Order Delivered' && (order.status === 'Delivered' || order.status === 'Picked Up') && order.fulfilledByStaffId === staff.id) {
@@ -162,6 +161,7 @@ export default function PayoutReviewPage() {
             date: new Date().toISOString(),
             amount: payoutAmount,
             paidItemIds: approvedItemIds,
+            currency: settings?.currency || 'UGX'
         };
         
         const totalUnpaidEarnings = earningItems.reduce((sum, item) => sum + item.amount, 0);
@@ -183,6 +183,7 @@ export default function PayoutReviewPage() {
             category: 'Salaries',
             status: 'Cleared',
             paymentMethod: 'Mobile Money',
+            currency: settings?.currency || 'UGX'
         });
 
         toast({

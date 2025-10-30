@@ -23,6 +23,7 @@ async function initializeMockStaff(): Promise<Staff[]> {
         completionRate: 100,
         totalSales: 550000,
         totalCommission: 0,
+        currency: 'UGX',
       },
       { 
         id: 'staff-002', 
@@ -37,6 +38,7 @@ async function initializeMockStaff(): Promise<Staff[]> {
         assignedOrders: [],
         totalSales: 125000,
         totalCommission: 6250,
+        currency: 'KES',
         attributes: {
           salesTarget: { goal: 500000, current: 125000 },
           assignedRegions: ['Nairobi', 'Mombasa'],
@@ -44,6 +46,9 @@ async function initializeMockStaff(): Promise<Staff[]> {
         },
         bonuses: [
             { id: 'bonus-1', date: subDays(new Date(), 3).toISOString(), reason: 'Exceeded Q2 Target', amount: 5000, awardedBy: 'John Doe'}
+        ],
+        payoutHistory: [
+            { date: '2024-06-01', amount: 25000, currency: 'KES' }
         ],
         schedule: [
           { day: 'Monday', startTime: '09:00', endTime: '17:00' },
@@ -66,6 +71,7 @@ async function initializeMockStaff(): Promise<Staff[]> {
         assignedOrders: allOrders.filter(o => o.assignedStaffId === 'staff-003'),
         completionRate: 95.2,
         totalCommission: 4500,
+        currency: 'UGX',
         attributes: {
           deliveryTarget: { current: 18, goal: 20 },
           deliveryZones: ['Kampala Central', 'Makindye'],
@@ -85,6 +91,7 @@ async function initializeMockStaff(): Promise<Staff[]> {
         onlineStatus: 'Online',
         assignedOrders: [],
         totalCommission: 0,
+        currency: 'TZS',
       },
        { 
         id: 'staff-005', 
@@ -98,6 +105,7 @@ async function initializeMockStaff(): Promise<Staff[]> {
         onlineStatus: 'Offline',
         assignedOrders: [],
         totalCommission: 0,
+        currency: 'KES',
       },
        { 
         id: 'staff-006', 
@@ -116,6 +124,7 @@ async function initializeMockStaff(): Promise<Staff[]> {
         onlineStatus: 'Offline',
         assignedOrders: [],
         totalCommission: 0,
+        currency: 'KES',
       },
     ];
 }
@@ -168,5 +177,3 @@ export async function updateStaff(updatedMember: Staff): Promise<Staff> {
 export async function deleteStaff(staffId: string): Promise<void> {
   await staffService.delete(staffId);
 }
-
-    

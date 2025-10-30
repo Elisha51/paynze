@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PlusCircle, Download, Calendar as CalendarIcon, Upload, Award } from 'lucide-react';
@@ -46,7 +47,7 @@ import { ReconciliationReport } from '@/components/dashboard/reconciliation-repo
 import { CommissionReport } from '@/components/dashboard/commission-report';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 
-const emptyTransaction: Omit<Transaction, 'id' | 'date'> = {
+const emptyTransaction: Omit<Transaction, 'id' | 'date' | 'currency'> = {
   description: '',
   amount: 0,
   type: 'Expense',
@@ -143,7 +144,7 @@ export default function FinancesPage() {
 
 
   const handleAddTransaction = async () => {
-    if (!newTransaction.description || newTransaction.amount === 0) {
+    if (!newTransaction.description || newTransaction.amount === 0 || !settings?.currency) {
         toast({ variant: 'destructive', title: 'Missing required fields' });
         return;
     }
@@ -151,6 +152,7 @@ export default function FinancesPage() {
     const transactionToAdd = { 
         ...newTransaction, 
         amount: finalAmount, 
+        currency: settings.currency,
         date: format(new Date(), 'yyyy-MM-dd HH:mm:ss')
     };
 
@@ -296,7 +298,7 @@ export default function FinancesPage() {
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="currency">Currency</Label>
-                            <Input id="currency" value={settings?.currency} disabled/>
+                            <Input id="currency" value={settings?.currency || ''} disabled/>
                         </div>
                     </div>
                     <div className="space-y-2">
@@ -547,7 +549,7 @@ export default function FinancesPage() {
                     </Select>
                  </div>
                  <div className="space-y-2">
-                    <Label htmlFor="bonus-amount">Amount ({settings?.currency})</Label>
+                    <Label htmlFor="bonus-amount">Amount ({settings?.currency || ''})</Label>
                     <Input id="bonus-amount" type="number" value={bonusAmount} onChange={e => setBonusAmount(Number(e.target.value))} />
                  </div>
                  <div className="space-y-2">

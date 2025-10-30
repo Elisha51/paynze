@@ -251,7 +251,7 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
         }
 
         if (shouldUpdateStaff) {
-            updateStaff(staffMember);
+            await updateStaff(staffMember);
         }
     }
 };
