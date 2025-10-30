@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Download, Calendar as CalendarIcon, Upload, Award } from 'lucide-react';
+import { PlusCircle, Download, Calendar as CalendarIcon, Upload, Award, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
@@ -45,6 +45,7 @@ import { reconcileTransactions, type ReconciliationOutput } from '@/ai/flows/rec
 import { ReconciliationReport } from '@/components/dashboard/reconciliation-report';
 import { CommissionReport } from '@/components/dashboard/commission-report';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import Link from 'next/link';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date' | 'currency'> = {
   description: '',
@@ -475,6 +476,14 @@ export default function FinancesPage() {
                 orders={orders} 
                 onPayout={loadData}
                 onAwardBonus={() => setIsAwardBonusOpen(true)}
+                cta={
+                    <Button variant="outline" asChild>
+                        <Link href="/dashboard/marketing?tab=affiliates">
+                            <Users className="mr-2 h-4 w-4" />
+                            Manage Affiliates
+                        </Link>
+                    </Button>
+                }
             />
         </div>
       </DashboardPageLayout.TabContent>

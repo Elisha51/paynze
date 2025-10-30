@@ -90,9 +90,10 @@ type CommissionReportProps = {
     orders: Order[];
     onPayout: () => void;
     onAwardBonus: () => void;
+    cta?: React.ReactNode;
 }
 
-export function CommissionReport({ type, title, description, staff, roles, orders, onPayout, onAwardBonus }: CommissionReportProps) {
+export function CommissionReport({ type, title, description, staff, roles, orders, onPayout, onAwardBonus, cta }: CommissionReportProps) {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const { user } = useAuth();
 
@@ -135,12 +136,15 @@ export function CommissionReport({ type, title, description, staff, roles, order
                         <CardDescription>{description}</CardDescription>
                     </div>
                 </div>
-                {type === 'staff' && canEditFinances && (
-                    <Button variant="outline" onClick={onAwardBonus}>
-                        <Award className="mr-2 h-4 w-4" />
-                        Award Bonus / Adjustment
-                    </Button>
-                )}
+                <div className="flex gap-2">
+                    {cta}
+                    {type === 'staff' && canEditFinances && (
+                        <Button variant="outline" onClick={onAwardBonus}>
+                            <Award className="mr-2 h-4 w-4" />
+                            Award Bonus / Adjustment
+                        </Button>
+                    )}
+                </div>
             </CardHeader>
             <CardContent>
                 <DataTable
