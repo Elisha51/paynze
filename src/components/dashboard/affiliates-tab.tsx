@@ -144,76 +144,93 @@ const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, 
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
             const affiliate = row.original;
+            
             return (
                 <div className="text-right">
-                    <AlertDialog>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem asChild>
-                                    <Link href={`/dashboard/marketing/affiliates/${affiliate.id}`}>
-                                        <Info className="mr-2 h-4 w-4" /> View Details
-                                    </Link>
-                                </DropdownMenuItem>
-                                {canEdit && (
-                                    <>
-                                        <DropdownMenuSeparator />
-                                        {affiliate.status === 'Pending' && (
-                                            <>
-                                                <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
-                                                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                                                </DropdownMenuItem>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/marketing/affiliates/${affiliate.id}`}>
+                                    <Info className="mr-2 h-4 w-4" /> View Details
+                                </Link>
+                            </DropdownMenuItem>
+                            {canEdit && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    {affiliate.status === 'Pending' && (
+                                        <>
+                                            <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
+                                                <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                            </DropdownMenuItem>
+                                            <AlertDialog>
                                                 <AlertDialogTrigger asChild>
                                                     <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
                                                         <XCircle className="mr-2 h-4 w-4" /> Reject
                                                     </DropdownMenuItem>
                                                 </AlertDialogTrigger>
-                                            </>
-                                        )}
-                                         {affiliate.status === 'Active' && (
-                                            <AlertDialogTrigger asChild>
-                                                <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                    <XCircle className="mr-2 h-4 w-4" /> Suspend
-                                                </DropdownMenuItem>
-                                            </AlertDialogTrigger>
-                                        )}
-                                        {affiliate.status === 'Suspended' && (
-                                            <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
-                                                <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
-                                            </DropdownMenuItem>
-                                        )}
-                                        {affiliate.status === 'Active' && (
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This will reject the affiliate "{affiliate.name}". Their application will be denied.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleStatusChange(affiliate.id, 'Rejected')} className="bg-destructive hover:bg-destructive/90">
+                                                            Confirm
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+                                        </>
+                                    )}
+                                    {affiliate.status === 'Active' && (
+                                        <>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                        <XCircle className="mr-2 h-4 w-4" /> Suspend
+                                                    </DropdownMenuItem>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            This will suspend the affiliate "{affiliate.name}". Their referral link will be disabled.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleStatusChange(affiliate.id, 'Suspended')} className="bg-destructive hover:bg-destructive/90">
+                                                            Confirm
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                             <DropdownMenuItem asChild>
                                                 <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
                                                     <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
                                                 </Link>
                                             </DropdownMenuItem>
-                                        )}
-                                    </>
-                                )}
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                         <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will {affiliate.status === 'Pending' ? 'reject' : 'suspend'} the affiliate "{affiliate.name}". Their referral link will be disabled.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleStatusChange(affiliate.id, affiliate.status === 'Pending' ? 'Rejected' : 'Suspended')} className="bg-destructive hover:bg-destructive/90">
-                                    Confirm
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
+                                        </>
+                                    )}
+                                    {affiliate.status === 'Suspended' && (
+                                        <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
+                                            <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
+                                        </DropdownMenuItem>
+                                    )}
+                                </>
+                            )}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             )
         }
@@ -300,5 +317,3 @@ export function AffiliatesTab() {
         </div>
     );
 }
-
-    
