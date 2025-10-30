@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, BarChart, Users, ShoppingCart, DollarSign, Copy, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Edit, BarChart, ShoppingCart, DollarSign, Copy, Link as LinkIcon, MoreVertical, CheckCircle, XCircle, Ban, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import type { Affiliate, OnboardingFormData } from '@/lib/types';
 import {
@@ -14,14 +14,44 @@ import {
   CardTitle,
   CardFooter,
 } from "@/components/ui/card"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from '@/context/auth-context';
-import { getAffiliateById } from '@/services/affiliates';
+import { getAffiliateById, updateAffiliate } from '@/services/affiliates';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { format } from 'date-fns';
+
+const getStatusBadge = (status: Affiliate['status']) => {
+    const variants: Record<Affiliate['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
+        Active: 'default',
+        Pending: 'secondary',
+        Suspended: 'destructive',
+        Rejected: 'outline',
+        Deactivated: 'destructive',
+    };
+    return <Badge variant={variants[status]}>{status}</Badge>;
+}
 
 export default function ViewAffiliatePage() {
   const params = useParams();
@@ -35,23 +65,35 @@ export default function ViewAffiliatePage() {
 
   const canEdit = user?.permissions.marketing?.edit;
 
+  const loadData = async () => {
+    if (!id) return;
+    setLoading(true);
+    const fetchedAffiliate = await getAffiliateById(id);
+    setAffiliate(fetchedAffiliate || null);
+    setLoading(false);
+  }
+
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
     if (data) {
         setSettings(JSON.parse(data));
     }
-    async function loadData() {
-        if (!id) return;
-        setLoading(true);
-        const fetchedAffiliate = await getAffiliateById(id);
-        setAffiliate(fetchedAffiliate || null);
-        setLoading(false);
-    }
     loadData();
   }, [id]);
 
+  const handleStatusChange = async (newStatus: Affiliate['status']) => {
+    if (!affiliate) return;
+    try {
+        const updatedAffiliate = await updateAffiliate(id, { status: newStatus });
+        setAffiliate(updatedAffiliate);
+        toast({ title: `Affiliate ${newStatus}!` });
+    } catch (error) {
+        toast({ variant: 'destructive', title: "Action Failed" });
+    }
+  };
+
   const handleBack = () => {
-    router.back();
+    router.push('/dashboard/marketing?tab=affiliates');
   }
 
   const formatCurrency = (amount: number) => {
@@ -103,7 +145,81 @@ export default function ViewAffiliatePage() {
         </Button>
         <div className="flex-1">
           <h1 className="text-2xl font-bold tracking-tight">{affiliate.name}</h1>
-           <Badge variant={affiliate.status === 'Active' ? 'default' : 'secondary'}>{affiliate.status}</Badge>
+           {getStatusBadge(affiliate.status)}
+        </div>
+        <div className="ml-auto">
+             <AlertDialog>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        {canEdit && (
+                            <>
+                                <DropdownMenuSeparator />
+                                {affiliate.status === 'Pending' && (
+                                    <>
+                                        <DropdownMenuItem onClick={() => handleStatusChange('Active')}>
+                                            <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                        </DropdownMenuItem>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <XCircle className="mr-2 h-4 w-4" /> Reject
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                    </>
+                                )}
+                                {affiliate.status === 'Active' && (
+                                    <>
+                                         <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-orange-600 focus:text-orange-600">
+                                                <Ban className="mr-2 h-4 w-4" /> Suspend
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                         <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <XCircle className="mr-2 h-4 w-4" /> Deactivate
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem asChild>
+                                            <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
+                                                <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
+                                            </Link>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
+                                {(affiliate.status === 'Suspended' || affiliate.status === 'Rejected' || affiliate.status === 'Deactivated') && (
+                                    <DropdownMenuItem onClick={() => handleStatusChange('Active')}>
+                                        <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
+                                    </DropdownMenuItem>
+                                )}
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                           This will change the affiliate's status. Please confirm this action.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => {
+                            if(affiliate.status === 'Pending') handleStatusChange('Rejected')
+                            else if(affiliate.status === 'Active') handleStatusChange('Deactivated')
+                        }} className="bg-destructive hover:bg-destructive/90">
+                            Confirm
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
       </div>
       
