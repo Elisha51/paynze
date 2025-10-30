@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { AuthLayout } from '@/components/layout/auth-layout';
 import { useToast } from '@/hooks/use-toast';
-import { addAffiliate } from '@/services/affiliates';
+import { addAffiliate, getAffiliates } from '@/services/affiliates';
 
 export default function AffiliateSignupPage() {
   const [name, setName] = useState('');
@@ -21,6 +21,15 @@ export default function AffiliateSignupPage() {
     e.preventDefault();
     if (!name || !contact || !uniqueId) {
         toast({ variant: 'destructive', title: "All fields are required." });
+        return;
+    }
+    
+    // Check for unique code
+    const existingAffiliates = await getAffiliates();
+    const isCodeTaken = existingAffiliates.some(aff => aff.uniqueId.toUpperCase() === uniqueId.toUpperCase());
+    
+    if (isCodeTaken) {
+        toast({ variant: 'destructive', title: "Unique code is already taken.", description: "Please choose a different code." });
         return;
     }
 
@@ -92,4 +101,3 @@ export default function AffiliateSignupPage() {
     </AuthLayout>
   );
 }
-
