@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ProductImages } from '@/components/storefront/product-images';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '@/components/ui/input';
 
 const md = new Remarkable();
 
