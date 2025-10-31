@@ -35,7 +35,7 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
 }
 
 type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
-const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'finances', 'staff', 'tasks'];
+const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'staff', 'tasks'];
 
 const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => (
     <div className="space-y-3">
@@ -64,6 +64,7 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         orders: { view: false, create: false, edit: false, delete: false },
         customers: { view: false, create: false, edit: false, delete: false },
         procurement: { view: false, create: false, edit: false, delete: false },
+        marketing: { view: false, create: false, edit: false, delete: false },
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
