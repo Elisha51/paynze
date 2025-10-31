@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { useEffect, useState } from 'react';
 import { AuthProvider } from '@/context/auth-context';
+import { CartProvider } from '@/context/cart-context';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -54,13 +55,13 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={cn("font-sans antialiased", inter.variable)}>
-          <AuthProvider>
+        <AuthProvider>
+          <CartProvider>
             {children}
-          </AuthProvider>
+          </CartProvider>
+        </AuthProvider>
         <Toaster />
       </body>
     </html>
   );
 }
-
-    
