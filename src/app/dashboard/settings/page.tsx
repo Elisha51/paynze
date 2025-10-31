@@ -13,7 +13,7 @@ import type { OnboardingFormData } from '@/context/onboarding-context';
 import { LocationsTab } from '@/components/settings/locations-tab';
 import type { Location, ShippingZone, AffiliateProgramSettings } from '@/lib/types';
 import { getLocations as fetchLocations } from '@/services/locations';
-import { PlusCircle, Trash2, Globe, Wallet, Truck, Shield, Brush, Users, Package } from 'lucide-react';
+import { PlusCircle, Trash2, Globe, Wallet, Truck, Shield, Brush, Users, Package, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -28,6 +28,7 @@ import { FileUploader } from '@/components/ui/file-uploader';
 import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -173,7 +174,7 @@ export default function SettingsPage() {
         </p>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="h-auto flex-wrap justify-start">
+        <TabsList className="h-auto flex flex-wrap justify-start">
           <TabsTrigger value="store" className="gap-2"><Brush className="h-4 w-4" />Store</TabsTrigger>
           <TabsTrigger value="locations" className="gap-2"><Globe className="h-4 w-4"/>Locations</TabsTrigger>
           <TabsTrigger value="payments" className="gap-2"><Wallet className="h-4 w-4"/>Payments</TabsTrigger>
@@ -184,11 +185,19 @@ export default function SettingsPage() {
         </TabsList>
         <TabsContent value="store" className="mt-6 space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle>Brand & Identity</CardTitle>
-              <CardDescription>
-                Update your store's name, description, and branding.
-              </CardDescription>
+            <CardHeader className="flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Brand & Identity</CardTitle>
+                  <CardDescription>
+                    Update your store's name, description, and branding.
+                  </CardDescription>
+                </div>
+                 <Button asChild variant="outline">
+                    <Link href="/store" target="_blank">
+                        <ExternalLink className="mr-2 h-4 w-4"/>
+                        View Store
+                    </Link>
+                 </Button>
             </CardHeader>
             <CardContent className="space-y-6">
                <div className="space-y-2">
@@ -269,7 +278,7 @@ export default function SettingsPage() {
               <CardDescription>Configure your store's primary web address.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                <RadioGroup value={settings?.domainType} onValueChange={(v) => handleSelectChange('domainType', v)} disabled={!canEdit}>
+                <RadioGroup value={settings?.domainType} onValueChange={(v) => handleSelectChange('domainType', v as 'subdomain' | 'custom')} disabled={!canEdit}>
                     <div className={cn("p-4 border rounded-lg", settings?.domainType === 'subdomain' && 'border-primary')}>
                          <div className="flex items-center space-x-2">
                             <RadioGroupItem value="subdomain" id="subdomain-option" />
@@ -485,7 +494,7 @@ export default function SettingsPage() {
                                     <div className="flex gap-2">
                                         <Select
                                             value={affiliateSettings.commissionType}
-                                            onValueChange={(v) => handleAffiliateSettingChange('commissionType', v)}
+                                            onValueChange={(v) => handleAffiliateSettingChange('commissionType', v as 'Percentage' | 'Fixed Amount')}
                                             disabled={!canEdit}
                                         >
                                             <SelectTrigger className="w-[150px]"><SelectValue /></SelectTrigger>
