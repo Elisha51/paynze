@@ -27,6 +27,7 @@ import {
   Landmark,
   UserCog,
   Megaphone,
+  ExternalLink,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -34,6 +35,7 @@ import { cn } from '@/lib/utils';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: any) => p.dashboard.view },
@@ -74,12 +76,22 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
   return (
     <Sidebar>
         <SidebarHeader>
-            <Link href="/" className="flex items-center gap-2">
-            <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
-            <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{onboardingData?.businessName || 'Paynze'}</h2>
-            </div>
-            </Link>
+            <Tooltip>
+                <TooltipTrigger asChild>
+                    <Link href="/store" target="_blank" className="flex items-center gap-2">
+                    <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
+                    <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
+                        <div className="flex items-center gap-2">
+                             <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{onboardingData?.businessName || 'Paynze'}</h2>
+                             <ExternalLink className="h-4 w-4 text-sidebar-foreground/70" />
+                        </div>
+                    </div>
+                    </Link>
+                </TooltipTrigger>
+                <TooltipContent side="right" align="start">
+                    View your store
+                </TooltipContent>
+            </Tooltip>
         </SidebarHeader>
 
         <SidebarContent>
