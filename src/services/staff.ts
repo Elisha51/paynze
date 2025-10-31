@@ -181,3 +181,5 @@ export async function updateStaff(updatedMember: Staff): Promise<Staff> {
 export async function deleteStaff(staffId: string): Promise<void> {
   await staffService.delete(staffId);
 }
+
+    

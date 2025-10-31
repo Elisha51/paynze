@@ -56,3 +56,5 @@ export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[]
     </div>
   );
 }
+
+    
