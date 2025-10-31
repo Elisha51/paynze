@@ -90,14 +90,14 @@ export default function Home() {
             <div className="grid gap-10 lg:grid-cols-2 lg:gap-16 items-center">
               <div className="space-y-6">
                 <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none font-headline text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-green-400">
-                  Start Selling Online for Free
+                  Your Business, Online in Minutes.
                 </h1>
                 <p className="max-w-[600px] text-gray-300 md:text-xl">
-                  Join our community of over 100k entrepreneurs and begin selling. Don't think twice, this is the easiest way to start your online store.
+                  The all-in-one platform for African entrepreneurs to manage sales, customers, and payments—without the complexity.
                 </p>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Button size="lg" asChild>
-                    <Link href="/get-started">Sign Up for Free</Link>
+                    <Link href="/get-started">Start Selling Now</Link>
                   </Button>
                 </div>
               </div>
