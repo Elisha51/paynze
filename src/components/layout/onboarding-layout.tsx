@@ -1,4 +1,3 @@
-
 // src/components/layout/onboarding-layout.tsx
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
@@ -20,5 +19,3 @@ export function OnboardingLayout({ children }: { children: React.ReactNode }) {
         </div>
     )
 }
-
-    

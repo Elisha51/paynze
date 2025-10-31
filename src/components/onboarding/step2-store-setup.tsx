@@ -1,4 +1,3 @@
-
 // src/components/onboarding/step2-store-setup.tsx
 'use client';
 import { useState } from 'react';
@@ -32,7 +31,7 @@ export default function Step2StoreSetup() {
         setIsAvailable(true);
         toast({
             title: "Subdomain available!",
-            description: `katos.paynze.app is yours.`,
+            description: `${formData.subdomain}.paynze.app is yours.`,
         });
     }, 500)
   };
@@ -83,5 +82,3 @@ export default function Step2StoreSetup() {
     </Card>
   );
 }
-
-    
