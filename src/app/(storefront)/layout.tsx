@@ -29,7 +29,7 @@ export default function StorefrontLayout({
                  <h4 className="font-semibold">{settings?.businessName || 'Your Store'}</h4>
                  <p className="text-xs text-muted-foreground">&copy; {new Date().getFullYear()}. All rights reserved.</p>
                  <p className="text-xs text-muted-foreground">
-                    Powered by <Link href="/" className="font-semibold text-primary hover:underline">Paynze</Link>
+                    Powered by <Link href="https://paynze.com" target="_blank" className="font-semibold text-primary hover:underline">Paynze</Link>
                 </p>
             </div>
              <div className="space-y-2">
