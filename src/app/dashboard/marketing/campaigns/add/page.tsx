@@ -32,8 +32,14 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { suggestProductDescription } from '@/ai/flows/suggest-product-descriptions';
+
 
 export default function AddCampaignPage() {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [channel, setChannel] = useState('');
+    const [audience, setAudience] = useState('');
     const [startDate, setStartDate] = useState<Date>();
     const [endDate, setEndDate] = useState<Date>();
     const [isEndDate, setIsEndDate] = useState(false);
@@ -42,6 +48,7 @@ export default function AddCampaignPage() {
     const router = useRouter();
     const { toast } = useToast();
     const { user } = useAuth();
+    const [isGenerating, setIsGenerating] = useState(false);
     
     const canCreate = user?.permissions.marketing?.create;
 
@@ -67,12 +74,47 @@ export default function AddCampaignPage() {
     }
 
     const handleSave = () => {
-        // Mock save logic
+        // Mock save logic. In a real app this would call a service.
+        console.log("Saving new campaign:", { name, description, channel, audience, startDate, endDate, selectedProducts });
         toast({
             title: "Campaign Saved",
             description: "Your new campaign has been created successfully."
         });
         router.push('/dashboard/marketing?tab=campaigns');
+    };
+
+    const handleGenerateDescription = async () => {
+        if (!name) {
+            toast({
+                variant: "destructive",
+                title: "Campaign Name Required",
+                description: "Please enter a campaign name to generate a description.",
+            });
+            return;
+        }
+        setIsGenerating(true);
+        try {
+            // Re-using product description flow for demonstration
+            const result = await suggestProductDescription({
+                productName: `Marketing campaign called "${name}"`,
+                category: `For audience: ${audience}`,
+            });
+            if (result.description) {
+                setDescription(result.description);
+                toast({
+                    title: "Description Generated",
+                });
+            }
+        } catch (error) {
+            console.error("AI flow is offline:", error);
+            toast({
+                variant: "destructive",
+                title: "Generation Failed",
+                description: "The AI model is currently offline. Please try again later.",
+            });
+        } finally {
+            setIsGenerating(false);
+        }
     };
     
     if (!canCreate) {
@@ -119,17 +161,17 @@ export default function AddCampaignPage() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Campaign Name</Label>
-                <Input id="name" placeholder="e.g., Summer Sale" />
+                <Input id="name" placeholder="e.g., Summer Sale" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                     <Label htmlFor="description">Description</Label>
-                    <Button variant="ghost" size="sm">
+                    <Button variant="ghost" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
                         <Sparkles className="h-4 w-4 mr-2" />
-                        Generate with AI
+                        {isGenerating ? 'Generating...' : 'Generate with AI'}
                     </Button>
                 </div>
-                <Textarea id="description" placeholder="A brief description of the campaign's goals." />
+                <Textarea id="description" placeholder="A brief description of the campaign's goals." value={description} onChange={(e) => setDescription(e.target.value)} />
               </div>
             </CardContent>
           </Card>
@@ -141,28 +183,29 @@ export default function AddCampaignPage() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="channel">Channel</Label>
-                        <Select>
+                        <Select value={channel} onValueChange={setChannel}>
                             <SelectTrigger id="channel">
                                 <SelectValue placeholder="Select a channel" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="email">Email</SelectItem>
-                                <SelectItem value="sms">SMS</SelectItem>
-                                <SelectItem value="push">Push Notification</SelectItem>
+                                <SelectItem value="Email">Email</SelectItem>
+                                <SelectItem value="SMS">SMS</SelectItem>
+                                <SelectItem value="Push">Push Notification</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="audience">Audience</Label>
-                        <Select>
+                        <Select value={audience} onValueChange={setAudience}>
                             <SelectTrigger id="audience">
                                 <SelectValue placeholder="Select an audience" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="all">All Customers</SelectItem>
-                                <SelectItem value="new">New Customers</SelectItem>
-                                <SelectItem value="wholesalers">Wholesalers</SelectItem>
-                                <SelectItem value="abandoned">Abandoned Carts (Last 7 days)</SelectItem>
+                                <SelectItem value="All Subscribers">All Customers</SelectItem>
+                                <SelectItem value="New Customers">New Customers</SelectItem>
+                                <SelectItem value="Wholesalers">Wholesalers</SelectItem>
+                                <SelectItem value="Retailers">Retailers</SelectItem>
+                                <SelectItem value="Abandoned Carts">Abandoned Carts (Last 7 days)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -294,3 +337,5 @@ export default function AddCampaignPage() {
     </div>
   );
 }
+
+    
