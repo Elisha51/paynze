@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -14,7 +13,7 @@ import type { OnboardingFormData } from '@/context/onboarding-context';
 import { LocationsTab } from '@/components/settings/locations-tab';
 import type { Location, ShippingZone, AffiliateProgramSettings } from '@/lib/types';
 import { getLocations as fetchLocations } from '@/services/locations';
-import { PlusCircle, Trash2, Globe, Wallet, Truck, Shield, Brush } from 'lucide-react';
+import { PlusCircle, Trash2, Globe, Wallet, Truck, Shield, Brush, Users, Package } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -167,14 +166,14 @@ export default function SettingsPage() {
         </p>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="store"><Brush className="h-4 w-4 mr-2" />Store</TabsTrigger>
-          <TabsTrigger value="locations">Locations</TabsTrigger>
-          <TabsTrigger value="payments"><Wallet className="h-4 w-4 mr-2"/>Payments</TabsTrigger>
-          <TabsTrigger value="delivery"><Truck className="h-4 w-4 mr-2"/>Delivery</TabsTrigger>
-          <TabsTrigger value="affiliates">Affiliates</TabsTrigger>
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="security"><Shield className="h-4 w-4 mr-2"/>Security</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 h-auto">
+          <TabsTrigger value="store" className="gap-2"><Brush className="h-4 w-4" />Store</TabsTrigger>
+          <TabsTrigger value="locations" className="gap-2"><Globe className="h-4 w-4"/>Locations</TabsTrigger>
+          <TabsTrigger value="payments" className="gap-2"><Wallet className="h-4 w-4"/>Payments</TabsTrigger>
+          <TabsTrigger value="delivery" className="gap-2"><Truck className="h-4 w-4"/>Delivery</TabsTrigger>
+          <TabsTrigger value="affiliates" className="gap-2"><Users className="h-4 w-4"/>Affiliates</TabsTrigger>
+          <TabsTrigger value="inventory" className="gap-2"><Package className="h-4 w-4"/>Inventory</TabsTrigger>
+          <TabsTrigger value="security" className="gap-2"><Shield className="h-4 w-4"/>Security</TabsTrigger>
         </TabsList>
         <TabsContent value="store">
           <Card>
@@ -539,5 +538,4 @@ export default function SettingsPage() {
         </div>
       )}
     </>
-  );
-}
+    
