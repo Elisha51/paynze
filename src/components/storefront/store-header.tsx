@@ -18,7 +18,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
     return (
          <header className="sticky top-0 z-40 w-full border-b bg-background">
             <div className="container flex h-16 items-center">
-                <Link href="/store" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2">
                     <ShoppingCart className="h-6 w-6 text-primary" />
                     <span className="font-bold text-lg">{settings?.businessName || "Your Store"}</span>
                 </Link>
@@ -35,7 +35,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                         </Button>
                     </CartSheet>
                      <Button variant="ghost" size="icon" asChild>
-                        <Link href="/login">
+                        <Link href="/store/login">
                             <User className="h-5 w-5" />
                             <span className="sr-only">Login</span>
                         </Link>
