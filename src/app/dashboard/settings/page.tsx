@@ -166,7 +166,7 @@ export default function SettingsPage() {
         </p>
       </div>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 h-auto">
+        <TabsList className="h-auto flex-wrap justify-start">
           <TabsTrigger value="store" className="gap-2"><Brush className="h-4 w-4" />Store</TabsTrigger>
           <TabsTrigger value="locations" className="gap-2"><Globe className="h-4 w-4"/>Locations</TabsTrigger>
           <TabsTrigger value="payments" className="gap-2"><Wallet className="h-4 w-4"/>Payments</TabsTrigger>
@@ -175,7 +175,7 @@ export default function SettingsPage() {
           <TabsTrigger value="inventory" className="gap-2"><Package className="h-4 w-4"/>Inventory</TabsTrigger>
           <TabsTrigger value="security" className="gap-2"><Shield className="h-4 w-4"/>Security</TabsTrigger>
         </TabsList>
-        <TabsContent value="store">
+        <TabsContent value="store" className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Brand & Identity</CardTitle>
@@ -241,10 +241,10 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="locations">
+        <TabsContent value="locations" className="mt-6">
             <LocationsTab locations={locations} setLocations={setLocations} />
         </TabsContent>
-        <TabsContent value="payments">
+        <TabsContent value="payments" className="mt-6">
           <Card>
             <CardHeader>
               <CardTitle>Payment Gateways</CardTitle>
@@ -323,7 +323,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="delivery">
+        <TabsContent value="delivery" className="mt-6">
             <div className="space-y-6">
                 <Card>
                     <CardHeader>
@@ -396,7 +396,7 @@ export default function SettingsPage() {
                 </Card>
             </div>
         </TabsContent>
-         <TabsContent value="affiliates">
+         <TabsContent value="affiliates" className="mt-6">
             <Card>
                 <CardHeader>
                     <CardTitle>Affiliate Program</CardTitle>
@@ -485,7 +485,7 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
         </TabsContent>
-        <TabsContent value="inventory">
+        <TabsContent value="inventory" className="mt-6">
             <Card>
                 <CardHeader>
                     <CardTitle>Inventory</CardTitle>
@@ -508,7 +508,7 @@ export default function SettingsPage() {
                 </CardContent>
             </Card>
         </TabsContent>
-         <TabsContent value="security">
+         <TabsContent value="security" className="mt-6">
             <Card>
                 <CardHeader>
                     <CardTitle>Security</CardTitle>
@@ -538,4 +538,5 @@ export default function SettingsPage() {
         </div>
       )}
     </>
-    
+  );
+}
