@@ -172,7 +172,7 @@ export default function ViewAffiliatePage() {
            {getStatusBadge(affiliate.status)}
         </div>
         <div className="ml-auto">
-             <AlertDialog>
+             <AlertDialog onOpenChange={() => setDialogAction(null)}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -191,7 +191,7 @@ export default function ViewAffiliatePage() {
                                             <CheckCircle className="mr-2 h-4 w-4" /> Approve
                                         </DropdownMenuItem>
                                         <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={() => {setDialogAction('reject'); e.preventDefault()}} className="text-destructive focus:text-destructive">
+                                            <DropdownMenuItem onSelect={(e) => {setDialogAction('reject'); e.preventDefault()}} className="text-destructive focus:text-destructive">
                                                 <XCircle className="mr-2 h-4 w-4" /> Reject
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
@@ -200,12 +200,12 @@ export default function ViewAffiliatePage() {
                                 {affiliate.status === 'Active' && (
                                     <>
                                          <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={() => {setDialogAction('suspend'); e.preventDefault()}} className="text-orange-600 focus:text-orange-600">
+                                            <DropdownMenuItem onSelect={(e) => {setDialogAction('suspend'); e.preventDefault()}} className="text-orange-600 focus:text-orange-600">
                                                 <Ban className="mr-2 h-4 w-4" /> Suspend
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
                                          <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={() => {setDialogAction('deactivate'); e.preventDefault()}} className="text-destructive focus:text-destructive">
+                                            <DropdownMenuItem onSelect={(e) => {setDialogAction('deactivate'); e.preventDefault()}} className="text-destructive focus:text-destructive">
                                                 <XCircle className="mr-2 h-4 w-4" /> Deactivate
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
