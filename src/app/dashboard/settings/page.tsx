@@ -49,7 +49,11 @@ export default function SettingsPage() {
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
         if (data) {
-            setSettings(JSON.parse(data));
+            const parsedData = JSON.parse(data);
+            setSettings(parsedData);
+            if (parsedData.logoUrl) {
+                setLogoFile([{ url: parsedData.logoUrl }]);
+            }
         }
         
         const affiliateData = localStorage.getItem('affiliateSettings');
@@ -85,8 +89,9 @@ export default function SettingsPage() {
         // For simulation, we'll just use a local URL.
         if (files.length > 0 && files[0] instanceof File) {
              const localUrl = URL.createObjectURL(files[0]);
-             // You would then save this URL to your settings object
-             // setSettings(prev => ({...prev, logoUrl: localUrl}));
+             setSettings(prev => (prev ? {...prev, logoUrl: localUrl} : null));
+        } else if (files.length === 0) {
+            setSettings(prev => (prev ? {...prev, logoUrl: ''} : null));
         }
     }
 
@@ -184,19 +189,42 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="space-y-2">
+               <div className="space-y-2">
                 <Label>Logo</Label>
-                {logoFile.length > 0 && (
-                    <div className="w-24 h-24 relative mb-2">
-                        <Image src={logoFile[0] instanceof File ? URL.createObjectURL(logoFile[0]) : logoFile[0].url} alt="logo preview" fill className="object-contain rounded-md" />
+                 {logoFile.length > 0 ? (
+                    <div className="flex items-center gap-4">
+                        <div className="w-24 h-24 relative">
+                            <Image 
+                                src={logoFile[0] instanceof File ? URL.createObjectURL(logoFile[0]) : logoFile[0].url} 
+                                alt="logo preview" 
+                                fill 
+                                className="object-contain rounded-md border p-1" 
+                            />
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            <label htmlFor="logo-upload-button" className="cursor-pointer">
+                                <Button as="span" variant="outline">Change Logo</Button>
+                            </label>
+                            <Button variant="destructive" size="sm" onClick={() => handleLogoChange([])}>Remove</Button>
+                        </div>
+                         <div className="hidden">
+                            <FileUploader 
+                                id="logo-upload-button"
+                                files={logoFile}
+                                onFilesChange={handleLogoChange}
+                                maxFiles={1}
+                                accept={{ 'image/png': ['.png'], 'image/jpeg': ['.jpeg', '.jpg'] }}
+                            />
+                        </div>
                     </div>
+                ) : (
+                    <FileUploader 
+                        files={logoFile}
+                        onFilesChange={handleLogoChange}
+                        maxFiles={1}
+                        accept={{ 'image/png': ['.png'], 'image/jpeg': ['.jpeg', '.jpg'] }}
+                    />
                 )}
-                <FileUploader 
-                    files={logoFile}
-                    onFilesChange={handleLogoChange}
-                    maxFiles={1}
-                    accept={{ 'image/png': ['.png'], 'image/jpeg': ['.jpeg', '.jpg'] }}
-                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="businessName">Business Name</Label>
