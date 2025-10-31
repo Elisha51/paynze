@@ -1,4 +1,5 @@
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -327,7 +328,7 @@ export type Permissions = {
   finances: CrudPermissions;
   staff: CrudPermissions;
   tasks: CrudPermissions;
-  templates: { view: boolean; edit: boolean };
+  templates: CrudPermissions;
   settings: { view: boolean; edit: boolean };
 };
 

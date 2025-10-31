@@ -26,6 +26,8 @@ import { getCountryList } from '@/services/countries';
 import { useAuth } from '@/context/auth-context';
 import { FileUploader } from '@/components/ui/file-uploader';
 import Image from 'next/image';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { cn } from '@/lib/utils';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -95,7 +97,7 @@ export default function SettingsPage() {
         }
     }
 
-    const handleSelectChange = (id: 'currency' | 'language', value: string) => {
+    const handleSelectChange = (id: 'currency' | 'language' | 'domainType', value: string) => {
         if (!settings) return;
         setSettings(prev => prev ? { ...prev, [id]: value } : null);
     };
@@ -180,7 +182,7 @@ export default function SettingsPage() {
           <TabsTrigger value="inventory" className="gap-2"><Package className="h-4 w-4"/>Inventory</TabsTrigger>
           <TabsTrigger value="security" className="gap-2"><Shield className="h-4 w-4"/>Security</TabsTrigger>
         </TabsList>
-        <TabsContent value="store" className="mt-6">
+        <TabsContent value="store" className="mt-6 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Brand & Identity</CardTitle>
@@ -230,13 +232,6 @@ export default function SettingsPage() {
                 <Label htmlFor="businessName">Business Name</Label>
                 <Input id="businessName" value={settings?.businessName || ''} onChange={handleInputChange} disabled={!canEdit} />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="subdomain">Domain</Label>
-                <div className="flex items-center">
-                    <Input id="subdomain" value={settings?.subdomain || ''} onChange={handleInputChange} disabled={!canEdit} />
-                    <span className="ml-2 text-muted-foreground">.paynze.app</span>
-                </div>
-              </div>
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="currency">Store Currency</Label>
@@ -266,6 +261,38 @@ export default function SettingsPage() {
                     </Select>
                   </div>
               </div>
+            </CardContent>
+          </Card>
+           <Card>
+            <CardHeader>
+              <CardTitle>Domain Management</CardTitle>
+              <CardDescription>Configure your store's primary web address.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <RadioGroup value={settings?.domainType} onValueChange={(v) => handleSelectChange('domainType', v)} disabled={!canEdit}>
+                    <div className={cn("p-4 border rounded-lg", settings?.domainType === 'subdomain' && 'border-primary')}>
+                         <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="subdomain" id="subdomain-option" />
+                            <Label htmlFor="subdomain-option" className="font-semibold">Use a subdomain on paynze.app</Label>
+                        </div>
+                        <div className="pl-6 pt-2">
+                             <div className="flex items-center">
+                                <Input id="subdomain" value={settings?.subdomain || ''} onChange={handleInputChange} disabled={!canEdit || settings?.domainType !== 'subdomain'} />
+                                <span className="ml-2 text-muted-foreground">.paynze.app</span>
+                            </div>
+                        </div>
+                    </div>
+                     <div className={cn("p-4 border rounded-lg", settings?.domainType === 'custom' && 'border-primary')}>
+                         <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="custom" id="custom-option" />
+                            <Label htmlFor="custom-option" className="font-semibold">Use a custom domain</Label>
+                        </div>
+                         <div className="pl-6 pt-2 space-y-2">
+                            <Input id="customDomain" value={settings?.customDomain || ''} onChange={handleInputChange} disabled={!canEdit || settings?.domainType !== 'custom'} placeholder="e.g., www.my-store.com" />
+                             <p className="text-xs text-muted-foreground">Advanced: This requires changing DNS settings with your domain provider.</p>
+                        </div>
+                    </div>
+                </RadioGroup>
             </CardContent>
           </Card>
         </TabsContent>

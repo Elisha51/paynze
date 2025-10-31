@@ -15,6 +15,9 @@ export type OnboardingFormData = {
   currency: string;
   language: string;
   theme: string;
+  domainType: 'subdomain' | 'custom';
+  customDomain: string;
+  logoUrl?: string;
   paymentOptions: {
     cod: boolean;
     mobileMoney: boolean;
@@ -49,6 +52,8 @@ const initialFormData: OnboardingFormData = {
   currency: 'UGX',
   language: 'English',
   theme: themes[0].name,
+  domainType: 'subdomain',
+  customDomain: '',
   paymentOptions: {
     cod: true,
     mobileMoney: false,
