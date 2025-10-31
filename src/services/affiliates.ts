@@ -10,7 +10,6 @@ const mockAffiliates: Affiliate[] = [
     { id: 'aff-004', name: 'Suspended Sally', status: 'Suspended', contact: '0734567890', uniqueId: 'SALLY', linkClicks: 2300, conversions: 150, totalSales: 8000000, pendingCommission: 400000, paidCommission: 1200000, payoutHistory: [] },
     { id: 'aff-005', name: 'Rejected Ron', status: 'Rejected', contact: '0745678901', uniqueId: 'RONNIE', linkClicks: 0, conversions: 0, totalSales: 0, pendingCommission: 0, paidCommission: 0, payoutHistory: [] },
     { id: 'aff-006', name: 'Deactivated Dan', status: 'Deactivated', contact: '0756789012', uniqueId: 'DANDAN', linkClicks: 500, conversions: 10, totalSales: 300000, pendingCommission: 0, paidCommission: 15000, payoutHistory: [] },
-
 ];
 
 const affiliateService = new DataService<Affiliate>('affiliates', () => mockAffiliates);

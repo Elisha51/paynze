@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -43,13 +44,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { format } from 'date-fns';
 
 const getStatusBadge = (status: Affiliate['status']) => {
-    const variants: Record<Affiliate['status'], 'default' | 'secondary' | 'destructive' | 'outline'> = {
-        Active: 'default',
-        Pending: 'secondary',
-        Suspended: 'destructive',
-        Rejected: 'outline',
-        Deactivated: 'destructive',
-    };
     const colors: Partial<Record<Affiliate['status'], string>> = {
         Active: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80',
         Pending: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100/80',
@@ -57,7 +51,7 @@ const getStatusBadge = (status: Affiliate['status']) => {
         Rejected: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80',
         Deactivated: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80',
     }
-    return <Badge variant={variants[status]} className={colors[status]}>{status}</Badge>;
+    return <Badge variant={'outline'} className={colors[status]}>{status}</Badge>;
 }
 
 export default function ViewAffiliatePage() {
