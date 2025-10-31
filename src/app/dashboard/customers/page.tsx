@@ -1,3 +1,4 @@
+
 'use client';
 
 import { PlusCircle, Calendar as CalendarIcon, Download } from 'lucide-react';
@@ -13,12 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
-import { getCustomers } from '@/services/customers';
+import { getCustomers, getMerchants } from '@/services/customers';
 import { Customer } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
 import React from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
+import { getCustomerColumns, getMerchantColumns } from '@/components/dashboard/customers-columns';
 
 
 export default function CustomersPage() {
@@ -26,10 +28,11 @@ export default function CustomersPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
 
-  const activeTab = searchParams.get('tab') || 'customers';
+  const activeTab = searchParams.get('tab') || (isAdmin ? 'merchants' : 'customers');
   
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [data, setData] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
@@ -37,14 +40,19 @@ export default function CustomersPage() {
   });
 
   React.useEffect(() => {
-    async function loadCustomers() {
+    async function loadData() {
         setIsLoading(true);
-        const fetchedCustomers = await getCustomers();
-        setCustomers(fetchedCustomers);
+        if (isAdmin) {
+            const fetchedMerchants = await getMerchants();
+            setData(fetchedMerchants);
+        } else {
+            const fetchedCustomers = await getCustomers();
+            setData(fetchedCustomers);
+        }
         setIsLoading(false);
     }
-    loadCustomers();
-  }, []);
+    loadData();
+  }, [isAdmin]);
   
   const handleTabChange = (tab: string) => {
     router.push(`${pathname}?tab=${tab}`);
@@ -69,11 +77,12 @@ export default function CustomersPage() {
         setDate(undefined);
     }
   };
+  
+  const columns = isAdmin ? getMerchantColumns() : getCustomerColumns();
 
-  const mainTabs = [
-      { value: 'customers', label: 'Customers' },
-      { value: 'analytics', label: 'Analytics' },
-  ];
+  const mainTabs = isAdmin 
+    ? [{ value: 'merchants', label: 'Merchants' }, { value: 'analytics', label: 'Platform Analytics' }]
+    : [{ value: 'customers', label: 'Customers' }, { value: 'analytics', label: 'Analytics' }];
   
   const canCreate = user?.permissions.customers.create;
 
@@ -85,7 +94,7 @@ export default function CustomersPage() {
                 <span className="hidden sm:inline-flex">Export</span>
             </a>
         </Button>
-        {canCreate && (
+        {canCreate && !isAdmin && (
           <Button asChild size="sm" className="h-9 px-2.5 sm:px-4">
               <Link href="/dashboard/customers/add">
                   <PlusCircle className="h-4 w-4 sm:mr-2" />
@@ -98,15 +107,16 @@ export default function CustomersPage() {
 
   return (
     <DashboardPageLayout
-      title="Customers"
+      title={isAdmin ? "Merchants" : "Customers"}
       tabs={mainTabs}
       cta={cta}
       activeTab={activeTab}
       onTabChange={handleTabChange}
     >
-      <DashboardPageLayout.TabContent value="customers">
+      <DashboardPageLayout.TabContent value={isAdmin ? "merchants" : "customers"}>
           <CustomersTable
-            customers={customers}
+            columns={columns}
+            data={data}
             isLoading={isLoading}
           />
       </DashboardPageLayout.TabContent>
@@ -171,7 +181,7 @@ export default function CustomersPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <CustomerAnalyticsReport customers={customers} dateRange={date} />
+                    <CustomerAnalyticsReport customers={data as Customer[]} dateRange={date} />
                 </CardContent>
             </Card>
         </DashboardPageLayout.TabContent>

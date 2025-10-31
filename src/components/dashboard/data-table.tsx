@@ -36,6 +36,7 @@ import { useSearch } from '@/context/search-context';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DataTableFacetedFilter } from '../ui/data-table-faceted-filter';
 import { X, Search } from 'lucide-react';
+import { Skeleton } from '../ui/skeleton';
 
 interface DataTableFilter {
   columnId: string;
@@ -52,6 +53,7 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filters?: DataTableFilter[];
+  isLoading: boolean;
   emptyState?: {
     icon: React.ComponentType<{ className?: string }>;
     title: string;
@@ -64,6 +66,7 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   filters,
+  isLoading,
   emptyState
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -147,7 +150,17 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {isLoading ? (
+                [...Array(10)].map((_, i) => (
+                    <TableRow key={i}>
+                        {columns.map(col => (
+                            <TableCell key={(col as any).id || i}>
+                                <Skeleton className="h-6" />
+                            </TableCell>
+                        ))}
+                    </TableRow>
+                ))
+            ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}

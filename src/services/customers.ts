@@ -1,4 +1,5 @@
-import type { Customer } from '@/lib/types';
+
+import type { Customer, OnboardingFormData } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
@@ -63,9 +64,51 @@ function initializeMockCustomers(): Customer[] {
 }
 
 const customerService = new DataService<Customer>('customers', initializeMockCustomers);
+const merchantService = new DataService<OnboardingFormData>('onboardingData', () => []);
+
 
 export async function getCustomers(): Promise<Customer[]> {
   return await customerService.getAll();
+}
+
+export async function getMerchants(): Promise<OnboardingFormData[]> {
+    // In a real app, this would be a separate service call to a different endpoint.
+    // For this simulation, we'll just return an empty array as a placeholder.
+    // A real implementation would scan all tenants.
+    const mockMerchants: OnboardingFormData[] = [
+        {
+            businessName: "Kato Traders",
+            subdomain: "kato-traders",
+            contactPhone: "+256772123456",
+            businessType: "Wholesaler",
+            country: "Uganda",
+            currency: "UGX",
+            language: "English",
+            theme: "Default",
+            plan: "Premium",
+            domainType: 'subdomain',
+            customDomain: '',
+            paymentOptions: { cod: true, mobileMoney: true },
+            delivery: { pickup: true, address: 'Shop 1, Kikuubo', deliveryFee: '10000' }
+        },
+        {
+            businessName: "Amina's Fabrics",
+            subdomain: "aminas-fabrics",
+            contactPhone: "+254712345678",
+            businessType: "Retailer",
+            country: "Kenya",
+            currency: "KES",
+            language: "Swahili",
+            theme: "Mint",
+            plan: "Free",
+            domainType: 'subdomain',
+            customDomain: '',
+            paymentOptions: { cod: true, mobileMoney: false },
+            delivery: { pickup: false, address: '', deliveryFee: '500' }
+        }
+    ];
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return mockMerchants;
 }
 
 export async function getCustomerById(customerId: string): Promise<Customer | undefined> {
