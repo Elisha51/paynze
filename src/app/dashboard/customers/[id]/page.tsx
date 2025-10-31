@@ -1,3 +1,4 @@
+
 'use client';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -261,14 +262,6 @@ export default function ViewCustomerPage() {
                 <CardContent className="space-y-2 text-sm">
                     <p><strong>Email:</strong> {customer.email}</p>
                     <p><strong>Phone:</strong> {customer.phone}</p>
-                    <div className="pt-2">
-                        <p className="font-medium">Shipping Address</p>
-                        <address className="text-muted-foreground not-italic">
-                            123 Main Street<br/>
-                            Nairobi, 12345<br/>
-                            Kenya
-                        </address>
-                    </div>
                 </CardContent>
             </Card>
             <Card>
