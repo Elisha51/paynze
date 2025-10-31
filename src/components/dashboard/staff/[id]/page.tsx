@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -8,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, MoreVertical, Target, MapPin, List, CheckCircle, Award, Calendar, Hash, Type, ToggleRight, FileText, XCircle, Truck, Activity, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import type { Staff, Order, Role, AssignableAttribute, Payout } from '@/lib/types';
-import { getStaff, updateStaff, getStaffActivity } from '@/services/staff';
+import { getStaff, updateStaff } from '@/services/staff';
 import { getOrders, updateOrder } from '@/services/orders';
 import { getRoles } from '@/services/roles';
 import {
@@ -217,6 +216,13 @@ export default function ViewStaffPage() {
     loadData();
   }, [id]);
 
+  const handleStatusChange = async (newStatus: Staff['status']) => {
+    if (!staffMember) return;
+    const updatedStaff = await updateStaff({ ...staffMember, status: newStatus });
+    setStaffMember(updatedStaff);
+    toast({ title: `Staff Member ${newStatus}`});
+  };
+
   const handleVerification = async (action: 'approve' | 'reject') => {
       if (!staffMember) return;
 
@@ -226,7 +232,7 @@ export default function ViewStaffPage() {
           updatedStaff = await updateStaff({ ...staffMember, status: 'Active' });
           toast({ title: 'Staff Member Approved', description: `${staffMember.name} is now an active staff member.`});
       } else {
-          updatedStaff = await updateStaff({ ...staffMember, status: 'Inactive', rejectionReason });
+          updatedStaff = await updateStaff({ ...staffMember, status: 'Deactivated', rejectionReason });
            toast({ variant: 'destructive', title: 'Staff Member Rejected', description: `${staffMember.name}'s application has been rejected.`});
       }
       setStaffMember(updatedStaff);
@@ -304,62 +310,10 @@ export default function ViewStaffPage() {
   
   const canEditStaff = user?.permissions.staff.edit;
 
-
-  return (
-    <div className="space-y-6">
-       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/staff">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Staff</span>
-          </Link>
-        </Button>
-         <Avatar className="h-16 w-16">
-            <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
-            <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {staffMember.name}
-          </h1>
-          <p className="text-muted-foreground text-sm flex items-center gap-2">
-            {staffMember.role}
-             <Badge variant={staffMember.status === 'Active' ? 'default' : staffMember.status === 'Pending Verification' ? 'secondary' : 'destructive'} className="capitalize">{staffMember.status}</Badge>
-            <span className={cn(
-                "h-2 w-2 rounded-full",
-                staffMember.onlineStatus === 'Online' ? 'bg-green-500' : 'bg-gray-400'
-            )}></span>
-            {staffMember.onlineStatus}
-          </p>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-            {canEditStaff && (
-                <Button variant="outline" asChild>
-                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                    </Link>
-                </Button>
-            )}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-5 w-5" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>View Activity Log</DropdownMenuItem>
-                    {canEditStaff && (
-                        <DropdownMenuItem className="text-destructive">Deactivate Member</DropdownMenuItem>
-                    )}
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-      </div>
-
-      {isPendingVerification && (
-         <Card className="border-yellow-400 bg-yellow-50">
+  const renderVerificationCard = () => {
+    if (isPendingVerification && canEditStaff) {
+      return (
+        <Card className="border-yellow-400 bg-yellow-50">
               <CardHeader className="flex flex-row items-center justify-between p-4">
                 <div className="flex items-center gap-3">
                      <CheckCircle className="h-5 w-5 text-yellow-600" />
@@ -400,7 +354,81 @@ export default function ViewStaffPage() {
                 </div>
               </CardHeader>
           </Card>
-      )}
+      )
+    }
+    return null;
+  }
+
+  return (
+    <div className="space-y-6">
+       <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/dashboard/staff">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back to Staff</span>
+          </Link>
+        </Button>
+         <Avatar className="h-16 w-16">
+            <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
+            <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {staffMember.name}
+          </h1>
+          <p className="text-muted-foreground text-sm flex items-center gap-2">
+            {staffMember.role}
+             <Badge variant={staffMember.status === 'Active' ? 'default' : staffMember.status === 'Pending Verification' ? 'secondary' : 'destructive'} className="capitalize">{staffMember.status}</Badge>
+            <span className={cn(
+                "h-2 w-2 rounded-full",
+                staffMember.onlineStatus === 'Online' ? 'bg-green-500' : 'bg-gray-400'
+            )}></span>
+            {staffMember.onlineStatus}
+          </p>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+            {canEditStaff && (
+                <Button variant="outline" asChild>
+                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                    </Link>
+                </Button>
+            )}
+            <AlertDialog>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>View Activity Log</DropdownMenuItem>
+                        {canEditStaff && staffMember.status !== 'Deactivated' && (
+                             <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Deactivate Member</DropdownMenuItem>
+                            </AlertDialogTrigger>
+                        )}
+                    </DropdownMenuContent>
+                </AlertDialog>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to deactivate this member?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently revoke their access. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleStatusChange('Deactivated')} className="bg-destructive hover:bg-destructive/90">Deactivate</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+      </div>
+
+      {renderVerificationCard()}
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
@@ -429,7 +457,7 @@ export default function ViewStaffPage() {
                             description: unassignedDeliveryOrders.length > 0 
                                 ? "You can assign one of the pending orders below."
                                 : "There are currently no unassigned orders ready for delivery.",
-                            cta: unassignedDeliveryOrders.length > 0 
+                            cta: unassignedDeliveryOrders.length > 0 && canEditStaff
                                 ? <UnassignedOrders orders={unassignedDeliveryOrders} staffMember={staffMember} onAssign={handleAssignOrder} />
                                 : undefined,
                           }}
@@ -449,7 +477,7 @@ export default function ViewStaffPage() {
                             icon={<Award className="h-12 w-12 text-primary" />}
                             title="No Tasks or Schedule"
                             description="This staff member currently has no assigned orders or schedule to display."
-                            cta={(
+                            cta={( canEditStaff &&
                                 <Button asChild>
                                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
                                         <Edit className="mr-2 h-4 w-4" />

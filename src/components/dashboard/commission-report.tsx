@@ -2,16 +2,17 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import type { Staff, Role, Order, OnboardingFormData } from '@/lib/types';
+import type { Staff, Role, Order, OnboardingFormData, AffiliateProgramSettings } from '@/lib/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowUpDown, DollarSign, MoreHorizontal, FileText, Award, User, Users } from 'lucide-react';
+import { ArrowUpDown, MoreHorizontal, FileText, Award, User, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel } from '../ui/dropdown-menu';
 import { Checkbox } from '../ui/checkbox';
+import { EmptyState } from '../ui/empty-state';
 
 type CommissionRow = {
   staffId: string;
@@ -51,11 +52,17 @@ const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow
                 <ArrowUpDown className="ml-2 h-4 w-4" />
             </Button>
         ),
-        cell: ({ row }) => (
-            <Link href={`/dashboard/staff/${row.original.staffId}`} className="font-medium hover:underline">
-                {row.getValue('name')}
-            </Link>
-        )
+        cell: ({ row }) => {
+            const isAffiliate = row.original.role === 'Affiliate';
+            const link = isAffiliate 
+                ? `/dashboard/marketing/affiliates/${row.original.staffId}`
+                : `/dashboard/staff/${row.original.staffId}`;
+            return (
+                <Link href={link} className="font-medium hover:underline">
+                    {row.getValue('name')}
+                </Link>
+            )
+        }
     },
     {
         accessorKey: 'role',
@@ -103,7 +110,7 @@ const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow
                             <DropdownMenuItem asChild disabled={!canPayout}>
                                 <Link href={`/dashboard/finances/payouts/${staffId}`}>
                                     <FileText className="mr-2 h-4 w-4" />
-                                    Review & Payout
+                                    Review &amp; Payout
                                 </Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
@@ -128,6 +135,7 @@ type CommissionReportProps = {
 
 export function CommissionReport({ type, title, description, staff, roles, orders, onPayout, onAwardBonus, cta }: CommissionReportProps) {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [affiliateSettings, setAffiliateSettings] = useState<AffiliateProgramSettings | null>(null);
     const { user } = useAuth();
 
     const canEditFinances = user?.permissions.finances.edit;
@@ -137,21 +145,24 @@ export function CommissionReport({ type, title, description, staff, roles, order
         if (data) {
             setSettings(JSON.parse(data));
         }
+        const affData = localStorage.getItem('affiliateSettings');
+        if (affData) {
+            setAffiliateSettings(JSON.parse(affData));
+        }
     }, []);
     
     const commissionData = useMemo(() => {
-        return staff.filter(s => {
-            const role = roles.find(r => r.name === s.role);
-            const hasCommissionRules = role?.commissionRules && role.commissionRules.length > 0;
-            const hasUnpaidBalance = s.totalCommission && s.totalCommission > 0;
-            return hasCommissionRules || hasUnpaidBalance;
-        }).map(s => ({
-            staffId: s.id,
-            name: s.name,
-            role: s.role,
-            commission: s.totalCommission || 0,
-        }));
-    }, [staff, roles]);
+        return staff.map(s => {
+            let totalUnpaid = s.totalCommission || 0;
+            // The totalCommission is now pre-calculated in the service, so we just use it.
+            return {
+                staffId: s.id,
+                name: s.name,
+                role: s.role,
+                commission: totalUnpaid,
+            }
+        }).filter(s => s.commission > 0);
+    }, [staff, orders, roles, affiliateSettings]);
     
     const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditFinances), [settings?.currency, canEditFinances]);
 
@@ -171,7 +182,7 @@ export function CommissionReport({ type, title, description, staff, roles, order
                 </div>
                 <div className="flex gap-2">
                     {cta}
-                    {type === 'staff' && canEditFinances && (
+                    {canEditFinances && (
                         <Button variant="outline" onClick={onAwardBonus}>
                             <Award className="mr-2 h-4 w-4" />
                             Award Bonus / Adjustment
@@ -184,9 +195,9 @@ export function CommissionReport({ type, title, description, staff, roles, order
                     columns={columns}
                     data={commissionData}
                     emptyState={{
-                        icon: DollarSign,
+                        icon: Users,
                         title: `No Unpaid ${type === 'staff' ? 'Commissions' : 'Payouts'}`,
-                        description: `There are currently no ${type} with pending payouts.`,
+                        description: `There are currently no ${type === 'staff' ? 'staff members' : 'affiliates'} with pending payouts.`,
                     }}
                 />
             </CardContent>

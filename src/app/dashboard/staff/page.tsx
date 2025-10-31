@@ -5,8 +5,8 @@ import { PlusCircle, BarChart, DollarSign, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import * as React from 'react';
-import type { Staff, Role, Order, StaffActivity } from '@/lib/types';
-import { getStaff, addStaff as serviceAddStaff, updateStaff, getStaffActivity } from '@/services/staff';
+import type { Staff, Role, Order, StaffActivity, OnboardingFormData } from '@/lib/types';
+import { getStaff, addStaff as serviceAddStaff, updateStaff } from '@/services/staff';
 import { RolesPermissionsTab } from '@/components/dashboard/roles-permissions-tab';
 import {
   Dialog,
@@ -63,6 +63,7 @@ export default function StaffPage() {
   const [bonusStaff, setBonusStaff] = React.useState<Staff | null>(null);
   const [bonusAmount, setBonusAmount] = React.useState<number>(0);
   const [bonusReason, setBonusReason] = React.useState('');
+  const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
   const { toast } = useToast();
 
   const loadData = React.useCallback(async () => {
@@ -75,6 +76,10 @@ export default function StaffPage() {
   }, []);
 
   React.useEffect(() => {
+    const data = localStorage.getItem('onboardingData');
+    if (data) {
+        setSettings(JSON.parse(data));
+    }
     loadData();
   }, [loadData]);
   
@@ -150,7 +155,7 @@ export default function StaffPage() {
 
   const mainTabs = [
       { value: 'staff', label: 'Staff' },
-      { value: 'permissions', label: 'Roles & Permissions' },
+      { value: 'permissions', label: 'Roles &amp; Permissions' },
       { value: 'all-logs', label: 'All Logs' },
       { value: 'analytics', label: 'Analytics' },
   ];
@@ -291,7 +296,7 @@ export default function StaffPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
              <div className="space-y-2">
-              <Label htmlFor="bonusAmount">Bonus Amount ({bonusStaff?.currency})</Label>
+              <Label htmlFor="bonusAmount">Bonus Amount ({settings?.currency || bonusStaff?.currency})</Label>
               <Input
                 id="bonusAmount"
                 type="number"

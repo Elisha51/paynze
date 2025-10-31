@@ -46,6 +46,7 @@ import { ReconciliationReport } from '@/components/dashboard/reconciliation-repo
 import { CommissionReport } from '@/components/dashboard/commission-report';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '@/context/auth-context';
 
 const emptyTransaction: Omit<Transaction, 'id' | 'date' | 'currency'> = {
   description: '',
@@ -60,6 +61,7 @@ export default function FinancesPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { user } = useAuth();
 
   const activeTab = searchParams.get('tab') || 'transactions';
 
@@ -224,7 +226,7 @@ export default function FinancesPage() {
         date: new Date().toISOString(),
         reason: bonusReason || 'Manual Award',
         amount: bonusAmount,
-        awardedBy: 'Admin', // In a real app, get current user's name
+        awardedBy: user?.name || 'Admin',
     };
     
     const updatedStaff: Staff = {
@@ -249,6 +251,8 @@ export default function FinancesPage() {
 
   const staffMembers = staffAndAffiliates.filter(s => s.role !== 'Affiliate');
   const affiliates = staffAndAffiliates.filter(s => s.role === 'Affiliate');
+  
+  const canCreateTransactions = user?.permissions.finances.create;
 
 
   const mainTabs = [
@@ -260,95 +264,97 @@ export default function FinancesPage() {
   ];
 
   const cta = (
-    <div className="flex gap-2">
-        <Button variant="outline" size="sm" className="h-9 px-2.5 sm:px-4" asChild>
-            <a href="/transactions_sample.csv" download>
-                <Download className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline-flex">Export</span>
-            </a>
-        </Button>
-        <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
-            <DialogTrigger asChild>
-                <Button size="sm" className="h-9 px-2.5 sm:px-4">
-                    <PlusCircle className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline-flex">Add Transaction</span>
-                </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Add New Transaction</DialogTitle>
-                    <DialogDescription>Record a new income or expense entry.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="type">Type</Label>
-                        <Select onValueChange={(v) => handleSelectChange('type', v)} defaultValue={newTransaction.type}>
-                            <SelectTrigger><SelectValue/></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Income">Income</SelectItem>
-                                <SelectItem value="Expense">Expense</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea id="description" value={newTransaction.description} onChange={handleInputChange} />
-                    </div>
-                     <div className="grid grid-cols-2 gap-4">
+    canCreateTransactions && (
+        <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="h-9 px-2.5 sm:px-4" asChild>
+                <a href="/transactions_sample.csv" download>
+                    <Download className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline-flex">Export</span>
+                </a>
+            </Button>
+            <Dialog open={isAddTransactionOpen} onOpenChange={setIsAddTransactionOpen}>
+                <DialogTrigger asChild>
+                    <Button size="sm" className="h-9 px-2.5 sm:px-4">
+                        <PlusCircle className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline-flex">Add Transaction</span>
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add New Transaction</DialogTitle>
+                        <DialogDescription>Record a new income or expense entry.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="amount">Amount</Label>
-                            <Input id="amount" type="number" value={newTransaction.amount} onChange={e => setNewTransaction(p => ({...p, amount: Number(e.target.value)}))} />
+                            <Label htmlFor="type">Type</Label>
+                            <Select onValueChange={(v) => handleSelectChange('type', v)} defaultValue={newTransaction.type}>
+                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Income">Income</SelectItem>
+                                    <SelectItem value="Expense">Expense</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="currency">Currency</Label>
-                            <Input id="currency" value={settings?.currency || ''} disabled/>
+                            <Label htmlFor="description">Description</Label>
+                            <Textarea id="description" value={newTransaction.description} onChange={handleInputChange} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="amount">Amount</Label>
+                                <Input id="amount" type="number" value={newTransaction.amount} onChange={e => setNewTransaction(p => ({...p, amount: Number(e.target.value)}))} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="currency">Currency</Label>
+                                <Input id="currency" value={settings?.currency || ''} disabled/>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="paymentMethod">Payment Method</Label>
+                            <Select onValueChange={(v) => handleSelectChange('paymentMethod', v)} defaultValue={newTransaction.paymentMethod}>
+                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Cash">Cash</SelectItem>
+                                    <SelectItem value="Mobile Money">Mobile Money</SelectItem>
+                                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                                    <SelectItem value="Card">Card</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="category">Category</Label>
+                            <Select onValueChange={(v) => handleSelectChange('category', v)} defaultValue={newTransaction.category}>
+                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Sales">Sales</SelectItem>
+                                    <SelectItem value="Inventory">Inventory</SelectItem>
+                                    <SelectItem value="Utilities">Utilities</SelectItem>
+                                    <SelectItem value="Salaries">Salaries</SelectItem>
+                                    <SelectItem value="Marketing">Marketing</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="status">Status</Label>
+                            <Select onValueChange={(v) => handleSelectChange('status', v)} defaultValue={newTransaction.status}>
+                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="Cleared">Cleared</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="paymentMethod">Payment Method</Label>
-                        <Select onValueChange={(v) => handleSelectChange('paymentMethod', v)} defaultValue={newTransaction.paymentMethod}>
-                            <SelectTrigger><SelectValue/></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Cash">Cash</SelectItem>
-                                <SelectItem value="Mobile Money">Mobile Money</SelectItem>
-                                <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                                <SelectItem value="Card">Card</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="category">Category</Label>
-                        <Select onValueChange={(v) => handleSelectChange('category', v)} defaultValue={newTransaction.category}>
-                            <SelectTrigger><SelectValue/></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Sales">Sales</SelectItem>
-                                <SelectItem value="Inventory">Inventory</SelectItem>
-                                <SelectItem value="Utilities">Utilities</SelectItem>
-                                <SelectItem value="Salaries">Salaries</SelectItem>
-                                <SelectItem value="Marketing">Marketing</SelectItem>
-                                <SelectItem value="Other">Other</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="status">Status</Label>
-                        <Select onValueChange={(v) => handleSelectChange('status', v)} defaultValue={newTransaction.status}>
-                            <SelectTrigger><SelectValue/></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Pending">Pending</SelectItem>
-                                <SelectItem value="Cleared">Cleared</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                    <Button onClick={handleAddTransaction}>Save Transaction</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    </div>
+                    <DialogFooter>
+                        <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                        <Button onClick={handleAddTransaction}>Save Transaction</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </div>
+    )
   );
 
   return (
@@ -459,7 +465,7 @@ export default function FinancesPage() {
         <div className="space-y-6">
             <CommissionReport 
                 type="staff"
-                title="Staff Commissions & Bonuses"
+                title="Staff Commissions &amp; Bonuses"
                 description="View unpaid earnings and process payouts for your internal team members."
                 staff={staffMembers} 
                 roles={roles} 
