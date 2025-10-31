@@ -153,8 +153,8 @@ export function DataTable<TData, TValue>({
             {isLoading ? (
                 [...Array(10)].map((_, i) => (
                     <TableRow key={i}>
-                        {columns.map(col => (
-                            <TableCell key={(col as any).id || i}>
+                        {columns.map((col, colIndex) => (
+                            <TableCell key={`skel-cell-${i}-${colIndex}`}>
                                 <Skeleton className="h-6" />
                             </TableCell>
                         ))}
