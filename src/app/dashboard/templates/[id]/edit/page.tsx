@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { ProductTemplateForm } from '@/components/dashboard/product-template-form';
@@ -100,3 +99,5 @@ export default function EditProductTemplatePage() {
 
   return <ProductTemplateForm initialTemplate={template} />;
 }
+
+    

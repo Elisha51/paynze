@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PlusCircle, BarChart, DollarSign, Wallet } from 'lucide-react';
@@ -328,3 +327,5 @@ export default function StaffPage() {
     </>
   );
 }
+
+    

@@ -1,5 +1,4 @@
 
-
 'use client';
 import { ProductTemplateForm } from '@/components/dashboard/product-template-form';
 import { useAuth } from '@/context/auth-context';
@@ -11,9 +10,9 @@ import { ShieldAlert, ArrowLeft } from 'lucide-react';
 export default function AddProductTemplatePage() {
     const { user } = useAuth();
     const router = useRouter();
-    const canEditProducts = user?.permissions.templates.edit;
+    const canEditTemplates = user?.permissions.templates.edit;
 
-    if (!canEditProducts) {
+    if (!canEditTemplates) {
         return (
              <Card>
                 <CardHeader>
@@ -31,3 +30,5 @@ export default function AddProductTemplatePage() {
 
     return <ProductTemplateForm />;
 }
+
+    
