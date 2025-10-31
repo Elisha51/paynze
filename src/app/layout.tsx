@@ -10,6 +10,8 @@ import { OnboardingProvider } from '@/context/onboarding-context';
 import { useEffect, useState } from 'react';
 import { AuthProvider } from '@/context/auth-context';
 import { CartProvider } from '@/context/cart-context';
+import { usePathname } from 'next/navigation';
+import StorefrontLayout from './(storefront)/layout';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -22,6 +24,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [themeClass, setThemeClass] = useState('light');
+  const pathname = usePathname();
+  const isDashboard = pathname.startsWith('/dashboard');
 
   const applyTheme = () => {
     const onboardingDataRaw = localStorage.getItem('onboardingData');
@@ -68,7 +72,11 @@ export default function RootLayout({
         <AuthProvider>
           <OnboardingProvider>
             <CartProvider>
-                {children}
+                {isDashboard ? (
+                    children
+                ) : (
+                    <StorefrontLayout>{children}</StorefrontLayout>
+                )}
             </CartProvider>
           </OnboardingProvider>
         </AuthProvider>
