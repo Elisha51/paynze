@@ -42,6 +42,7 @@ export default function ProductDetailPage({ params }: { params: { sku: string } 
           }, {} as Record<string, string>);
           setSelectedOptions(initialOptions);
         } else if (foundProduct.variants.length > 0) {
+          // For products with no variants options but a default variant
           setSelectedVariant(foundProduct.variants[0]);
         }
       }
@@ -66,8 +67,8 @@ export default function ProductDetailPage({ params }: { params: { sku: string } 
   };
   
   const handleAddToCart = () => {
-    if (product && selectedVariant) {
-        addToCart(product, selectedVariant, quantity);
+    if (product && (selectedVariant || (!product.hasVariants && product.variants.length > 0))) {
+        addToCart(product, selectedVariant || product.variants[0], quantity);
     } else {
         toast({
             variant: 'destructive',
@@ -79,6 +80,18 @@ export default function ProductDetailPage({ params }: { params: { sku: string } 
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  };
+  
+  const getIsVariantAvailable = (optionName: string, value: string) => {
+    if (!product || !product.hasVariants) return true;
+
+    const potentialOptions = { ...selectedOptions, [optionName]: value };
+    const variant = product.variants.find(v => {
+      return Object.entries(potentialOptions).every(
+        ([key, val]) => v.optionValues[key] === val
+      );
+    });
+    return variant ? variant.status === 'In Stock' || variant.status === 'Low Stock' : false;
   };
   
   if (isLoading) {
@@ -100,8 +113,10 @@ export default function ProductDetailPage({ params }: { params: { sku: string } 
   if (!product) {
     return <div>Product not found</div>;
   }
-
-  const price = selectedVariant?.price || product.retailPrice;
+  
+  // Use selectedVariant for price if available, otherwise fallback to base product price.
+  // For non-variant products, selectedVariant will be the default variant.
+  const price = selectedVariant?.price ?? product.retailPrice;
   const isAvailable = selectedVariant ? selectedVariant.status === 'In Stock' || selectedVariant.status === 'Low Stock' : true;
 
   return (
@@ -132,21 +147,28 @@ export default function ProductDetailPage({ params }: { params: { sku: string } 
                 onValueChange={(value) => handleOptionChange(option.name, value)}
                 className="flex flex-wrap gap-2"
               >
-                {option.values.map(value => (
-                  <Label
-                    key={value}
-                    htmlFor={`${option.name}-${value}`}
-                    className={cn(
-                        "cursor-pointer rounded-md border px-4 py-2 transition-colors",
-                        selectedOptions[option.name] === value
-                        ? "border-primary bg-primary text-primary-foreground"
-                        : "border-border bg-background hover:bg-muted"
-                    )}
-                  >
-                    <RadioGroupItem value={value} id={`${option.name}-${value}`} className="sr-only" />
-                    {value}
-                  </Label>
-                ))}
+                {option.values.map(value => {
+                  const isOptionAvailable = getIsVariantAvailable(option.name, value);
+                  return (
+                    <Label
+                      key={value}
+                      htmlFor={`${option.name}-${value}`}
+                      className={cn(
+                          "cursor-pointer rounded-md border px-4 py-2 transition-colors relative",
+                          selectedOptions[option.name] === value
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border bg-background hover:bg-muted",
+                          !isOptionAvailable && "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                      )}
+                    >
+                      <RadioGroupItem value={value} id={`${option.name}-${value}`} className="sr-only" disabled={!isOptionAvailable}/>
+                      {value}
+                       {!isOptionAvailable && (
+                        <span className="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full bg-destructive" />
+                      )}
+                    </Label>
+                  )
+                })}
               </RadioGroup>
             </div>
           ))}

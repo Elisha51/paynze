@@ -12,8 +12,9 @@ import type { PaymentDetails, OnboardingFormData } from '@/lib/types';
 import { addOrder } from '@/services/orders';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import Link from 'next/link';
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, currency, clearCart } = useCart();
@@ -90,7 +91,12 @@ export default function CheckoutPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-6">Checkout</h1>
+        <div className="flex items-center gap-4 mb-6">
+            <Button variant="outline" size="icon" className="h-8 w-8" asChild>
+                <Link href="/"><ArrowLeft className="h-4 w-4" /></Link>
+            </Button>
+            <h1 className="text-3xl font-bold">Checkout</h1>
+        </div>
         <div className="grid lg:grid-cols-2 gap-8 items-start">
             <div className="space-y-6">
                 <Card>
