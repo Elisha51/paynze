@@ -137,8 +137,8 @@ const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, 
             </div>
         ),
         cell: ({ row }) => {
-            // In a real app, currency would be dynamic
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(row.original.pendingCommission)
+            const currency = 'UGX'; // Simplified, in a real app this would be dynamic
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(row.original.pendingCommission)
         }
     },
     {
@@ -146,10 +146,82 @@ const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, 
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
             const affiliate = row.original;
-            
+            const [dialogAction, setDialogAction] = useState<'reject' | 'deactivate' | 'suspend' | null>(null);
+
+            const getDialogDescription = () => {
+                switch(dialogAction) {
+                    case 'reject': return `This will reject the affiliate "${affiliate.name}". Their application will be denied.`;
+                    case 'suspend': return `This will suspend the affiliate "${affiliate.name}". Their link will be temporarily disabled.`;
+                    case 'deactivate': return `This will deactivate the affiliate "${affiliate.name}". Their account will be disabled permanently.`;
+                    default: return "Are you sure you want to proceed?";
+                }
+            }
+
+            const handleDialogConfirm = () => {
+                if (!dialogAction) return;
+                const statusMap = {
+                    reject: 'Rejected',
+                    deactivate: 'Deactivated',
+                    suspend: 'Suspended',
+                };
+                handleStatusChange(affiliate.id, statusMap[dialogAction] as Affiliate['status']);
+                setDialogAction(null);
+            };
+
+            const renderActions = () => {
+                if (!canEdit) return null;
+                
+                switch (affiliate.status) {
+                    case 'Pending':
+                        return (
+                             <>
+                                <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
+                                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                </DropdownMenuItem>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setDialogAction('reject'); }} className="text-destructive focus:text-destructive">
+                                        <XCircle className="mr-2 h-4 w-4" /> Reject
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </>
+                        );
+                    case 'Active':
+                         return (
+                            <>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setDialogAction('suspend'); }} className="text-orange-600 focus:text-orange-600">
+                                        <Ban className="mr-2 h-4 w-4" /> Suspend
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => { e.preventDefault(); setDialogAction('deactivate'); }} className="text-destructive focus:text-destructive">
+                                        <XCircle className="mr-2 h-4 w-4" /> Deactivate
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
+                                        <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
+                                    </Link>
+                                </DropdownMenuItem>
+                            </>
+                        );
+                    case 'Suspended':
+                    case 'Rejected':
+                    case 'Deactivated':
+                        return (
+                            <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
+                                <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
+                            </DropdownMenuItem>
+                        );
+                    default:
+                        return null;
+                }
+            };
+
             return (
                 <div className="text-right">
-                    <AlertDialog>
+                    <AlertDialog onOpenChange={() => setDialogAction(null)}>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" className="h-8 w-8 p-0">
@@ -164,60 +236,18 @@ const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, 
                                         <Info className="mr-2 h-4 w-4" /> View Details
                                     </Link>
                                 </DropdownMenuItem>
-                                {canEdit && (
-                                    <>
-                                        <DropdownMenuSeparator />
-                                        {affiliate.status === 'Pending' && (
-                                            <>
-                                                <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
-                                                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                                                </DropdownMenuItem>
-                                                <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                        <XCircle className="mr-2 h-4 w-4" /> Reject
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                            </>
-                                        )}
-                                        {affiliate.status === 'Active' && (
-                                            <>
-                                                <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Suspended')}>
-                                                    <Ban className="mr-2 h-4 w-4 text-orange-500" /> Suspend
-                                                </DropdownMenuItem>
-                                                <AlertDialogTrigger asChild>
-                                                    <DropdownMenuItem onSelect={e => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                                        <XCircle className="mr-2 h-4 w-4" /> Deactivate
-                                                    </DropdownMenuItem>
-                                                </AlertDialogTrigger>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem asChild>
-                                                    <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
-                                                        <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                            </>
-                                        )}
-                                        {(affiliate.status === 'Suspended' || affiliate.status === 'Rejected' || affiliate.status === 'Deactivated') && (
-                                            <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
-                                                <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
-                                            </DropdownMenuItem>
-                                        )}
-                                    </>
-                                )}
+                                {canEdit && <DropdownMenuSeparator />}
+                                {renderActions()}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                         <AlertDialogContent>
+                        <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                {affiliate.status === 'Pending' ? (
-                                     <AlertDialogDescription>This will reject the affiliate "{affiliate.name}". Their application will be denied.</AlertDialogDescription>
-                                ) : (
-                                    <AlertDialogDescription>This will deactivate the affiliate "{affiliate.name}". Their account will be disabled permanently.</AlertDialogDescription>
-                                )}
+                                <AlertDialogDescription>{getDialogDescription()}</AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleStatusChange(affiliate.id, affiliate.status === 'Pending' ? 'Rejected' : 'Deactivated')} className="bg-destructive hover:bg-destructive/90">
+                                <AlertDialogAction onClick={handleDialogConfirm} className={dialogAction === 'suspend' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-destructive hover:bg-destructive/90'}>
                                     Confirm
                                 </AlertDialogAction>
                             </AlertDialogFooter>
