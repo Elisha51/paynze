@@ -51,9 +51,11 @@ const getStatusBadge = (status: Affiliate['status']) => {
         Deactivated: 'destructive',
     };
     const colors: Partial<Record<Affiliate['status'], string>> = {
-        Active: 'bg-green-100 text-green-800 border-green-200',
-        Pending: 'bg-blue-100 text-blue-800 border-blue-200',
-        Suspended: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        Active: 'bg-green-100 text-green-800 border-green-200 hover:bg-green-100/80',
+        Pending: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-100/80',
+        Suspended: 'bg-yellow-100 text-yellow-800 border-yellow-200 hover:bg-yellow-100/80',
+        Rejected: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80',
+        Deactivated: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-100/80',
     }
     return <Badge variant={variants[status]} className={colors[status]}>{status}</Badge>;
 }
