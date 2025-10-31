@@ -33,7 +33,7 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
 }
 
 type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
-const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'templates', 'staff', 'tasks'];
+const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'staff', 'tasks', 'templates'];
 
 const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => {
     // Defensive check to prevent runtime errors if a permission module is missing from a role definition.
