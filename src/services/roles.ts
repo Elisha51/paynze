@@ -118,5 +118,3 @@ export async function addRole(role: Role): Promise<Role> {
 export async function updateRole(updatedRole: Role): Promise<Role> {
   return await roleService.update(updatedRole.name, updatedRole);
 }
-
-    

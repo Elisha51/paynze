@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
@@ -35,6 +35,7 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
 
 type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
 const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'staff', 'tasks', 'templates'];
+
 
 const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => {
     // Defensive check to prevent runtime errors if a permission module is missing from a role definition.
@@ -81,17 +82,22 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
     commissionRules: [],
 }
 
-export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRoles: React.Dispatch<React.SetStateAction<Role[]>>}) {
+export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRoles }: { roles: Role[], setRoles: React.Dispatch<React.SetStateAction<Role[]>>}) {
+  const [roles, setRoles] = useState<Role[]>(initialRoles);
   const { toast } = useToast();
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newRole, setNewRole] = useState(emptyRole);
+  
+  useEffect(() => {
+    setRoles(initialRoles);
+  }, [initialRoles]);
 
   const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: keyof CrudPermissions | 'view' | 'edit', value: boolean) => {
     setRoles(prevRoles =>
       prevRoles.map(role => {
         if (role.name === roleName) {
           const newPermissions = { ...role.permissions };
-          const modulePermissions = { ...newPermissions[module] };
+          const modulePermissions = { ...(newPermissions[module] || {}) };
           (modulePermissions as any)[permissionKey] = value;
           newPermissions[module] = modulePermissions;
           
@@ -115,6 +121,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
   
   const handleSaveChanges = async (role: Role) => {
       await updateRole(role);
+      setParentRoles(roles); // Sync state back up to the parent
       toast({
           title: 'Permissions Updated',
           description: `Permissions for the ${role.name} role have been saved.`,
@@ -131,7 +138,9 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
           name: newRole.name as Role['name'],
       }
       const addedRole = await serviceAddRole(roleToAdd);
-      setRoles(prev => [...prev, addedRole]);
+      const newRoles = [...roles, addedRole];
+      setRoles(newRoles);
+      setParentRoles(newRoles);
       toast({ title: 'Role Added' });
       setIsAddOpen(false);
       setNewRole(emptyRole);
@@ -287,7 +296,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                             key={module}
                                             roleName={role.name}
                                             module={module}
-                                            permissions={role.permissions[module as keyof Omit<Permissions, 'dashboard'|'settings'|'templates'>]}
+                                            permissions={role.permissions[module as keyof Omit<Permissions, 'dashboard'|'settings'>]}
                                             onPermissionChange={(key, value) => handlePermissionChange(role.name, module, key, value)}
                                         />
                                     ))}
@@ -440,5 +449,3 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
     </>
   );
 }
-
-    
