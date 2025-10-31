@@ -287,7 +287,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                             key={module}
                                             roleName={role.name}
                                             module={module}
-                                            permissions={role.permissions[module as keyof Omit<Permissions, 'dashboard'|'settings'>]}
+                                            permissions={role.permissions[module as keyof Omit<Permissions, 'dashboard'|'settings'|'templates'>]}
                                             onPermissionChange={(key, value) => handlePermissionChange(role.name, module, key, value)}
                                         />
                                     ))}
