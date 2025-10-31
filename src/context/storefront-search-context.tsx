@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
@@ -9,7 +10,7 @@ type StorefrontSearchContextType = {
 
 const StorefrontSearchContext = createContext<StorefrontSearchContextType | undefined>(undefined);
 
-export function StorefrontSearchProvider({ children }: { children: ReactNode }) {
+export function StorefrontSearchProvider({ children }: { children: React.ReactNode }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   return (

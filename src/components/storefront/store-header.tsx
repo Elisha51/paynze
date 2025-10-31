@@ -8,7 +8,6 @@ import { CartSheet } from './cart-sheet';
 import { useCart } from '@/context/cart-context';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
-import { useStorefrontSearch } from '@/context/storefront-search-context';
 
 type StoreHeaderProps = {
     settings: OnboardingFormData | null;
@@ -16,7 +15,6 @@ type StoreHeaderProps = {
 
 export function StoreHeader({ settings }: StoreHeaderProps) {
     const { cartCount } = useCart();
-    const { searchQuery, setSearchQuery } = useStorefrontSearch();
     
     return (
          <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -25,15 +23,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                     <ShoppingCart className="h-6 w-6 text-primary" />
                     <span className="font-bold text-lg">{settings?.businessName || "Your Store"}</span>
                 </Link>
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input 
-                        placeholder="Search products..."
-                        className="pl-10"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </div>
+                 <div className="flex-1" />
                 <div className="flex items-center gap-2">
                     <CartSheet>
                          <Button variant="ghost" size="icon" className="relative">
@@ -47,7 +37,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                         </Button>
                     </CartSheet>
                      <Button variant="ghost" size="icon" asChild>
-                        <Link href="/store/login">
+                        <Link href="/login">
                             <User className="h-5 w-5" />
                             <span className="sr-only">Login</span>
                         </Link>
@@ -57,3 +47,4 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
         </header>
     )
 }
+
