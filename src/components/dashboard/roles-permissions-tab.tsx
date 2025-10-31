@@ -37,23 +37,30 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
 type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
 const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'staff', 'tasks'];
 
-const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => (
-    <div className="space-y-3">
-        <h5 className="font-semibold text-sm capitalize">{module}</h5>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            {Object.keys(permissionLabels).map((key) => (
-                <div key={key} className="flex items-center space-x-2">
-                    <Checkbox
-                        id={`${roleName}-${module}-${key}`}
-                        checked={permissions[key as keyof CrudPermissions]}
-                        onCheckedChange={(checked) => onPermissionChange(key as keyof CrudPermissions, !!checked)}
-                    />
-                    <Label htmlFor={`${roleName}-${module}-${key}`}>{permissionLabels[key as keyof CrudPermissions]}</Label>
-                </div>
-            ))}
+const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => {
+    // Defensive check to prevent runtime errors if a permission module is missing from a role definition.
+    if (!permissions) {
+        return null;
+    }
+    
+    return (
+        <div className="space-y-3">
+            <h5 className="font-semibold text-sm capitalize">{module}</h5>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
+                {Object.keys(permissionLabels).map((key) => (
+                    <div key={key} className="flex items-center space-x-2">
+                        <Checkbox
+                            id={`${roleName}-${module}-${key}`}
+                            checked={permissions[key as keyof CrudPermissions]}
+                            onCheckedChange={(checked) => onPermissionChange(key as keyof CrudPermissions, !!checked)}
+                        />
+                        <Label htmlFor={`${roleName}-${module}-${key}`}>{permissionLabels[key as keyof CrudPermissions]}</Label>
+                    </div>
+                ))}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
     name: '',
