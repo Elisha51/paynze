@@ -44,7 +44,7 @@ const mockRoles: Role[] = [
       products: { view: true, create: true, edit: true, delete: false },
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
-      marketing: { view: true, create: true, edit: true, delete: false },
+      marketing: { view: true, create: true, edit: true, delete: true },
       tasks: { view: true, create: true, edit: false, delete: false },
     },
     commissionRules: [
