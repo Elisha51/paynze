@@ -13,7 +13,7 @@ import type { OnboardingFormData } from '@/context/onboarding-context';
 import { LocationsTab } from '@/components/settings/locations-tab';
 import type { Location, ShippingZone, AffiliateProgramSettings } from '@/lib/types';
 import { getLocations as fetchLocations } from '@/services/locations';
-import { PlusCircle, Trash2, Globe, Wallet, Truck, Shield, Brush, Users, Package, ExternalLink } from 'lucide-react';
+import { PlusCircle, Trash2, Globe, Wallet, Truck, Shield, Brush, Users, Package, ExternalLink, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   Select,
@@ -29,6 +29,7 @@ import Image from 'next/image';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { themes } from '@/lib/themes';
 
 export default function SettingsPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -153,10 +154,18 @@ export default function SettingsPage() {
     const handleAffiliateSettingChange = (field: keyof AffiliateProgramSettings, value: any) => {
         setAffiliateSettings(prev => ({...prev, [field]: value}));
     };
+    
+    const selectTheme = (themeName: string) => {
+        if (settings) {
+            setSettings({ ...settings, theme: themeName });
+        }
+    };
 
     const handleSaveChanges = () => {
         if (settings) {
             localStorage.setItem('onboardingData', JSON.stringify(settings));
+            // Manually trigger a custom event that the layout can listen to
+            window.dispatchEvent(new CustomEvent('theme-changed'));
         }
         localStorage.setItem('affiliateSettings', JSON.stringify(affiliateSettings));
         toast({
@@ -302,6 +311,45 @@ export default function SettingsPage() {
                         </div>
                     </div>
                 </RadioGroup>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Store Theme</CardTitle>
+              <CardDescription>Select a color scheme for your storefront.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {themes.map(theme => (
+                    <div
+                        key={theme.name}
+                        className={cn(
+                        'relative border-2 rounded-lg cursor-pointer transition-all duration-200',
+                        settings?.theme === theme.name ? 'border-primary scale-105' : 'border-muted'
+                        )}
+                        onClick={() => selectTheme(theme.name)}
+                    >
+                        <div className="w-full h-24 bg-gray-200 rounded-t-md p-2">
+                        <div className="w-full h-full rounded" style={{ background: theme.preview.background }}>
+                            <div className="p-2 space-y-1">
+                            <div className="h-4 rounded-sm" style={{ background: theme.preview.primary }}></div>
+                            <div className="h-3 w-3/4 rounded-sm" style={{ background: theme.preview.accent }}></div>
+                            <div className="h-3 w-1/2 rounded-sm" style={{ background: theme.preview.accent }}></div>
+                            </div>
+                        </div>
+                        </div>
+                        <div className="p-2 text-center">
+                        <h3 className="text-sm font-semibold">{theme.name}</h3>
+                        </div>
+
+                        {settings?.theme === theme.name && (
+                        <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-0.5">
+                            <CheckCircle className="h-4 w-4" />
+                        </div>
+                        )}
+                    </div>
+                    ))}
+                </div>
             </CardContent>
           </Card>
         </TabsContent>

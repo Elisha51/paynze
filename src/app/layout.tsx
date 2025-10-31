@@ -30,7 +30,7 @@ export default function RootLayout({
 }>) {
   const [themeClass, setThemeClass] = useState('light');
 
-  useEffect(() => {
+  const applyTheme = () => {
     const onboardingDataRaw = localStorage.getItem('onboardingData');
     if (onboardingDataRaw) {
       try {
@@ -38,11 +38,28 @@ export default function RootLayout({
         if (onboardingData.theme) {
           const themeName = onboardingData.theme.toLowerCase();
           setThemeClass(`light theme-${themeName}`);
+        } else {
+          setThemeClass('light');
         }
       } catch (error) {
         console.error("Failed to parse onboarding data:", error);
+        setThemeClass('light');
       }
+    } else {
+        setThemeClass('light');
     }
+  };
+
+  useEffect(() => {
+    applyTheme();
+
+    // Listen for the custom event
+    window.addEventListener('theme-changed', applyTheme);
+
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener('theme-changed', applyTheme);
+    };
   }, []);
 
   return (
