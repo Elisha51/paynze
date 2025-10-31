@@ -19,7 +19,7 @@ export default function TemplatesPage() {
     const router = useRouter();
     const pathname = usePathname();
     const { user } = useAuth();
-    const canEditProducts = user?.permissions.products.edit;
+    const canEditTemplates = user?.permissions.templates.edit;
 
     const activeTab = searchParams.get('tab') || 'products';
 
@@ -34,7 +34,7 @@ export default function TemplatesPage() {
     ];
 
     const cta = (
-      canEditProducts && (
+      canEditTemplates && (
         <Button asChild>
           <Link href="/dashboard/templates/add">
               <PlusCircle className="mr-2 h-4 w-4" />

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState } from 'react';
@@ -34,7 +35,7 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
 }
 
 type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
-const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'staff', 'tasks'];
+const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'templates', 'staff', 'tasks'];
 
 const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => {
     // Defensive check to prevent runtime errors if a permission module is missing from a role definition.
@@ -74,6 +75,7 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
+        templates: { view: false, edit: false },
         settings: { view: false, edit: false },
     },
     assignableAttributes: [],
@@ -85,7 +87,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newRole, setNewRole] = useState(emptyRole);
 
-  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: keyof CrudPermissions | keyof Permissions['settings'] | 'view', value: boolean) => {
+  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: keyof CrudPermissions | 'view' | 'edit', value: boolean) => {
     setRoles(prevRoles =>
       prevRoles.map(role => {
         if (role.name === roleName) {
@@ -286,7 +288,7 @@ export function RolesPermissionsTab({ roles, setRoles }: { roles: Role[], setRol
                                             key={module}
                                             roleName={role.name}
                                             module={module}
-                                            permissions={role.permissions[module]}
+                                            permissions={role.permissions[module as keyof Omit<Permissions, 'dashboard'|'settings'|'templates'>]}
                                             onPermissionChange={(key, value) => handlePermissionChange(role.name, module, key, value)}
                                         />
                                     ))}

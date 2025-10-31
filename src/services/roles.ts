@@ -1,4 +1,5 @@
 
+
 import type { Role, Permissions, CommissionRule } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -12,6 +13,7 @@ const defaultPermissions: Permissions = {
   finances: { view: false, create: false, edit: false, delete: false },
   staff: { view: false, create: false, edit: false, delete: false },
   tasks: { view: false, create: false, edit: false, delete: false },
+  templates: { view: false, edit: false },
   settings: { view: false, edit: false },
 };
 
@@ -29,6 +31,7 @@ const mockRoles: Role[] = [
       finances: { view: true, create: true, edit: true, delete: true },
       staff: { view: true, create: true, edit: true, delete: true },
       tasks: { view: true, create: true, edit: true, delete: true },
+      templates: { view: true, edit: true },
       settings: { view: true, edit: true },
     },
     assignableAttributes: [],

@@ -11,7 +11,7 @@ import { ShieldAlert, ArrowLeft } from 'lucide-react';
 export default function AddProductTemplatePage() {
     const { user } = useAuth();
     const router = useRouter();
-    const canEditProducts = user?.permissions.products.edit;
+    const canEditProducts = user?.permissions.templates.edit;
 
     if (!canEditProducts) {
         return (

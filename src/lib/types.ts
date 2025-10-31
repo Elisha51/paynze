@@ -328,6 +328,7 @@ export type Permissions = {
   finances: CrudPermissions;
   staff: CrudPermissions;
   tasks: CrudPermissions;
+  templates: { view: boolean; edit: boolean };
   settings: { view: boolean; edit: boolean };
 };
 

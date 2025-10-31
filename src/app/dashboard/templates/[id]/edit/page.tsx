@@ -17,7 +17,7 @@ export default function EditProductTemplatePage() {
   const params = useParams();
   const router = useRouter();
   const { user } = useAuth();
-  const canEditProducts = user?.permissions.products.edit;
+  const canEditTemplates = user?.permissions.templates.edit;
 
   const id = params.id as string;
   const [template, setTemplate] = useState<ProductTemplate | null>(null);
@@ -47,7 +47,7 @@ export default function EditProductTemplatePage() {
     loadTemplate();
   }, [id]);
 
-  if (!canEditProducts) {
+  if (!canEditTemplates) {
       return (
            <Card>
               <CardHeader>
