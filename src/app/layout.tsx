@@ -10,18 +10,14 @@ import { OnboardingProvider } from '@/context/onboarding-context';
 import { useEffect, useState } from 'react';
 import { AuthProvider } from '@/context/auth-context';
 import { CartProvider } from '@/context/cart-context';
+import StorefrontLayout from './(storefront)/layout';
+import { usePathname } from 'next/navigation';
+import DashboardLayout from './dashboard/layout';
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
 });
-
-// export const metadata: Metadata = {
-//   title: 'Paynze',
-//   description: 'Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants.',
-//   manifest: '/manifest.json',
-//   themeColor: '#ffffff',
-// };
 
 export default function RootLayout({
   children,
@@ -29,6 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [themeClass, setThemeClass] = useState('light');
+  const pathname = usePathname();
+  const isDashboard = pathname.startsWith('/dashboard');
 
   const applyTheme = () => {
     const onboardingDataRaw = localStorage.getItem('onboardingData');
@@ -62,6 +60,8 @@ export default function RootLayout({
     };
   }, []);
 
+  const LayoutComponent = isDashboard ? DashboardLayout : StorefrontLayout;
+
   return (
     <html lang="en" className={themeClass}>
       <head>
@@ -74,7 +74,11 @@ export default function RootLayout({
       <body className={cn("font-sans antialiased", inter.variable)}>
         <AuthProvider>
           <CartProvider>
-            {children}
+            {isDashboard ? (
+              <DashboardLayout>{children}</DashboardLayout>
+            ) : (
+              <StorefrontLayout>{children}</StorefrontLayout>
+            )}
           </CartProvider>
         </AuthProvider>
         <Toaster />
