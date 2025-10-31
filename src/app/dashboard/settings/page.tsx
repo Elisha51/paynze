@@ -193,7 +193,7 @@ export default function SettingsPage() {
                   </CardDescription>
                 </div>
                  <Button asChild variant="outline">
-                    <Link href="/store" target="_blank">
+                    <Link href="/" target="_blank">
                         <ExternalLink className="mr-2 h-4 w-4"/>
                         View Store
                     </Link>

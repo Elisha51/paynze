@@ -65,7 +65,7 @@ export default function CheckoutPage() {
             description: 'Your order has been successfully placed.',
         });
         clearCart();
-        router.push('/store'); // Redirect to a success page or back to store
+        router.push('/'); // Redirect to a success page or back to store
     } catch(error) {
         console.error("Failed to place order:", error);
         toast({
@@ -83,7 +83,7 @@ export default function CheckoutPage() {
           <div className="container py-12 text-center">
               <h1 className="text-2xl font-bold">Your Cart is Empty</h1>
               <p className="text-muted-foreground mt-2">Add some products to your cart to proceed to checkout.</p>
-              <Button onClick={() => router.push('/store')} className="mt-4">Continue Shopping</Button>
+              <Button onClick={() => router.push('/')} className="mt-4">Continue Shopping</Button>
           </div>
       )
   }
