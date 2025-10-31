@@ -207,7 +207,7 @@ export default function MarketingPage() {
   const canCreate = user?.permissions.marketing?.create;
 
   const cta = (
-      canCreate && (
+      canCreate ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button>
@@ -229,7 +229,7 @@ export default function MarketingPage() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-      )
+      ) : null
   );
 
   const handlePresetChange = (value: string) => {
