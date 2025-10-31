@@ -94,6 +94,8 @@ const mockRoles: Role[] = [
     permissions: {
         ...defaultPermissions,
         dashboard: { view: false },
+        marketing: { view: true, create: false, edit: false, delete: false },
+        tasks: { view: false, create: false, edit: false, delete: false },
     },
     assignableAttributes: [],
     commissionRules: [

@@ -152,16 +152,16 @@ export default function StaffPage() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
 
+  const canAddStaff = user?.permissions.staff.create;
+  const canEditStaff = user?.permissions.staff.edit;
 
   const mainTabs = [
-      { value: 'staff', label: 'Staff' },
-      { value: 'permissions', label: 'Roles &amp; Permissions' },
-      { value: 'all-logs', label: 'All Logs' },
-      { value: 'analytics', label: 'Analytics' },
+    { value: 'staff', label: 'Staff' },
+    ...(canEditStaff ? [{ value: 'permissions', label: 'Roles & Permissions' }] : []),
+    { value: 'all-logs', label: 'All Logs' },
+    { value: 'analytics', label: 'Analytics' },
   ];
-
-  const canAddStaff = user?.permissions.staff.create;
-
+  
   const cta = (
     canAddStaff ? (
      <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
