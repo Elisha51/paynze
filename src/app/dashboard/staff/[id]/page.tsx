@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -311,6 +310,54 @@ export default function ViewStaffPage() {
   
   const canEditStaff = user?.permissions.staff.edit;
 
+  const renderVerificationCard = () => {
+    if (isPendingVerification && canEditStaff) {
+      return (
+        <Card className="border-yellow-400 bg-yellow-50">
+              <CardHeader className="flex flex-row items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                     <CheckCircle className="h-5 w-5 text-yellow-600" />
+                    <div>
+                        <CardTitle className="text-base">Verification Required</CardTitle>
+                        <CardDescription className="text-xs">Review documents and approve or reject this applicant.</CardDescription>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="destructive" size="sm">
+                                <XCircle className="mr-2 h-4 w-4" />
+                                Reject
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Reject Staff Member</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Please provide a reason for rejecting {staffMember.name}. This will be recorded for administrative purposes.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <div className="py-4">
+                                <Label htmlFor="rejectionReason">Rejection Reason</Label>
+                                <Textarea id="rejectionReason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
+                            </div>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => handleVerification('reject')} disabled={!rejectionReason}>Confirm Rejection</AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    <Button onClick={() => handleVerification('approve')} size="sm">
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                        Approve
+                    </Button>
+                </div>
+              </CardHeader>
+          </Card>
+      )
+    }
+    return null;
+  }
 
   return (
     <div className="space-y-6">
@@ -359,7 +406,7 @@ export default function ViewStaffPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>View Activity Log</DropdownMenuItem>
                         {canEditStaff && staffMember.status !== 'Deactivated' && (
-                            <AlertDialogTrigger asChild>
+                             <AlertDialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Deactivate Member</DropdownMenuItem>
                             </AlertDialogTrigger>
                         )}
@@ -381,49 +428,7 @@ export default function ViewStaffPage() {
         </div>
       </div>
 
-      {isPendingVerification && canEditStaff && (
-         <Card className="border-yellow-400 bg-yellow-50">
-              <CardHeader className="flex flex-row items-center justify-between p-4">
-                <div className="flex items-center gap-3">
-                     <CheckCircle className="h-5 w-5 text-yellow-600" />
-                    <div>
-                        <CardTitle className="text-base">Verification Required</CardTitle>
-                        <CardDescription className="text-xs">Review documents and approve or reject this applicant.</CardDescription>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Reject
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Reject Staff Member</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Please provide a reason for rejecting {staffMember.name}. This will be recorded for administrative purposes.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <div className="py-4">
-                                <Label htmlFor="rejectionReason">Rejection Reason</Label>
-                                <Textarea id="rejectionReason" value={rejectionReason} onChange={(e) => setRejectionReason(e.target.value)} />
-                            </div>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleVerification('reject')} disabled={!rejectionReason}>Confirm Rejection</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                    <Button onClick={() => handleVerification('approve')} size="sm">
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Approve
-                    </Button>
-                </div>
-              </CardHeader>
-          </Card>
-      )}
+      {renderVerificationCard()}
 
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
@@ -572,4 +577,3 @@ export default function ViewStaffPage() {
     </div>
   );
 }
-

@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -198,7 +197,7 @@ const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, 
                                                 </DropdownMenuItem>
                                             </>
                                         )}
-                                        {(affiliate.status === 'Suspended' || affiliate.status === 'Rejected') && (
+                                        {(affiliate.status === 'Suspended' || affiliate.status === 'Rejected' || affiliate.status === 'Deactivated') && (
                                             <DropdownMenuItem onClick={() => handleStatusChange(affiliate.id, 'Active')}>
                                                 <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
                                             </DropdownMenuItem>
