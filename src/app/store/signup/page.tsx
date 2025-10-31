@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 // In a real app, you would import a service function like `addCustomer`
+// For this simulation, we'll just log it.
 // import { addCustomer } from '@/services/customers';
 
 export default function CustomerSignupPage() {

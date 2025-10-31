@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step5-confirmation.tsx
 'use client';
 import { useRouter } from 'next/navigation';
@@ -9,6 +10,7 @@ import { CheckCircle, Store, Globe, Wallet, Truck, Paintbrush } from 'lucide-rea
 import { themes } from '@/lib/themes';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
+import { addStaff } from '@/services/staff';
 
 export default function Step5Confirmation() {
   const { formData, prevStep } = useOnboarding();
@@ -17,16 +19,28 @@ export default function Step5Confirmation() {
 
   const selectedTheme = themes.find(t => t.name === formData.theme) || themes[0];
 
-  const handleLaunch = () => {
+  const handleLaunch = async () => {
+    // 1. Save final onboarding data to localStorage for the new tenant
     localStorage.setItem('onboardingData', JSON.stringify(formData));
+    
+    // 2. Create the first user (Account Owner) for this new tenant
+    await addStaff({
+        name: formData.businessName, // Or collect a personal name in step 1
+        email: 'admin@' + formData.subdomain + '.com', // Simulated email
+        role: 'Admin',
+        status: 'Active',
+    });
+
+    // 3. Show success and redirect to login
     toast({
         title: "Store Created!",
-        description: "Welcome to Paynze. You are now being redirected to your dashboard.",
-        variant: "default"
+        description: "Welcome to Paynze. Please log in to access your new dashboard.",
+        variant: "default",
+        duration: 5000,
     });
-    setTimeout(() => {
-        router.push('/dashboard');
-    }, 2000);
+    
+    // Redirect to login page with a success flag
+    router.push('/login?onboarding=success');
   };
 
   return (

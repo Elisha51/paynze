@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -7,32 +8,28 @@ import { AuthLayout } from '@/components/layout/auth-layout';
 import { useAuth } from '@/context/auth-context';
 import { getStaff } from '@/services/staff';
 import type { Staff } from '@/lib/types';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Label } from '@/components/ui/label';
-import { useRouter } from 'next/navigation';
+import { Input } from '@/components/ui/input';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 export default function LoginPage() {
   const { login, user, isLoading } = useAuth();
   const router = useRouter();
-  const [staff, setStaff] = useState<Staff[]>([]);
-  const [selectedStaffId, setSelectedStaffId] = useState<string>('');
+  const searchParams = useSearchParams();
+  const { toast } = useToast();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showOnboardingSuccess, setShowOnboardingSuccess] = useState(false);
 
   useEffect(() => {
-    async function loadStaff() {
-        const staffData = await getStaff();
-        setStaff(staffData);
-        if (staffData.length > 0) {
-            setSelectedStaffId(staffData[0].id);
-        }
+    if (searchParams.get('onboarding') === 'success') {
+      setShowOnboardingSuccess(true);
     }
-    loadStaff();
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     if (!isLoading && user) {
@@ -40,12 +37,25 @@ export default function LoginPage() {
     }
   }, [user, isLoading, router]);
   
-  const handleLogin = () => {
-    if (selectedStaffId) {
-        const userToLogin = staff.find(s => s.id === selectedStaffId);
+  const handleLogin = async () => {
+    if (!email || !password) {
+        toast({ variant: 'destructive', title: 'Please enter both email and password.' });
+        return;
+    }
+    
+    try {
+        const allStaff = await getStaff();
+        const userToLogin = allStaff.find(s => s.email.toLowerCase() === email.toLowerCase());
+
         if (userToLogin) {
+             // In a real app, you'd validate the password against a hash.
+             // For this simulation, we'll accept any non-empty password.
             login(userToLogin);
+        } else {
+            toast({ variant: 'destructive', title: 'Invalid Credentials', description: 'No user found with that email address.'});
         }
+    } catch (error) {
+        toast({ variant: 'destructive', title: 'Login Failed', description: 'An unexpected error occurred.'});
     }
   }
 
@@ -53,30 +63,54 @@ export default function LoginPage() {
     <AuthLayout>
       <Card className="mx-auto max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Merchant Login</CardTitle>
           <CardDescription>
-            Select a user to simulate logging in.
+            Enter your email below to log in to your dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>
+           {showOnboardingSuccess && (
+            <Alert className="mb-4">
+                <Info className="h-4 w-4" />
+                <AlertTitle>Store Created!</AlertTitle>
+                <AlertDescription>
+                    Your new store is ready. Log in to continue to your dashboard.
+                </AlertDescription>
+            </Alert>
+          )}
           <div className="grid gap-4">
             <div className="grid gap-2">
-                <Label htmlFor="user-select">Select User Role</Label>
-                <Select value={selectedStaffId} onValueChange={setSelectedStaffId}>
-                    <SelectTrigger id="user-select">
-                        <SelectValue placeholder="Select a user to log in as" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {staff.map(s => (
-                            <SelectItem key={s.id} value={s.id}>{s.name} ({s.role})</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="m@example.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <div className="flex items-center">
+                <Label htmlFor="password">Password</Label>
+                <Link
+                  href="#"
+                  className="ml-auto inline-block text-sm underline"
+                >
+                  Forgot your password?
+                </Link>
+              </div>
+              <Input 
+                id="password" 
+                type="password" 
+                required 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
             <Button type="submit" className="w-full" onClick={handleLogin}>
               Login
             </Button>
-            <div className="text-center text-sm text-muted-foreground">This is a simulated login for demonstration.</div>
           </div>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
