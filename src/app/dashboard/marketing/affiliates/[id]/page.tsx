@@ -182,46 +182,46 @@ export default function ViewAffiliatePage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        {canEdit && (
+                        {canEdit && affiliate.status === 'Pending' && (
                             <>
                                 <DropdownMenuSeparator />
-                                {affiliate.status === 'Pending' && (
-                                    <>
-                                        <DropdownMenuItem onClick={() => handleStatusChange('Active')}>
-                                            <CheckCircle className="mr-2 h-4 w-4" /> Approve
-                                        </DropdownMenuItem>
-                                        <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => {setDialogAction('reject'); e.preventDefault()}} className="text-destructive focus:text-destructive">
-                                                <XCircle className="mr-2 h-4 w-4" /> Reject
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                    </>
-                                )}
-                                {affiliate.status === 'Active' && (
-                                    <>
-                                         <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => {setDialogAction('suspend'); e.preventDefault()}} className="text-orange-600 focus:text-orange-600">
-                                                <Ban className="mr-2 h-4 w-4" /> Suspend
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                         <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem onSelect={(e) => {setDialogAction('deactivate'); e.preventDefault()}} className="text-destructive focus:text-destructive">
-                                                <XCircle className="mr-2 h-4 w-4" /> Deactivate
-                                            </DropdownMenuItem>
-                                        </AlertDialogTrigger>
-                                        <DropdownMenuSeparator />
-                                        <DropdownMenuItem asChild>
-                                            <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
-                                                <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
-                                            </Link>
-                                        </DropdownMenuItem>
-                                    </>
-                                )}
-                                {(affiliate.status === 'Suspended' || affiliate.status === 'Rejected' || affiliate.status === 'Deactivated') && (
-                                    <DropdownMenuItem onClick={() => handleStatusChange('Active')}>
-                                        <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
+                                <DropdownMenuItem onClick={() => handleStatusChange('Active')}>
+                                    <CheckCircle className="mr-2 h-4 w-4" /> Approve
+                                </DropdownMenuItem>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => {setDialogAction('reject'); e.preventDefault()}} className="text-destructive focus:text-destructive">
+                                        <XCircle className="mr-2 h-4 w-4" /> Reject
                                     </DropdownMenuItem>
-                                )}
+                                </AlertDialogTrigger>
+                            </>
+                        )}
+                        {canEdit && affiliate.status === 'Active' && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => {setDialogAction('suspend'); e.preventDefault()}} className="text-orange-600 focus:text-orange-600">
+                                        <Ban className="mr-2 h-4 w-4" /> Suspend
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem onSelect={(e) => {setDialogAction('deactivate'); e.preventDefault()}} className="text-destructive focus:text-destructive">
+                                        <XCircle className="mr-2 h-4 w-4" /> Deactivate
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
+                                        <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
+                                    </Link>
+                                </DropdownMenuItem>
+                            </>
+                        )}
+                        {canEdit && (affiliate.status === 'Suspended' || affiliate.status === 'Rejected' || affiliate.status === 'Deactivated') && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => handleStatusChange('Active')}>
+                                    <RotateCcw className="mr-2 h-4 w-4" /> Re-activate
+                                </DropdownMenuItem>
                             </>
                         )}
                     </DropdownMenuContent>
@@ -351,5 +351,4 @@ export default function ViewAffiliatePage() {
       </div>
     </div>
   );
-
-    
+}
