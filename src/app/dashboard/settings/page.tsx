@@ -350,11 +350,11 @@ export default function SettingsPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Commission & Tracking</CardTitle>
+                                <CardTitle>Commission &amp; Tracking</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
-                                    <Label>Commission Type & Rate</Label>
+                                    <Label>Commission Type &amp; Rate</Label>
                                     <div className="flex gap-2">
                                         <Select
                                             value={affiliateSettings.commissionType}
