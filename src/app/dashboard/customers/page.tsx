@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { PlusCircle, Calendar as CalendarIcon, Download } from 'lucide-react';

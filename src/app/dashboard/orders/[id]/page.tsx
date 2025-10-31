@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -236,7 +234,7 @@ export default function ViewOrderPage() {
                         isMobileMoney ? (
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                <Button variant="outline" size="sm">Verify & Mark as Paid</Button>
+                                <Button variant="outline" size="sm">Verify &amp; Mark as Paid</Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
                                 <AlertDialogHeader>

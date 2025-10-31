@@ -1,4 +1,3 @@
-
 import type { Customer } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';

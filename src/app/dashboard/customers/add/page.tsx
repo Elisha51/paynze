@@ -1,4 +1,3 @@
-
 'use client';
 import { CustomerForm } from '@/components/dashboard/customer-form';
 

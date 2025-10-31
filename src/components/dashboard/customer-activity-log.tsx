@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useMemo } from 'react';
 import type { Customer, Communication, Order } from '@/lib/types';
@@ -12,6 +11,7 @@ import { Avatar, AvatarFallback } from '../ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
 
 type CustomerActivityLogProps = {
   customer: Customer;
@@ -149,7 +149,13 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
             </div>
             <div className="space-y-1 pb-8">
                 <p className="text-xs text-muted-foreground">{format(new Date(activity.date), 'PPP p')}</p>
-                <p className="text-sm font-medium">{title}</p>
+                <div className="text-sm font-medium">
+                  {activity.activityType === 'order' ? (
+                    <Link href={`/dashboard/orders/${activity.id}`} className="hover:underline">{title}</Link>
+                  ) : (
+                    <span>{title}</span>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground whitespace-pre-wrap">{content}</p>
                 
                 <div className="flex items-center gap-2">
@@ -231,7 +237,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
             <TabsList>
                 <TabsTrigger value="all">All Activity</TabsTrigger>
                 <TabsTrigger value="order">Orders</TabsTrigger>
-                <TabsTrigger value="communication">Notes & Activity</TabsTrigger>
+                <TabsTrigger value="communication">Notes &amp; Activity</TabsTrigger>
             </TabsList>
         </Tabs>
 

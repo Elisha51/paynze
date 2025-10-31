@@ -1,5 +1,3 @@
-
-
 'use client';
 import { ArrowLeft, PlusCircle, Save, ShieldAlert, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -155,6 +153,7 @@ export default function AddOrderPage() {
       },
       shippingCost: 0, // Mock data
       taxes: tax,
+      currency: settings?.currency || 'UGX',
     };
     
     try {
@@ -357,5 +356,4 @@ export default function AddOrderPage() {
     </div>
   );
 }
-
     

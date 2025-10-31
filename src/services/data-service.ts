@@ -1,4 +1,3 @@
-
 'use client';
 
 import { OnboardingFormData } from "@/context/onboarding-context";

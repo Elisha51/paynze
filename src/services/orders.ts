@@ -1,5 +1,3 @@
-
-
 import type { Order, Product, Staff, Role } from '@/lib/types';
 import { updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -221,7 +219,7 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
       await updateProductStock(item.sku, item.quantity, 'Reserve', `Order #${newOrder.id}`);
   }
 
-  await orderService.create(newOrder);
+  await orderService.create(newOrder, { prepend: true });
   return newOrder;
 }
 
