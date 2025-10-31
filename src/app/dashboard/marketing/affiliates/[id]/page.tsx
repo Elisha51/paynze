@@ -195,7 +195,7 @@ export default function ViewAffiliatePage() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                     <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>
-                        <DollarSign className="mr-2 h-4 w-4" /> Review & Payout
+                        <DollarSign className="mr-2 h-4 w-4" /> Review &amp; Payout
                     </Link>
                 </DropdownMenuItem>
             </>
@@ -346,7 +346,7 @@ export default function ViewAffiliatePage() {
                 </CardContent>
                  <CardFooter>
                     <Button asChild className="w-full">
-                        <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>Review & Pay</Link>
+                        <Link href={`/dashboard/finances/payouts/${affiliate.id}`}>Review &amp; Pay</Link>
                     </Button>
                 </CardFooter>
             </Card>

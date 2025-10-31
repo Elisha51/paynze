@@ -161,7 +161,7 @@ export default function ViewDiscountPage() {
         <div className="lg:col-span-1 space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Conditions & Performance</CardTitle>
+                    <CardTitle>Conditions &amp; Performance</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 text-sm">
                     {discount.minPurchase > 0 && (
@@ -181,4 +181,3 @@ export default function ViewDiscountPage() {
     </div>
   );
 }
-
