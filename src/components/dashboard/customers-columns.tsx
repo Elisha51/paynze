@@ -1,8 +1,7 @@
-
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, Send, Globe, Package, Users } from 'lucide-react';
+import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, Send } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -17,15 +16,9 @@ import type { Customer, OnboardingFormData } from '@/lib/types';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 
-type MessageType = 'WhatsApp' | 'SMS' | null;
-
 export const getCustomerColumns = (): ColumnDef<Customer>[] => {
   const { user } = useAuth();
   const canEdit = user?.permissions.customers.edit;
-
-  // Since this is a hook, we define the inner function to be called.
-  // The onSendMessage callback would need to be passed down if we were to use it here.
-  // For simplicity, this is handled in the CustomersTable component.
 
   return [
     {
@@ -139,34 +132,3 @@ export const getCustomerColumns = (): ColumnDef<Customer>[] => {
     },
   ];
 };
-
-
-export const getMerchantColumns = (): ColumnDef<OnboardingFormData>[] => [
-    {
-        accessorKey: 'businessName',
-        header: 'Business Name'
-    },
-    {
-        accessorKey: 'subdomain',
-        header: 'Store URL',
-        cell: ({ row }) => {
-            const url = `${row.original.subdomain}.paynze.app`;
-            return <a href={`https://${url}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:underline text-primary"><Globe className="h-4 w-4" /> {url}</a>
-        }
-    },
-    {
-        accessorKey: 'plan',
-        header: 'Plan',
-        cell: ({ row }) => <Badge variant={row.original.plan === 'Premium' ? 'default' : 'secondary'}>{row.original.plan}</Badge>
-    },
-    {
-        accessorKey: 'products',
-        header: 'Products',
-        cell: () => <span className="flex items-center gap-2"><Package className="h-4 w-4 text-muted-foreground"/> {Math.floor(Math.random() * 100)}</span> // Mock data
-    },
-    {
-        accessorKey: 'customers',
-        header: 'Customers',
-        cell: () => <span className="flex items-center gap-2"><Users className="h-4 w-4 text-muted-foreground"/> {Math.floor(Math.random() * 500)}</span> // Mock data
-    },
-];

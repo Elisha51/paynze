@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PlusCircle, Calendar as CalendarIcon, Download } from 'lucide-react';
@@ -14,13 +13,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
-import { getCustomers, getMerchants } from '@/services/customers';
+import { getCustomers } from '@/services/customers';
 import { Customer } from '@/lib/types';
 import { Calendar } from '@/components/ui/calendar';
 import React from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
-import { getCustomerColumns, getMerchantColumns } from '@/components/dashboard/customers-columns';
+import { getCustomerColumns } from '@/components/dashboard/customers-columns';
 
 
 export default function CustomersPage() {
@@ -28,11 +27,10 @@ export default function CustomersPage() {
   const router = useRouter();
   const pathname = usePathname();
   const { user } = useAuth();
-  const isAdmin = user?.role === 'Admin';
-
-  const activeTab = searchParams.get('tab') || (isAdmin ? 'merchants' : 'customers');
   
-  const [data, setData] = useState<any[]>([]);
+  const activeTab = searchParams.get('tab') || 'customers';
+  
+  const [data, setData] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [date, setDate] = useState<DateRange | undefined>({
     from: addDays(new Date(), -29),
@@ -42,17 +40,12 @@ export default function CustomersPage() {
   React.useEffect(() => {
     async function loadData() {
         setIsLoading(true);
-        if (isAdmin) {
-            const fetchedMerchants = await getMerchants();
-            setData(fetchedMerchants);
-        } else {
-            const fetchedCustomers = await getCustomers();
-            setData(fetchedCustomers);
-        }
+        const fetchedCustomers = await getCustomers();
+        setData(fetchedCustomers);
         setIsLoading(false);
     }
     loadData();
-  }, [isAdmin]);
+  }, []);
   
   const handleTabChange = (tab: string) => {
     router.push(`${pathname}?tab=${tab}`);
@@ -78,11 +71,12 @@ export default function CustomersPage() {
     }
   };
   
-  const columns = isAdmin ? getMerchantColumns() : getCustomerColumns();
+  const columns = getCustomerColumns();
 
-  const mainTabs = isAdmin 
-    ? [{ value: 'merchants', label: 'Merchants' }, { value: 'analytics', label: 'Platform Analytics' }]
-    : [{ value: 'customers', label: 'Customers' }, { value: 'analytics', label: 'Analytics' }];
+  const mainTabs = [
+    { value: 'customers', label: 'Customers' }, 
+    { value: 'analytics', label: 'Analytics' }
+  ];
   
   const canCreate = user?.permissions.customers.create;
 
@@ -94,7 +88,7 @@ export default function CustomersPage() {
                 <span className="hidden sm:inline-flex">Export</span>
             </a>
         </Button>
-        {canCreate && !isAdmin && (
+        {canCreate && (
           <Button asChild size="sm" className="h-9 px-2.5 sm:px-4">
               <Link href="/dashboard/customers/add">
                   <PlusCircle className="h-4 w-4 sm:mr-2" />
@@ -107,13 +101,13 @@ export default function CustomersPage() {
 
   return (
     <DashboardPageLayout
-      title={isAdmin ? "Merchants" : "Customers"}
+      title={"Customers"}
       tabs={mainTabs}
       cta={cta}
       activeTab={activeTab}
       onTabChange={handleTabChange}
     >
-      <DashboardPageLayout.TabContent value={isAdmin ? "merchants" : "customers"}>
+      <DashboardPageLayout.TabContent value="customers">
           <CustomersTable
             columns={columns}
             data={data}
@@ -181,7 +175,7 @@ export default function CustomersPage() {
                     </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <CustomerAnalyticsReport customers={data as Customer[]} dateRange={date} />
+                    <CustomerAnalyticsReport customers={data} dateRange={date} />
                 </CardContent>
             </Card>
         </DashboardPageLayout.TabContent>
