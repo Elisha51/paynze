@@ -1,4 +1,3 @@
-
 'use client';
 import { useMemo } from 'react';
 import type { Order, OnboardingFormData } from '@/lib/types';
@@ -10,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { DollarSign, ShoppingCart, TrendingUp, Users } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip, Pie, PieChart, Cell } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, Tooltip, Pie, PieChart, Cell } from 'recharts';
 import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ordersColumns } from './report-columns';

@@ -1,7 +1,6 @@
-
 'use client';
 import { useMemo } from 'react';
-import type { Campaign, Discount } from '@/app/dashboard/marketing/page';
+import type { Campaign, Discount, Order } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -12,7 +11,6 @@ import { Send, Gift, TrendingUp, BarChart, DollarSign, ShoppingCart } from 'luci
 import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
 import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { DateRange } from 'react-day-picker';
-import type { Order } from '@/lib/types';
 
 const chartConfig = {
   sent: {

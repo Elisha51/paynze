@@ -1,4 +1,3 @@
-
 'use client';
 import { useMemo } from 'react';
 import type { PurchaseOrder } from '@/lib/types';
@@ -10,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { DollarSign, ShoppingCart, Truck, TrendingUp } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
-import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartTooltipContent, ChartContainer, ChartConfig } from '@/components/ui/chart';
 import { DataTable } from '@/components/dashboard/data-table';
 import { purchaseOrdersColumns } from './report-columns';
