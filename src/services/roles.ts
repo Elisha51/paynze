@@ -93,7 +93,7 @@ const mockRoles: Role[] = [
     description: 'A marketing partner who earns commission on referred sales.',
     permissions: {
         ...defaultPermissions,
-        dashboard: { view: false }, // Affiliates have their own separate dashboard
+        dashboard: { view: false },
     },
     assignableAttributes: [],
     commissionRules: [
