@@ -29,6 +29,7 @@ export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
   const [isBonusDialogOpen, setIsBonusDialogOpen] = useState(false);
   const [bonusDetails, setBonusDetails] = useState({ staffId: '', amount: 0, reason: '' });
   const { toast } = useToast();
@@ -86,6 +87,8 @@ export default function StaffPage() {
       <DashboardPageLayout
         title="Staff Management"
         tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
         cta={
             canCreate ? (
                 <Button asChild>
