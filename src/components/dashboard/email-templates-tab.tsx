@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { getEmailTemplates } from '@/services/templates';
 import type { EmailTemplate } from '@/lib/types';
+import Link from 'next/link';
 
 export function EmailTemplatesTab() {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
@@ -35,7 +36,9 @@ export function EmailTemplatesTab() {
                     <p className="text-sm font-medium">Subject: <span className="font-normal text-muted-foreground">{template.subject}</span></p>
                 </CardContent>
                 <CardFooter>
-                    <Button variant="outline">Edit</Button>
+                    <Button variant="outline" asChild>
+                        <Link href={`/dashboard/templates/emails/${template.id}/edit`}>Edit</Link>
+                    </Button>
                 </CardFooter>
             </Card>
             ))}

@@ -10,6 +10,7 @@ import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { DataTable } from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
+import Link from 'next/link';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,9 +93,11 @@ export function DiscountsTab() {
             Manage and create discount codes for your store.
           </CardDescription>
         </div>
-        <Button>
-          <PlusCircle className="mr-2 h-4 w-4" />
-          Create Discount
+        <Button asChild>
+          <Link href="/dashboard/marketing/discounts/add">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Create Discount
+          </Link>
         </Button>
       </CardHeader>
       <CardContent>

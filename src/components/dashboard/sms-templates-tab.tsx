@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { getSmsTemplates } from '@/services/templates';
 import type { SmsTemplate } from '@/lib/types';
+import Link from 'next/link';
 
 export function SmsTemplatesTab() {
   const [templates, setTemplates] = useState<SmsTemplate[]>([]);
@@ -35,7 +36,9 @@ export function SmsTemplatesTab() {
                    <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">"{template.message}"</p>
                 </CardContent>
                 <CardFooter>
-                    <Button variant="outline">Edit</Button>
+                    <Button variant="outline" asChild>
+                       <Link href={`/dashboard/templates/sms/${template.id}/edit`}>Edit</Link>
+                    </Button>
                 </CardFooter>
             </Card>
             ))}

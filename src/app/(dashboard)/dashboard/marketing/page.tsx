@@ -12,9 +12,11 @@ import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marke
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Megaphone, Gift, Users } from 'lucide-react';
+import { Megaphone, Gift, Users, PlusCircle } from 'lucide-react';
 import { getAffiliates } from '@/services/affiliates';
 import { DiscountsTab } from '@/components/dashboard/discounts-tab';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 
 function MarketingOverview({ campaigns, discounts, affiliates }: { campaigns: Campaign[], discounts: Discount[], affiliates: any[] }) {
@@ -88,10 +90,31 @@ export default function MarketingPage() {
     { value: 'analytics', label: 'Analytics' },
   ];
 
+  const getCta = () => {
+    if (activeTab === 'analytics') {
+      return <DateRangePicker date={dateRange} setDate={setDateRange} />;
+    }
+    if (activeTab === 'campaigns') {
+      return (
+        <Button asChild>
+          <Link href="/dashboard/marketing/campaigns/add"><PlusCircle className="mr-2 h-4 w-4" /> Create Campaign</Link>
+        </Button>
+      );
+    }
+    if (activeTab === 'discounts') {
+      return (
+         <Button asChild>
+          <Link href="/dashboard/marketing/discounts/add"><PlusCircle className="mr-2 h-4 w-4" /> Create Discount</Link>
+        </Button>
+      );
+    }
+    return null;
+  }
+
   return (
     <DashboardPageLayout 
         title="Marketing"
-        cta={activeTab === 'analytics' ? <DateRangePicker date={dateRange} setDate={setDateRange} /> : <></>}
+        cta={getCta()}
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
