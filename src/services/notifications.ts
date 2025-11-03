@@ -54,6 +54,16 @@ export async function getNotifications(): Promise<Notification[]> {
     return await notificationService.getAll();
 }
 
+export async function addNotification(notification: Omit<Notification, 'id' | 'read' | 'timestamp'>): Promise<Notification> {
+    const newNotification: Notification = {
+        ...notification,
+        id: `notif-${Date.now()}`,
+        read: false,
+        timestamp: new Date().toISOString(),
+    };
+    return await notificationService.create(newNotification, { prepend: true });
+}
+
 export async function markNotificationAsRead(id: string): Promise<Notification> {
     return await notificationService.update(id, { read: true });
 }
@@ -66,3 +76,4 @@ export async function markAllNotificationsAsRead(): Promise<void> {
         }
     }
 }
+

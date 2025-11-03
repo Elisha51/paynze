@@ -6,6 +6,7 @@ import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
 import { DataService } from './data-service';
 import { getAffiliates } from './affiliates';
+import { addNotification } from './notifications';
 
 
 function initializeMockOrders(): Order[] {
@@ -222,6 +223,15 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
   }
 
   await orderService.create(newOrder, { prepend: true });
+  
+  // Add a notification for the merchant
+  await addNotification({
+    type: 'new-order',
+    title: `New Order #${newOrder.id}`,
+    description: `You've received a new order from ${newOrder.customerName}.`,
+    link: `/dashboard/orders/${newOrder.id}`
+  });
+  
   return newOrder;
 }
 
@@ -337,3 +347,4 @@ export async function updateProductStock(
     // and best kept within the `updateProduct` function itself.
     // For now, we will assume `updateProduct` can handle these granular adjustments.
 }
+
