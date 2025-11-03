@@ -24,23 +24,12 @@ import Link from 'next/link';
 import type { Order, RecentSale, OnboardingFormData, Staff } from '@/lib/types';
 import { getOrders } from '@/services/orders';
 import { getCustomers } from '@/services/customers';
-import { getStaff, addTransaction } from '@/services/finances';
+import { getStaff } from '@/services/staff';
 import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { getInitials } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { QuickLinks } from '@/components/dashboard/quick-links';
 import { StaffWidget } from '@/components/dashboard/staff-widget';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 
 function RecentSales({ sales }: { sales: RecentSale[] }) {
     const formatAmount = (amountStr: string) => {
@@ -98,9 +87,6 @@ export default function DashboardPage() {
     const [staff, setStaff] = useState<Staff[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
-    const [isBonusDialogOpen, setIsBonusDialogOpen] = useState(false);
-    const [bonusDetails, setBonusDetails] = useState({ staffId: '', amount: 0, reason: '' });
-    const { toast } = useToast();
 
     useEffect(() => {
         async function loadData() {
@@ -154,32 +140,6 @@ export default function DashboardPage() {
             currency: currencyCode,
         }
     }, [orders, customers, settings]);
-    
-    const handleOpenBonusDialog = (member: Staff) => {
-        setBonusDetails({ staffId: member.id, amount: 0, reason: ''});
-        setIsBonusDialogOpen(true);
-    }
-    
-    const handleAwardBonus = async () => {
-      if (!bonusDetails.staffId || bonusDetails.amount <= 0 || !bonusDetails.reason) {
-          toast({ variant: 'destructive', title: 'Please fill all bonus details.' });
-          return;
-      }
-      const staffMember = staff.find(s => s.id === bonusDetails.staffId);
-      if (!staffMember) return;
-
-      await addTransaction({
-          date: new Date().toISOString(),
-          description: `Bonus for ${staffMember.name}: ${bonusDetails.reason}`,
-          amount: -bonusDetails.amount,
-          type: 'Expense',
-          category: 'Salaries',
-          status: 'Pending',
-          paymentMethod: 'Other',
-      });
-      toast({ title: 'Bonus Awarded', description: `An expense has been logged for ${staffMember.name}.` });
-      setIsBonusDialogOpen(false);
-  }
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
@@ -305,41 +265,7 @@ export default function DashboardPage() {
                 <RecentSales sales={recentSales} />
             </div>
 
-            <StaffWidget staff={staff} isLoading={isLoading} onAwardBonus={handleOpenBonusDialog} />
-
-            <Dialog open={isBonusDialogOpen} onOpenChange={setIsBonusDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Award Bonus / Adjustment</DialogTitle>
-                        <DialogDescription>Log a bonus or other payment adjustment for a staff member. This will create an expense transaction.</DialogDescription>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="staffId">Staff Member</Label>
-                            <Select value={bonusDetails.staffId} onValueChange={(v) => setBonusDetails({...bonusDetails, staffId: v})}>
-                                <SelectTrigger><SelectValue placeholder="Select staff..." /></SelectTrigger>
-                                <SelectContent>
-                                    {staff.map(s => <SelectItem key={s.id} value={s.id}>{s.name} ({s.role})</SelectItem>)}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="amount">Amount</Label>
-                            <Input id="amount" type="number" value={bonusDetails.amount} onChange={(e) => setBonusDetails({...bonusDetails, amount: Number(e.target.value)})} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="reason">Reason</Label>
-                            <Input id="reason" value={bonusDetails.reason} onChange={(e) => setBonusDetails({...bonusDetails, reason: e.target.value})} placeholder="e.g. Q2 Performance Bonus"/>
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                        <Button onClick={handleAwardBonus}>Award Bonus</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <StaffWidget staff={staff} isLoading={isLoading} />
         </div>
     )
 }
-
-    

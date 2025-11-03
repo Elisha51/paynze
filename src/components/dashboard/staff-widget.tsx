@@ -12,7 +12,7 @@ import { EmptyState } from '../ui/empty-state';
 import { useAuth } from '@/context/auth-context';
 import { Button } from '../ui/button';
 
-export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[], isLoading: boolean, onAwardBonus: (member: Staff) => void }) {
+export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: boolean }) {
   const { user } = useAuth();
   
   if (isLoading) {
@@ -60,10 +60,8 @@ export function StaffWidget({ staff, isLoading, onAwardBonus }: { staff: Staff[]
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {staff.map(member => (
-        <StaffCard key={member.id} member={member} onAwardBonus={() => onAwardBonus(member)} />
+        <StaffCard key={member.id} member={member} />
       ))}
     </div>
   );
 }
-
-    

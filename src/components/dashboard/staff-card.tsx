@@ -6,13 +6,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import type { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { Badge } from '../ui/badge';
-import { MoreVertical, DollarSign } from 'lucide-react';
+import { MoreVertical, DollarSign, Edit } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { useAuth } from '@/context/auth-context';
 
-export function StaffCard({ member, onAwardBonus }: { member: Staff, onAwardBonus: () => void }) {
+export function StaffCard({ member }: { member: Staff }) {
   const { user } = useAuth();
   const canEditStaff = user?.permissions.staff.edit;
 
@@ -60,10 +59,9 @@ export function StaffCard({ member, onAwardBonus }: { member: Staff, onAwardBonu
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                  <DropdownMenuItem onSelect={onAwardBonus}>
-                    <DollarSign className="mr-2 h-4 w-4" />
-                    Award Bonus
-                  </DropdownMenuItem>
+                   <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/staff/${member.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Profile</Link>
+                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
           )}
@@ -71,5 +69,3 @@ export function StaffCard({ member, onAwardBonus }: { member: Staff, onAwardBonu
       </Card>
   );
 }
-
-    
