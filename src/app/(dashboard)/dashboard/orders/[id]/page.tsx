@@ -122,12 +122,12 @@ export default function ViewOrderPage() {
       Cancelled: 'destructive',
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
   
-  const paymentStatusVariant = {
+  const paymentStatusVariant = order.payment ? {
       pending: 'secondary',
       completed: 'default',
       failed: 'destructive',
       refunded: 'outline',
-  }[order.payment.status] as "secondary" | "default" | "outline" | "destructive" | null;
+  }[order.payment.status] as "secondary" | "default" | "outline" | "destructive" | null : 'secondary';
   
   const currency = order.currency || settings.currency;
   
@@ -250,7 +250,7 @@ export default function ViewOrderPage() {
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Payment</span>
-                        <Badge variant={paymentStatusVariant}>{order.payment.status}</Badge>
+                        <Badge variant={paymentStatusVariant}>{order.payment?.status || 'pending'}</Badge>
                     </div>
                 </CardContent>
             </Card>

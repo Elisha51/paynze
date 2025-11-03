@@ -110,7 +110,6 @@ function initializeMockOrders(): Order[] {
             total: 50000,
             currency: 'UGX',
             shippingAddress: { street: '777 Test Road', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-            payment: { method: 'Mobile Money', status: 'completed', transactionId: 'txn_ORD-008' },
         },
         { 
             id: 'ORD-009',
@@ -126,7 +125,6 @@ function initializeMockOrders(): Order[] {
             total: 120000,
             currency: 'UGX',
             shippingAddress: { street: '888 Demo Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-            payment: { method: 'Cash on Delivery', status: 'completed', transactionId: 'txn_ORD-009' },
         },
     ];
     return [...mockOrders].map((order, index) => {
@@ -137,7 +135,7 @@ function initializeMockOrders(): Order[] {
             ...order,
             currency: order.currency || (index % 2 === 0 ? 'UGX' : 'KES'),
             channel: order.channel || (index % 2 === 0 ? 'Online' : 'Manual'),
-            payment: order.payment || {
+            payment: {
                 method: isMobileMoney ? 'Mobile Money' : 'Cash on Delivery',
                 status: isPaid ? 'completed' : 'pending',
                 transactionId: isPaid ? `txn_${order.id}` : undefined,
