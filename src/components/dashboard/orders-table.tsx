@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import {
@@ -203,6 +204,11 @@ const fulfillmentMethods = [
     { value: 'Pickup', label: 'Pickup' },
 ];
 
+const paymentMethods = [
+    { value: 'Mobile Money', label: 'Mobile Money' },
+    { value: 'Cash on Delivery', label: 'Cash on Delivery' },
+];
+
 
 const getColumns = (
   onUpdate: (updatedOrder: Order) => void,
@@ -251,17 +257,6 @@ const getColumns = (
     ),
   },
   {
-    accessorKey: 'channel',
-    header: 'Channel',
-    cell: ({ row }) => {
-        const channel = row.getValue('channel') as Order['channel'];
-        return <Badge variant={channel === 'Online' ? 'outline' : 'secondary'}>{channel}</Badge>
-    },
-    filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
-    },
-  },
-  {
     accessorKey: 'customerName',
     header: ({ column }) => {
         return (
@@ -298,6 +293,24 @@ const getColumns = (
       },
   },
   {
+    accessorKey: 'payment.method',
+    header: 'Payment',
+    cell: ({ row }) => {
+      const payment = row.original.payment;
+      if (!payment) {
+        return <Badge variant="secondary">N/A</Badge>;
+      }
+      return (
+        <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
+          {payment.method}
+        </Badge>
+      );
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => {
@@ -320,30 +333,6 @@ const getColumns = (
     filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
     },
-  },
-    {
-    accessorKey: 'assignedStaffName',
-    header: 'Fulfilled By',
-    cell: ({ row }) => {
-        const order = row.original;
-        const staffName = order.fulfilledByStaffName || order.assignedStaffName;
-        const staffId = order.fulfilledByStaffId || order.assignedStaffId;
-        const isPickup = order.fulfillmentMethod === 'Pickup';
-
-        if (!staffName || !staffId) {
-            return <span className="text-muted-foreground">Unassigned</span>
-        }
-        return (
-            <Link href={`/dashboard/staff/${staffId}`} className="flex items-center gap-2 hover:underline">
-                <Avatar className="h-6 w-6">
-                    <AvatarImage src={`https://picsum.photos/seed/${staffId}/24/24`} />
-                    <AvatarFallback>{getInitials(staffName)}</AvatarFallback>
-                </Avatar>
-                <span className="font-medium">{staffName}</span>
-                {isPickup ? <Store className="h-4 w-4 text-muted-foreground" title="Pickup" /> : <Truck className="h-4 w-4 text-muted-foreground" title="Delivery" />}
-            </Link>
-        )
-    }
   },
   {
     accessorKey: 'total',
@@ -488,7 +477,8 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
       data={data}
       filters={[
           { columnId: 'status', title: 'Status', options: orderStatuses },
-          { columnId: 'fulfillmentMethod', title: 'Fulfillment', options: fulfillmentMethods }
+          { columnId: 'fulfillmentMethod', title: 'Fulfillment', options: fulfillmentMethods },
+          { columnId: 'payment.method', title: 'Payment', options: paymentMethods },
       ]}
       emptyState={{
         icon: ShoppingCart,

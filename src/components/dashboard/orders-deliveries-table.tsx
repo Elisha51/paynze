@@ -44,6 +44,11 @@ const deliveryStatusMap: { [key in Order['status']]: { label: string; color: str
   'Cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-800' },
 };
 
+const paymentMethods = [
+    { value: 'Mobile Money', label: 'Mobile Money' },
+    { value: 'Cash on Delivery', label: 'Cash on Delivery' },
+];
+
 function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { order: Order, staff: Staff[], onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
     const { toast } = useToast();
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
@@ -123,7 +128,7 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'paymentMethod',
+    accessorKey: 'payment.method',
     header: 'Payment',
     cell: ({ row }) => {
       const payment = row.original.payment;
@@ -135,6 +140,9 @@ const getColumns = (
           {payment.method}
         </Badge>
       );
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
     },
   },
   {
@@ -251,6 +259,11 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
              <DataTable
                 columns={columns}
                 data={recentOrders}
+                filters={[{
+                    columnId: 'payment.method',
+                    title: 'Payment Method',
+                    options: paymentMethods
+                }]}
             />
         </CardContent>
     </Card>
