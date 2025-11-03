@@ -13,12 +13,14 @@ import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
+import { useAuth } from '@/context/auth-context';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-customers');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const { user } = useAuth();
 
   useEffect(() => {
     async function loadData() {
@@ -30,7 +32,11 @@ export default function CustomersPage() {
     loadData();
   }, []);
   
-  const columns = useMemo(() => getCustomerColumns(() => {}), []);
+  const columns = useMemo(() => {
+    const canEdit = user?.permissions.customers.edit ?? false;
+    const canDelete = user?.permissions.customers.delete ?? false;
+    return getCustomerColumns(() => {}, canEdit, canDelete);
+  }, [user]);
 
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },

@@ -16,13 +16,9 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Customer, OnboardingFormData } from '@/lib/types';
 import Link from 'next/link';
-import { useAuth } from '@/context/auth-context';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 
-export const getCustomerColumns = (onDelete: (customerId: string) => void): ColumnDef<Customer>[] => {
-  const { user } = useAuth();
-  const canEdit = user?.permissions.customers.edit;
-  const canDelete = user?.permissions.customers.delete;
+export const getCustomerColumns = (onDelete: (customerId: string) => void, canEdit: boolean, canDelete: boolean): ColumnDef<Customer>[] => {
 
   return [
     {
