@@ -7,10 +7,12 @@ import type { Product, Category } from "@/lib/types";
 import { useEffect, useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
-import { Search } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductFilters } from "@/components/storefront/product-filters";
 import { getCategories } from "@/services/categories";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export default function StorefrontHomePage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -111,22 +113,26 @@ export default function StorefrontHomePage() {
      if (products.length === 0) return 1000000;
      return Math.max(...products.map(p => p.retailPrice));
   }, [products]);
+  
+  const FilterComponent = () => (
+      <ProductFilters 
+          categories={categories}
+          selectedCategories={selectedCategories}
+          onCategoryChange={setSelectedCategories}
+          priceRange={priceRange}
+          onPriceRangeChange={setPriceRange}
+          maxPrice={maxPrice}
+          showInStock={showInStock}
+          onStockChange={setShowInStock}
+          onReset={handleResetFilters}
+      />
+  );
 
   return (
     <div className="container mx-auto py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <aside className="hidden lg:block lg:col-span-1 sticky top-24">
-                <ProductFilters 
-                    categories={categories}
-                    selectedCategories={selectedCategories}
-                    onCategoryChange={setSelectedCategories}
-                    priceRange={priceRange}
-                    onPriceRangeChange={setPriceRange}
-                    maxPrice={maxPrice}
-                    showInStock={showInStock}
-                    onStockChange={setShowInStock}
-                    onReset={handleResetFilters}
-                />
+                <FilterComponent />
             </aside>
             <main className="lg:col-span-3">
                  <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6 p-4 border rounded-lg bg-card">
@@ -140,9 +146,24 @@ export default function StorefrontHomePage() {
                         />
                     </div>
                     <div className="flex items-center gap-2 w-full md:w-auto">
-                        <span className="text-sm text-muted-foreground hidden md:inline">Sort by:</span>
+                        <Sheet>
+                          <SheetTrigger asChild>
+                            <Button variant="outline" className="h-11 flex-1 md:flex-initial lg:hidden">
+                              <Filter className="mr-2 h-5 w-5" />
+                              Filters
+                            </Button>
+                          </SheetTrigger>
+                          <SheetContent>
+                            <SheetHeader>
+                              <SheetTitle>Product Filters</SheetTitle>
+                            </SheetHeader>
+                            <div className="py-4">
+                              <FilterComponent />
+                            </div>
+                          </SheetContent>
+                        </Sheet>
                         <Select value={sortOption} onValueChange={setSortOption}>
-                            <SelectTrigger className="h-11 w-full md:w-[180px]">
+                            <SelectTrigger className="h-11 w-full flex-1 md:w-[180px]">
                                 <SelectValue placeholder="Sort by" />
                             </SelectTrigger>
                             <SelectContent>
