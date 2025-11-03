@@ -10,6 +10,10 @@ import { RolesPermissionsTab } from "@/components/dashboard/roles-permissions-ta
 import type { Role, Staff } from '@/lib/types';
 import { getStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
+import { GeneralSettings } from "@/components/settings/general-settings";
+import { ShippingSettings } from "@/components/settings/shipping-settings";
+import { PaymentsSettings } from "@/components/settings/payments-settings";
+import { NotificationsSettings } from "@/components/settings/notifications-settings";
 
 export default function SettingsPage() {
     const [locations, setLocations] = useState<Location[]>([]);
@@ -53,7 +57,7 @@ export default function SettingsPage() {
         >
             <DashboardPageLayout.TabContent value="general">
               <DashboardPageLayout.Content>
-                <p>General settings coming soon.</p>
+                <GeneralSettings />
               </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="locations">
@@ -63,17 +67,17 @@ export default function SettingsPage() {
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="shipping">
                 <DashboardPageLayout.Content>
-                    <p>Shipping settings coming soon.</p>
+                    <ShippingSettings />
                 </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="payments">
                 <DashboardPageLayout.Content>
-                    <p>Payment settings coming soon.</p>
+                    <PaymentsSettings />
                 </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
              <DashboardPageLayout.TabContent value="notifications">
                 <DashboardPageLayout.Content>
-                    <p>Notification settings coming soon.</p>
+                    <NotificationsSettings />
                 </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="staff">
