@@ -6,7 +6,7 @@ import { getStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, SlidersHorizontal, Settings, Activity } from 'lucide-react';
+import { PlusCircle, SlidersHorizontal, Settings, Activity, Users } from 'lucide-react';
 import Link from 'next/link';
 import { StaffWidget } from '@/components/dashboard/staff-widget';
 import { RolesPermissionsTab } from '@/components/dashboard/roles-permissions-tab';
@@ -29,7 +29,7 @@ export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('overview');
+  const [activeTab, setActiveTab] = useState('all-staff');
   const [isBonusDialogOpen, setIsBonusDialogOpen] = useState(false);
   const [bonusDetails, setBonusDetails] = useState({ staffId: '', amount: 0, reason: '' });
   const { toast } = useToast();
@@ -78,7 +78,7 @@ export default function StaffPage() {
 
 
   const tabs = [
-    { value: 'overview', label: 'Overview', icon: SlidersHorizontal },
+    { value: 'all-staff', label: 'All Staff', icon: Users, permission: true },
     { value: 'roles', label: 'Roles & Permissions', icon: Settings, permission: canEdit },
     { value: 'activity', label: 'Activity Log', icon: Activity, permission: true },
   ].filter(tab => tab.permission);
@@ -98,7 +98,7 @@ export default function StaffPage() {
             ) : null
         }
       >
-        <DashboardPageLayout.TabContent value="overview">
+        <DashboardPageLayout.TabContent value="all-staff">
             <DashboardPageLayout.Content>
                 <StaffWidget staff={staff} isLoading={isLoading} onAwardBonus={handleOpenBonusDialog} />
             </DashboardPageLayout.Content>
