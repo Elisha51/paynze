@@ -2,6 +2,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
 import { getProducts } from '@/services/products';
 import { type Product, type ProductVariant } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -18,7 +19,9 @@ import { Input } from '@/components/ui/input';
 
 const md = new Remarkable();
 
-export default function ProductDetailPage({ params }: { params: { sku: string } }) {
+export default function ProductDetailPage() {
+  const params = useParams();
+  const sku = params.sku as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -29,9 +32,10 @@ export default function ProductDetailPage({ params }: { params: { sku: string } 
 
   useEffect(() => {
     async function fetchProduct() {
+      if (!sku) return;
       setIsLoading(true);
       const products = await getProducts();
-      const foundProduct = products.find(p => p.sku === params.sku);
+      const foundProduct = products.find(p => p.sku === sku);
       setProduct(foundProduct || null);
 
       if (foundProduct) {
@@ -49,7 +53,7 @@ export default function ProductDetailPage({ params }: { params: { sku: string } 
       setIsLoading(false);
     }
     fetchProduct();
-  }, [params.sku]);
+  }, [sku]);
 
   useEffect(() => {
     if (product && product.hasVariants) {
