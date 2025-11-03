@@ -28,7 +28,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import type { ShippingZone, DeliveryMethod } from '@/lib/types';
-import { PlusCircle, MoreVertical, Trash2, Edit, Globe, Truck, X, Check, ChevronsUpDown } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Trash2, Edit, Globe, Truck, X, Check, ChevronsUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import {
   DropdownMenu,
