@@ -2,37 +2,50 @@
 'use client';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { AffiliatesTab } from '@/components/dashboard/affiliates-tab';
-import { EmailTemplatesTab } from '@/components/dashboard/email-templates-tab';
-import { SmsTemplatesTab } from '@/components/dashboard/sms-templates-tab';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { DataTable } from '@/components/dashboard/data-table';
 import { campaignColumns } from '@/components/dashboard/analytics/report-columns';
-import type { Campaign } from '@/lib/types';
-import { getCampaigns } from '@/services/marketing';
+import type { Campaign, Discount, Order } from '@/lib/types';
+import { getCampaigns, getDiscounts } from '@/services/marketing';
+import { getOrders } from '@/services/orders';
+import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marketing-analytics-report';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
 
 export default function MarketingPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
-  useState(() => {
+
+  useEffect(() => {
     async function loadData() {
-        const campaignsData = await getCampaigns();
+        const [campaignsData, discountsData, ordersData] = await Promise.all([
+          getCampaigns(),
+          getDiscounts(),
+          getOrders()
+        ]);
         setCampaigns(campaignsData);
+        setDiscounts(discountsData);
+        setOrders(ordersData);
     }
     loadData();
-  });
+  }, []);
   
   const tabs = [
     { value: 'overview', label: 'Overview' },
     { value: 'campaigns', label: 'Campaigns' },
     { value: 'discounts', label: 'Discounts' },
     { value: 'affiliates', label: 'Affiliates' },
+    { value: 'analytics', label: 'Analytics' },
   ];
 
   return (
     <DashboardPageLayout 
         title="Marketing"
-        cta={<></>}
+        cta={activeTab === 'analytics' ? <DateRangePicker date={dateRange} setDate={setDateRange} /> : <></>}
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
@@ -56,6 +69,11 @@ export default function MarketingPage() {
          <DashboardPageLayout.Content>
             <AffiliatesTab />
          </DashboardPageLayout.Content>
+      </DashboardPageLayout.TabContent>
+      <DashboardPageLayout.TabContent value="analytics">
+        <DashboardPageLayout.Content>
+            <MarketingAnalyticsReport campaigns={campaigns} discounts={discounts} orders={orders} dateRange={dateRange} />
+        </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );

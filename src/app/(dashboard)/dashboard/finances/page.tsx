@@ -26,8 +26,12 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { reconcileTransactions, ReconciliationInput, ReconciliationOutput } from '@/ai/flows/reconcile-transactions';
 import { ReconciliationReport } from '@/components/dashboard/reconciliation-report';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
+import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance-analytics-report';
 
-type ActiveTab = 'transactions' | 'commissions' | 'summary' | 'reconciliation';
+
+type ActiveTab = 'transactions' | 'commissions' | 'summary' | 'reconciliation' | 'analytics';
 
 export default function FinancesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -39,6 +43,7 @@ export default function FinancesPage() {
   const [isTxnDialogOpen, setIsTxnDialogOpen] = useState(false);
   const [isBonusDialogOpen, setIsBonusDialogOpen] = useState(false);
   const [isReconDialogOpen, setIsReconDialogOpen] = useState(false);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [newTxn, setNewTxn] = useState<Omit<Transaction, 'id' | 'currency'>>({
       date: new Date().toISOString().split('T')[0],
       description: '',
@@ -147,10 +152,26 @@ export default function FinancesPage() {
     { value: 'transactions', label: 'All Transactions' },
     { value: 'summary', label: 'Daily Summary' },
     { value: 'commissions', label: 'Commissions & Payouts' },
+    { value: 'analytics', label: 'Analytics' }
   ];
   if (transactions.length > 0) {
     tabs.push({ value: 'reconciliation', label: 'Reconciliation' });
   }
+
+  const ctaContent = activeTab === 'analytics'
+    ? <DateRangePicker date={dateRange} setDate={setDateRange} />
+    : (
+      <div className="flex gap-2">
+        <Button onClick={() => setIsReconDialogOpen(true)} variant="outline">
+            <Bot className="mr-2 h-4 w-4" />
+            AI Reconciliation
+        </Button>
+        <Button onClick={() => setIsTxnDialogOpen(true)}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Transaction
+        </Button>
+       </div>
+    );
 
   return (
     <>
@@ -159,18 +180,7 @@ export default function FinancesPage() {
         activeTab={activeTab}
         onTabChange={(tab) => setActiveTab(tab as ActiveTab)}
         tabs={tabs}
-        cta={
-           <div className="flex gap-2">
-            <Button onClick={() => setIsReconDialogOpen(true)} variant="outline">
-                <Bot className="mr-2 h-4 w-4" />
-                AI Reconciliation
-            </Button>
-            <Button onClick={() => setIsTxnDialogOpen(true)}>
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add Transaction
-            </Button>
-           </div>
-        }
+        cta={ctaContent}
       >
         <DashboardPageLayout.TabContent value="transactions">
             <DashboardPageLayout.Content>
@@ -230,6 +240,11 @@ export default function FinancesPage() {
                 </div>
               )}
             </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.TabContent value="analytics">
+          <DashboardPageLayout.Content>
+            <FinanceAnalyticsReport transactions={transactions} dateRange={dateRange} />
+          </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
       </DashboardPageLayout>
 

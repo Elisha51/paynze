@@ -12,6 +12,9 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpDown } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
+import { ProcurementAnalyticsReport } from '@/components/dashboard/analytics/procurement-analytics-report';
 
 const getSupplierColumns = (): ColumnDef<Supplier>[] => [
     {
@@ -80,6 +83,7 @@ export default function ProcurementPage() {
     const [suppliers, setSuppliers] = useState<Supplier[]>([]);
     const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const { user } = useAuth();
     
     const canCreate = user?.permissions.procurement.create;
@@ -99,6 +103,9 @@ export default function ProcurementPage() {
     const poColumns = useMemo(() => getPurchaseOrderColumns(), []);
     
     const getCta = () => {
+        if (activeTab === 'analytics') {
+            return <DateRangePicker date={dateRange} setDate={setDateRange} />;
+        }
         if (!canCreate) return null;
         if (activeTab === 'suppliers') {
             return (
@@ -123,7 +130,8 @@ export default function ProcurementPage() {
 
     const tabs = [
         { value: 'suppliers', label: 'Suppliers' },
-        { value: 'purchase-orders', label: 'Purchase Orders' }
+        { value: 'purchase-orders', label: 'Purchase Orders' },
+        { value: 'analytics', label: 'Analytics' }
     ];
 
     return (
@@ -142,6 +150,11 @@ export default function ProcurementPage() {
             <DashboardPageLayout.TabContent value="purchase-orders">
                 <DashboardPageLayout.Content>
                     <DataTable columns={poColumns} data={purchaseOrders} isLoading={isLoading} />
+                </DashboardPageLayout.Content>
+            </DashboardPageLayout.TabContent>
+            <DashboardPageLayout.TabContent value="analytics">
+                <DashboardPageLayout.Content>
+                    <ProcurementAnalyticsReport purchaseOrders={purchaseOrders} dateRange={dateRange} />
                 </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
         </DashboardPageLayout>
