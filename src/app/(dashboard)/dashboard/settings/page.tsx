@@ -5,15 +5,31 @@ import { LocationsTab } from "@/components/settings/locations-tab";
 import { getLocations } from "@/services/locations";
 import type { Location } from "@/lib/types";
 import { useEffect, useState } from "react";
+import { StaffWidget } from "@/components/dashboard/staff-widget";
+import { RolesPermissionsTab } from "@/components/dashboard/roles-permissions-tab";
+import type { Role, Staff } from '@/lib/types';
+import { getStaff } from '@/services/staff';
+import { getRoles } from '@/services/roles';
 
 export default function SettingsPage() {
     const [locations, setLocations] = useState<Location[]>([]);
     const [activeTab, setActiveTab] = useState('general');
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [staff, setStaff] = useState<Staff[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         async function loadData() {
-            const locs = await getLocations();
+            setIsLoading(true);
+            const [locs, rolesData, staffData] = await Promise.all([
+                getLocations(),
+                getRoles(),
+                getStaff(),
+            ]);
             setLocations(locs);
+            setRoles(rolesData.filter(r => r.name !== 'Affiliate'));
+            setStaff(staffData.filter(s => s.role !== 'Affiliate'));
+            setIsLoading(false);
         }
         loadData();
     }, []);
@@ -62,7 +78,7 @@ export default function SettingsPage() {
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="staff">
                 <DashboardPageLayout.Content>
-                    <p>Staff settings coming soon.</p>
+                    <RolesPermissionsTab roles={roles} setRoles={setRoles} />
                 </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
         </DashboardPageLayout>

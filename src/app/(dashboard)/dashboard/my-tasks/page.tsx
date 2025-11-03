@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Trash2, Truck } from 'lucide-react';
+import { PlusCircle, Trash2, Truck, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 import { getTodos, addTodo, updateTodo, deleteTodo } from '@/services/todos';
@@ -15,22 +15,37 @@ import { getStaffOrders } from '@/services/staff';
 import type { Order, Todo } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function MyTasksPage() {
     const { user } = useAuth();
     const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
     const [newTodo, setNewTodo] = useState('');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         async function loadTasks() {
             if (!user) return;
+            setIsLoading(true);
             const [orders, userTodos] = await Promise.all([
                 getStaffOrders(user.id),
                 getTodos()
             ]);
             setAssignedOrders(orders.filter(o => !['Delivered', 'Picked Up', 'Cancelled'].includes(o.status)));
             setTodos(userTodos);
+            setIsLoading(false);
         }
         loadTasks();
     }, [user]);
@@ -52,10 +67,22 @@ export default function MyTasksPage() {
         await deleteTodo(id);
         setTodos(prev => prev.filter(t => t.id !== id));
     }
+    
+    if (isLoading) {
+        return <div>Loading tasks...</div>
+    }
 
     return (
         <div className="max-w-4xl mx-auto space-y-8">
             <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
+            
+            {assignedOrders.length === 0 && todos.length === 0 && (
+                <EmptyState
+                    icon={<ClipboardList className="h-12 w-12 text-primary" />}
+                    title="No tasks here!"
+                    description="You have no assigned deliveries or personal to-do items."
+                />
+            )}
 
             {assignedOrders.length > 0 && (
                  <Card>
@@ -101,32 +128,73 @@ export default function MyTasksPage() {
                             Add
                         </Button>
                     </div>
-                    <ul className="space-y-2">
-                        {todos.map(todo => (
-                            <li key={todo.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50">
-                                <Checkbox
-                                    id={`todo-${todo.id}`}
-                                    checked={todo.status === 'Completed'}
-                                    onCheckedChange={() => handleToggleTodo(todo.id, todo.status)}
-                                />
-                                <Label 
-                                    htmlFor={`todo-${todo.id}`}
-                                    className={cn(
-                                        "flex-1 cursor-pointer",
-                                        todo.status === 'Completed' && 'line-through text-muted-foreground'
-                                    )}
-                                >
-                                    {todo.title}
-                                </Label>
-                                <span className="text-xs text-muted-foreground">
-                                    {formatDistanceToNow(new Date(todo.createdAt), { addSuffix: true })}
-                                </span>
-                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleDeleteTodo(todo.id)}>
-                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
+                    {todos.length > 0 ? (
+                        <ul className="space-y-2">
+                            {todos.map(todo => (
+                                <li key={todo.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50">
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                             <Checkbox
+                                                id={`todo-${todo.id}`}
+                                                checked={todo.status === 'Completed'}
+                                            />
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>
+                                                    {todo.status === 'Completed' ? 'Mark as To-Do?' : 'Mark as Completed?'}
+                                                </AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This will change the status of your to-do item.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleToggleTodo(todo.id, todo.status)}>
+                                                    Confirm
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                    <Label 
+                                        htmlFor={`todo-${todo.id}`}
+                                        className={cn(
+                                            "flex-1 cursor-pointer",
+                                            todo.status === 'Completed' && 'line-through text-muted-foreground'
+                                        )}
+                                    >
+                                        {todo.title}
+                                    </Label>
+                                    <span className="text-xs text-muted-foreground">
+                                        {formatDistanceToNow(new Date(todo.createdAt), { addSuffix: true })}
+                                    </span>
+                                     <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure you want to delete this task?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    This action cannot be undone. This will permanently delete the task "{todo.title}".
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteTodo(todo.id)} className="bg-destructive hover:bg-destructive/90">
+                                                    Delete
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">You have no personal to-do items.</p>
+                    )}
                 </CardContent>
             </Card>
         </div>

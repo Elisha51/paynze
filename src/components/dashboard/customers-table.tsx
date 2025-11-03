@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -9,6 +10,7 @@ import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { getCustomerColumns } from './customers-columns';
 
 type MessageType = 'WhatsApp' | 'SMS' | null;
 
@@ -18,10 +20,18 @@ type CustomersTableProps = {
   isLoading: boolean;
 };
 
-export function CustomersTable({ columns, data, isLoading }: CustomersTableProps) {
+export function CustomersTable({ columns: initialColumns, data, isLoading }: CustomersTableProps) {
     const [messageTarget, setMessageTarget] = React.useState<{customer: Customer, type: MessageType} | null>(null);
     const [messageContent, setMessageContent] = React.useState('');
     const { toast } = useToast();
+    
+    const handleDeleteCustomer = (customerId: string) => {
+        // In a real app, call a service to delete the customer
+        console.log("Deleting customer:", customerId);
+        toast({ title: "Customer Deleted", variant: "destructive" });
+    };
+
+    const columns = React.useMemo(() => getCustomerColumns(handleDeleteCustomer), []);
     
     const handleSendMessage = () => {
         if (!messageTarget) return;
@@ -31,9 +41,6 @@ export function CustomersTable({ columns, data, isLoading }: CustomersTableProps
         }
         
         console.log(`Sending ${messageTarget.type} to ${messageTarget.customer.name}: ${messageContent}`);
-        
-        // This is a simulation. In a real app, you would save this to the backend.
-        // For now, we'll just show a toast. A refresh would show the new activity on the detail page.
         
         toast({ title: 'Message Sent', description: `Your ${messageTarget.type} has been sent to ${messageTarget.customer.name}.` });
         setMessageTarget(null);

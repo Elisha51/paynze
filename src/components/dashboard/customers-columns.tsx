@@ -1,7 +1,8 @@
+
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, Send } from 'lucide-react';
+import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, Send, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,14 +12,17 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import type { Customer, OnboardingFormData } from '@/lib/types';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
+import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 
-export const getCustomerColumns = (): ColumnDef<Customer>[] => {
+export const getCustomerColumns = (onDelete: (customerId: string) => void): ColumnDef<Customer>[] => {
   const { user } = useAuth();
   const canEdit = user?.permissions.customers.edit;
+  const canDelete = user?.permissions.customers.delete;
 
   return [
     {
@@ -100,32 +104,53 @@ export const getCustomerColumns = (): ColumnDef<Customer>[] => {
         const customer = row.original;
         return (
           <div className="bg-background text-right sticky right-0">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem asChild>
-                  <Link href={`/dashboard/customers/${customer.id}`}>
-                    <Info className="mr-2 h-4 w-4" /> View Details
-                  </Link>
-                </DropdownMenuItem>
-                {canEdit && (
-                  <>
-                    <DropdownMenuItem onSelect={() => console.log('This should trigger the message dialog')}>
-                      <MessageCircle className="mr-2 h-4 w-4" /> Send via WhatsApp
+             <AlertDialog>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/dashboard/customers/${customer.id}`}>
+                        <Info className="mr-2 h-4 w-4" /> View Details
+                      </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => console.log('This should trigger the message dialog')}>
-                      <Phone className="mr-2 h-4 w-4" /> Send via SMS
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    {canEdit && (
+                      <DropdownMenuItem onSelect={() => console.log('This should trigger the message dialog')}>
+                        <MessageCircle className="mr-2 h-4 w-4" /> Send via WhatsApp
+                      </DropdownMenuItem>
+                    )}
+                    {canDelete && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <AlertDialogTrigger asChild>
+                           <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                              <Trash2 className="mr-2 h-4 w-4" /> Delete Customer
+                           </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                 <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the customer "{customer.name}" and all their associated data.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => onDelete(customer.id)} className="bg-destructive hover:bg-destructive/90">
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
           </div>
         );
       },

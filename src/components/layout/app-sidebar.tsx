@@ -89,7 +89,7 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
                 <SidebarMenuItem key={item.href}>
                 <Link href={item.href} passHref>
                     <SidebarMenuButton
-                    isActive={pathname === item.href || (pathname.startsWith(item.href) && item.href !== '/dashboard')}
+                    isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
                     tooltip={item.label}
                     >
                     <item.icon className="h-5 w-5 shrink-0" />
@@ -117,10 +117,12 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
                  </SidebarMenuItem>
             ))}
             <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Support">
-                    <LifeBuoy className="h-5 w-5 shrink-0" />
-                    <span className="flex-1">Support</span>
-                </SidebarMenuButton>
+                <a href="mailto:support@paynze.app" target="_blank" rel="noopener noreferrer" className="w-full block">
+                    <SidebarMenuButton tooltip="Support">
+                        <LifeBuoy className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">Support</span>
+                    </SidebarMenuButton>
+                </a>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/login" passHref>
