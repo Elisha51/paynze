@@ -170,7 +170,7 @@ const getColumns = (
         if (!staffId || !staffName) {
             if (canEdit && order.fulfillmentMethod === 'Delivery' && (order.status === 'Paid' || order.status === 'Awaiting Payment')) {
                 return (
-                    <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                    <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate} asChild>
                         <Button variant="outline" size="sm">
                             <User className="mr-2 h-4 w-4" />
                             Assign
