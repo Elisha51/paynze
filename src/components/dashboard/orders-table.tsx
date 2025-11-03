@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import {
@@ -40,7 +41,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
 import { getStaff } from '@/services/staff';
 import type { Staff } from '@/lib/types';
