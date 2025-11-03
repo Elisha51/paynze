@@ -103,7 +103,7 @@ export function DomainSettings() {
                                 Connect Your Custom Domain
                             </CardTitle>
                             <CardDescription>
-                                Follow these steps in your domain provider's dashboard (e.g., GoDaddy, Namecheap) to connect your domain.
+                                To connect your domain, log in to your domain provider (e.g., GoDaddy, Namecheap) and add the following records.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
