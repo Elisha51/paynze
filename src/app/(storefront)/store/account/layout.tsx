@@ -27,6 +27,9 @@ export default function AccountLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  // Mocking unread count. In a real app this would come from a context or API.
+  const unreadNotificationCount = 3;
+  
   return (
     <div className="container py-12">
       <div className="grid md:grid-cols-4 gap-8 items-start">
@@ -55,7 +58,7 @@ export default function AccountLayout({
                         <item.icon className="mr-2 h-4 w-4" />
                         {item.label}
                       </div>
-                      {item.badge && <Badge variant="destructive">{item.badge}</Badge>}
+                      {item.href === '/store/account/notifications' && unreadNotificationCount > 0 && <Badge variant="destructive">{unreadNotificationCount}</Badge>}
                     </Link>
                   </Button>
                 ))}

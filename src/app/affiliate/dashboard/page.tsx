@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart, Bell } from 'lucide-react';
@@ -12,11 +12,12 @@ import { getOrdersByAffiliate } from '@/services/orders';
 import { format, formatDistanceToNow } from 'date-fns';
 import { AffiliateHeader } from './_components/affiliate-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { NotificationList } from '@/components/shared/notification-list';
 
 // Mock data for a logged-in affiliate
 const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 84, totalSales: 4670000, pendingCommission: 17000, paidCommission: 980000, payoutHistory: [{ date: '2024-07-01', amount: 500000, currency: 'UGX' }, { date: '2024-06-01', amount: 480000, currency: 'UGX' }] };
 
-const mockAffiliateNotifications: Notification[] = [
+const mockInitialAffiliateNotifications: Notification[] = [
     { id: 'aff-notif-1', type: 'new-order', title: 'New Commission Earned!', description: 'You earned UGX 1,200 from order #ORD-008.', timestamp: new Date().toISOString(), read: false, link: '#', archived: false },
     { id: 'aff-notif-2', type: 'new-order', title: 'Payout Sent', description: 'A payout of UGX 980,000 has been sent to your account.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: true, link: '#', archived: false },
 ];
@@ -27,6 +28,8 @@ export default function AffiliateDashboardPage() {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [affiliateSettings, setAffiliateSettings] = useState<AffiliateProgramSettings | null>(null);
     const [referredOrders, setReferredOrders] = useState<Order[]>([]);
+    const [notifications, setNotifications] = useState(mockInitialAffiliateNotifications);
+    const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread'>('all');
     const affiliate = mockAffiliateData; // In a real app, this would be fetched based on auth
 
     useEffect(() => {
@@ -70,6 +73,19 @@ export default function AffiliateDashboardPage() {
         toast({ title: "Referral Link Copied!" });
     }
 
+    // Notification State Management
+    const activeNotifications = useMemo(() => notifications.filter(n => !n.archived), [notifications]);
+    const filteredNotifications = useMemo(() => {
+        if (notificationFilter === 'unread') return activeNotifications.filter(n => !n.read);
+        return activeNotifications;
+    }, [activeNotifications, notificationFilter]);
+    const unreadCount = useMemo(() => activeNotifications.filter(n => !n.read).length, [activeNotifications]);
+    const markAsRead = useCallback((id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n)), []);
+    const markAllAsRead = useCallback(() => setNotifications(prev => prev.map(n => ({ ...n, read: true }))), []);
+    const archiveNotification = useCallback((id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, archived: true } : n)), []);
+    const archiveAllRead = useCallback(() => setNotifications(prev => prev.map(n => n.read ? { ...n, archived: true } : n)), []);
+
+
     if (affiliate.status === 'Pending') {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -87,12 +103,14 @@ export default function AffiliateDashboardPage() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <AffiliateHeader notificationCount={mockAffiliateNotifications.filter(n => !n.read).length} />
+            <AffiliateHeader notificationCount={unreadCount} />
             <main className="flex-1 bg-muted/40 p-4 md:p-8">
                 <Tabs defaultValue="dashboard" className="max-w-4xl mx-auto">
                     <TabsList className="grid w-full grid-cols-2">
                         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                        <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                        <TabsTrigger value="notifications">
+                            Notifications {unreadCount > 0 && <span className="ml-2 bg-primary text-primary-foreground text-xs h-5 w-5 rounded-full flex items-center justify-center">{unreadCount}</span>}
+                        </TabsTrigger>
                     </TabsList>
                     <TabsContent value="dashboard" className="mt-6 space-y-6">
                         <Card>
@@ -209,22 +227,23 @@ export default function AffiliateDashboardPage() {
                         </Card>
                     </TabsContent>
                     <TabsContent value="notifications" className="mt-6">
-                        <Card>
+                         <Card>
                             <CardHeader>
                                 <CardTitle>Your Notifications</CardTitle>
                                 <CardDescription>Updates on your referrals and payouts.</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                {mockAffiliateNotifications.map(notification => (
-                                    <div key={notification.id} className="flex items-start gap-4 rounded-lg border p-4">
-                                        <Bell className="h-6 w-6 text-muted-foreground mt-1" />
-                                        <div className="flex-1 space-y-1">
-                                            <p className="font-semibold">{notification.title}</p>
-                                            <p className="text-sm text-muted-foreground">{notification.description}</p>
-                                        </div>
-                                        <div className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</div>
-                                    </div>
-                                ))}
+                            <CardContent className="p-0">
+                                <NotificationList
+                                    notifications={filteredNotifications}
+                                    filter={notificationFilter}
+                                    onFilterChange={setNotificationFilter}
+                                    onMarkAsRead={markAsRead}
+                                    onMarkAllAsRead={markAllAsRead}
+                                    onArchive={archiveNotification}
+                                    onArchiveAllRead={archiveAllRead}
+                                    unreadCount={unreadCount}
+                                    isSheet={false}
+                                />
                             </CardContent>
                         </Card>
                     </TabsContent>

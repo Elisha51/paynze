@@ -1,5 +1,6 @@
 
 'use client';
+import { useState, useMemo, useCallback } from 'react';
 import {
   Card,
   CardContent,
@@ -7,20 +8,34 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import { Bell, ShoppingCart, Truck, PackageCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { formatDistanceToNow } from 'date-fns';
+import { NotificationList } from '@/components/shared/notification-list';
+import type { Notification } from '@/lib/types';
 
-const mockCustomerNotifications = [
-    { id: 1, icon: PackageCheck, title: 'Order Delivered', description: 'Your order #3210 has been successfully delivered.', time: '3 days ago', read: true, link: '/store/account/orders/3210' },
-    { id: 2, icon: Truck, title: 'Out for Delivery', description: 'Your order #3205 is out for delivery and will arrive today.', time: '8 hours ago', read: false, link: '/store/account/orders/3205' },
-    { id: 3, icon: Truck, title: 'Order Shipped', description: 'Your order #3205 has been shipped and is on its way to you.', time: '1 day ago', read: true, link: '/store/account/orders/3205' },
-    { id: 4, icon: ShoppingCart, title: 'Order Confirmed', description: 'Your order #3210 has been confirmed and is being processed.', time: '2 days ago', read: true, link: '/store/account/orders/3210' },
-].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime()); // This is a mock sort
+
+const mockCustomerNotifications: Notification[] = [
+    { id: 'cust-notif-1', type: 'new-order', title: 'Order Delivered', description: 'Your order #ORD-3210 has been successfully delivered.', timestamp: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(), read: true, link: '/store/account/orders/3210', archived: false },
+    { id: 'cust-notif-2', type: 'low-stock', title: 'Out for Delivery', description: 'Your order #ORD-3205 is out for delivery and will arrive today.', timestamp: new Date(new Date().setHours(new Date().getHours() - 8)).toISOString(), read: false, link: '/store/account/orders/3205', archived: false },
+    { id: 'cust-notif-3', type: 'task-assigned', title: 'Order Shipped', description: 'Your order #ORD-3205 has been shipped and is on its way to you.', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), read: true, link: '/store/account/orders/3205', archived: false },
+    { id: 'cust-notif-4', type: 'new-order', title: 'Order Confirmed', description: 'Your order #ORD-3210 has been confirmed and is being processed.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: true, link: '/store/account/orders/3210', archived: false },
+].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
 
 export default function NotificationsPage() {
+    const [notifications, setNotifications] = useState(mockCustomerNotifications);
+    const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread'>('all');
+
+    // Notification State Management
+    const activeNotifications = useMemo(() => notifications.filter(n => !n.archived), [notifications]);
+    const filteredNotifications = useMemo(() => {
+        if (notificationFilter === 'unread') return activeNotifications.filter(n => !n.read);
+        return activeNotifications;
+    }, [activeNotifications, notificationFilter]);
+    const unreadCount = useMemo(() => activeNotifications.filter(n => !n.read).length, [activeNotifications]);
+    const markAsRead = useCallback((id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n)), []);
+    const markAllAsRead = useCallback(() => setNotifications(prev => prev.map(n => ({ ...n, read: true }))), []);
+    const archiveNotification = useCallback((id: string) => setNotifications(prev => prev.map(n => n.id === id ? { ...n, archived: true } : n)), []);
+    const archiveAllRead = useCallback(() => setNotifications(prev => prev.map(n => n.read ? { ...n, archived: true } : n)), []);
+
   return (
     <Card>
       <CardHeader>
@@ -29,24 +44,18 @@ export default function NotificationsPage() {
           Stay up to date with your orders and account activity.
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-            {mockCustomerNotifications.map(notification => (
-                <div key={notification.id} className={cn("flex items-start gap-4 rounded-lg border p-4", !notification.read && "bg-muted/50")}>
-                    <notification.icon className="h-6 w-6 text-muted-foreground mt-1" />
-                    <div className="flex-1 space-y-1">
-                        <p className="font-semibold">{notification.title}</p>
-                        <p className="text-sm text-muted-foreground">{notification.description}</p>
-                        {notification.link && (
-                            <Button asChild variant="link" className="p-0 h-auto text-sm">
-                                <Link href={notification.link}>View Order</Link>
-                            </Button>
-                        )}
-                    </div>
-                    <div className="text-xs text-muted-foreground">{notification.time}</div>
-                </div>
-            ))}
-        </div>
+      <CardContent className="p-0">
+        <NotificationList
+            notifications={filteredNotifications}
+            filter={notificationFilter}
+            onFilterChange={setNotificationFilter}
+            onMarkAsRead={markAsRead}
+            onMarkAllAsRead={markAllAsRead}
+            onArchive={archiveNotification}
+            onArchiveAllRead={archiveAllRead}
+            unreadCount={unreadCount}
+            isSheet={false}
+        />
       </CardContent>
     </Card>
   );
