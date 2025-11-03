@@ -5,9 +5,11 @@ import { getStaff } from '@/services/staff';
 import type { Staff } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
-export default function EditStaffPage({ params }: { params: { id: string } }) {
+export default function EditStaffPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [staffMember, setStaffMember] = useState<Staff | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -15,12 +17,14 @@ export default function EditStaffPage({ params }: { params: { id: string } }) {
     useEffect(() => {
         async function loadStaff() {
             const allStaff = await getStaff();
-            const foundStaff = allStaff.find(s => s.id === params.id);
+            const foundStaff = allStaff.find(s => s.id === id);
             setStaffMember(foundStaff || null);
             setIsLoading(false);
         }
-        loadStaff();
-    }, [params.id]);
+        if (id) {
+            loadStaff();
+        }
+    }, [id]);
 
     if (isLoading) {
         return (

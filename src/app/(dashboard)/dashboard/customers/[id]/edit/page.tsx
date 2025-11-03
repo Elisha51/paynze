@@ -5,19 +5,24 @@ import { getCustomerById } from '@/services/customers';
 import type { Customer } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useParams } from 'next/navigation';
 
-export default function EditCustomerPage({ params }: { params: { id: string } }) {
+export default function EditCustomerPage() {
+    const params = useParams();
+    const id = params.id as string;
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         async function loadCustomer() {
-            const fetchedCustomer = await getCustomerById(params.id);
+            const fetchedCustomer = await getCustomerById(id);
             setCustomer(fetchedCustomer || null);
             setIsLoading(false);
         }
-        loadCustomer();
-    }, [params.id]);
+        if (id) {
+            loadCustomer();
+        }
+    }, [id]);
 
     if (isLoading) {
         return (

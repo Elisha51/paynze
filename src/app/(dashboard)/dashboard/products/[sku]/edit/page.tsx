@@ -8,20 +8,25 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 
-export default function EditProductPage({ params }: { params: { sku: string } }) {
+export default function EditProductPage() {
+    const params = useParams();
+    const sku = params.sku as string;
     const [product, setProduct] = useState<Product | null>(null);
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         async function loadProduct() {
             const allProducts = await getProducts();
-            const foundProduct = allProducts.find(p => p.sku === params.sku);
+            const foundProduct = allProducts.find(p => p.sku === sku);
             setProduct(foundProduct || null);
             setIsLoading(false);
         }
-        loadProduct();
-    }, [params.sku]);
+        if (sku) {
+            loadProduct();
+        }
+    }, [sku]);
 
     if (isLoading) {
         return (
