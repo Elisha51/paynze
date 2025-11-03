@@ -19,7 +19,7 @@ const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', statu
 
 const mockInitialAffiliateNotifications: Notification[] = [
     { id: 'aff-notif-1', type: 'new-order', title: 'New Commission Earned!', description: 'You earned UGX 1,200 from order #ORD-008.', timestamp: new Date().toISOString(), read: false, link: '#', archived: false },
-    { id: 'aff-notif-2', type: 'new-order', title: 'Payout Sent', description: 'A payout of UGX 980,000 has been sent to your account.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: true, link: '#', archived: false },
+    { id: 'aff-notif-2', type: 'payout-sent', title: 'Payout Sent', description: 'A payout of UGX 980,000 has been sent to your account.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: true, link: '#', archived: false },
 ];
 
 
@@ -252,3 +252,5 @@ export default function AffiliateDashboardPage() {
         </div>
     );
 }
+
+    

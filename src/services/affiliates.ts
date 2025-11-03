@@ -32,3 +32,5 @@ export async function addAffiliate(affiliate: Omit<Affiliate, 'id'>): Promise<Af
 export async function updateAffiliate(affiliateId: string, updates: Partial<Affiliate>): Promise<Affiliate> {
     return affiliateService.update(affiliateId, updates);
 }
+
+    
