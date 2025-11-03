@@ -73,7 +73,7 @@ export function CartSheet({ children }: { children: React.ReactNode }) {
                 </div>
                  <SheetClose asChild>
                     <Button size="lg" className="w-full" asChild>
-                        <Link href="/store/checkout">Proceed to Checkout</Link>
+                        <Link href="/checkout">Proceed to Checkout</Link>
                     </Button>
                  </SheetClose>
             </SheetFooter>

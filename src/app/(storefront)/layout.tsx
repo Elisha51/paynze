@@ -4,6 +4,7 @@ import { StoreHeader } from '@/components/storefront/store-header';
 import { OnboardingFormData } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { CartProvider } from '@/context/cart-context';
 
 export default function StorefrontLayout({
   children,
@@ -20,6 +21,7 @@ export default function StorefrontLayout({
   }, []);
 
   return (
+    <CartProvider>
       <div className="flex min-h-screen flex-col">
         <StoreHeader settings={settings} />
         <main className="flex-1">{children}</main>
@@ -55,5 +57,6 @@ export default function StorefrontLayout({
             </div>
         </footer>
       </div>
+    </CartProvider>
   );
 }
