@@ -15,6 +15,8 @@ import { ShippingSettings } from "@/components/settings/shipping-settings";
 import { PaymentsSettings } from "@/components/settings/payments-settings";
 import { NotificationsSettings } from "@/components/settings/notifications-settings";
 import { DomainSettings } from "@/components/settings/domain-settings";
+import { ThemeSettings } from "@/components/settings/theme-settings";
+import { Separator } from "@/components/ui/separator";
 
 export default function SettingsPage() {
     const [locations, setLocations] = useState<Location[]>([]);
@@ -64,7 +66,11 @@ export default function SettingsPage() {
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="storefront">
               <DashboardPageLayout.Content>
-                <DomainSettings />
+                <div className="space-y-6">
+                    <DomainSettings />
+                    <Separator />
+                    <ThemeSettings />
+                </div>
               </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="locations">
