@@ -3,16 +3,23 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart } from 'lucide-react';
+import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart, Bell } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Affiliate, OnboardingFormData, Order, AffiliateProgramSettings } from '@/lib/types';
+import type { Affiliate, OnboardingFormData, Order, AffiliateProgramSettings, Notification } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { getOrdersByAffiliate } from '@/services/orders';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
+import { AffiliateHeader } from './_components/affiliate-header';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Mock data for a logged-in affiliate
 const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 84, totalSales: 4670000, pendingCommission: 17000, paidCommission: 980000, payoutHistory: [{ date: '2024-07-01', amount: 500000, currency: 'UGX' }, { date: '2024-06-01', amount: 480000, currency: 'UGX' }] };
+
+const mockAffiliateNotifications: Notification[] = [
+    { id: 'aff-notif-1', type: 'new-order', title: 'New Commission Earned!', description: 'You earned UGX 1,200 from order #ORD-008.', timestamp: new Date().toISOString(), read: false, link: '#', archived: false },
+    { id: 'aff-notif-2', type: 'new-order', title: 'Payout Sent', description: 'A payout of UGX 980,000 has been sent to your account.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: true, link: '#', archived: false },
+];
 
 
 export default function AffiliateDashboardPage() {
@@ -80,129 +87,148 @@ export default function AffiliateDashboardPage() {
 
     return (
         <div className="flex flex-col min-h-screen">
-            <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="container flex h-14 items-center">
-                    <h1 className="text-xl font-bold font-headline">Affiliate Dashboard</h1>
-                    <nav className="ml-auto">
-                        <Button variant="ghost">Log Out</Button>
-                    </nav>
-                </div>
-            </header>
+            <AffiliateHeader notificationCount={mockAffiliateNotifications.filter(n => !n.read).length} />
             <main className="flex-1 bg-muted/40 p-4 md:p-8">
-                 <div className="max-w-4xl mx-auto space-y-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Your Referral Link</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                             <div className="flex w-full items-center space-x-2">
-                                <div className="relative flex-1">
-                                    <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input readOnly value={referralLink} className="pl-10" />
+                <Tabs defaultValue="dashboard" className="max-w-4xl mx-auto">
+                    <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+                        <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="dashboard" className="mt-6 space-y-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Your Referral Link</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex w-full items-center space-x-2">
+                                    <div className="relative flex-1">
+                                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input readOnly value={referralLink} className="pl-10" />
+                                    </div>
+                                    <Button onClick={copyReferralLink}><Copy className="mr-2 h-4 w-4" /> Copy Link</Button>
                                 </div>
-                                <Button onClick={copyReferralLink}><Copy className="mr-2 h-4 w-4" /> Copy Link</Button>
-                            </div>
-                        </CardContent>
-                    </Card>
+                            </CardContent>
+                        </Card>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <Card>
+                                <CardHeader className="flex-row items-center justify-between pb-2">
+                                    <CardTitle className="text-sm font-medium">Pending Commission</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-muted-foreground"/>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{formatCurrency(affiliate.pendingCommission)}</div>
+                                    <p className="text-xs text-muted-foreground">Available for next payout</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex-row items-center justify-between pb-2">
+                                    <CardTitle className="text-sm font-medium">Clicks</CardTitle>
+                                    <BarChart className="h-4 w-4 text-muted-foreground"/>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{affiliate.linkClicks}</div>
+                                    <p className="text-xs text-muted-foreground">Total clicks on your link</p>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardHeader className="flex-row items-center justify-between pb-2">
+                                    <CardTitle className="text-sm font-medium">Conversions</CardTitle>
+                                    <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{affiliate.conversions}</div>
+                                    <p className="text-xs text-muted-foreground">{conversionRate}% conversion rate</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+
                         <Card>
-                            <CardHeader className="flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium">Pending Commission</CardTitle>
-                                <DollarSign className="h-4 w-4 text-muted-foreground"/>
+                            <CardHeader>
+                                <CardTitle>Your Referred Sales</CardTitle>
+                                <CardDescription>A list of completed sales you have referred.</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{formatCurrency(affiliate.pendingCommission)}</div>
-                                <p className="text-xs text-muted-foreground">Available for next payout</p>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Order</TableHead>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead className="text-right">Sale Amount</TableHead>
+                                            <TableHead className="text-right">Commission Earned</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {referredOrders.length > 0 ? (
+                                            referredOrders.map(order => (
+                                                <TableRow key={order.id}>
+                                                    <TableCell className="font-mono">{order.id}</TableCell>
+                                                    <TableCell>{format(new Date(order.date), 'PPP')}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(order.total)}</TableCell>
+                                                    <TableCell className="text-right font-semibold text-primary">{formatCurrency(calculateCommission(order.total))}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={4} className="h-24 text-center">No referred sales found yet.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
+
                         <Card>
-                            <CardHeader className="flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium">Clicks</CardTitle>
-                                <BarChart className="h-4 w-4 text-muted-foreground"/>
+                            <CardHeader>
+                                <CardTitle>Payout History</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="text-2xl font-bold">{affiliate.linkClicks}</div>
-                                <p className="text-xs text-muted-foreground">Total clicks on your link</p>
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Date</TableHead>
+                                            <TableHead className="text-right">Amount</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {affiliate.payoutHistory && affiliate.payoutHistory.length > 0 ? (
+                                            affiliate.payoutHistory.map(payout => (
+                                                <TableRow key={payout.date}>
+                                                    <TableCell>{format(new Date(payout.date), 'PPP')}</TableCell>
+                                                    <TableCell className="text-right">{formatCurrency(payout.amount)}</TableCell>
+                                                </TableRow>
+                                            ))
+                                        ) : (
+                                            <TableRow>
+                                                <TableCell colSpan={2} className="h-24 text-center">No payouts have been made yet.</TableCell>
+                                            </TableRow>
+                                        )}
+                                    </TableBody>
+                                </Table>
                             </CardContent>
                         </Card>
-                         <Card>
-                            <CardHeader className="flex-row items-center justify-between pb-2">
-                                <CardTitle className="text-sm font-medium">Conversions</CardTitle>
-                                <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
+                    </TabsContent>
+                    <TabsContent value="notifications" className="mt-6">
+                        <Card>
+                            <CardHeader>
+                                <CardTitle>Your Notifications</CardTitle>
+                                <CardDescription>Updates on your referrals and payouts.</CardDescription>
                             </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{affiliate.conversions}</div>
-                                <p className="text-xs text-muted-foreground">{conversionRate}% conversion rate</p>
+                            <CardContent className="space-y-4">
+                                {mockAffiliateNotifications.map(notification => (
+                                    <div key={notification.id} className="flex items-start gap-4 rounded-lg border p-4">
+                                        <Bell className="h-6 w-6 text-muted-foreground mt-1" />
+                                        <div className="flex-1 space-y-1">
+                                            <p className="font-semibold">{notification.title}</p>
+                                            <p className="text-sm text-muted-foreground">{notification.description}</p>
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}</div>
+                                    </div>
+                                ))}
                             </CardContent>
                         </Card>
-                    </div>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Your Referred Sales</CardTitle>
-                            <CardDescription>A list of completed sales you have referred.</CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Order</TableHead>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead className="text-right">Sale Amount</TableHead>
-                                        <TableHead className="text-right">Commission Earned</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {referredOrders.length > 0 ? (
-                                        referredOrders.map(order => (
-                                            <TableRow key={order.id}>
-                                                <TableCell className="font-mono">{order.id}</TableCell>
-                                                <TableCell>{format(new Date(order.date), 'PPP')}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(order.total)}</TableCell>
-                                                <TableCell className="text-right font-semibold text-primary">{formatCurrency(calculateCommission(order.total))}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="h-24 text-center">No referred sales found yet.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Payout History</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Date</TableHead>
-                                        <TableHead className="text-right">Amount</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {affiliate.payoutHistory && affiliate.payoutHistory.length > 0 ? (
-                                        affiliate.payoutHistory.map(payout => (
-                                            <TableRow key={payout.date}>
-                                                <TableCell>{payout.date}</TableCell>
-                                                <TableCell className="text-right">{formatCurrency(payout.amount)}</TableCell>
-                                            </TableRow>
-                                        ))
-                                    ) : (
-                                        <TableRow>
-                                            <TableCell colSpan={2} className="h-24 text-center">No payouts have been made yet.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
-                        </CardContent>
-                    </Card>
-                 </div>
+                    </TabsContent>
+                </Tabs>
             </main>
         </div>
     );

@@ -1,29 +1,30 @@
 
+
 import type { Notification, Order } from '@/lib/types';
 import { subHours, subMinutes, subDays } from 'date-fns';
-import { getStaffOrders } from './staff';
+import { getOrders } from './orders';
 import { DataService } from './data-service';
 
-const initializeMockNotifications: (userId: string) => Promise<Notification[]> = async (userId: string) => {
-    const assignedOrders = await getStaffOrders(userId);
-    const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
+// This service is now specifically for MERCHANT notifications.
+
+const initializeMockMerchantNotifications: () => Promise<Notification[]> = async () => {
+    const orders = await getOrders();
+    const newOrders = orders.filter(o => o.status === 'Awaiting Payment' || o.status === 'Paid').slice(0, 2);
 
     const generatedNotifications: Omit<Notification, 'archived'>[] = [];
 
-    // Create notifications for each "to do" order
-    todoOrders.forEach((order, index) => {
+    newOrders.forEach((order, index) => {
         generatedNotifications.push({
-            id: `notif_task_${order.id}`,
-            type: 'task-assigned',
-            title: `New delivery assigned: Order #${order.id}`,
-            description: `A new delivery for customer ${order.customerName} has been assigned to you.`,
-            timestamp: subMinutes(new Date(), 5 * (index + 1)).toISOString(),
+            id: `notif_new_order_${order.id}`,
+            type: 'new-order',
+            title: `New Order #${order.id}`,
+            description: `You've received a new order for ${order.currency} ${order.total} from ${order.customerName}.`,
+            timestamp: subMinutes(new Date(), 15 * (index + 1)).toISOString(),
             read: false,
             link: `/dashboard/orders/${order.id}`,
         });
     });
 
-    // Add some other generic notifications for variety
     generatedNotifications.push({
         id: 'notif_low_stock_1',
         type: 'low-stock',
@@ -37,7 +38,7 @@ const initializeMockNotifications: (userId: string) => Promise<Notification[]> =
         id: 'notif_completed_1',
         type: 'new-order',
         title: 'Order #ORD-001 completed',
-        description: 'You successfully delivered the order to Olivia Smith.',
+        description: 'Peter Jones successfully delivered the order to Olivia Smith.',
         timestamp: subDays(new Date(), 1).toISOString(),
         read: true,
         link: '/dashboard/orders/ORD-001',
@@ -46,11 +47,9 @@ const initializeMockNotifications: (userId: string) => Promise<Notification[]> =
     return generatedNotifications.map(n => ({...n, archived: false })).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
-// @ts-ignore
-const notificationService = new DataService<Notification>('notifications', initializeMockNotifications);
+const notificationService = new DataService<Notification>('notifications', initializeMockMerchantNotifications);
 
 export async function getNotifications(): Promise<Notification[]> {
-    // In a real app, you'd fetch this for the logged-in user.
     return await notificationService.getAll();
 }
 
