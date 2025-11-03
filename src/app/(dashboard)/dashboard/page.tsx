@@ -9,14 +9,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ArrowUpRight, DollarSign, Users, CreditCard, ShoppingCart, AlertTriangle, Truck, ListTodo } from 'lucide-react';
@@ -25,7 +17,6 @@ import type { Order, RecentSale, OnboardingFormData, Staff } from '@/lib/types';
 import { getOrders } from '@/services/orders';
 import { getStaff } from '@/services/staff';
 import { getTodos } from '@/services/todos';
-import { OverviewChart } from '@/components/dashboard/overview-chart';
 import { getInitials } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { QuickLinks } from '@/components/dashboard/quick-links';
