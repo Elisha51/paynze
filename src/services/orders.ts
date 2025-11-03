@@ -347,4 +347,3 @@ export async function updateProductStock(
     // and best kept within the `updateProduct` function itself.
     // For now, we will assume `updateProduct` can handle these granular adjustments.
 }
-
