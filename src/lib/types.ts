@@ -286,18 +286,21 @@ export type Location = {
   isDefault: boolean;
 };
 
-export type ShippingZone = {
-    id: string;
-    name: string;
-    countries: string[]; // e.g. ['UG', 'KE']
-    provinces?: string[]; // e.g. ['Central', 'Western']
-    cities?: string[]; // e.g. ['Kampala', 'Nairobi']
-    deliveryMethods: {
-        id: string;
-        name: string; // 'Flat Rate', 'Free Shipping'
-        price: number;
-    }[];
+export type DeliveryMethod = {
+  id: string;
+  name: string;
+  description: string;
+  type: 'Fixed' | 'Percentage';
+  price: number; // For 'Fixed', this is the amount. For 'Percentage', it's the percentage rate (e.g., 5 for 5%).
 };
+
+export type ShippingZone = {
+  id: string;
+  name: string;
+  countries: string[];
+  deliveryMethods: DeliveryMethod[];
+};
+
 
 export type AffiliateProgramSettings = {
     programStatus: 'Active' | 'Inactive';
