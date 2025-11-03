@@ -14,6 +14,7 @@ import { GeneralSettings } from "@/components/settings/general-settings";
 import { ShippingSettings } from "@/components/settings/shipping-settings";
 import { PaymentsSettings } from "@/components/settings/payments-settings";
 import { NotificationsSettings } from "@/components/settings/notifications-settings";
+import { DomainSettings } from "@/components/settings/domain-settings";
 
 export default function SettingsPage() {
     const [locations, setLocations] = useState<Location[]>([]);
@@ -40,6 +41,7 @@ export default function SettingsPage() {
 
     const tabs = [
         { value: "general", label: "General" },
+        { value: "storefront", label: "Storefront" },
         { value: "locations", label: "Locations" },
         { value: "shipping", label: "Shipping" },
         { value: "payments", label: "Payments" },
@@ -58,6 +60,11 @@ export default function SettingsPage() {
             <DashboardPageLayout.TabContent value="general">
               <DashboardPageLayout.Content>
                 <GeneralSettings />
+              </DashboardPageLayout.Content>
+            </DashboardPageLayout.TabContent>
+            <DashboardPageLayout.TabContent value="storefront">
+              <DashboardPageLayout.Content>
+                <DomainSettings />
               </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="locations">

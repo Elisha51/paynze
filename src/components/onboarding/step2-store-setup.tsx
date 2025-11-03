@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step2-store-setup.tsx
 'use client';
 import { useState } from 'react';
@@ -9,6 +10,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 export default function Step2StoreSetup() {
   const { formData, setFormData, nextStep, prevStep } = useOnboarding();
@@ -21,7 +23,7 @@ export default function Step2StoreSetup() {
     setIsAvailable(null);
   };
   
-  const handleRadioChange = (id: 'currency' | 'language', value: string) => {
+  const handleRadioChange = (id: 'currency' | 'language' | 'domainType', value: string) => {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
@@ -40,22 +42,43 @@ export default function Step2StoreSetup() {
     <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="text-2xl font-headline">Store Setup</CardTitle>
-        <CardDescription>Configure your online store settings.</CardDescription>
+        <CardDescription>Configure your online store settings and domain.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="subdomain">Desired Subdomain</Label>
-          <div className="flex items-center space-x-2">
-            <Input id="subdomain" placeholder="e.g. katos" value={formData.subdomain} onChange={handleInputChange} className="flex-1" />
-             <span className="text-muted-foreground">.paynze.app</span>
-            <Button variant="outline" onClick={checkAvailability}>Check Availability</Button>
-          </div>
-           {isAvailable && (
-              <p className="text-sm text-accent flex items-center gap-1">
-                <CheckCircle className="h-4 w-4" /> Your store will be available at {formData.subdomain}.paynze.app
-              </p>
-           )}
+
+        <div className="space-y-3 rounded-md border p-4">
+            <Label>Store Domain</Label>
+            <RadioGroup value={formData.domainType} onValueChange={(v) => handleRadioChange('domainType', v)} className="flex flex-col space-y-2">
+                <div className={cn("p-3 rounded-md border", formData.domainType === 'subdomain' && 'bg-muted')}>
+                    <div className="flex items-center space-x-2 mb-2">
+                        <RadioGroupItem value="subdomain" id="subdomain-option" />
+                        <Label htmlFor="subdomain-option">Use a free Paynze Subdomain</Label>
+                    </div>
+                     <div className="flex items-center space-x-2 pl-6">
+                        <Input id="subdomain" placeholder="e.g. katos" value={formData.subdomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'subdomain'}/>
+                         <span className="text-muted-foreground">.paynze.app</span>
+                        <Button variant="outline" onClick={checkAvailability} disabled={formData.domainType !== 'subdomain' || !formData.subdomain}>Check</Button>
+                    </div>
+                    {isAvailable && formData.domainType === 'subdomain' && (
+                        <p className="text-sm text-accent flex items-center gap-1 mt-2 pl-6">
+                            <CheckCircle className="h-4 w-4" /> Your store will be available at {formData.subdomain}.paynze.app
+                        </p>
+                    )}
+                </div>
+
+                <div className={cn("p-3 rounded-md border", formData.domainType === 'custom' && 'bg-muted')}>
+                    <div className="flex items-center space-x-2 mb-2">
+                        <RadioGroupItem value="custom" id="custom-domain-option" />
+                        <Label htmlFor="custom-domain-option">Connect a Custom Domain you own</Label>
+                    </div>
+                    <div className="flex items-center space-x-2 pl-6">
+                        <Input id="customDomain" placeholder="e.g. www.katostraders.com" value={formData.customDomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'custom'} />
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2 pl-6">You will configure DNS records after sign-up.</p>
+                </div>
+            </RadioGroup>
         </div>
+
 
         <div className="space-y-3">
           <Label>Default Currency</Label>

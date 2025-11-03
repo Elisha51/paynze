@@ -1,4 +1,5 @@
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -496,5 +497,3 @@ export type Affiliate = {
     paidCommission: number;
     payoutHistory?: Payout[];
 };
-
-    
