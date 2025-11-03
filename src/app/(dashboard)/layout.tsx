@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { OnboardingFormData } from '@/lib/types';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { NotificationProvider } from '@/context/notification-context';
@@ -20,13 +20,19 @@ export default function DashboardLayout({
   const [onboardingData, setOnboardingData] = useState<OnboardingFormData | null>(null);
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
     if (data) {
       setOnboardingData(JSON.parse(data));
+    } else if (pathname !== '/get-started') {
+        // If there's no onboarding data and we are not on the setup page,
+        // it's likely a fresh start, so guide them to setup.
+        // But only if they somehow bypass other auth checks.
+        // router.push('/get-started');
     }
-  }, []);
+  }, [pathname, router]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -67,4 +73,3 @@ export default function DashboardLayout({
     </SidebarProvider>
   );
 }
-
