@@ -14,8 +14,7 @@ import { useNotifications } from '@/context/notification-context';
 import { NotificationsSheet } from './notifications-sheet';
 
 export function NotificationBell() {
-  const { notifications } = useNotifications();
-  const unreadCount = notifications.filter(n => !n.read).length;
+  const { unreadCount } = useNotifications();
 
   return (
     <Sheet>
@@ -33,8 +32,8 @@ export function NotificationBell() {
                 <span className="sr-only">Toggle notifications</span>
             </Button>
         </SheetTrigger>
-        <SheetContent className="flex flex-col">
-            <SheetHeader>
+        <SheetContent className="flex flex-col p-0">
+            <SheetHeader className="p-4 border-b">
                 <SheetTitle>Notifications</SheetTitle>
             </SheetHeader>
             <NotificationsSheet />
@@ -42,4 +41,3 @@ export function NotificationBell() {
     </Sheet>
   );
 }
-

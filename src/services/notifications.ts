@@ -8,7 +8,7 @@ const initializeMockNotifications: (userId: string) => Promise<Notification[]> =
     const assignedOrders = await getStaffOrders(userId);
     const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
 
-    const generatedNotifications: Notification[] = [];
+    const generatedNotifications: Omit<Notification, 'archived'>[] = [];
 
     // Create notifications for each "to do" order
     todoOrders.forEach((order, index) => {
@@ -43,7 +43,7 @@ const initializeMockNotifications: (userId: string) => Promise<Notification[]> =
         link: '/dashboard/orders/ORD-001',
     });
     
-    return generatedNotifications.sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+    return generatedNotifications.map(n => ({...n, archived: false })).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 // @ts-ignore
@@ -54,11 +54,12 @@ export async function getNotifications(): Promise<Notification[]> {
     return await notificationService.getAll();
 }
 
-export async function addNotification(notification: Omit<Notification, 'id' | 'read' | 'timestamp'>): Promise<Notification> {
+export async function addNotification(notification: Omit<Notification, 'id' | 'read' | 'timestamp' | 'archived'>): Promise<Notification> {
     const newNotification: Notification = {
         ...notification,
         id: `notif-${Date.now()}`,
         read: false,
+        archived: false,
         timestamp: new Date().toISOString(),
     };
     return await notificationService.create(newNotification, { prepend: true });
@@ -76,4 +77,3 @@ export async function markAllNotificationsAsRead(): Promise<void> {
         }
     }
 }
-

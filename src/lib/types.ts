@@ -442,6 +442,7 @@ export type Notification = {
     description: string;
     timestamp: string;
     read: boolean;
+    archived: boolean;
     link?: string;
 };
 
@@ -495,4 +496,3 @@ export type Affiliate = {
 };
 
     
-
