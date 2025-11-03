@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { OnboardingFormData } from '@/lib/types';
 import { CheckCircle, AlertTriangle, Copy, Globe, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Separator } from '../ui/separator';
 
 export function DomainSettings() {
     const [settings, setSettings] = useState<Partial<OnboardingFormData>>({});
@@ -99,39 +100,57 @@ export function DomainSettings() {
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <Globe className="h-5 w-5 text-primary" />
-                                Connect Your Domain
+                                Connect Your Custom Domain
                             </CardTitle>
                             <CardDescription>
-                                To connect your domain, you need to add the following records in your domain provider's DNS settings (e.g., GoDaddy, Namecheap).
+                                Follow these steps in your domain provider's dashboard (e.g., GoDaddy, Namecheap) to connect your domain.
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                             <div className="space-y-2">
-                                <Label>TXT Record (for verification)</Label>
-                                <div className="flex items-center gap-2 p-2 font-mono text-sm bg-muted rounded-md">
-                                    <span className="font-bold">paynze-verification=</span>
-                                    <span className="flex-1 truncate">abc123xyz789</span>
-                                    <Button size="icon" variant="ghost" onClick={() => copyToClipboard('paynze-verification=abc123xyz789')}><Copy className="h-4 w-4"/></Button>
+                            <div className="space-y-2">
+                                <Label className="font-semibold">Step 1: Add a TXT Record</Label>
+                                <p className="text-xs text-muted-foreground">This record verifies that you own the domain.</p>
+                                <div className="grid grid-cols-4 gap-2 p-2 font-mono text-sm bg-muted rounded-md">
+                                    <span className="text-muted-foreground col-span-1">Type</span>
+                                    <span className="font-bold col-span-3">TXT</span>
+                                    <span className="text-muted-foreground col-span-1">Host/Name</span>
+                                    <span className="font-bold col-span-3">@</span>
+                                    <span className="text-muted-foreground col-span-1">Value</span>
+                                    <div className="flex items-center gap-2 col-span-3">
+                                        <span className="truncate">paynze-verification=abc123xyz789</span>
+                                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copyToClipboard('paynze-verification=abc123xyz789')}><Copy className="h-3 w-3"/></Button>
+                                    </div>
                                 </div>
                             </div>
+                            <Separator />
                              <div className="space-y-2">
-                                <Label>CNAME Record (for routing)</Label>
-                                 <div className="flex items-center gap-2 p-2 font-mono text-sm bg-muted rounded-md">
-                                    <span className="font-bold">www</span>
-                                    <span className="text-muted-foreground mx-2">→</span>
-                                    <span className="flex-1">cname.paynze.com</span>
-                                     <Button size="icon" variant="ghost" onClick={() => copyToClipboard('cname.paynze.com')}><Copy className="h-4 w-4"/></Button>
+                                <Label className="font-semibold">Step 2: Add a CNAME Record</Label>
+                                <p className="text-xs text-muted-foreground">This record points your domain to your Paynze store.</p>
+                                 <div className="grid grid-cols-4 gap-2 p-2 font-mono text-sm bg-muted rounded-md">
+                                    <span className="text-muted-foreground col-span-1">Type</span>
+                                    <span className="font-bold col-span-3">CNAME</span>
+                                    <span className="text-muted-foreground col-span-1">Host/Name</span>
+                                    <span className="font-bold col-span-3">www</span>
+                                    <span className="text-muted-foreground col-span-1">Value</span>
+                                    <div className="flex items-center gap-2 col-span-3">
+                                        <span className="truncate">cname.paynze.com</span>
+                                        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copyToClipboard('cname.paynze.com')}><Copy className="h-3 w-3"/></Button>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                         <CardFooter className="flex-col items-start gap-4">
+                            <div className="space-y-2">
+                                <Label className="font-semibold">Step 3: Verify Connection</Label>
+                                <p className="text-xs text-muted-foreground">After adding both records, click verify. It can sometimes take up to 24 hours for DNS changes to apply worldwide.</p>
+                            </div>
                             <Button onClick={handleVerify} disabled={verificationState === 'pending'}>
                                 {verificationState === 'pending' ? 'Verifying...' : 'Verify Connection'}
                             </Button>
                              {verificationState === 'failed' && (
                                 <div className="text-sm text-destructive flex items-center gap-2">
                                     <AlertTriangle className="h-4 w-4" />
-                                    <span>We couldn't verify your DNS records. Please check them and try again. It can take up to 24 hours for DNS changes to propagate.</span>
+                                    <span>Verification failed. Please double-check your records and try again.</span>
                                 </div>
                              )}
                         </CardFooter>
