@@ -11,12 +11,14 @@ import {
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Package, User, LogOut } from 'lucide-react';
+import { Home, Package, User, LogOut, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 const navItems = [
   { href: '/store/account', label: 'My Profile', icon: User },
   { href: '/store/account/orders', label: 'My Orders', icon: Package },
+  { href: '/store/account/notifications', label: 'Notifications', icon: Bell, badge: 3 },
 ];
 
 export default function AccountLayout({
@@ -48,9 +50,12 @@ export default function AccountLayout({
                     )}
                     asChild
                   >
-                    <Link href={item.href}>
-                      <item.icon className="mr-2 h-4 w-4" />
-                      {item.label}
+                    <Link href={item.href} className="flex justify-between items-center w-full">
+                      <div className="flex items-center">
+                        <item.icon className="mr-2 h-4 w-4" />
+                        {item.label}
+                      </div>
+                      {item.badge && <Badge variant="destructive">{item.badge}</Badge>}
                     </Link>
                   </Button>
                 ))}

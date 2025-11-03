@@ -1,6 +1,6 @@
 
 'use client';
-import { ShoppingCart, User } from 'lucide-react';
+import { ShoppingCart, User, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { OnboardingFormData } from '@/lib/types';
@@ -23,6 +23,9 @@ type StoreHeaderProps = {
 export function StoreHeader({ settings }: StoreHeaderProps) {
     const { cartCount } = useCart();
     
+    // Mock unread notification count for the customer
+    const unreadNotifications = 3;
+    
     return (
          <header className="sticky top-0 z-40 w-full border-b bg-background">
             <div className="container flex h-16 items-center gap-4">
@@ -43,6 +46,18 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                             <span className="sr-only">Open Cart</span>
                         </Button>
                     </CartSheet>
+
+                    <Button variant="ghost" size="icon" className="relative" asChild>
+                       <Link href="/store/account/notifications">
+                           <Bell className="h-5 w-5" />
+                            {unreadNotifications > 0 && (
+                                <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-1 text-xs">
+                                    {unreadNotifications}
+                                </Badge>
+                            )}
+                           <span className="sr-only">View Notifications</span>
+                       </Link>
+                    </Button>
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
