@@ -128,8 +128,8 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'payment.method',
-    header: 'Payment',
+    accessorKey: 'payment.status',
+    header: 'Payment Status',
     cell: ({ row }) => {
       const payment = row.original.payment;
       if (!payment) {
@@ -137,12 +137,26 @@ const getColumns = (
       }
       return (
         <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
-          {payment.method}
+          Paid
         </Badge>
       );
     },
     filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
+    },
+  },
+   {
+    accessorKey: 'payment.method',
+    header: 'Payment Method',
+    cell: ({ row }) => {
+      const payment = row.original.payment;
+      if (!payment) {
+        return <span className="text-muted-foreground">—</span>;
+      }
+      return <span>{payment.method}</span>;
+    },
+    filterFn: (row, id, value) => {
+      return value.includes(row.getValue(id));
     },
   },
   {
@@ -157,7 +171,7 @@ const getColumns = (
   },
   {
     accessorKey: 'status',
-    header: 'Delivery Status',
+    header: 'Fulfillment Status',
     cell: ({ row }) => {
       const statusInfo = deliveryStatusMap[row.original.status];
       return <Badge className={statusInfo.color}>{statusInfo.label}</Badge>;
@@ -244,8 +258,12 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
   
   const columns = React.useMemo(() => getColumns(handleUpdate, staff, !!canEdit), [handleUpdate, staff, canEdit]);
 
-  const recentOrders = data
-    .filter(o => o.status === 'Paid' || o.status === 'Awaiting Payment' || o.status === 'Shipped' || o.status === 'Ready for Pickup')
+  const deliveryWorklist = data
+    .filter(o => {
+        const isPaid = o.payment?.status === 'completed';
+        const isReadyForFulfillment = ['Paid', 'Ready for Pickup', 'Shipped'].includes(o.status);
+        return isPaid && isReadyForFulfillment;
+    })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
 
@@ -253,12 +271,12 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     <Card>
         <CardHeader>
             <CardTitle>Orders & Deliveries</CardTitle>
-            <CardDescription>A summary of recent orders and their delivery status.</CardDescription>
+            <CardDescription>A summary of paid orders that are ready for fulfillment or are in transit.</CardDescription>
         </CardHeader>
         <CardContent>
              <DataTable
                 columns={columns}
-                data={recentOrders}
+                data={deliveryWorklist}
                 filters={[{
                     columnId: 'payment.method',
                     title: 'Payment Method',
