@@ -5,20 +5,28 @@ import { AffiliatesTab } from '@/components/dashboard/affiliates-tab';
 import { EmailTemplatesTab } from '@/components/dashboard/email-templates-tab';
 import { SmsTemplatesTab } from '@/components/dashboard/sms-templates-tab';
 import { useState } from 'react';
+import { DataTable } from '@/components/dashboard/data-table';
+import { campaignColumns } from '@/components/dashboard/analytics/report-columns';
+import type { Campaign } from '@/lib/types';
+import { getCampaigns } from '@/services/marketing';
 
 export default function MarketingPage() {
-  const [activeTab, setActiveTab] = useState('campaigns');
+  const [activeTab, setActiveTab] = useState('overview');
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+
+  useState(() => {
+    async function loadData() {
+        const campaignsData = await getCampaigns();
+        setCampaigns(campaignsData);
+    }
+    loadData();
+  });
   
   const tabs = [
+    { value: 'overview', label: 'Overview' },
     { value: 'campaigns', label: 'Campaigns' },
-    { value: 'affiliates', label: 'Affiliates' },
     { value: 'discounts', label: 'Discounts' },
-    { value: 'templates', label: 'Automations' },
-  ];
-
-  const filterTabs = [
-      { value: 'email', label: 'Email Templates' },
-      { value: 'sms', label: 'SMS Templates' }
+    { value: 'affiliates', label: 'Affiliates' },
   ];
 
   return (
@@ -29,30 +37,25 @@ export default function MarketingPage() {
         activeTab={activeTab}
         onTabChange={setActiveTab}
     >
-      <DashboardPageLayout.TabContent value="campaigns">
+      <DashboardPageLayout.TabContent value="overview">
         <DashboardPageLayout.Content>
-          <p>Campaigns content coming soon.</p>
+          <p>Marketing overview coming soon.</p>
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
-      <DashboardPageLayout.TabContent value="affiliates">
-         <DashboardPageLayout.Content>
-            <AffiliatesTab />
-         </DashboardPageLayout.Content>
+      <DashboardPageLayout.TabContent value="campaigns">
+        <DashboardPageLayout.Content>
+            <DataTable columns={campaignColumns} data={campaigns} />
+        </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
        <DashboardPageLayout.TabContent value="discounts">
         <DashboardPageLayout.Content>
           <p>Discounts content coming soon.</p>
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
-      <DashboardPageLayout.TabContent value="templates">
-         <DashboardPageLayout.FilterTabs filterTabs={filterTabs} defaultValue="email">
-            <DashboardPageLayout.TabContent value="email">
-                <EmailTemplatesTab />
-            </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="sms">
-                <SmsTemplatesTab />
-            </DashboardPageLayout.TabContent>
-         </DashboardPageLayout.FilterTabs>
+       <DashboardPageLayout.TabContent value="affiliates">
+         <DashboardPageLayout.Content>
+            <AffiliatesTab />
+         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );

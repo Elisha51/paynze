@@ -1,3 +1,4 @@
+
 'use client';
 import { useMemo } from 'react';
 import type { Campaign, Discount, Order } from '@/lib/types';

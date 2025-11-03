@@ -14,7 +14,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import type { Order, Customer, PurchaseOrder, Transaction, OnboardingFormData } from '@/lib/types';
+import type { Order, Customer, PurchaseOrder, Transaction, OnboardingFormData, Campaign } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import React from 'react';
@@ -161,7 +161,7 @@ export const purchaseOrdersColumns: ColumnDef<PurchaseOrder>[] = [
     cell: ({ row }) => {
         const po = row.original;
         return (
-             <Link href={`/dashboard/purchase-orders/${po.id}`} className="font-medium hover:underline">
+             <Link href={`/dashboard/procurement/purchase-orders/${po.id}`} className="font-medium hover:underline">
                 {po.id}
             </Link>
         )
@@ -173,7 +173,7 @@ export const purchaseOrdersColumns: ColumnDef<PurchaseOrder>[] = [
      cell: ({ row }) => {
         const po = row.original;
         return (
-             <Link href={`/dashboard/suppliers/${po.supplierId}`} className="font-medium hover:underline">
+             <Link href={`/dashboard/procurement/suppliers/${po.supplierId}`} className="font-medium hover:underline">
                 {po.supplierName}
             </Link>
         )
@@ -254,4 +254,41 @@ export const transactionsColumns: ColumnDef<Transaction>[] = [
           return <div className={cn('text-right font-medium', amountClass)}>{formatted}</div>;
         },
     },
+];
+
+export const campaignColumns: ColumnDef<Campaign>[] = [
+  {
+    accessorKey: 'name',
+    header: 'Campaign',
+    cell: ({ row }) => {
+        const campaign = row.original;
+        return (
+             <Link href={`/dashboard/marketing/campaigns/${campaign.id}`} className="font-medium hover:underline">
+                {campaign.name}
+            </Link>
+        )
+    }
+  },
+  {
+    accessorKey: 'status',
+    header: 'Status',
+    cell: ({ row }) => <Badge variant="outline">{row.getValue('status')}</Badge>,
+  },
+  {
+    accessorKey: 'channel',
+    header: 'Channel'
+  },
+  {
+    accessorKey: 'sent',
+    header: 'Sent'
+  },
+  {
+    accessorKey: 'ctr',
+    header: 'CTR',
+    cell: ({ row }) => `${row.getValue('ctr')}%`
+  },
+  {
+    accessorKey: 'startDate',
+    header: 'Start Date',
+  },
 ];

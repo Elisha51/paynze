@@ -27,6 +27,7 @@ import {
   Landmark,
   UserCog,
   Megaphone,
+  BarChart,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -44,6 +45,7 @@ const menuItems = [
   { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: any) => p.procurement.view },
   { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, permission: (p: any) => p.dashboard.view }, // Simplification
   { href: '/dashboard/finances', label: 'Finances', icon: Landmark, permission: (p: any) => p.finances.view },
+  { href: '/dashboard/analytics', label: 'Analytics', icon: BarChart, permission: (p: any) => p.dashboard.view },
   { href: '/dashboard/staff', label: 'Staff', icon: UserCog, permission: (p: any) => p.staff.view },
 ];
 
