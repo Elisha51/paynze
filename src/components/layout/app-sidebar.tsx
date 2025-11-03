@@ -45,6 +45,7 @@ const menuItems = [
   { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, permission: (p: any) => p.dashboard.view }, // Simplification
   { href: '/dashboard/finances', label: 'Finances', icon: Landmark, permission: (p: any) => p.finances.view },
   { href: '/dashboard/staff', label: 'Staff', icon: UserCog, permission: (p: any) => p.staff.view },
+  { href: '/dashboard/deliveries', label: 'Deliveries', icon: Truck, permission: (p: any) => p.orders.view }, // New delivery link
 ];
 
 

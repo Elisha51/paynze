@@ -4,7 +4,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { PlusCircle, ShoppingCart, UserPlus, BarChart } from 'lucide-react';
+import { PlusCircle, ShoppingCart, UserPlus, BarChart, Truck } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 
 type QuickLinkItem = {
@@ -36,16 +36,16 @@ export function QuickLinks() {
             permission: permissions.orders.create,
         },
         {
-            href: '/dashboard/customers/add',
-            label: 'Add Customer',
+            href: '/dashboard/staff/add',
+            label: 'Add Staff/Agent',
             icon: UserPlus,
-            permission: permissions.customers.create,
+            permission: permissions.staff.create,
         },
         {
-            href: '/dashboard/orders?tab=analytics',
-            label: 'View Reports',
-            icon: BarChart,
-            permission: permissions.orders.view, // Or a more specific reporting permission
+            href: '/dashboard/deliveries', // Placeholder link
+            label: 'Add Delivery Type',
+            icon: Truck,
+            permission: permissions.settings.edit, // Tied to settings permissions
         }
     ];
 
