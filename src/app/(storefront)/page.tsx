@@ -20,6 +20,7 @@ export default function StorefrontHomePage() {
   const [sortOption, setSortOption] = useState('newest');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
+  const [showInStock, setShowInStock] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -41,6 +42,17 @@ export default function StorefrontHomePage() {
     loadData();
   }, []);
 
+  const getAvailableStock = (product: Product) => {
+    if (product.inventoryTracking === "Don't Track") return Infinity;
+    return product.variants.reduce((sum, v) => 
+        sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.available, 0) || 0), 0);
+  }
+
+  const getUnitsSold = (product: Product) => {
+    return product.variants.reduce((sum, v) => 
+        sum + (v.stockAdjustments?.filter(adj => adj.type === 'Sale').reduce((adjSum, adj) => adjSum + Math.abs(adj.quantity), 0) || 0), 0);
+  }
+
   const filteredAndSortedProducts = useMemo(() => {
     let filtered = [...products];
 
@@ -58,11 +70,19 @@ export default function StorefrontHomePage() {
         filtered = filtered.filter(p => p.category && selectedCategories.includes(p.category));
     }
 
+    // Availability filter
+    if (showInStock) {
+        filtered = filtered.filter(p => getAvailableStock(p) > 0);
+    }
+
     // Price range filter
     filtered = filtered.filter(p => p.retailPrice >= priceRange[0] && p.retailPrice <= priceRange[1]);
 
     // Sorting
     switch (sortOption) {
+        case 'popularity':
+            filtered.sort((a, b) => getUnitsSold(b) - getUnitsSold(a));
+            break;
         case 'price-asc':
             filtered.sort((a, b) => a.retailPrice - b.retailPrice);
             break;
@@ -76,10 +96,11 @@ export default function StorefrontHomePage() {
     }
     
     return filtered;
-  }, [products, searchQuery, sortOption, selectedCategories, priceRange]);
+  }, [products, searchQuery, sortOption, selectedCategories, priceRange, showInStock]);
   
   const handleResetFilters = () => {
     setSelectedCategories([]);
+    setShowInStock(false);
     if (products.length > 0) {
       const maxPrice = Math.max(...products.map(p => p.retailPrice));
       setPriceRange([0, Math.ceil(maxPrice / 1000) * 1000]);
@@ -102,6 +123,8 @@ export default function StorefrontHomePage() {
                     priceRange={priceRange}
                     onPriceRangeChange={setPriceRange}
                     maxPrice={maxPrice}
+                    showInStock={showInStock}
+                    onStockChange={setShowInStock}
                     onReset={handleResetFilters}
                 />
             </aside>
@@ -124,6 +147,7 @@ export default function StorefrontHomePage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="newest">Newest</SelectItem>
+                                <SelectItem value="popularity">Popularity</SelectItem>
                                 <SelectItem value="price-asc">Price: Low to High</SelectItem>
                                 <SelectItem value="price-desc">Price: High to Low</SelectItem>
                             </SelectContent>

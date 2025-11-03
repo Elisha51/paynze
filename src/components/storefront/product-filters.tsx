@@ -15,6 +15,8 @@ interface ProductFiltersProps {
     priceRange: [number, number];
     onPriceRangeChange: (range: [number, number]) => void;
     maxPrice: number;
+    showInStock: boolean;
+    onStockChange: (show: boolean) => void;
     onReset: () => void;
 }
 
@@ -25,6 +27,8 @@ export function ProductFilters({
     priceRange,
     onPriceRangeChange,
     maxPrice,
+    showInStock,
+    onStockChange,
     onReset
 }: ProductFiltersProps) {
 
@@ -47,6 +51,22 @@ export function ProductFilters({
             </CardHeader>
             <Separator />
             <CardContent className="pt-6 space-y-6">
+                <div className="space-y-3">
+                    <h4 className="font-semibold">Availability</h4>
+                    <div className="flex items-center space-x-2">
+                        <Checkbox 
+                            id="in-stock"
+                            checked={showInStock}
+                            onCheckedChange={() => onStockChange(!showInStock)}
+                        />
+                        <Label htmlFor="in-stock" className="font-normal cursor-pointer">
+                            In Stock
+                        </Label>
+                    </div>
+                </div>
+
+                <Separator />
+
                 <div className="space-y-3">
                     <h4 className="font-semibold">Category</h4>
                     <div className="space-y-2">
@@ -85,4 +105,3 @@ export function ProductFilters({
         </Card>
     );
 }
-

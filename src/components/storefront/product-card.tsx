@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Product } from '@/lib/types';
+import { useMemo } from 'react';
 
 type ProductCardProps = {
   product: Product;
@@ -20,6 +21,13 @@ export function ProductCard({ product }: ProductCardProps) {
   
   const hasSale = product.compareAtPrice && product.compareAtPrice > product.retailPrice;
 
+  const isOutOfStock = useMemo(() => {
+    if (product.inventoryTracking === "Don't Track") return false;
+    const totalAvailable = product.variants.reduce((sum, v) => 
+        sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.available, 0) || 0), 0);
+    return totalAvailable <= 0;
+  }, [product]);
+
   return (
     <Card className="overflow-hidden transition-all group relative">
       <Link href={`/product/${product.sku}`} className="block">
@@ -31,7 +39,9 @@ export function ProductCard({ product }: ProductCardProps) {
               fill
               className="object-cover transition-transform duration-300 group-hover:scale-105"
             />
-            {hasSale && (
+            {isOutOfStock ? (
+                <Badge variant="secondary" className="absolute top-2 left-2 z-10 bg-black/60 text-white border-transparent">Out of Stock</Badge>
+            ) : hasSale && (
                 <Badge variant="destructive" className="absolute top-2 left-2 z-10">Sale</Badge>
             )}
           </div>
@@ -49,4 +59,3 @@ export function ProductCard({ product }: ProductCardProps) {
     </Card>
   );
 }
-
