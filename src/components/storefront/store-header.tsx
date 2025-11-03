@@ -1,13 +1,20 @@
 
 'use client';
-import { ShoppingCart, User, Search } from 'lucide-react';
+import { ShoppingCart, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { OnboardingFormData } from '@/lib/types';
 import { CartSheet } from './cart-sheet';
 import { useCart } from '@/context/cart-context';
 import { Badge } from '../ui/badge';
-import { Input } from '../ui/input';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 type StoreHeaderProps = {
     settings: OnboardingFormData | null;
@@ -36,15 +43,26 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                             <span className="sr-only">Open Cart</span>
                         </Button>
                     </CartSheet>
-                     <Button variant="ghost" size="icon" asChild>
-                        <Link href="/login">
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
                             <User className="h-5 w-5" />
-                            <span className="sr-only">Login</span>
-                        </Link>
-                    </Button>
+                            <span className="sr-only">Customer Account</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/store/login">Sign In</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/store/signup">Sign Up</Link></DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem asChild><Link href="/store/account">My Account</Link></DropdownMenuItem>
+                        <DropdownMenuItem asChild><Link href="/store/account/orders">Track Order</Link></DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
         </header>
     )
 }
-
