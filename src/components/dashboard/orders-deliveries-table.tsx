@@ -125,11 +125,17 @@ const getColumns = (
   {
     accessorKey: 'paymentMethod',
     header: 'Payment',
-    cell: ({ row }) => (
-      <Badge variant={row.original.payment.status === 'completed' ? 'default' : 'secondary'}>
-        {row.original.payment.method}
-      </Badge>
-    )
+    cell: ({ row }) => {
+      const payment = row.original.payment;
+      if (!payment) {
+        return <Badge variant="secondary">N/A</Badge>;
+      }
+      return (
+        <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
+          {payment.method}
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: 'fulfillmentMethod',
