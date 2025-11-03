@@ -7,6 +7,7 @@ import { getRoles } from './roles';
 import { DataService } from './data-service';
 import { getAffiliates } from './affiliates';
 import { addNotification } from './notifications';
+import { addTransaction } from './finances';
 
 
 function initializeMockOrders(): Order[] {
@@ -260,6 +261,21 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   };
   
   const updatedOrder = await orderService.update(orderId, finalUpdates);
+
+  // Handle revenue logging for COD
+  if ( (updates.status === 'Delivered' || updates.status === 'Picked Up') && originalOrder.payment.method === 'Cash on Delivery') {
+    await addTransaction({
+        date: new Date().toISOString(),
+        description: `Sale from Order #${orderId}`,
+        amount: updatedOrder.total,
+        currency: updatedOrder.currency,
+        type: 'Income',
+        category: 'Sales',
+        status: 'Cleared',
+        paymentMethod: 'Cash',
+    });
+  }
+
 
   // Handle commissions after the order has been updated in the main array
   if ((updates.status === 'Delivered' || updates.status === 'Picked Up') && originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up') {
