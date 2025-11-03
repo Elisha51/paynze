@@ -70,6 +70,7 @@ export default function StaffPage() {
           category: 'Salaries',
           status: 'Pending',
           paymentMethod: 'Other',
+          currency: staffMember.currency || 'UGX',
       });
       toast({ title: 'Bonus Awarded', description: `An expense has been logged for ${staffMember.name}.` });
       setIsBonusDialogOpen(false);
@@ -98,7 +99,9 @@ export default function StaffPage() {
         }
       >
         <DashboardPageLayout.TabContent value="overview">
-           <StaffWidget staff={staff} isLoading={isLoading} onAwardBonus={handleOpenBonusDialog} />
+            <DashboardPageLayout.Content>
+                <StaffWidget staff={staff} isLoading={isLoading} onAwardBonus={handleOpenBonusDialog} />
+            </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         {canEdit && (
           <DashboardPageLayout.TabContent value="roles">
@@ -148,3 +151,5 @@ export default function StaffPage() {
     </>
   );
 }
+
+    

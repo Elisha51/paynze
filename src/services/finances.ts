@@ -1,6 +1,5 @@
 
-
-import type { Transaction } from '@/lib/types';
+import type { Transaction, Staff } from '@/lib/types';
 import { format } from 'date-fns';
 import { DataService } from './data-service';
 
@@ -16,6 +15,14 @@ const mockTransactions: Transaction[] = [
 
 const transactionService = new DataService<Transaction>('transactions', () => mockTransactions);
 
+// Re-exporting getStaff from here to avoid circular dependency in services/staff
+// This is a temporary workaround for the mock data structure. In a real app, services would be more independent.
+const staffService = new DataService<Staff>('staff', () => []);
+export async function getStaff(): Promise<Staff[]> {
+  return await staffService.getAll();
+}
+
+
 export async function getTransactions(): Promise<Transaction[]> {
     const transactions = await transactionService.getAll();
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -26,3 +33,5 @@ export async function addTransaction(transaction: Omit<Transaction, 'id'>): Prom
     await transactionService.create(newTransaction, { prepend: true });
     return newTransaction;
 }
+
+    
