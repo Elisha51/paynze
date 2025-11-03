@@ -12,7 +12,7 @@ const defaultPermissions: Permissions = {
   finances: { view: false, create: false, edit: false, delete: false },
   staff: { view: false, create: false, edit: false, delete: false },
   tasks: { view: false, create: false, edit: false, delete: false },
-  templates: { view: false, edit: false },
+  templates: { view: false, create: false, edit: false, delete: false },
   settings: { view: false, edit: false },
 };
 
@@ -30,7 +30,7 @@ const mockRoles: Role[] = [
       finances: { view: true, create: true, edit: true, delete: true },
       staff: { view: true, create: true, edit: true, delete: true },
       tasks: { view: true, create: true, edit: true, delete: true },
-      templates: { view: true, edit: true },
+      templates: { view: true, create: true, edit: true, delete: true },
       settings: { view: true, edit: true },
     },
     assignableAttributes: [],

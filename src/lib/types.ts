@@ -1,5 +1,6 @@
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -331,7 +332,7 @@ export type Permissions = {
   finances: CrudPermissions;
   staff: CrudPermissions;
   tasks: CrudPermissions;
-  templates: CrudPermissions;
+  templates: { view: boolean, create: boolean, edit: boolean, delete: boolean };
   settings: { view: boolean; edit: boolean };
 };
 
@@ -440,7 +441,7 @@ export type Role = {
 // Notification Types
 export type Notification = {
     id: string;
-    type: 'new-order' | 'low-stock' | 'new-customer' | 'task-assigned';
+    type: 'new-order' | 'low-stock' | 'new-customer' | 'task-assigned' | 'payout-sent';
     title: string;
     description: string;
     timestamp: string;

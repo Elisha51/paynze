@@ -26,7 +26,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
 
-const permissionLabels: Record<keyof CrudPermissions, string> = {
+const permissionLabels: Record<string, string> = {
     view: 'View',
     create: 'Create',
     edit: 'Edit',
@@ -37,7 +37,7 @@ type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
 const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'staff', 'tasks', 'templates'];
 
 
-const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: keyof CrudPermissions, value: boolean) => void }) => {
+const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: string, value: boolean) => void }) => {
     // Defensive check to prevent runtime errors if a permission module is missing from a role definition.
     if (!permissions) {
         return null;
@@ -47,16 +47,19 @@ const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { 
         <div className="space-y-3">
             <h5 className="font-semibold text-sm capitalize">{module}</h5>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                {Object.keys(permissionLabels).map((key) => (
-                    <div key={key} className="flex items-center space-x-2">
-                        <Checkbox
-                            id={`${roleName}-${module}-${key}`}
-                            checked={permissions[key as keyof CrudPermissions]}
-                            onCheckedChange={(checked) => onPermissionChange(key as keyof CrudPermissions, !!checked)}
-                        />
-                        <Label htmlFor={`${roleName}-${module}-${key}`}>{permissionLabels[key as keyof CrudPermissions]}</Label>
-                    </div>
-                ))}
+                {Object.keys(permissionLabels).map((key) => {
+                    if (!(key in permissions)) return null;
+                    return (
+                        <div key={key} className="flex items-center space-x-2">
+                            <Checkbox
+                                id={`${roleName}-${module}-${key}`}
+                                checked={permissions[key as keyof CrudPermissions]}
+                                onCheckedChange={(checked) => onPermissionChange(key, !!checked)}
+                            />
+                            <Label htmlFor={`${roleName}-${module}-${key}`}>{permissionLabels[key]}</Label>
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
@@ -75,7 +78,7 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
-        templates: { view: false, edit: false },
+        templates: { view: false, create: false, edit: false, delete: false },
         settings: { view: false, edit: false },
     },
     assignableAttributes: [],
@@ -92,7 +95,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     setRoles(initialRoles);
   }, [initialRoles]);
 
-  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: keyof CrudPermissions | 'view' | 'edit', value: boolean) => {
+  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: string, value: boolean) => {
     setRoles(prevRoles =>
       prevRoles.map(role => {
         if (role.name === roleName) {

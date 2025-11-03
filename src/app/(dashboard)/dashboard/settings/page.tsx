@@ -17,6 +17,7 @@ import { NotificationsSettings } from "@/components/settings/notifications-setti
 import { DomainSettings } from "@/components/settings/domain-settings";
 import { ThemeSettings } from "@/components/settings/theme-settings";
 import { Separator } from "@/components/ui/separator";
+import { AffiliateSettings } from "@/components/settings/affiliate-settings";
 
 export default function SettingsPage() {
     const [locations, setLocations] = useState<Location[]>([]);
@@ -49,6 +50,7 @@ export default function SettingsPage() {
         { value: "payments", label: "Payments" },
         { value: "notifications", label: "Notifications" },
         { value: "staff", label: "Staff & Permissions" },
+        { value: "affiliates", label: "Affiliate Program" },
     ];
 
     return (
@@ -96,6 +98,11 @@ export default function SettingsPage() {
             <DashboardPageLayout.TabContent value="staff">
                 <DashboardPageLayout.Content>
                     <RolesPermissionsTab roles={roles} setRoles={setRoles} />
+                </DashboardPageLayout.Content>
+            </DashboardPageLayout.TabContent>
+            <DashboardPageLayout.TabContent value="affiliates">
+                <DashboardPageLayout.Content>
+                    <AffiliateSettings />
                 </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
         </DashboardPageLayout>
