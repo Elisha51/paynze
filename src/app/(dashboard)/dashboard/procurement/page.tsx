@@ -49,7 +49,7 @@ const getPurchaseOrderColumns = (): ColumnDef<PurchaseOrder>[] => [
         accessorKey: 'id',
         header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Order ID <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
         cell: ({ row }) => (
-            <Link href={`/dashboard/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
+            <Link href={`/dashboard/procurement/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
                 {row.original.id}
             </Link>
         )
