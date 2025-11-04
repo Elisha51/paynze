@@ -149,7 +149,7 @@ const getColumns = (
         return value.includes(payment.status)
     },
   },
-   {
+  {
     id: 'paymentMethod',
     accessorFn: row => row.payment?.method,
     header: 'Payment Method',
@@ -288,6 +288,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
              <DataTable
                 columns={columns}
                 data={deliveryWorklist}
+                isLoading={!orders || !staff}
                 filters={[{
                     columnId: 'paymentMethod',
                     title: 'Payment Method',
