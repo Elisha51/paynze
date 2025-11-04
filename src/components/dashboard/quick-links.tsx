@@ -42,10 +42,10 @@ export function QuickLinks() {
             permission: permissions.staff.create,
         },
         {
-            href: '/dashboard/deliveries', // Placeholder link
+            href: '/dashboard/settings',
             label: 'Add Delivery Type',
             icon: Truck,
-            permission: permissions.settings.edit, // Tied to settings permissions
+            permission: permissions.settings.edit,
         }
     ];
 
