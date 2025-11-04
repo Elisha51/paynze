@@ -13,9 +13,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { AffiliateHeader } from './_components/affiliate-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NotificationList } from '@/components/shared/notification-list';
-
-// Mock data for a logged-in affiliate
-const mockAffiliateData: Affiliate = { id: 'aff-001', name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123', linkClicks: 1204, conversions: 84, totalSales: 4670000, pendingCommission: 17000, paidCommission: 980000, payoutHistory: [{ date: '2024-07-01', amount: 500000, currency: 'UGX' }, { date: '2024-06-01', amount: 480000, currency: 'UGX' }] };
+import { getAffiliateById } from '@/services/affiliates';
 
 const mockInitialAffiliateNotifications: Notification[] = [
     { id: 'aff-notif-1', type: 'new-order', title: 'New Commission Earned!', description: 'You earned UGX 1,200 from order #ORD-008.', timestamp: new Date().toISOString(), read: false, link: '#', archived: false },
@@ -30,7 +28,7 @@ export default function AffiliateDashboardPage() {
     const [referredOrders, setReferredOrders] = useState<Order[]>([]);
     const [notifications, setNotifications] = useState(mockInitialAffiliateNotifications);
     const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread'>('all');
-    const affiliate = mockAffiliateData; // In a real app, this would be fetched based on auth
+    const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -42,19 +40,23 @@ export default function AffiliateDashboardPage() {
             setAffiliateSettings(JSON.parse(affSettingsData));
         }
         
-        async function loadReferredOrders() {
-            if (affiliate) {
-                const orders = await getOrdersByAffiliate(affiliate.id);
-                setReferredOrders(orders.filter(o => o.payment.status === 'completed'));
+        async function loadAffiliateData() {
+            const affiliateId = localStorage.getItem('loggedInAffiliateId');
+            if (affiliateId) {
+                const affData = await getAffiliateById(affiliateId);
+                setAffiliate(affData || null);
+                if (affData) {
+                    const orders = await getOrdersByAffiliate(affData.id);
+                    setReferredOrders(orders.filter(o => o.payment.status === 'completed'));
+                }
             }
         }
-        loadReferredOrders();
+        loadAffiliateData();
 
-    }, [affiliate]);
+    }, []);
 
-    const referralLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/?ref=${affiliate.uniqueId}`;
+    const referralLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/?ref=${affiliate?.uniqueId}`;
     const currency = settings?.currency || 'UGX';
-    const conversionRate = affiliate.linkClicks > 0 ? ((affiliate.conversions / affiliate.linkClicks) * 100).toFixed(2) : '0.00';
     
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
@@ -86,6 +88,18 @@ export default function AffiliateDashboardPage() {
     const archiveAllRead = useCallback(() => setNotifications(prev => prev.map(n => n.read ? { ...n, archived: true } : n)), []);
 
 
+    if (!affiliate) {
+        return (
+             <div className="flex items-center justify-center min-h-screen">
+                <Card className="mx-auto max-w-sm text-center">
+                    <CardHeader>
+                        <CardTitle className="text-2xl">Loading...</CardTitle>
+                    </CardHeader>
+                </Card>
+            </div>
+        )
+    }
+    
     if (affiliate.status === 'Pending') {
         return (
             <div className="flex items-center justify-center min-h-screen">
@@ -100,6 +114,8 @@ export default function AffiliateDashboardPage() {
             </div>
         )
     }
+
+    const conversionRate = affiliate.linkClicks > 0 ? ((affiliate.conversions / affiliate.linkClicks) * 100).toFixed(2) : '0.00';
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -210,8 +226,8 @@ export default function AffiliateDashboardPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {affiliate.payoutHistory && affiliate.payoutHistory.length > 0 ? (
-                                            affiliate.payoutHistory.map(payout => (
-                                                <TableRow key={payout.date}>
+                                            affiliate.payoutHistory.map((payout, index) => (
+                                                <TableRow key={index}>
                                                     <TableCell>{format(new Date(payout.date), 'PPP')}</TableCell>
                                                     <TableCell className="text-right">{formatCurrency(payout.amount)}</TableCell>
                                                 </TableRow>
@@ -252,5 +268,3 @@ export default function AffiliateDashboardPage() {
         </div>
     );
 }
-
-    
