@@ -1,4 +1,5 @@
 
+
 'use client';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
@@ -15,8 +16,31 @@ import { useAuth } from '@/context/auth-context';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { ProcurementAnalyticsReport } from '@/components/dashboard/analytics/procurement-analytics-report';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const getSupplierColumns = (): ColumnDef<Supplier>[] => [
+    {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
     {
         accessorKey: 'name',
         header: 'Supplier Name',
@@ -45,6 +69,28 @@ const getSupplierColumns = (): ColumnDef<Supplier>[] => [
 ];
 
 const getPurchaseOrderColumns = (): ColumnDef<PurchaseOrder>[] => [
+    {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
     {
         accessorKey: 'id',
         header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Order ID <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,

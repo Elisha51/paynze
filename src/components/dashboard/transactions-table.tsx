@@ -182,6 +182,7 @@ export function TransactionsTable({ transactions, isLoading }: TransactionsTable
     <DataTable
       columns={columns}
       data={transactions}
+      isLoading={isLoading}
       filters={[
         {
           columnId: 'status',

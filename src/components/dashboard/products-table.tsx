@@ -328,6 +328,7 @@ export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) 
     <DataTable
         columns={columns}
         data={data}
+        isLoading={isLoading}
         filters={[
           { columnId: 'status', title: 'Status', options: productStatuses },
           { columnId: 'productType', title: 'Type', options: productTypes }
