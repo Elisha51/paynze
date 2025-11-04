@@ -55,7 +55,7 @@ export default function RootLayout({
   }, []);
 
   return (
-    <html lang="en" className={themeClass}>
+    <html lang="en" className={themeClass} suppressHydrationWarning={true}>
       <head>
         <title>Paynze</title>
         <meta name="description" content="Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants." />
