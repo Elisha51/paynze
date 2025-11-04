@@ -34,7 +34,7 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
 };
 
 type PermissionModuleConfig = {
-    key: keyof Omit<Permissions, 'dashboard' | 'settings'>;
+    key: keyof Permissions;
     label: string;
 };
 
@@ -302,7 +302,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                         <div className="flex items-center space-x-2">
                                             <Checkbox
                                                 id={`${role.name}-dashboard-view`}
-                                                checked={role.permissions.dashboard.view}
+                                                checked={role.permissions.dashboard?.view}
                                                 onCheckedChange={(checked) => handlePermissionChange(role.name, 'dashboard', 'view', !!checked)}
                                             />
                                             <Label htmlFor={`${role.name}-dashboard-view`} className="font-normal">View</Label>
@@ -328,7 +328,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                             <div className="flex items-center space-x-2">
                                                 <Checkbox
                                                     id={`${role.name}-settings-view`}
-                                                    checked={role.permissions.settings.view}
+                                                    checked={role.permissions.settings?.view}
                                                     onCheckedChange={(checked) => handlePermissionChange(role.name, 'settings', 'view', !!checked)}
                                                 />
                                                 <Label htmlFor={`${role.name}-settings-view`} className="font-normal">View</Label>
@@ -336,7 +336,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                             <div className="flex items-center space-x-2">
                                                 <Checkbox
                                                     id={`${role.name}-settings-edit`}
-                                                    checked={role.permissions.settings.edit}
+                                                    checked={role.permissions.settings?.edit}
                                                     onCheckedChange={(checked) => handlePermissionChange(role.name, 'settings', 'edit', !!checked)}
                                                 />
                                                 <Label htmlFor={`${role.name}-settings-edit`} className="font-normal">Edit</Label>
