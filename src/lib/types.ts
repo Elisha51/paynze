@@ -321,34 +321,24 @@ export type CrudPermissions = {
   delete: boolean;
 };
 
-export type MarketingPermissions = {
-  view: boolean;
-  campaigns: CrudPermissions;
-  discounts: CrudPermissions;
-  affiliates: CrudPermissions;
-};
-
-export type TemplatePermissions = {
-  view: boolean;
-  productTemplates: CrudPermissions;
-  emailTemplates: CrudPermissions;
-  smsTemplates: CrudPermissions;
-};
-
-
 export type Permissions = {
   dashboard: { view: boolean };
   products: CrudPermissions;
   orders: CrudPermissions;
   customers: CrudPermissions;
   procurement: CrudPermissions;
-  marketing: MarketingPermissions;
+  campaigns: CrudPermissions;
+  discounts: CrudPermissions;
+  affiliates: CrudPermissions;
   finances: CrudPermissions;
   staff: CrudPermissions;
   tasks: CrudPermissions;
-  templates: TemplatePermissions;
+  productTemplates: CrudPermissions;
+  emailTemplates: CrudPermissions;
+  smsTemplates: CrudPermissions;
   settings: { view: boolean; edit: boolean };
 };
+
 
 export type AttributeType = 'kpi' | 'tags' | 'list' | 'string' | 'number' | 'boolean' | 'date';
 

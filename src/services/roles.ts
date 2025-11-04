@@ -9,21 +9,15 @@ const defaultPermissions: Permissions = {
   orders: { view: false, create: false, edit: false, delete: false },
   customers: { view: false, create: false, edit: false, delete: false },
   procurement: { view: false, create: false, edit: false, delete: false },
-  marketing: {
-    view: false,
-    campaigns: { view: false, create: false, edit: false, delete: false },
-    discounts: { view: false, create: false, edit: false, delete: false },
-    affiliates: { view: false, create: false, edit: false, delete: false },
-  },
+  campaigns: { view: false, create: false, edit: false, delete: false },
+  discounts: { view: false, create: false, edit: false, delete: false },
+  affiliates: { view: false, create: false, edit: false, delete: false },
   finances: { view: false, create: false, edit: false, delete: false },
   staff: { view: false, create: false, edit: false, delete: false },
   tasks: { view: false, create: false, edit: false, delete: false },
-  templates: {
-    view: false,
-    productTemplates: { view: false, create: false, edit: false, delete: false },
-    emailTemplates: { view: false, create: false, edit: false, delete: false },
-    smsTemplates: { view: false, create: false, edit: false, delete: false },
-  },
+  productTemplates: { view: false, create: false, edit: false, delete: false },
+  emailTemplates: { view: false, create: false, edit: false, delete: false },
+  smsTemplates: { view: false, create: false, edit: false, delete: false },
   settings: { view: false, edit: false },
 };
 
@@ -37,21 +31,15 @@ const mockRoles: Role[] = [
       orders: { view: true, create: true, edit: true, delete: true },
       customers: { view: true, create: true, edit: true, delete: true },
       procurement: { view: true, create: true, edit: true, delete: true },
-      marketing: {
-        view: true,
-        campaigns: { view: true, create: true, edit: true, delete: true },
-        discounts: { view: true, create: true, edit: true, delete: true },
-        affiliates: { view: true, create: true, edit: true, delete: true },
-      },
+      campaigns: { view: true, create: true, edit: true, delete: true },
+      discounts: { view: true, create: true, edit: true, delete: true },
+      affiliates: { view: true, create: true, edit: true, delete: true },
       finances: { view: true, create: true, edit: true, delete: true },
       staff: { view: true, create: true, edit: true, delete: true },
       tasks: { view: true, create: true, edit: true, delete: true },
-      templates: {
-        view: true,
-        productTemplates: { view: true, create: true, edit: true, delete: true },
-        emailTemplates: { view: true, create: true, edit: true, delete: true },
-        smsTemplates: { view: true, create: true, edit: true, delete: true },
-      },
+      productTemplates: { view: true, create: true, edit: true, delete: true },
+      emailTemplates: { view: true, create: true, edit: true, delete: true },
+      smsTemplates: { view: true, create: true, edit: true, delete: true },
       settings: { view: true, edit: true },
     },
     assignableAttributes: [],
@@ -66,18 +54,10 @@ const mockRoles: Role[] = [
       products: { view: true, create: true, edit: true, delete: false },
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
-      marketing: {
-        ...defaultPermissions.marketing,
-        view: true,
-        campaigns: { ...defaultPermissions.marketing.campaigns, view: true },
-        discounts: { ...defaultPermissions.marketing.discounts, view: true },
-      },
+      campaigns: { ...defaultPermissions.campaigns, view: true },
+      discounts: { ...defaultPermissions.discounts, view: true },
       tasks: { view: true, create: true, edit: false, delete: false },
-      templates: {
-        ...defaultPermissions.templates,
-        view: true,
-        productTemplates: { ...defaultPermissions.templates.productTemplates, view: true },
-      }
+      productTemplates: { ...defaultPermissions.productTemplates, view: true },
     },
     commissionRules: [
         { id: 'sales-1', name: 'Standard Sales Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 5 }
@@ -126,10 +106,6 @@ const mockRoles: Role[] = [
     permissions: {
         ...defaultPermissions,
         dashboard: { view: false },
-        marketing: {
-            ...defaultPermissions.marketing,
-            view: true,
-        },
         tasks: { view: false, create: false, edit: false, delete: false },
     },
     assignableAttributes: [],

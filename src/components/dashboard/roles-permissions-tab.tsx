@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -26,20 +27,16 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
 
-const permissionLabels: Record<string, string> = {
+const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
     create: 'Create',
     edit: 'Edit',
     delete: 'Delete'
-}
+};
 
 type PermissionModuleConfig = {
     key: keyof Omit<Permissions, 'dashboard' | 'settings'>;
     label: string;
-    subModules?: {
-        key: string;
-        label: string;
-    }[];
 };
 
 const permissionConfig: PermissionModuleConfig[] = [
@@ -47,27 +44,15 @@ const permissionConfig: PermissionModuleConfig[] = [
   { key: 'orders', label: 'Orders' },
   { key: 'customers', label: 'Customers' },
   { key: 'procurement', label: 'Procurement' },
-  { 
-    key: 'marketing', 
-    label: 'Marketing',
-    subModules: [
-        { key: 'campaigns', label: 'Campaigns' },
-        { key: 'discounts', label: 'Discounts' },
-        { key: 'affiliates', label: 'Affiliates' },
-    ]
-  },
+  { key: 'campaigns', label: 'Campaigns' },
+  { key: 'discounts', label: 'Discounts' },
+  { key: 'affiliates', label: 'Affiliates' },
   { key: 'finances', label: 'Finances' },
   { key: 'staff', label: 'Staff' },
   { key: 'tasks', label: 'Tasks' },
-  { 
-    key: 'templates', 
-    label: 'Templates',
-    subModules: [
-        { key: 'productTemplates', label: 'Product Templates' },
-        { key: 'emailTemplates', label: 'Email Templates' },
-        { key: 'smsTemplates', label: 'SMS Templates' },
-    ]
-   },
+  { key: 'productTemplates', label: 'Product Templates' },
+  { key: 'emailTemplates', label: 'Email Templates' },
+  { key: 'smsTemplates', label: 'SMS Templates' },
 ];
 
 const PermissionRow = ({ label, permissions, onPermissionChange }: { label: string, permissions: CrudPermissions, onPermissionChange: (key: string, value: boolean) => void }) => {
@@ -82,14 +67,13 @@ const PermissionRow = ({ label, permissions, onPermissionChange }: { label: stri
                 <h5 className="font-semibold text-sm capitalize">{label}</h5>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-sm">
-                {Object.keys(permissionLabels).map((key) => {
-                    if (!(key in permissions)) return null;
+                {(Object.keys(permissionLabels) as Array<keyof CrudPermissions>).map((key) => {
                     const permissionId = `${label.replace(/\s+/g, '-')}-${key}`;
                     return (
                         <div key={key} className="flex items-center space-x-2">
                             <Checkbox
                                 id={permissionId}
-                                checked={permissions[key as keyof CrudPermissions]}
+                                checked={permissions[key]}
                                 onCheckedChange={(checked) => onPermissionChange(key, !!checked)}
                             />
                             <Label htmlFor={permissionId} className="font-normal">{permissionLabels[key]}</Label>
@@ -110,21 +94,15 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         orders: { view: false, create: false, edit: false, delete: false },
         customers: { view: false, create: false, edit: false, delete: false },
         procurement: { view: false, create: false, edit: false, delete: false },
-        marketing: {
-            view: false,
-            campaigns: { view: false, create: false, edit: false, delete: false },
-            discounts: { view: false, create: false, edit: false, delete: false },
-            affiliates: { view: false, create: false, edit: false, delete: false },
-        },
+        campaigns: { view: false, create: false, edit: false, delete: false },
+        discounts: { view: false, create: false, edit: false, delete: false },
+        affiliates: { view: false, create: false, edit: false, delete: false },
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
-        templates: {
-            view: true,
-            productTemplates: { view: false, create: false, edit: false, delete: false },
-            emailTemplates: { view: false, create: false, edit: false, delete: false },
-            smsTemplates: { view: false, create: false, edit: false, delete: false },
-        },
+        productTemplates: { view: false, create: false, edit: false, delete: false },
+        emailTemplates: { view: false, create: false, edit: false, delete: false },
+        smsTemplates: { view: false, create: false, edit: false, delete: false },
         settings: { view: false, edit: false },
     },
     assignableAttributes: [],
@@ -141,22 +119,14 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     setRoles(initialRoles);
   }, [initialRoles]);
 
-  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: string, value: boolean, subModule?: string) => {
+  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: string, value: boolean) => {
     setRoles(prevRoles =>
       prevRoles.map(role => {
         if (role.name === roleName) {
           const newPermissions = { ...role.permissions };
-          
-          if (subModule && (module === 'marketing' || module === 'templates')) {
-              const modulePerms = newPermissions[module] as any;
-              const subModulePerms = { ...(modulePerms[subModule] || {}) };
-              subModulePerms[permissionKey] = value;
-              modulePerms[subModule] = subModulePerms;
-          } else {
-              const modulePermissions = { ...(newPermissions[module] || {}) };
-              (modulePermissions as any)[permissionKey] = value;
-              newPermissions[module] = modulePermissions;
-          }
+          const modulePermissions = { ...(newPermissions[module] || {}) };
+          (modulePermissions as any)[permissionKey] = value;
+          newPermissions[module] = modulePermissions;
           
           return { ...role, permissions: newPermissions };
         }
@@ -348,48 +318,14 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                        {permissionConfig.map(moduleConfig => {
-                                            const modulePerms = role.permissions[moduleConfig.key] as any;
-                                            if (!modulePerms) return null;
-
-                                            if (moduleConfig.subModules) {
-                                                return (
-                                                    <div key={moduleConfig.key} className="space-y-3 rounded-md border p-3">
-                                                        <div className="flex items-center justify-between">
-                                                            <h5 className="font-semibold text-base capitalize">{moduleConfig.label}</h5>
-                                                            <div className="flex items-center space-x-2">
-                                                                <Checkbox
-                                                                    id={`${role.name}-${moduleConfig.key}-view`}
-                                                                    checked={modulePerms.view || false}
-                                                                    onCheckedChange={(checked) => handlePermissionChange(role.name, moduleConfig.key, 'view', !!checked)}
-                                                                />
-                                                                <Label htmlFor={`${role.name}-${moduleConfig.key}-view`} className="font-normal">View {moduleConfig.label}</Label>
-                                                            </div>
-                                                        </div>
-                                                        <Separator/>
-                                                        <div className="pl-4 space-y-3">
-                                                            {moduleConfig.subModules.map(subModule => (
-                                                                <PermissionRow
-                                                                    key={`${moduleConfig.key}-${subModule.key}`}
-                                                                    label={subModule.label}
-                                                                    permissions={modulePerms[subModule.key]}
-                                                                    onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value, subModule.key)}
-                                                                />
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            }
-
-                                            return (
-                                                <PermissionRow
-                                                    key={moduleConfig.key}
-                                                    label={moduleConfig.label}
-                                                    permissions={modulePerms as CrudPermissions}
-                                                    onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value)}
-                                                />
-                                            );
-                                        })}
+                                        {permissionConfig.map(moduleConfig => (
+                                            <PermissionRow
+                                                key={moduleConfig.key}
+                                                label={moduleConfig.label}
+                                                permissions={role.permissions[moduleConfig.key] as CrudPermissions}
+                                                onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value)}
+                                            />
+                                        ))}
                                     </div>
                                      <Separator />
                                      <div className="flex items-center justify-between rounded-md border p-3">
