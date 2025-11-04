@@ -348,48 +348,48 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                         </div>
                                     </div>
                                     <div className="space-y-4">
-                                      {permissionConfig.map(moduleConfig => {
-                                        const modulePerms = role.permissions[moduleConfig.key] as any;
-                                        if (!modulePerms) return null;
+                                        {permissionConfig.map(moduleConfig => {
+                                            const modulePerms = role.permissions[moduleConfig.key] as any;
+                                            if (!modulePerms) return null;
 
-                                        if (moduleConfig.subModules) {
-                                            return (
-                                                <div key={moduleConfig.key} className="space-y-3 rounded-md border p-3">
-                                                    <div className="flex items-center justify-between">
-                                                        <h5 className="font-semibold text-base capitalize">{moduleConfig.label}</h5>
-                                                        <div className="flex items-center space-x-2">
-                                                            <Checkbox
-                                                                id={`${role.name}-${moduleConfig.key}-view`}
-                                                                checked={modulePerms.view || false}
-                                                                onCheckedChange={(checked) => handlePermissionChange(role.name, moduleConfig.key, 'view', !!checked)}
-                                                            />
-                                                            <Label htmlFor={`${role.name}-${moduleConfig.key}-view`} className="font-normal">View {moduleConfig.label}</Label>
+                                            if (moduleConfig.subModules) {
+                                                return (
+                                                    <div key={moduleConfig.key} className="space-y-3 rounded-md border p-3">
+                                                        <div className="flex items-center justify-between">
+                                                            <h5 className="font-semibold text-base capitalize">{moduleConfig.label}</h5>
+                                                            <div className="flex items-center space-x-2">
+                                                                <Checkbox
+                                                                    id={`${role.name}-${moduleConfig.key}-view`}
+                                                                    checked={modulePerms.view || false}
+                                                                    onCheckedChange={(checked) => handlePermissionChange(role.name, moduleConfig.key, 'view', !!checked)}
+                                                                />
+                                                                <Label htmlFor={`${role.name}-${moduleConfig.key}-view`} className="font-normal">View {moduleConfig.label}</Label>
+                                                            </div>
+                                                        </div>
+                                                        <Separator/>
+                                                        <div className="pl-4 space-y-3">
+                                                            {moduleConfig.subModules.map(subModule => (
+                                                                <PermissionRow
+                                                                    key={`${moduleConfig.key}-${subModule.key}`}
+                                                                    label={subModule.label}
+                                                                    permissions={modulePerms[subModule.key]}
+                                                                    onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value, subModule.key)}
+                                                                />
+                                                            ))}
                                                         </div>
                                                     </div>
-                                                    <Separator/>
-                                                    <div className="pl-4 space-y-3">
-                                                        {moduleConfig.subModules.map(subModule => (
-                                                            <PermissionRow
-                                                                key={`${moduleConfig.key}-${subModule.key}`}
-                                                                label={subModule.label}
-                                                                permissions={modulePerms[subModule.key]}
-                                                                onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value, subModule.key)}
-                                                            />
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            );
-                                        }
+                                                );
+                                            }
 
-                                        return (
-                                            <PermissionRow
-                                                key={moduleConfig.key}
-                                                label={moduleConfig.label}
-                                                permissions={modulePerms as CrudPermissions}
-                                                onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value)}
-                                            />
-                                        );
-                                      })}
+                                            return (
+                                                <PermissionRow
+                                                    key={moduleConfig.key}
+                                                    label={moduleConfig.label}
+                                                    permissions={modulePerms as CrudPermissions}
+                                                    onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value)}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                      <Separator />
                                      <div className="flex items-center justify-between rounded-md border p-3">
