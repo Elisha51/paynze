@@ -3,7 +3,7 @@
 
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Users, UserPlus } from 'lucide-react';
+import { Users, UserPlus, ArrowRight } from 'lucide-react';
 import type { Staff } from '@/lib/types';
 import Link from 'next/link';
 import { StaffCard } from './staff-card';
@@ -57,11 +57,22 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
       )
   }
   
+  const displayedStaff = staff.slice(0, 3);
+  
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {staff.map(member => (
+      {displayedStaff.map(member => (
         <StaffCard key={member.id} member={member} />
       ))}
+       <Link href="/dashboard/staff" className="block h-full">
+        <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 flex flex-col items-center justify-center text-center p-4">
+          <div className="p-3 rounded-full bg-primary/10 mb-2">
+            <Users className="h-6 w-6 text-primary" />
+          </div>
+          <h3 className="font-semibold text-sm">View All Staff</h3>
+          <p className="text-xs text-muted-foreground mt-1">Manage roles & permissions</p>
+        </Card>
+      </Link>
     </div>
   );
 }
