@@ -75,7 +75,9 @@ function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { orde
 
     return (
          <Dialog>
-            <DialogTrigger asChild={asChild}>{children}</DialogTrigger>
+            <DialogTrigger asChild={asChild}>
+                {children}
+            </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Assign Order #{order.id} for Delivery</DialogTitle>
@@ -142,7 +144,9 @@ const getColumns = (
       );
     },
     filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
+        const payment = row.original.payment;
+        if (!payment) return false;
+        return value.includes(payment.status)
     },
   },
    {
@@ -156,7 +160,9 @@ const getColumns = (
       return <span>{payment.method}</span>;
     },
     filterFn: (row, id, value) => {
-      return value.includes(row.getValue(id));
+      const payment = row.original.payment;
+      if (!payment) return false;
+      return value.includes(payment.method);
     },
   },
   {
@@ -229,7 +235,11 @@ const getColumns = (
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
-                    {canEdit && <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate} asChild><DropdownMenuItem onSelect={(e) => e.preventDefault()}>Re-assign Agent</DropdownMenuItem></AssignOrderDialog>}
+                    {canEdit && 
+                    <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate} asChild>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Re-assign Agent</DropdownMenuItem>
+                    </AssignOrderDialog>
+                    }
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
