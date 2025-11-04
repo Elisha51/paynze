@@ -324,7 +324,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                     <Separator />
                                     <div className="space-y-4">
                                         <h5 className="font-semibold text-sm capitalize">Marketing</h5>
-                                        {Object.keys(role.permissions.marketing).filter(key => key !== 'view').map(subModule => (
+                                        {role.permissions.marketing && Object.keys(role.permissions.marketing).filter(key => key !== 'view').map(subModule => (
                                             <PermissionRow
                                                 key={`marketing-${subModule}`}
                                                 roleName={role.name}
@@ -337,7 +337,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                     <Separator />
                                      <div className="space-y-4">
                                         <h5 className="font-semibold text-sm capitalize">Templates</h5>
-                                        {Object.keys(role.permissions.templates).filter(key => key !== 'view').map(subModule => (
+                                        {role.permissions.templates && Object.keys(role.permissions.templates).filter(key => key !== 'view').map(subModule => (
                                             <PermissionRow
                                                 key={`templates-${subModule}`}
                                                 roleName={role.name}
@@ -495,3 +495,4 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
+
