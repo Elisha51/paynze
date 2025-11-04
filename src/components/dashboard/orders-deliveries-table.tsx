@@ -150,7 +150,8 @@ const getColumns = (
     },
   },
    {
-    accessorKey: 'payment.method',
+    id: 'paymentMethod',
+    accessorFn: row => row.payment?.method,
     header: 'Payment Method',
     cell: ({ row }) => {
       const payment = row.original.payment;
@@ -160,9 +161,9 @@ const getColumns = (
       return <span>{payment.method}</span>;
     },
     filterFn: (row, id, value) => {
-      const payment = row.original.payment;
-      if (!payment) return false;
-      return value.includes(payment.method);
+      const method = row.original.payment?.method;
+      if (!method) return false;
+      return value.includes(method);
     },
   },
   {
@@ -288,7 +289,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                 columns={columns}
                 data={deliveryWorklist}
                 filters={[{
-                    columnId: 'payment.method',
+                    columnId: 'paymentMethod',
                     title: 'Payment Method',
                     options: paymentMethods
                 }]}
