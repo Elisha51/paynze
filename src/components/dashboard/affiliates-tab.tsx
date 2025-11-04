@@ -323,6 +323,7 @@ export function AffiliatesTab() {
                     <DataTable 
                         columns={affiliateColumns} 
                         data={affiliates} 
+                        isLoading={!affiliates}
                         filters={[{
                             columnId: 'status',
                             title: 'Status',
@@ -340,4 +341,3 @@ export function AffiliatesTab() {
     );
 }
 
-    

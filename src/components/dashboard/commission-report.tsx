@@ -194,6 +194,7 @@ export function CommissionReport({ type, title, description, staff, roles, order
                 <DataTable
                     columns={columns}
                     data={commissionData}
+                    isLoading={!staff || !orders}
                     emptyState={{
                         icon: Users,
                         title: `No Unpaid ${type === 'staff' ? 'Commissions' : 'Payouts'}`,
