@@ -33,27 +33,30 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
     delete: 'Delete'
 };
 
-type PermissionModuleKey = keyof Omit<Permissions, 'dashboard' | 'settings'>;
+type PermissionModuleKey = keyof Permissions;
 
 type PermissionModuleConfig = {
     key: PermissionModuleKey;
     label: string;
+    type: 'simple' | 'crud';
 };
 
 const permissionConfig: PermissionModuleConfig[] = [
-  { key: 'products', label: 'Products' },
-  { key: 'orders', label: 'Orders' },
-  { key: 'customers', label: 'Customers' },
-  { key: 'procurement', label: 'Procurement' },
-  { key: 'marketing', label: 'Marketing' },
-  { key: 'finances', label: 'Finances' },
-  { key: 'staff', label: 'Staff' },
-  { key: 'templates', label: 'Templates' },
-  { key: 'tasks', label: 'Tasks' },
+  { key: 'dashboard', label: 'Dashboard', type: 'simple' },
+  { key: 'products', label: 'Products', type: 'crud' },
+  { key: 'orders', label: 'Orders', type: 'crud' },
+  { key: 'customers', label: 'Customers', type: 'crud' },
+  { key: 'procurement', label: 'Procurement', type: 'crud' },
+  { key: 'marketing', label: 'Marketing', type: 'crud' },
+  { key: 'finances', label: 'Finances', type: 'crud' },
+  { key: 'staff', label: 'Staff', type: 'crud' },
+  { key: 'templates', label: 'Templates', type: 'crud' },
+  { key: 'tasks', label: 'Tasks', type: 'crud' },
+  { key: 'settings', label: 'Settings', type: 'simple' },
 ];
 
-const PermissionRow = ({ label, permissions, onPermissionChange }: { label: string, permissions: CrudPermissions, onPermissionChange: (key: string, value: boolean) => void }) => {
-    // Defensive check to prevent runtime errors if a permission module is missing from a role definition.
+
+const PermissionRow = ({ label, permissions, onPermissionChange, type = 'crud' }: { label: string, permissions: Partial<CrudPermissions>, onPermissionChange: (key: string, value: boolean) => void, type?: 'simple' | 'crud' }) => {
     if (!permissions) {
         return null;
     }
@@ -65,7 +68,10 @@ const PermissionRow = ({ label, permissions, onPermissionChange }: { label: stri
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-sm">
                 {(Object.keys(permissionLabels) as Array<keyof CrudPermissions>).map((key) => {
-                    const permissionId = `${label.replace(/\s+/g, '-')}-${key}`;
+                    if (type === 'simple' && key !== 'view' && (label !== 'Settings' || key !== 'edit')) {
+                        return null;
+                    }
+                     const permissionId = `${label.replace(/\s+/g, '-')}-${key}`;
                     return (
                         <div key={key} className="flex items-center space-x-2">
                             <Checkbox
@@ -296,54 +302,16 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                     </div>
                                     <Separator />
                                     <h4 className="font-bold text-base">Module Permissions</h4>
-                                     <div className="flex items-center justify-between rounded-md border p-3">
-                                        <div className="space-y-0.5">
-                                            <h5 className="font-semibold text-sm">Dashboard</h5>
-                                            <p className="text-xs text-muted-foreground">Allow access to the main dashboard overview.</p>
-                                        </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id={`${role.name}-dashboard-view`}
-                                                checked={role.permissions.dashboard?.view}
-                                                onCheckedChange={(checked) => handlePermissionChange(role.name, 'dashboard', 'view', !!checked)}
-                                            />
-                                            <Label htmlFor={`${role.name}-dashboard-view`} className="font-normal">View</Label>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
+                                     <div className="space-y-4">
                                         {permissionConfig.map(moduleConfig => (
                                             <PermissionRow
                                                 key={moduleConfig.key}
                                                 label={moduleConfig.label}
                                                 permissions={role.permissions[moduleConfig.key] as CrudPermissions}
                                                 onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value)}
+                                                type={moduleConfig.type}
                                             />
                                         ))}
-                                    </div>
-                                     <Separator />
-                                     <div className="flex items-center justify-between rounded-md border p-3">
-                                        <div className="space-y-0.5">
-                                            <h5 className="font-semibold text-sm">Settings</h5>
-                                            <p className="text-xs text-muted-foreground">Allow access to store settings.</p>
-                                        </div>
-                                        <div className="flex items-center space-x-4">
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={`${role.name}-settings-view`}
-                                                    checked={role.permissions.settings?.view}
-                                                    onCheckedChange={(checked) => handlePermissionChange(role.name, 'settings', 'view', !!checked)}
-                                                />
-                                                <Label htmlFor={`${role.name}-settings-view`} className="font-normal">View</Label>
-                                            </div>
-                                            <div className="flex items-center space-x-2">
-                                                <Checkbox
-                                                    id={`${role.name}-settings-edit`}
-                                                    checked={role.permissions.settings?.edit}
-                                                    onCheckedChange={(checked) => handlePermissionChange(role.name, 'settings', 'edit', !!checked)}
-                                                />
-                                                <Label htmlFor={`${role.name}-settings-edit`} className="font-normal">Edit</Label>
-                                            </div>
-                                        </div>
                                     </div>
                                     <Separator />
                                     <h4 className="font-bold text-base">Commission Rules</h4>
@@ -471,3 +439,5 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
+
+    
