@@ -327,16 +327,18 @@ export type Permissions = {
   orders: CrudPermissions;
   customers: CrudPermissions;
   procurement: CrudPermissions;
-  campaigns: CrudPermissions;
-  discounts: CrudPermissions;
-  affiliates: CrudPermissions;
   finances: CrudPermissions;
   staff: CrudPermissions;
   tasks: CrudPermissions;
+  settings: { view: boolean; edit: boolean };
+
+  // Flattened Marketing & Template permissions
+  campaigns: CrudPermissions;
+  discounts: CrudPermissions;
+  affiliates: CrudPermissions;
   productTemplates: CrudPermissions;
   emailTemplates: CrudPermissions;
   smsTemplates: CrudPermissions;
-  settings: { view: boolean; edit: boolean };
 };
 
 
