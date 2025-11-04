@@ -63,7 +63,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={cn("font-sans antialiased", inter.variable)}>
+      <body className={cn("font-sans antialiased", inter.variable)} suppressHydrationWarning={true}>
         <AuthProvider>
           <OnboardingProvider>
             {children}
