@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -47,8 +46,8 @@ const permissionConfig: PermissionModuleConfig[] = [
   { key: 'marketing', label: 'Marketing' },
   { key: 'finances', label: 'Finances' },
   { key: 'staff', label: 'Staff' },
-  { key: 'tasks', label: 'Tasks' },
   { key: 'templates', label: 'Templates' },
+  { key: 'tasks', label: 'Tasks' },
 ];
 
 const PermissionRow = ({ label, permissions, onPermissionChange }: { label: string, permissions: CrudPermissions, onPermissionChange: (key: string, value: boolean) => void }) => {
