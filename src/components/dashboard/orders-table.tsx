@@ -294,7 +294,8 @@ const getColumns = (
       },
   },
   {
-    accessorKey: 'payment.method',
+    id: 'paymentMethod',
+    accessorFn: row => row.payment?.method,
     header: 'Payment',
     cell: ({ row }) => {
       const payment = row.original.payment;
@@ -308,7 +309,9 @@ const getColumns = (
       );
     },
     filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
+        const method = row.original.payment?.method;
+        if (!method) return false;
+        return value.includes(method)
     },
   },
   {
@@ -476,10 +479,11 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
     <DataTable
       columns={columns}
       data={data}
+      isLoading={isLoading}
       filters={[
           { columnId: 'status', title: 'Status', options: orderStatuses },
           { columnId: 'fulfillmentMethod', title: 'Fulfillment', options: fulfillmentMethods },
-          { columnId: 'payment.method', title: 'Payment', options: paymentMethods },
+          { columnId: 'paymentMethod', title: 'Payment', options: paymentMethods },
       ]}
       emptyState={{
         icon: ShoppingCart,
