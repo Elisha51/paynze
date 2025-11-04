@@ -60,9 +60,7 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {staff.map(member => (
-        <Link key={member.id} href={`/dashboard/staff/${member.id}`} className="block h-full">
-            <StaffCard member={member} />
-        </Link>
+        <StaffCard key={member.id} member={member} />
       ))}
     </div>
   );
