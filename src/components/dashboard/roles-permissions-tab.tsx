@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -33,9 +34,8 @@ const permissionLabels: Record<string, string> = {
     delete: 'Delete'
 }
 
-type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings'>;
-const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'marketing', 'finances', 'staff', 'tasks', 'templates'];
-
+type PermissionModule = keyof Omit<Permissions, 'dashboard' | 'settings' | 'marketing' | 'templates'>;
+const permissionModules: PermissionModule[] = ['products', 'orders', 'customers', 'procurement', 'finances', 'staff', 'tasks'];
 
 const PermissionRow = ({ roleName, module, permissions, onPermissionChange }: { roleName: string, module: string, permissions: CrudPermissions, onPermissionChange: (key: string, value: boolean) => void }) => {
     // Defensive check to prevent runtime errors if a permission module is missing from a role definition.
@@ -74,11 +74,21 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         orders: { view: false, create: false, edit: false, delete: false },
         customers: { view: false, create: false, edit: false, delete: false },
         procurement: { view: false, create: false, edit: false, delete: false },
-        marketing: { view: false, create: false, edit: false, delete: false },
+        marketing: {
+            view: false,
+            campaigns: { view: false, create: false, edit: false, delete: false },
+            discounts: { view: false, create: false, edit: false, delete: false },
+            affiliates: { view: false, create: false, edit: false, delete: false },
+        },
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
-        templates: { view: false, create: false, edit: false, delete: false },
+        templates: {
+            view: false,
+            productTemplates: { view: false, create: false, edit: false, delete: false },
+            emailTemplates: { view: false, create: false, edit: false, delete: false },
+            smsTemplates: { view: false, create: false, edit: false, delete: false },
+        },
         settings: { view: false, edit: false },
     },
     assignableAttributes: [],
@@ -95,14 +105,22 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     setRoles(initialRoles);
   }, [initialRoles]);
 
-  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: string, value: boolean) => {
+  const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: string, value: boolean, subModule?: string) => {
     setRoles(prevRoles =>
       prevRoles.map(role => {
         if (role.name === roleName) {
           const newPermissions = { ...role.permissions };
-          const modulePermissions = { ...(newPermissions[module] || {}) };
-          (modulePermissions as any)[permissionKey] = value;
-          newPermissions[module] = modulePermissions;
+          
+          if (subModule && (module === 'marketing' || module === 'templates')) {
+              const modulePerms = newPermissions[module] as any;
+              const subModulePerms = { ...(modulePerms[subModule] || {}) };
+              subModulePerms[permissionKey] = value;
+              modulePerms[subModule] = subModulePerms;
+          } else {
+              const modulePermissions = { ...(newPermissions[module] || {}) };
+              (modulePermissions as any)[permissionKey] = value;
+              newPermissions[module] = modulePermissions;
+          }
           
           return { ...role, permissions: newPermissions };
         }
@@ -110,6 +128,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
       })
     );
   };
+
 
   const handleDescriptionChange = (roleName: string, description: string) => {
       setRoles(prevRoles =>
@@ -293,17 +312,41 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                         </div>
                                     </div>
                                     <Separator />
-
                                     {permissionModules.map(module => (
                                         <PermissionRow
                                             key={module}
                                             roleName={role.name}
                                             module={module}
-                                            permissions={role.permissions[module as keyof Omit<Permissions, 'dashboard'|'settings'>]}
+                                            permissions={role.permissions[module]}
                                             onPermissionChange={(key, value) => handlePermissionChange(role.name, module, key, value)}
                                         />
                                     ))}
-                                    
+                                    <Separator />
+                                    <div className="space-y-4">
+                                        <h5 className="font-semibold text-sm capitalize">Marketing</h5>
+                                        {Object.keys(role.permissions.marketing).filter(key => key !== 'view').map(subModule => (
+                                            <PermissionRow
+                                                key={`marketing-${subModule}`}
+                                                roleName={role.name}
+                                                module={`Marketing: ${subModule}`}
+                                                permissions={role.permissions.marketing[subModule as keyof typeof role.permissions.marketing]}
+                                                onPermissionChange={(key, value) => handlePermissionChange(role.name, 'marketing', key, value, subModule)}
+                                            />
+                                        ))}
+                                    </div>
+                                    <Separator />
+                                     <div className="space-y-4">
+                                        <h5 className="font-semibold text-sm capitalize">Templates</h5>
+                                        {Object.keys(role.permissions.templates).filter(key => key !== 'view').map(subModule => (
+                                            <PermissionRow
+                                                key={`templates-${subModule}`}
+                                                roleName={role.name}
+                                                module={`Templates: ${subModule}`}
+                                                permissions={role.permissions.templates[subModule as keyof typeof role.permissions.templates]}
+                                                onPermissionChange={(key, value) => handlePermissionChange(role.name, 'templates', key, value, subModule)}
+                                            />
+                                        ))}
+                                    </div>
                                      <Separator />
                                      <div className="flex items-center justify-between">
                                         <div className="space-y-0.5">
