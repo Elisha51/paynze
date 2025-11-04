@@ -33,8 +33,10 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
     delete: 'Delete'
 };
 
+type PermissionModuleKey = keyof Omit<Permissions, 'dashboard' | 'settings'>;
+
 type PermissionModuleConfig = {
-    key: keyof Permissions;
+    key: PermissionModuleKey;
     label: string;
 };
 
