@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
+import { cn } from '@/lib/utils';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -66,11 +67,19 @@ const PermissionRow = ({ label, permissions, onPermissionChange, type = 'crud' }
             <div className="mb-2 sm:mb-0">
                 <h5 className="font-semibold text-sm capitalize">{label}</h5>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-x-4 gap-y-2 text-sm">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:flex sm:flex-wrap sm:gap-x-4">
                 {(Object.keys(permissionLabels) as Array<keyof CrudPermissions>).map((key) => {
-                    if (type === 'simple' && key !== 'view' && (label !== 'Settings' || key !== 'edit')) {
-                        return null;
+                    if (type === 'simple' && !['view', 'edit'].includes(key) && label !== 'Settings') {
+                       if(label === 'Dashboard' && key !== 'view') return null;
+                       if(label !== 'Dashboard' && label !== 'Settings') return null;
                     }
+                     if (type === 'simple' && label === 'Settings' && !['view', 'edit'].includes(key)) {
+                         return null;
+                     }
+                     if(type === 'simple' && label === 'Dashboard' && key !== 'view') {
+                        return null;
+                     }
+
                      const permissionId = `${label.replace(/\s+/g, '-')}-${key}`;
                     return (
                         <div key={key} className="flex items-center space-x-2">
@@ -439,5 +448,3 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
-
-    
