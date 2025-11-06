@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
-import type { Role, Permissions, CrudPermissions, AssignableAttribute, StaffRoleName, AttributeType, CommissionRule } from '@/lib/types';
+import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +34,7 @@ const permissionLabels: Record<keyof CrudPermissions, string> = {
     delete: 'Delete'
 };
 
+// This type is now dynamic and will include any key from the Permissions interface.
 type PermissionModuleKey = keyof Permissions;
 
 type PermissionModuleConfig = {
@@ -41,6 +42,7 @@ type PermissionModuleConfig = {
     label: string;
     type: 'simple' | 'crud';
 };
+
 
 const permissionConfig: PermissionModuleConfig[] = [
   { key: 'dashboard', label: 'Dashboard', type: 'simple' },
@@ -107,9 +109,9 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         customers: { view: false, create: false, edit: false, delete: false },
         procurement: { view: false, create: false, edit: false, delete: false },
         marketing: { view: false, create: false, edit: false, delete: false },
-        templates: { view: false, create: false, edit: false, delete: false },
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
+        templates: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
         settings: { view: false, edit: false },
     },
