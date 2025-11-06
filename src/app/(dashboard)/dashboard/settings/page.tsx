@@ -18,6 +18,7 @@ import { ThemeSettings } from "@/components/settings/theme-settings";
 import { Separator } from "@/components/ui/separator";
 import { AffiliateSettings } from "@/components/settings/affiliate-settings";
 import { useAuth } from "@/context/auth-context";
+import { DeveloperSettings } from "@/components/settings/developer-settings";
 
 export default function SettingsPage() {
     const { user } = useAuth();
@@ -69,7 +70,15 @@ export default function SettingsPage() {
         >
             <DashboardPageLayout.TabContent value="general">
               <DashboardPageLayout.Content>
-                <GeneralSettings />
+                <div className="space-y-6">
+                  <GeneralSettings />
+                  {user?.plan === 'Enterprise' && (
+                    <>
+                      <Separator />
+                      <DeveloperSettings />
+                    </>
+                  )}
+                </div>
               </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="storefront">

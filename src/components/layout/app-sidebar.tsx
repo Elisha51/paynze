@@ -55,10 +55,9 @@ const bottomMenuItems = [
 
 type AppSidebarProps = {
     onboardingData: OnboardingFormData | null;
-    isDevMode: boolean;
 }
 
-export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProps) {
+export default function AppSidebar({ onboardingData }: AppSidebarProps) {
   const pathname = usePathname();
   const { state, toggleSidebar } = useSidebar();
   const { user } = useAuth();
@@ -74,12 +73,11 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
 
   return (
     <Sidebar>
-        <SidebarHeader>
+        <SidebarHeader className="hidden md:flex">
             <Link href="/dashboard" className="flex items-center gap-2">
                 <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
                 <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
                     <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{onboardingData?.businessName || 'Paynze'}</h2>
-                    {isDevMode && <Badge variant="destructive" className="w-fit">DEV</Badge>}
                 </div>
             </Link>
         </SidebarHeader>
@@ -134,7 +132,7 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
                 </Link>
             </SidebarMenuItem>
             </SidebarMenu>
-             <div className="border-t -mx-2 mt-2 pt-2">
+             <div className="border-t -mx-2 mt-2 pt-2 hidden md:block">
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <Button variant="ghost" className="w-full justify-center text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground" onClick={toggleSidebar}>

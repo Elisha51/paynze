@@ -1,5 +1,4 @@
 
-
 'use client';
 import {
   DropdownMenu,
@@ -15,7 +14,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
-import { ClipboardCheck } from 'lucide-react';
+import { ClipboardCheck, ShoppingCart } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import React, { useEffect, useState } from 'react';
 import { getStaffOrders } from '@/services/staff';
@@ -26,9 +25,10 @@ import { useAuth } from '@/context/auth-context';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
+    isDevMode: boolean;
 }
 
-export default function AppHeader({ onboardingData }: AppHeaderProps) {
+export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps) {
     const { user } = useAuth();
     const [taskCount, setTaskCount] = useState(0);
 
@@ -58,6 +58,12 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
       <SidebarTrigger className="md:hidden" />
+      
+       <Link href="/dashboard" className="hidden md:flex items-center gap-2 font-semibold">
+          <ShoppingCart className="h-6 w-6 text-primary" />
+          <span>{onboardingData?.businessName || 'Paynze'}</span>
+          {isDevMode && <Badge variant="destructive" className="text-xs">DEV</Badge>}
+      </Link>
 
       <div className="w-full flex-1">
         {/* Search form removed */}

@@ -21,6 +21,7 @@ export default function DashboardLayout({
   const { user, isLoading } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const isDevMode = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
@@ -60,9 +61,9 @@ export default function DashboardLayout({
       <NotificationProvider>
         <SearchProvider>
           <div className="flex min-h-screen w-full">
-            <AppSidebar onboardingData={onboardingData} isDevMode={process.env.NODE_ENV === 'development'}/>
+            <AppSidebar onboardingData={onboardingData} />
             <div className="flex flex-1 flex-col">
-              <AppHeader onboardingData={onboardingData} />
+              <AppHeader onboardingData={onboardingData} isDevMode={isDevMode} />
               <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
                 {children}
               </main>
