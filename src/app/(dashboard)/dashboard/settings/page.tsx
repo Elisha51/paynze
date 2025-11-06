@@ -5,7 +5,6 @@ import { LocationsTab } from "@/components/settings/locations-tab";
 import { getLocations } from "@/services/locations";
 import type { Location } from "@/lib/types";
 import { useEffect, useState } from "react";
-import { StaffWidget } from "@/components/dashboard/staff-widget";
 import { RolesPermissionsTab } from "@/components/dashboard/roles-permissions-tab";
 import type { Role, Staff } from '@/lib/types';
 import { getStaff } from '@/services/staff';
