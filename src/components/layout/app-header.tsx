@@ -62,15 +62,6 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
       <SidebarTrigger className="md:hidden" />
       
-       <Link href="/dashboard" className="hidden md:flex items-center gap-3 font-semibold text-lg">
-            <Avatar className="h-8 w-8">
-                <AvatarImage src={onboardingData?.logoUrl} alt={businessName} />
-                <AvatarFallback>{getInitials(businessName)}</AvatarFallback>
-            </Avatar>
-          <span>{businessName}</span>
-          {isDevMode && <Badge variant="destructive" className="text-xs">DEV</Badge>}
-      </Link>
-
       <div className="w-full flex-1">
         {/* Search form removed */}
       </div>
