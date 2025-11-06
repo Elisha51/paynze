@@ -9,53 +9,59 @@ import { cn } from '@/lib/utils';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { useEffect, useState } from 'react';
 import { AuthProvider } from '@/context/auth-context';
+import { usePathname, useRouter } from 'next/navigation';
 
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
 });
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const [themeClass, setThemeClass] = useState('light');
-
-  const applyTheme = () => {
-    const onboardingDataRaw = localStorage.getItem('onboardingData');
-    if (onboardingDataRaw) {
-      try {
-        const onboardingData = JSON.parse(onboardingDataRaw);
-        if (onboardingData.theme) {
-          const themeName = onboardingData.theme.toLowerCase();
-          setThemeClass(`light theme-${themeName}`);
-        } else {
-          setThemeClass('light');
-        }
-      } catch (error) {
-        console.error("Failed to parse onboarding data:", error);
-        setThemeClass('light');
-      }
-    } else {
-        setThemeClass('light');
-    }
-  };
+  const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
+    const applyTheme = () => {
+      const onboardingDataRaw = localStorage.getItem('onboardingData');
+      if (onboardingDataRaw) {
+        try {
+          const onboardingData = JSON.parse(onboardingDataRaw);
+          if (onboardingData.theme) {
+            const themeName = onboardingData.theme.toLowerCase();
+            document.documentElement.className = `light theme-${themeName}`;
+          } else {
+            document.documentElement.className = 'light';
+          }
+        } catch (error) {
+          console.error("Failed to parse onboarding data:", error);
+          document.documentElement.className = 'light';
+        }
+      } else {
+          document.documentElement.className = 'light';
+      }
+    };
+
     applyTheme();
 
-    // Listen for the custom event
-    window.addEventListener('theme-changed', applyTheme);
+    const onboardingData = localStorage.getItem('onboardingData');
+    const loggedInUser = localStorage.getItem('loggedInUserId');
+    const publicPaths = ['/', '/get-started', '/login'];
 
-    // Clean up the event listener
+    if (!onboardingData && !publicPaths.includes(pathname)) {
+        router.push('/');
+    } else if (onboardingData && !loggedInUser && pathname.startsWith('/dashboard')) {
+        router.push('/login');
+    }
+
+    window.addEventListener('theme-changed', applyTheme);
     return () => {
       window.removeEventListener('theme-changed', applyTheme);
     };
-  }, []);
+  }, [pathname, router]);
 
   return (
-    <html lang="en" className={themeClass} suppressHydrationWarning={true}>
+    <html lang="en" suppressHydrationWarning={true}>
       <head>
         <title>Paynze</title>
         <meta name="description" content="Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants." />
@@ -73,4 +79,13 @@ export default function RootLayout({
       </body>
     </html>
   );
+}
+
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+    return <RootLayoutContent>{children}</RootLayoutContent>;
 }

@@ -166,7 +166,7 @@ export default function DashboardPage() {
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <OrdersDeliveriesTable orders={orders} staff={staff} />
+                <OrdersDeliveriesTable orders={orders} staff={staff} isLoading={isLoading} />
                 <StaffWidget staff={staff} isLoading={isLoading} />
             </div>
 
