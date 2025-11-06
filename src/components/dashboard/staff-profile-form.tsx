@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Staff } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -32,7 +33,7 @@ export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = fals
     const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
     const [countryCode, setCountryCode] = useState('+256');
 
-    useState(() => {
+    useEffect(() => {
         async function loadCountries() {
             const countryList = await getCountryList();
             setCountries(countryList);
@@ -151,7 +152,7 @@ export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = fals
                                 {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                               </SelectContent>
                             </Select>
-                            <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} />
+                            <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} placeholder="772 123456" />
                         </div>
                     </div>
                     

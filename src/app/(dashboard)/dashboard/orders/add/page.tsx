@@ -114,11 +114,11 @@ export default function AddOrderPage() {
                                     </div>
                                     <div className="space-y-2 w-24">
                                         <Label>Quantity</Label>
-                                        <Input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} />
+                                        <Input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} placeholder="1" />
                                     </div>
                                     <div className="space-y-2 w-32">
                                         <Label>Price</Label>
-                                        <Input type="number" value={item.price} onChange={(e) => handleItemChange(index, 'price', Number(e.target.value))} />
+                                        <Input type="number" value={item.price} onChange={(e) => handleItemChange(index, 'price', Number(e.target.value))} placeholder="0.00" />
                                     </div>
                                     <Button variant="ghost" size="icon" onClick={() => removeItem(index)}>
                                         <Trash2 className="h-4 w-4 text-destructive" />

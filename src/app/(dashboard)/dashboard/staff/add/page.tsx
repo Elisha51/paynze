@@ -96,11 +96,11 @@ export default function AddStaffPage() {
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Full Name</Label>
-                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Jane Doe" />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="email">Email</Label>
-                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+                        <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. jane.doe@example.com" />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="role">Role</Label>

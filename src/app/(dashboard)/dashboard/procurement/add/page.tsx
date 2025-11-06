@@ -121,11 +121,11 @@ export default function AddPurchaseOrderPage() {
                                     </div>
                                     <div className="space-y-2 w-24">
                                         <Label>Quantity</Label>
-                                        <Input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} />
+                                        <Input type="number" value={item.quantity} onChange={(e) => handleItemChange(index, 'quantity', Number(e.target.value))} placeholder="1" />
                                     </div>
                                     <div className="space-y-2 w-32">
                                         <Label>Cost/{products.find(p => p.sku === item.productId)?.unitOfMeasure || 'unit'}</Label>
-                                        <Input type="number" value={item.cost} onChange={(e) => handleItemChange(index, 'cost', Number(e.target.value))} />
+                                        <Input type="number" value={item.cost} onChange={(e) => handleItemChange(index, 'cost', Number(e.target.value))} placeholder="0.00" />
                                     </div>
                                     <Button variant="ghost" size="icon" onClick={() => removeItem(index)}>
                                         <Trash2 className="h-4 w-4 text-destructive" />
