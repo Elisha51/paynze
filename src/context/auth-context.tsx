@@ -1,35 +1,45 @@
 
 'use client';
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
-import type { Staff, Role } from '@/lib/types';
+import type { Staff, Role, OnboardingFormData } from '@/lib/types';
 import { getStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import { useRouter } from 'next/navigation';
 
+type UserWithPermissions = Staff & { 
+  permissions: Role['permissions'];
+  plan: OnboardingFormData['plan'];
+};
+
 type AuthContextType = {
-  user: (Staff & { permissions: Role['permissions'] }) | null;
+  user: UserWithPermissions | null;
   isLoading: boolean;
   login: (user: Staff) => void;
   logout: () => void;
-  setUser: React.Dispatch<React.SetStateAction<(Staff & { permissions: Role['permissions'] }) | null>>;
+  setUser: React.Dispatch<React.SetStateAction<UserWithPermissions | null>>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<(Staff & { permissions: Role['permissions'] }) | null>(null);
+  const [user, setUser] = useState<UserWithPermissions | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   const fetchUserPermissions = useCallback(async (staffMember: Staff) => {
     const roles = await getRoles();
     const userRole = roles.find(r => r.name === staffMember.role);
+    
+    // Simulate fetching the tenant's plan from their configuration.
+    // For this prototype, we'll get it from localStorage or default to a plan.
+    const onboardingDataRaw = localStorage.getItem('onboardingData');
+    const plan = onboardingDataRaw ? (JSON.parse(onboardingDataRaw) as OnboardingFormData).plan || 'Growth' : 'Growth';
+
     if (userRole) {
-      setUser({ ...staffMember, permissions: userRole.permissions });
+      setUser({ ...staffMember, permissions: userRole.permissions, plan });
     } else {
-      // Fallback for user with a role that doesn't exist (should not happen in prod)
       const defaultRole = roles.find(r => r.name === 'Sales Agent');
-      setUser({ ...staffMember, permissions: defaultRole!.permissions });
+      setUser({ ...staffMember, permissions: defaultRole!.permissions, plan });
     }
   }, []);
 

@@ -17,8 +17,10 @@ import { DomainSettings } from "@/components/settings/domain-settings";
 import { ThemeSettings } from "@/components/settings/theme-settings";
 import { Separator } from "@/components/ui/separator";
 import { AffiliateSettings } from "@/components/settings/affiliate-settings";
+import { useAuth } from "@/context/auth-context";
 
 export default function SettingsPage() {
+    const { user } = useAuth();
     const [locations, setLocations] = useState<Location[]>([]);
     const [activeTab, setActiveTab] = useState('general');
     const [roles, setRoles] = useState<Role[]>([]);
@@ -49,8 +51,13 @@ export default function SettingsPage() {
         { value: "payments", label: "Payments" },
         { value: "notifications", label: "Notifications" },
         { value: "staff", label: "Staff & Permissions" },
-        { value: "affiliates", label: "Affiliate Program" },
     ];
+    
+    // Conditionally add the Affiliate Program tab based on the user's plan.
+    if (user?.plan === 'Pro' || user?.plan === 'Enterprise') {
+        tabs.push({ value: "affiliates", label: "Affiliate Program" });
+    }
+
 
     return (
         <DashboardPageLayout 

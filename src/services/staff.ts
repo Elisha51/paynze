@@ -1,12 +1,13 @@
 
 
+
 import type { Staff, Order, StaffActivity, Bonus, Affiliate } from '@/lib/types';
 import { format, subDays, subHours } from 'date-fns';
 import { getOrders } from './orders';
 import { DataService } from './data-service';
 
 
-async function initializeMockStaff(): Promise<(Staff | Affiliate)[]> {
+async function initializeMockStaff(): Promise<(Staff)[]> {
     const allOrders = await getOrders();
     return [
       { 
@@ -141,7 +142,7 @@ const mockActivities: StaffActivity[] = [
     { id: 'act-6', staffId: 'staff-002', staffName: 'Jane Smith', activity: 'Product Edited', details: { text: 'Handmade Leather Shoes', link: '/dashboard/products/SHOE-002' }, timestamp: subDays(new Date(), 4).toISOString() },
 ];
 
-const staffService = new DataService<(Staff | Affiliate)>('staff', initializeMockStaff);
+const staffService = new DataService<(Staff)>('staff', initializeMockStaff);
 const activityService = new DataService<StaffActivity>('staffActivity', () => mockActivities);
 
 export async function getStaff(): Promise<Staff[]> {

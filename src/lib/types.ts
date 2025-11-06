@@ -1,5 +1,6 @@
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -312,7 +313,7 @@ export type AffiliateProgramSettings = {
 
 
 // Staff Management
-export type StaffRoleName = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager' | string;
+export type StaffRoleName = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager' | 'Affiliate' | string;
 
 export type CrudPermissions = {
   view: boolean;
