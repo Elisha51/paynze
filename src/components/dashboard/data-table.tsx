@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import {
@@ -32,11 +31,11 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { useSearch } from '@/context/search-context';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DataTableFacetedFilter } from '../ui/data-table-faceted-filter';
 import { X, Search } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
+import { Input } from '../ui/input';
 
 interface DataTableFilter {
   columnId: string;
@@ -71,16 +70,17 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = React.useState('');
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const { searchQuery } = useSearch();
 
   const table = useReactTable({
     data: data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -94,7 +94,7 @@ export function DataTable<TData, TValue>({
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter: searchQuery,
+      globalFilter,
     },
     globalFilterFn: 'auto',
   });
@@ -103,31 +103,42 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full space-y-4">
-       {filters && filters.length > 0 && (
-         <div className="flex items-center gap-2">
-            {filters.map(filter => {
-                const column = table.getColumn(filter.columnId);
-                return column ? (
-                    <DataTableFacetedFilter
-                        key={filter.columnId}
-                        column={column}
-                        title={filter.title}
-                        options={filter.options}
-                    />
-                ) : null;
-            })}
-             {isFiltered && (
-                <Button
-                    variant="ghost"
-                    onClick={() => table.resetColumnFilters()}
-                    className="h-8 px-2 lg:px-3"
-                >
-                    Reset
-                    <X className="ml-2 h-4 w-4" />
-                </Button>
-            )}
+       <div className="flex flex-col sm:flex-row items-center gap-2">
+           <div className="relative w-full sm:flex-1">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                  placeholder="Search table..."
+                  value={globalFilter}
+                  onChange={(e) => setGlobalFilter(e.target.value)}
+                  className="pl-8 w-full"
+              />
+          </div>
+          {filters && filters.length > 0 && (
+            <div className="flex w-full sm:w-auto items-center gap-2">
+                {filters.map(filter => {
+                    const column = table.getColumn(filter.columnId);
+                    return column ? (
+                        <DataTableFacetedFilter
+                            key={filter.columnId}
+                            column={column}
+                            title={filter.title}
+                            options={filter.options}
+                        />
+                    ) : null;
+                })}
+                {isFiltered && (
+                    <Button
+                        variant="ghost"
+                        onClick={() => table.resetColumnFilters()}
+                        className="h-8 px-2 lg:px-3"
+                    >
+                        Reset
+                        <X className="ml-2 h-4 w-4" />
+                    </Button>
+                )}
+            </div>
+          )}
         </div>
-      )}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
