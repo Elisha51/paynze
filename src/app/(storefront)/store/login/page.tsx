@@ -1,11 +1,23 @@
+
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useRouter } from 'next/navigation';
 
 export default function StoreLoginPage() {
+    const router = useRouter();
+
+    const handleLogin = () => {
+        // Simulate successful customer login
+        localStorage.setItem('isCustomerLoggedIn', 'true');
+        // A real app would redirect to the previous page or account page.
+        // For now, we'll go to the main store page.
+        router.push('/store');
+    }
+
   return (
       <div className="container flex items-center justify-center py-12">
         <Card className="mx-auto max-w-sm">
@@ -17,27 +29,27 @@ export default function StoreLoginPage() {
             </CardHeader>
             <CardContent>
                 <div className="grid gap-4">
-                <div className="grid gap-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                    id="email"
-                    type="email"
-                    placeholder="m@example.com"
-                    required
-                    />
-                </div>
-                <div className="grid gap-2">
-                    <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <Link href="#" className="ml-auto inline-block text-sm underline">
-                        Forgot your password?
-                    </Link>
+                    <div className="grid gap-2">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        required
+                        />
                     </div>
-                    <Input id="password" type="password" required />
-                </div>
-                <Button type="submit" className="w-full" asChild>
-                    <Link href="/store/account">Login</Link>
-                </Button>
+                    <div className="grid gap-2">
+                        <div className="flex items-center">
+                        <Label htmlFor="password">Password</Label>
+                        <Link href="#" className="ml-auto inline-block text-sm underline">
+                            Forgot your password?
+                        </Link>
+                        </div>
+                        <Input id="password" type="password" required />
+                    </div>
+                    <Button type="submit" className="w-full" onClick={handleLogin}>
+                        Login
+                    </Button>
                 </div>
                 <div className="mt-4 text-center text-sm">
                 Don&apos;t have an account?{' '}
