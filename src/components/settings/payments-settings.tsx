@@ -23,7 +23,6 @@ export function PaymentsSettings() {
         const storedData = localStorage.getItem('onboardingData');
         if (storedData) {
             const parsedData = JSON.parse(storedData);
-            // Merge with initial settings to ensure all keys are present
             setSettings(prev => ({
                 ...prev,
                 ...parsedData,
@@ -62,13 +61,14 @@ export function PaymentsSettings() {
     };
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Customer Payment Methods</CardTitle>
-                    <CardDescription>Configure the payment methods available to your customers at checkout.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
+        <Card>
+            <CardHeader>
+                <CardTitle>Payment Methods</CardTitle>
+                <CardDescription>Configure payment methods for your customers and your payout accounts.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="space-y-4">
+                    <h3 className="font-medium text-sm text-muted-foreground">Customer Payment Methods</h3>
                     <div className="flex items-center justify-between rounded-lg border p-3 shadow-sm">
                         <Label htmlFor="cod" className="flex flex-col space-y-1">
                         <span>Cash on Delivery</span>
@@ -83,21 +83,13 @@ export function PaymentsSettings() {
                         </Label>
                         <Switch id="mobileMoney" checked={settings.paymentOptions?.mobileMoney} onCheckedChange={(c) => handleSwitchChange('mobileMoney', c)} />
                     </div>
-                </CardContent>
-                 <CardFooter>
-                    <Button onClick={handleSave}>Save Changes</Button>
-                </CardFooter>
-            </Card>
+                </div>
 
-            {settings.paymentOptions?.mobileMoney && (
-                <>
-                    <Separator />
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Payout Accounts</CardTitle>
-                            <CardDescription>Specify the mobile money accounts where you will receive your funds.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-6">
+                {settings.paymentOptions?.mobileMoney && (
+                    <>
+                        <Separator />
+                        <div className="space-y-4">
+                             <h3 className="font-medium text-sm text-muted-foreground">Your Payout Accounts</h3>
                              <div className="space-y-2">
                                 <Label htmlFor="mtn">MTN Mobile Money Number</Label>
                                 <Input 
@@ -118,13 +110,13 @@ export function PaymentsSettings() {
                                     onChange={(e) => handlePayoutAccountChange('airtel', e.target.value)}
                                 />
                             </div>
-                        </CardContent>
-                        <CardFooter>
-                            <Button onClick={handleSave}>Save Changes</Button>
-                        </CardFooter>
-                    </Card>
-                </>
-            )}
-        </div>
+                        </div>
+                    </>
+                )}
+            </CardContent>
+            <CardFooter>
+                <Button onClick={handleSave}>Save Changes</Button>
+            </CardFooter>
+        </Card>
     );
 }
