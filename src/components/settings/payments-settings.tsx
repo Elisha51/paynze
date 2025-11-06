@@ -9,8 +9,6 @@ import { useToast } from '@/hooks/use-toast';
 import type { OnboardingFormData } from '@/lib/types';
 import { Separator } from '../ui/separator';
 import { Input } from '../ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCountryList } from '@/services/countries';
 
 const initialSettings: Partial<OnboardingFormData> = {
     paymentOptions: { cod: true, mobileMoney: false },
@@ -19,26 +17,20 @@ const initialSettings: Partial<OnboardingFormData> = {
 
 export function PaymentsSettings() {
     const [settings, setSettings] = useState<Partial<OnboardingFormData>>(initialSettings);
-    const [countries, setCountries] = useState<{ name: string, code: string, dialCode: string }[]>([]);
     const { toast } = useToast();
 
     useEffect(() => {
         const storedData = localStorage.getItem('onboardingData');
         if (storedData) {
             const parsedData = JSON.parse(storedData);
+            // Merge with initial settings to ensure all keys are present
             setSettings(prev => ({
                 ...prev,
                 ...parsedData,
-                paymentOptions: { ...initialSettings.paymentOptions, ...parsedData.paymentOptions },
-                payoutAccounts: { ...initialSettings.payoutAccounts, ...parsedData.payoutAccounts },
+                paymentOptions: { ...prev.paymentOptions, ...parsedData.paymentOptions },
+                payoutAccounts: { ...prev.payoutAccounts, ...parsedData.payoutAccounts },
             }));
         }
-        
-        async function loadCountries() {
-            const countryList = await getCountryList();
-            setCountries(countryList);
-        }
-        loadCountries();
     }, []);
 
     const handleSwitchChange = (id: keyof OnboardingFormData['paymentOptions'], checked: boolean) => {
@@ -62,7 +54,10 @@ export function PaymentsSettings() {
     };
 
     const handleSave = () => {
-        localStorage.setItem('onboardingData', JSON.stringify(settings));
+         const currentDataRaw = localStorage.getItem('onboardingData');
+         const currentData = currentDataRaw ? JSON.parse(currentDataRaw) : {};
+         const updatedData = { ...currentData, ...settings };
+        localStorage.setItem('onboardingData', JSON.stringify(updatedData));
         toast({ title: 'Payment Settings Saved' });
     };
 
