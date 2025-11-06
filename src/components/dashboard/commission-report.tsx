@@ -110,7 +110,7 @@ const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow
                             <DropdownMenuItem asChild disabled={!canPayout}>
                                 <Link href={`/dashboard/finances/payouts/${staffId}`}>
                                     <FileText className="mr-2 h-4 w-4" />
-                                    Review &amp; Payout
+                                    Review & Payout
                                 </Link>
                             </DropdownMenuItem>
                         </DropdownMenuContent>
