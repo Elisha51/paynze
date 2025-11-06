@@ -1,3 +1,4 @@
+
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -28,18 +29,17 @@ export default function LoginPage() {
   const onboardingSuccess = searchParams.get('onboarding') === 'success';
 
   const handleLogin = async () => {
-    // In a real app, you'd validate credentials against a backend.
-    // Here, we'll find the user by email from our mock service.
+    // Simulate login: find the Admin user and log them in directly.
     const allStaff = await getStaff();
-    const user = allStaff.find(s => s.email.toLowerCase() === email.toLowerCase());
+    const adminUser = allStaff.find(s => s.role === 'Admin');
 
-    if (user && user.status === 'Active') {
-      login(user);
+    if (adminUser) {
+      login(adminUser);
     } else {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Invalid credentials or user is not active.',
+        description: 'Could not find a default Admin user to log in.',
       });
     }
   };
