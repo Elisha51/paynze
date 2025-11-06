@@ -30,11 +30,12 @@ import {
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
-import { cn } from '@/lib/utils';
+import { cn, getInitials } from '@/lib/utils';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: any) => p.dashboard.view },
@@ -67,16 +68,22 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
   if (!userPermissions) {
       return null;
   }
+  
+  const businessName = onboardingData?.businessName || 'Paynze';
 
   const allowedMenuItems = menuItems.filter(item => item.permission(userPermissions));
   const allowedBottomMenuItems = bottomMenuItems.filter(item => item.permission(userPermissions));
 
   return (
     <Sidebar>
-        <SidebarHeader className="hidden md:flex items-center justify-center">
-             <Link href="/dashboard" className="flex items-center gap-2">
+        <SidebarHeader className="hidden md:flex items-center justify-center p-4">
+             <Link href="/dashboard/settings" className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={onboardingData?.logoUrl} alt={businessName} />
+                  <AvatarFallback>{getInitials(businessName)}</AvatarFallback>
+                </Avatar>
                 <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
-                    <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{onboardingData?.businessName || 'Paynze'}</h2>
+                    <h2 className="font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{businessName}</h2>
                 </div>
             </Link>
         </SidebarHeader>

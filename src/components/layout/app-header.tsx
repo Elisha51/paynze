@@ -21,6 +21,7 @@ import { getStaffOrders } from '@/services/staff';
 import type { Order, Staff } from '@/lib/types';
 import { getTodos } from '@/services/todos';
 import { useAuth } from '@/context/auth-context';
+import { getInitials } from '@/lib/utils';
 
 
 type AppHeaderProps = {
@@ -46,7 +47,7 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
         loadTaskCount();
     }, [user]);
 
-    const getInitials = (name: string) => {
+    const getMyInitials = (name: string) => {
         if (!name) return 'AD';
         const names = name.split(' ');
         if (names.length > 1) {
@@ -54,13 +55,19 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
         }
         return name.substring(0, 2);
     }
+    
+    const businessName = onboardingData?.businessName || 'Paynze';
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
       <SidebarTrigger className="md:hidden" />
       
-       <Link href="/dashboard" className="hidden md:flex items-center gap-2 font-semibold">
-          <span>{onboardingData?.businessName || 'Paynze'}</span>
+       <Link href="/dashboard" className="hidden md:flex items-center gap-3 font-semibold text-lg">
+            <Avatar className="h-8 w-8">
+                <AvatarImage src={onboardingData?.logoUrl} alt={businessName} />
+                <AvatarFallback>{getInitials(businessName)}</AvatarFallback>
+            </Avatar>
+          <span>{businessName}</span>
           {isDevMode && <Badge variant="destructive" className="text-xs">DEV</Badge>}
       </Link>
 
@@ -91,7 +98,7 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
             <Button variant="secondary" size="icon" className="rounded-full">
                 <Avatar>
                 <AvatarImage src={user?.avatarUrl} alt={user?.name} />
-                <AvatarFallback>{user ? getInitials(user.name) : '...'}</AvatarFallback>
+                <AvatarFallback>{user ? getMyInitials(user.name) : '...'}</AvatarFallback>
                 </Avatar>
                 <span className="sr-only">Toggle user menu</span>
             </Button>
