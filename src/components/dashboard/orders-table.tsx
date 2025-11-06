@@ -299,12 +299,9 @@ const getColumns = (
     header: 'Payment',
     cell: ({ row }) => {
       const payment = row.original.payment;
-      if (!payment) {
-        return <Badge variant="secondary">N/A</Badge>;
-      }
       return (
-        <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
-          {payment.method}
+        <Badge variant={payment?.status === 'completed' ? 'default' : 'secondary'}>
+          {payment?.method || 'N/A'}
         </Badge>
       );
     },
