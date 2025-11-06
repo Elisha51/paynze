@@ -64,7 +64,6 @@ export default function AffiliateSignupPage() {
   if (isSubmitted) {
       return (
          <div className="flex flex-col min-h-screen">
-            <StoreHeader settings={settings} />
             <main className="flex-1 flex items-center justify-center py-12 px-4">
                 <Card className="mx-auto max-w-sm text-center">
                     <CardHeader>
@@ -85,13 +84,12 @@ export default function AffiliateSignupPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-        <StoreHeader settings={settings} />
         <main className="flex-1 flex items-center justify-center py-12 px-4">
             <Card className="mx-auto max-w-sm">
                 <CardHeader>
                 <CardTitle className="text-2xl">{pageTitle}</CardTitle>
                 <CardDescription>
-                    Join the affiliate program and earn commissions on sales you refer.
+                    Join our affiliate program and earn commissions on sales you refer.
                 </CardDescription>
                 </CardHeader>
                 <CardContent>
