@@ -272,10 +272,12 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => <Badge variant="outline">{row.getValue('status')}</Badge>,
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
     accessorKey: 'channel',
-    header: 'Channel'
+    header: 'Channel',
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
     accessorKey: 'sent',

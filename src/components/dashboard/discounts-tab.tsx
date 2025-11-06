@@ -18,6 +18,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+const discountStatuses = [
+    { value: 'Active', label: 'Active' },
+    { value: 'Expired', label: 'Expired' },
+    { value: 'Scheduled', label: 'Scheduled' },
+];
+
+const discountTypes = [
+    { value: 'Percentage', label: 'Percentage' },
+    { value: 'Fixed Amount', label: 'Fixed Amount' },
+];
+
 const discountColumns: ColumnDef<Discount>[] = [
     {
         accessorKey: 'code',
@@ -26,6 +37,7 @@ const discountColumns: ColumnDef<Discount>[] = [
     {
         accessorKey: 'type',
         header: 'Type',
+        filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
         accessorKey: 'value',
@@ -44,7 +56,8 @@ const discountColumns: ColumnDef<Discount>[] = [
         cell: ({ row }) => {
             const status = row.original.status;
             return <Badge variant={status === 'Active' ? 'default' : 'outline'}>{status}</Badge>
-        }
+        },
+        filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
         accessorKey: 'redemptions',
@@ -101,7 +114,14 @@ export function DiscountsTab() {
         </Button>
       </CardHeader>
       <CardContent>
-        <DataTable columns={discountColumns} data={discounts} />
+        <DataTable 
+            columns={discountColumns} 
+            data={discounts} 
+            filters={[
+                { columnId: 'status', title: 'Status', options: discountStatuses },
+                { columnId: 'type', title: 'Type', options: discountTypes }
+            ]}
+        />
       </CardContent>
     </Card>
   );

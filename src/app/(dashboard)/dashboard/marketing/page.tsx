@@ -89,6 +89,19 @@ export default function MarketingPage() {
     { value: 'affiliates', label: 'Affiliates' },
     { value: 'analytics', label: 'Analytics' },
   ];
+  
+  const campaignStatusOptions = [
+      { value: 'Active', label: 'Active'},
+      { value: 'Scheduled', label: 'Scheduled'},
+      { value: 'Draft', label: 'Draft'},
+      { value: 'Completed', label: 'Completed'},
+  ];
+  
+  const campaignChannelOptions = [
+      { value: 'Email', label: 'Email'},
+      { value: 'SMS', label: 'SMS'},
+      { value: 'Push', label: 'Push'},
+  ];
 
   const getCta = () => {
     if (activeTab === 'analytics') {
@@ -126,7 +139,14 @@ export default function MarketingPage() {
       </DashboardPageLayout.TabContent>
       <DashboardPageLayout.TabContent value="campaigns">
         <DashboardPageLayout.Content>
-            <DataTable columns={campaignColumns} data={campaigns} />
+            <DataTable 
+                columns={campaignColumns} 
+                data={campaigns} 
+                filters={[
+                    { columnId: 'status', title: 'Status', options: campaignStatusOptions },
+                    { columnId: 'channel', title: 'Channel', options: campaignChannelOptions },
+                ]}
+            />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
        <DashboardPageLayout.TabContent value="discounts">
