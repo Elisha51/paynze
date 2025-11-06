@@ -153,9 +153,6 @@ const getColumns = (
     header: 'Payment Method',
     cell: ({ row }) => {
       const payment = row.original.payment;
-      if (!payment) {
-        return <span className="text-muted-foreground">—</span>;
-      }
       return <span>{payment.method}</span>;
     },
     filterFn: (row, id, value) => {
@@ -279,7 +276,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
   return (
     <Card>
         <CardHeader>
-            <CardTitle>Orders & Deliveries</CardTitle>
+            <CardTitle>Delivery Worklist</CardTitle>
             <CardDescription>A summary of paid orders that are ready for fulfillment or are in transit.</CardDescription>
         </CardHeader>
         <CardContent>

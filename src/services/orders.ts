@@ -159,11 +159,11 @@ function initializeMockOrders(): Order[] {
                 fulfilledByStaffName: 'Jane Smith',
             }
         }
-        if (index === 2) {
-            return {
+        if (order.id === 'ORD-007') {
+             return {
                 ...fullOrder,
-                status: 'Ready for Pickup' as const,
-                fulfillmentMethod: 'Pickup' as const,
+                assignedStaffId: 'staff-003',
+                assignedStaffName: 'Peter Jones',
             }
         }
         if (order.id === 'ORD-003') { // Make one explicitly unassigned
