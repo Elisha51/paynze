@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { AffiliateSettings } from "@/components/settings/affiliate-settings";
 import { useAuth } from "@/context/auth-context";
 import { DeveloperSettings } from "@/components/settings/developer-settings";
+import { BrandingSettings } from "@/components/settings/branding-settings";
 
 export default function SettingsPage() {
     const { user } = useAuth();
@@ -54,7 +55,6 @@ export default function SettingsPage() {
         { value: "staff", label: "Staff & Permissions" },
     ];
     
-    // Conditionally add the Affiliate Program tab based on the user's plan.
     if (user?.plan === 'Pro' || user?.plan === 'Enterprise') {
         tabs.push({ value: "affiliates", label: "Affiliate Program" });
     }
@@ -84,6 +84,8 @@ export default function SettingsPage() {
             <DashboardPageLayout.TabContent value="storefront">
               <DashboardPageLayout.Content>
                 <div className="space-y-6">
+                    <BrandingSettings />
+                    <Separator />
                     <DomainSettings />
                     <Separator />
                     <ThemeSettings />
