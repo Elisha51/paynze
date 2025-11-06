@@ -14,9 +14,14 @@ import { Lock } from 'lucide-react';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  reason?: string;
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, reason }: AuthModalProps) {
+  const description = reason 
+    ? `You need to be logged in to ${reason}.`
+    : 'You need to be logged in to your account to perform this action.';
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -26,7 +31,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
           <DialogTitle>Please Sign In</DialogTitle>
           <DialogDescription>
-            You need to be logged in to your account to perform this action.
+            {description}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-3 pt-4">

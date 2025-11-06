@@ -29,6 +29,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
     // Simulate customer authentication state
     const [isCustomerAuthenticated, setIsCustomerAuthenticated] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [authModalReason, setAuthModalReason] = useState('');
   
     // In a real app, this would use a proper customer auth context.
     useEffect(() => {
@@ -39,16 +40,21 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
     // Mock unread notification count for the customer
     const unreadNotifications = 3;
     
-    const handleNotificationsClick = (e: React.MouseEvent) => {
+    const handleProtectedClick = (e: React.MouseEvent, reason: string) => {
         if (!isCustomerAuthenticated) {
             e.preventDefault();
+            setAuthModalReason(reason);
             setIsAuthModalOpen(true);
         }
     };
     
     return (
         <>
-            <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
+            <AuthModal 
+              isOpen={isAuthModalOpen} 
+              onClose={() => setIsAuthModalOpen(false)} 
+              reason={authModalReason}
+            />
             <header className="sticky top-0 z-40 w-full border-b bg-background">
                 <div className="container flex h-16 items-center gap-4">
                     <Link href="/store" className="hidden items-center gap-2 sm:flex">
@@ -70,7 +76,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                         </CartSheet>
 
                         <Button variant="ghost" size="icon" className="relative" asChild>
-                            <Link href="/store/account/notifications" onClick={handleNotificationsClick}>
+                            <Link href="/store/account/notifications" onClick={(e) => handleProtectedClick(e, "view your notifications")}>
                                 <Bell className="h-5 w-5" />
                                 {isCustomerAuthenticated && unreadNotifications > 0 && (
                                     <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 justify-center p-1 text-xs">
