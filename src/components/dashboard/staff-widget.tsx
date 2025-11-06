@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -16,7 +17,7 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
   
   if (isLoading) {
     return (
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardContent className="p-4">
@@ -61,11 +62,13 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
   const displayedStaff = coreStaff.slice(0, 3);
   
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
       {displayedStaff.map(member => (
-        <StaffCard key={member.id} member={member} />
+        <div key={member.id} className="col-span-1">
+            <StaffCard member={member} />
+        </div>
       ))}
-       <Link href="/dashboard/staff" className="block h-full">
+       <Link href="/dashboard/staff" className="block h-full col-span-2 sm:col-span-1">
         <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 flex flex-col items-center justify-center text-center p-4">
           <div className="p-3 rounded-full bg-primary/10 mb-2">
             <Users className="h-6 w-6 text-primary" />

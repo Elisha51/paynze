@@ -137,7 +137,7 @@ export default function AffiliateDashboardPage() {
             <AffiliateHeader notificationCount={unreadCount} />
             <main className="flex-1 bg-muted/40 p-4 md:p-8">
                 <Tabs defaultValue="dashboard" className="max-w-4xl mx-auto">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-2 md:w-1/2 md:mx-auto">
                         <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                         <TabsTrigger value="notifications">
                             Notifications {unreadCount > 0 && <span className="ml-2 bg-primary text-primary-foreground text-xs h-5 w-5 rounded-full flex items-center justify-center">{unreadCount}</span>}
@@ -149,12 +149,12 @@ export default function AffiliateDashboardPage() {
                                 <CardTitle>Your Referral Link</CardTitle>
                             </CardHeader>
                             <CardContent>
-                                <div className="flex w-full items-center space-x-2">
+                                <div className="flex w-full flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                                     <div className="relative flex-1">
                                         <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input readOnly value={referralLink} className="pl-10" />
                                     </div>
-                                    <Button onClick={copyReferralLink}><Copy className="mr-2 h-4 w-4" /> Copy Link</Button>
+                                    <Button onClick={copyReferralLink} className="w-full sm:w-auto"><Copy className="mr-2 h-4 w-4" /> Copy Link</Button>
                                 </div>
                             </CardContent>
                         </Card>

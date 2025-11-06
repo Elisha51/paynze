@@ -82,7 +82,7 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
                   <AvatarImage src={onboardingData?.logoUrl} alt={businessName} />
                   <AvatarFallback>{getInitials(businessName)}</AvatarFallback>
                 </Avatar>
-                <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
+                <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0 h-0')}>
                     <h2 className="font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{businessName}</h2>
                 </div>
             </Link>

@@ -1,6 +1,6 @@
 
 'use client';
-import { ShoppingCart, User, Bell } from 'lucide-react';
+import { ShoppingCart, User, Bell, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { OnboardingFormData } from '@/lib/types';
@@ -15,6 +15,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
 import { AuthModal } from './auth-modal';
 
@@ -57,11 +64,19 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
             />
             <header className="sticky top-0 z-40 w-full border-b bg-background">
                 <div className="container flex h-16 items-center gap-4">
-                    <Link href="/store" className="hidden items-center gap-2 sm:flex">
+                    <Link href="/store" className="flex items-center gap-2">
                         <ShoppingCart className="h-6 w-6 text-primary" />
-                        <span className="font-bold text-lg">{settings?.businessName || "Your Store"}</span>
+                        <span className="font-bold text-lg hidden sm:inline-block">{settings?.businessName || "Your Store"}</span>
                     </Link>
                     <div className="flex-1" />
+                    <nav className="hidden md:flex items-center gap-2">
+                        <Link href="/store/account/orders" onClick={(e) => handleProtectedClick(e, 'view your orders')} className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+                            My Orders
+                        </Link>
+                        <Link href="/affiliate-signup" className="text-sm font-medium text-muted-foreground transition-colors hover:text-primary">
+                            Become an Affiliate
+                        </Link>
+                    </nav>
                     <div className="flex items-center gap-2">
                         <CartSheet>
                             <Button variant="ghost" size="icon" className="relative">
@@ -75,7 +90,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                             </Button>
                         </CartSheet>
 
-                        <Button variant="ghost" size="icon" className="relative" asChild>
+                        <Button variant="ghost" size="icon" className="relative hidden md:flex" asChild>
                             <Link href="/store/account/notifications" onClick={(e) => handleProtectedClick(e, "view your notifications")}>
                                 <Bell className="h-5 w-5" />
                                 {isCustomerAuthenticated && unreadNotifications > 0 && (
@@ -89,7 +104,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
 
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
+                            <Button variant="ghost" size="icon" className="hidden md:flex">
                                 <User className="h-5 w-5" />
                                 <span className="sr-only">Customer Account</span>
                             </Button>
@@ -117,6 +132,37 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                             )}
                         </DropdownMenuContent>
                         </DropdownMenu>
+
+                         <Sheet>
+                            <SheetTrigger asChild>
+                               <Button variant="ghost" size="icon" className="md:hidden">
+                                    <Menu className="h-6 w-6" />
+                                    <span className="sr-only">Toggle Menu</span>
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent>
+                                <nav className="grid gap-6 text-lg font-medium mt-8">
+                                    <Link href="/store" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">Home</Link>
+                                    <Link href="/store/account" onClick={(e) => handleProtectedClick(e, "view your account")} className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">My Profile</Link>
+                                    <Link href="/store/account/orders" onClick={(e) => handleProtectedClick(e, "view your orders")} className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">My Orders</Link>
+                                    <Link href="/affiliate-signup" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">Become an Affiliate</Link>
+                                    <Separator />
+                                     {isCustomerAuthenticated ? (
+                                        <Button variant="outline" onClick={() => {
+                                            localStorage.setItem('isCustomerLoggedIn', 'false');
+                                            window.location.reload();
+                                        }}>
+                                            Log Out
+                                        </Button>
+                                    ) : (
+                                        <div className="grid gap-2">
+                                            <Button asChild><Link href="/store/login">Sign In</Link></Button>
+                                            <Button variant="outline" asChild><Link href="/store/signup">Create Account</Link></Button>
+                                        </div>
+                                    )}
+                                </nav>
+                            </SheetContent>
+                        </Sheet>
                     </div>
                 </div>
             </header>

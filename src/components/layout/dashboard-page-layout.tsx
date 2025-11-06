@@ -6,9 +6,9 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSearch } from '@/context/search-context';
 import { Search } from 'lucide-react';
 import { Input } from '../ui/input';
+import { useState } from 'react';
 
 type Tab = { value: string; label: string; className?: string };
 
@@ -70,7 +70,8 @@ TabContent.displayName = 'TabContent';
 
 
 export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onTabChange }: DashboardPageLayoutProps) {
-  const { searchQuery, setSearchQuery } = useSearch();
+  // Local search state for pages that need it.
+  const [searchQuery, setSearchQuery] = useState('');
 
   const MainTabsWrapper = ({ children }: { children: React.ReactNode }) => {
     if (tabs && tabs.length > 0) {
@@ -87,16 +88,7 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
                         ))}
                     </TabsList>
                     <div className="flex w-full lg:w-auto items-center space-x-2">
-                        <div className="relative flex-1">
-                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            type="search"
-                            placeholder={`Search ${title}...`}
-                            className="w-full appearance-none bg-background pl-8 shadow-none lg:w-[300px]"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                        </div>
+                        {/* Removed global search, local search could be re-added here if needed on a per-page basis */}
                         {cta}
                     </div>
                 </div>
@@ -110,16 +102,7 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <h2 className="text-3xl font-bold tracking-tight font-headline">{title}</h2>
                  <div className="flex w-full md:w-auto items-center space-x-2">
-                    <div className="relative flex-1 md:flex-initial">
-                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                    <Input
-                        type="search"
-                        placeholder={`Search...`}
-                        className="w-full appearance-none bg-background pl-8 shadow-none md:w-auto lg:w-[300px]"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    </div>
+                    {/* Removed global search */}
                     {cta}
                 </div>
             </div>

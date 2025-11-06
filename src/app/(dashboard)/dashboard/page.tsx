@@ -108,8 +108,8 @@ export default function DashboardPage() {
     return (
         <div className="space-y-6">
             <QuickLinks />
-            <div className="grid gap-4 md:grid-cols-2 md:gap-8 lg:grid-cols-3">
-                <Card>
+            <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
+                <Card className="col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Orders Today</CardTitle>
                         <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -118,7 +118,7 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">+{summaryMetrics.ordersToday}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -127,7 +127,7 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">{formatCurrency(summaryMetrics.revenueToday)}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-yellow-500" />
@@ -136,7 +136,7 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">{summaryMetrics.pendingOrders}</div>
                     </CardContent>
                 </Card>
-                 <Card>
+                 <Card className="col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Deliveries Today</CardTitle>
                         <Truck className="h-4 w-4 text-muted-foreground" />
@@ -145,7 +145,7 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">{summaryMetrics.deliveriesToday}</div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-red-500" />
@@ -154,7 +154,7 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">{summaryMetrics.pendingDeliveries}</div>
                     </CardContent>
                 </Card>
-                 <Card>
+                 <Card className="col-span-1">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
@@ -165,8 +165,8 @@ export default function DashboardPage() {
                 </Card>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <OrdersDeliveriesTable orders={orders} staff={staff} isLoading={isLoading} />
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <OrdersDeliveriesTable orders={orders} staff={staff} />
                 <StaffWidget staff={staff} isLoading={isLoading} />
             </div>
 

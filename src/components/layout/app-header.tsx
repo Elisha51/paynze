@@ -22,7 +22,6 @@ import type { Order } from '@/lib/types';
 import { getTodos } from '@/services/todos';
 import { useAuth } from '@/context/auth-context';
 import { getInitials } from '@/lib/utils';
-import { useSearch } from '@/context/search-context';
 import { Input } from '../ui/input';
 
 type AppHeaderProps = {
@@ -33,7 +32,6 @@ type AppHeaderProps = {
 export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps) {
     const { user } = useAuth();
     const [taskCount, setTaskCount] = useState(0);
-    const { searchQuery, setSearchQuery } = useSearch();
 
     useEffect(() => {
         async function loadTaskCount() {
@@ -63,16 +61,7 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
       <SidebarTrigger className="md:hidden" />
       
       <div className="w-full flex-1">
-        <div className="relative hidden md:block">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-                type="search"
-                placeholder="Search everything..."
-                className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-            />
-        </div>
+        {/* Search has been removed from here */}
       </div>
 
       <div className="flex items-center gap-2">

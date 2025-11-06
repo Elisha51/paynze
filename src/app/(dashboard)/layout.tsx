@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { OnboardingFormData } from '@/lib/types';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { NotificationProvider } from '@/context/notification-context';
-import { SearchProvider } from '@/context/search-context';
 import { useAuth } from '@/context/auth-context';
 import AppSidebar from '@/components/layout/app-sidebar';
 import AppHeader from '@/components/layout/app-header';
@@ -59,7 +58,6 @@ export default function DashboardLayout({
   return (
     <SidebarProvider>
       <NotificationProvider>
-        <SearchProvider>
           <div className="flex min-h-screen w-full">
             <AppSidebar onboardingData={onboardingData} />
             <div className="flex flex-1 flex-col">
@@ -69,7 +67,6 @@ export default function DashboardLayout({
               </main>
             </div>
           </div>
-        </SearchProvider>
       </NotificationProvider>
     </SidebarProvider>
   );

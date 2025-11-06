@@ -43,7 +43,7 @@ export default function StorefrontLayout({
               <div className="space-y-2">
                   <h4 className="font-semibold">Affiliates</h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li><Link href="/store/affiliate-signup" className="hover:text-primary">Become an Affiliate</Link></li>
+                      <li><Link href="/affiliate-signup" className="hover:text-primary">Become an Affiliate</Link></li>
                       <li><Link href="/affiliate/login" className="hover:text-primary">Affiliate Login</Link></li>
                   </ul>
               </div>
