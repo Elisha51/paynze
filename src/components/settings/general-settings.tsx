@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import type { OnboardingFormData } from '@/lib/types';
+import type { OnboardingFormData, ProductImage } from '@/lib/types';
 import { getCountryList } from '@/services/countries';
+import { FileUploader } from '../ui/file-uploader';
 
 export function GeneralSettings() {
     const [settings, setSettings] = useState<Partial<OnboardingFormData>>({});
@@ -36,8 +37,24 @@ export function GeneralSettings() {
         setSettings(prev => ({...prev, [id]: value}));
     };
 
+    const handleLogoChange = (files: (File | ProductImage)[]) => {
+        if (files.length > 0) {
+            const file = files[0];
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                 setSettings(prev => ({...prev, logoUrl: e.target?.result as string}));
+            };
+            if (file instanceof File) {
+                 reader.readAsDataURL(file);
+            }
+        } else {
+            setSettings(prev => ({...prev, logoUrl: undefined}));
+        }
+    }
+
     const handleSave = () => {
         localStorage.setItem('onboardingData', JSON.stringify(settings));
+        window.dispatchEvent(new CustomEvent('theme-changed'));
         toast({ title: 'Settings Saved', description: 'Your general settings have been updated.' });
     };
 
@@ -45,12 +62,22 @@ export function GeneralSettings() {
         <Card>
             <CardHeader>
                 <CardTitle>General Settings</CardTitle>
-                <CardDescription>Manage your store's basic information.</CardDescription>
+                <CardDescription>Manage your store's basic information, logo, and location.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-6">
                 <div className="space-y-2">
                     <Label htmlFor="businessName">Store Name</Label>
                     <Input id="businessName" value={settings.businessName || ''} onChange={handleInputChange} />
+                </div>
+                 <div className="space-y-2">
+                    <Label>Logo</Label>
+                    <FileUploader 
+                        files={settings.logoUrl ? [{ id: 'logo', url: settings.logoUrl }] : []}
+                        onFilesChange={handleLogoChange}
+                        maxFiles={1}
+                        accept={{ 'image/*': ['.jpeg', '.jpg', '.png', '.svg'] }}
+                    />
+                    <p className="text-sm text-muted-foreground">Recommended: Square image, at least 256x256px.</p>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
