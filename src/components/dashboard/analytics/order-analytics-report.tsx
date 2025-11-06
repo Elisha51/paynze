@@ -63,7 +63,7 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
         channelData: []
       };
     }
-    const totalRevenue = reportData.reduce((sum, row) => sum + (row.payment.status === 'completed' ? row.total : 0), 0);
+    const totalRevenue = reportData.reduce((sum, row) => sum + (row.payment?.status === 'completed' ? row.total : 0), 0);
     const totalOrders = reportData.length;
     const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     
@@ -73,7 +73,7 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
     
     const salesByDate: {[key: string]: number} = {};
     reportData.forEach(order => {
-        if (order.payment.status === 'completed') {
+        if (order.payment?.status === 'completed') {
             const date = new Date(order.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             salesByDate[date] = (salesByDate[date] || 0) + order.total;
         }
@@ -94,7 +94,7 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
                 fill: `var(--color-${channel})`
             };
         }
-        if (order.payment.status === 'completed') {
+        if (order.payment?.status === 'completed') {
             salesByChannel[channel].value += order.total;
         }
     });
