@@ -60,7 +60,6 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
       <SidebarTrigger className="md:hidden" />
       
        <Link href="/dashboard" className="hidden md:flex items-center gap-2 font-semibold">
-          <ShoppingCart className="h-6 w-6 text-primary" />
           <span>{onboardingData?.businessName || 'Paynze'}</span>
           {isDevMode && <Badge variant="destructive" className="text-xs">DEV</Badge>}
       </Link>
@@ -100,8 +99,8 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
             <DropdownMenuContent align="end">
             <DropdownMenuLabel>{user?.name || 'My Account'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild><Link href="/dashboard/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link href="/dashboard/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>

@@ -44,11 +44,11 @@ const menuItems = [
   { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: any) => p.procurement.view },
   { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, permission: (p: any) => p.dashboard.view }, // Simplification
   { href: '/dashboard/finances', label: 'Finances', icon: Landmark, permission: (p: any) => p.finances.view },
-  { href: '/dashboard/staff', label: 'Staff', icon: UserCog, permission: (p: any) => p.staff.view },
 ];
 
 
 const bottomMenuItems = [
+  { href: '/dashboard/staff', label: 'Staff', icon: UserCog, permission: (p: any) => p.staff.view },
   { href: '/dashboard/templates', label: 'Templates', icon: FileText, permission: (p: any) => p.products.view }, // Linked to product permissions
   { href: '/dashboard/settings', label: 'Settings', icon: Settings, permission: (p: any) => p.settings.view },
 ]
@@ -73,9 +73,8 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
 
   return (
     <Sidebar>
-        <SidebarHeader className="hidden md:flex">
-            <Link href="/dashboard" className="flex items-center gap-2">
-                <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
+        <SidebarHeader className="hidden md:flex items-center justify-center">
+             <Link href="/dashboard" className="flex items-center gap-2">
                 <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
                     <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{onboardingData?.businessName || 'Paynze'}</h2>
                 </div>
