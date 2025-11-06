@@ -467,7 +467,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   const singleVariantAvailable = product.variants[0]?.stockByLocation[0]?.stock.available || 0;
   
   const handleBack = () => {
-      router.back();
+      router.push('/dashboard/products');
   }
 
   return (

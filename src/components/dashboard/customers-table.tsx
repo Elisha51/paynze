@@ -1,7 +1,7 @@
 
+
 'use client';
 import * as React from 'react';
-import { ColumnDef } from '@tanstack/react-table';
 import { PlusCircle, Send, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Customer } from '@/lib/types';
@@ -11,27 +11,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomerColumns } from './customers-columns';
+import { useAuth } from '@/context/auth-context';
 
 type MessageType = 'WhatsApp' | 'SMS' | null;
 
-type CustomersTableProps = {
-  columns: ColumnDef<any, any>[];
-  data: any[];
-  isLoading: boolean;
-};
-
-export function CustomersTable({ columns: initialColumns, data, isLoading }: CustomersTableProps) {
+export function CustomersTable({ columns: initialColumns, data, isLoading }: { columns: any[], data: Customer[], isLoading: boolean }) {
     const [messageTarget, setMessageTarget] = React.useState<{customer: Customer, type: MessageType} | null>(null);
     const [messageContent, setMessageContent] = React.useState('');
+    const [customers, setCustomers] = React.useState(data);
     const { toast } = useToast();
+    const { user } = useAuth();
     
+    React.useEffect(() => {
+        setCustomers(data);
+    }, [data]);
+    
+    const canEdit = user?.permissions.customers.edit ?? false;
+    const canDelete = user?.permissions.customers.delete ?? false;
+
     const handleDeleteCustomer = (customerId: string) => {
         // In a real app, call a service to delete the customer
         console.log("Deleting customer:", customerId);
+        setCustomers(prev => prev.filter(c => c.id !== customerId));
         toast({ title: "Customer Deleted", variant: "destructive" });
     };
 
-    const columns = React.useMemo(() => getCustomerColumns(handleDeleteCustomer), []);
+    const columns = React.useMemo(() => getCustomerColumns(handleDeleteCustomer, canEdit, canDelete), [canEdit, canDelete]);
     
     const handleSendMessage = () => {
         if (!messageTarget) return;
@@ -58,7 +63,7 @@ export function CustomersTable({ columns: initialColumns, data, isLoading }: Cus
     <>
     <DataTable
       columns={columns}
-      data={data}
+      data={customers}
       isLoading={isLoading}
       filters={[{
         columnId: 'customerGroup',

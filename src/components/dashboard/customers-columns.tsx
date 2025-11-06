@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -116,8 +117,10 @@ export const getCustomerColumns = (onDelete: (customerId: string) => void, canEd
                       </Link>
                     </DropdownMenuItem>
                     {canEdit && (
-                      <DropdownMenuItem onSelect={() => console.log('This should trigger the message dialog')}>
-                        <MessageCircle className="mr-2 h-4 w-4" /> Send via WhatsApp
+                       <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/customers/${customer.id}/edit`}>
+                           <MessageCircle className="mr-2 h-4 w-4" /> Edit Customer
+                        </Link>
                       </DropdownMenuItem>
                     )}
                     {canDelete && (

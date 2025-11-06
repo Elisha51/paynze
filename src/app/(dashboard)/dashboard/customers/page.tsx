@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PlusCircle, Send } from 'lucide-react';
@@ -32,11 +33,9 @@ export default function CustomersPage() {
     loadData();
   }, []);
   
-  const columns = useMemo(() => {
-    const canEdit = user?.permissions.customers.edit ?? false;
-    const canDelete = user?.permissions.customers.delete ?? false;
-    return getCustomerColumns(() => {}, canEdit, canDelete);
-  }, [user]);
+  const canEdit = user?.permissions.customers.edit ?? false;
+  const canDelete = user?.permissions.customers.delete ?? false;
+  const columns = useMemo(() => getCustomerColumns(() => {}, canEdit, canDelete), [user, canEdit, canDelete]);
 
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },
