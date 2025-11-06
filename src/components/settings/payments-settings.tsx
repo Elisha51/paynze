@@ -82,57 +82,60 @@ export function PaymentsSettings() {
                 </CardFooter>
             </Card>
 
-            <Separator />
-
-             <Card>
-                <CardHeader>
-                    <CardTitle>Payout Accounts</CardTitle>
-                    <CardDescription>Specify the mobile money accounts where you will receive your funds.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                     <div className="space-y-2">
-                        <Label>MTN Mobile Money Number</Label>
-                         <div className="flex items-center gap-2">
-                            <Select value={mtnCountryCode} onValueChange={setMtnCountryCode}>
-                              <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Code" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                            <Input 
-                                type="tel" 
-                                placeholder="772 123456" 
-                                value={settings.payoutAccounts?.mtn?.replace(mtnCountryCode, '') || ''}
-                                onChange={(e) => handlePayoutAccountChange('mtn', `${mtnCountryCode}${e.target.value}`)}
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Airtel Money Number</Label>
-                         <div className="flex items-center gap-2">
-                            <Select value={airtelCountryCode} onValueChange={setAirtelCountryCode}>
-                              <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Code" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-                              </SelectContent>
-                            </Select>
-                            <Input 
-                                type="tel" 
-                                placeholder="702 987654"
-                                value={settings.payoutAccounts?.airtel?.replace(airtelCountryCode, '') || ''}
-                                onChange={(e) => handlePayoutAccountChange('airtel', `${airtelCountryCode}${e.target.value}`)}
-                            />
-                        </div>
-                    </div>
-                </CardContent>
-                 <CardFooter>
-                    <Button onClick={handleSave}>Save Changes</Button>
-                </CardFooter>
-            </Card>
+            {settings.paymentOptions?.mobileMoney && (
+                <>
+                    <Separator />
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Payout Accounts</CardTitle>
+                            <CardDescription>Specify the mobile money accounts where you will receive your funds.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="space-y-2">
+                                <Label>MTN Mobile Money Number</Label>
+                                <div className="flex items-center gap-2">
+                                    <Select value={mtnCountryCode} onValueChange={setMtnCountryCode}>
+                                    <SelectTrigger className="w-[120px]">
+                                        <SelectValue placeholder="Code" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                                    </SelectContent>
+                                    </Select>
+                                    <Input 
+                                        type="tel" 
+                                        placeholder="772 123456" 
+                                        value={settings.payoutAccounts?.mtn?.replace(mtnCountryCode, '') || ''}
+                                        onChange={(e) => handlePayoutAccountChange('mtn', `${mtnCountryCode}${e.target.value}`)}
+                                    />
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Label>Airtel Money Number</Label>
+                                <div className="flex items-center gap-2">
+                                    <Select value={airtelCountryCode} onValueChange={setAirtelCountryCode}>
+                                    <SelectTrigger className="w-[120px]">
+                                        <SelectValue placeholder="Code" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                                    </SelectContent>
+                                    </Select>
+                                    <Input 
+                                        type="tel" 
+                                        placeholder="702 987654"
+                                        value={settings.payoutAccounts?.airtel?.replace(airtelCountryCode, '') || ''}
+                                        onChange={(e) => handlePayoutAccountChange('airtel', `${airtelCountryCode}${e.target.value}`)}
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                        <CardFooter>
+                            <Button onClick={handleSave}>Save Changes</Button>
+                        </CardFooter>
+                    </Card>
+                </>
+            )}
         </div>
     );
 }
