@@ -21,7 +21,7 @@ type CommissionRow = {
   commission: number;
 };
 
-const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow>[] => [
+const getColumns = (currency: string, canEdit: boolean, payoutThreshold?: number): ColumnDef<CommissionRow>[] => [
     {
     id: 'select',
     header: ({ table }) => (
@@ -94,7 +94,8 @@ const getColumns = (currency: string, canEdit: boolean): ColumnDef<CommissionRow
         header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
             const { staffId, commission } = row.original;
-            const canPayout = commission > 0 && canEdit;
+            const meetsThreshold = payoutThreshold !== undefined ? commission >= payoutThreshold : true;
+            const canPayout = commission > 0 && canEdit && meetsThreshold;
 
             return (
                 <div className="text-right">
@@ -164,7 +165,8 @@ export function CommissionReport({ type, title, description, staff, roles, order
         }).filter(s => s.commission > 0);
     }, [staff, orders, roles, affiliateSettings]);
     
-    const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditFinances), [settings?.currency, canEditFinances]);
+    const payoutThreshold = type === 'affiliate' ? affiliateSettings?.payoutThreshold : undefined;
+    const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditFinances, payoutThreshold), [settings?.currency, canEditFinances, payoutThreshold]);
 
     const Icon = type === 'staff' ? User : Users;
 
@@ -182,7 +184,7 @@ export function CommissionReport({ type, title, description, staff, roles, order
                 </div>
                 <div className="flex gap-2">
                     {cta}
-                    {canEditFinances && (
+                    {canEditFinances && type === 'staff' && (
                         <Button variant="outline" onClick={onAwardBonus}>
                             <Award className="mr-2 h-4 w-4" />
                             Award Bonus / Adjustment

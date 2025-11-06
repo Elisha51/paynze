@@ -441,7 +441,7 @@ export type Role = {
 // Notification Types
 export type Notification = {
     id: string;
-    type: 'new-order' | 'low-stock' | 'new-customer' | 'task-assigned' | 'payout-sent';
+    type: 'new-order' | 'low-stock' | 'new-customer' | 'task-assigned' | 'payout-sent' | 'payout-request';
     title: string;
     description: string;
     timestamp: string;

@@ -2,18 +2,19 @@
 'use client';
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart, Bell } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Affiliate, OnboardingFormData, Order, AffiliateProgramSettings, Notification } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { getOrdersByAffiliate } from '@/services/orders';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { AffiliateHeader } from './_components/affiliate-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NotificationList } from '@/components/shared/notification-list';
 import { getAffiliateById } from '@/services/affiliates';
+import { addNotification } from '@/services/notifications';
 
 const mockInitialAffiliateNotifications: Notification[] = [
     { id: 'aff-notif-1', type: 'new-order', title: 'New Commission Earned!', description: 'You earned UGX 1,200 from order #ORD-008.', timestamp: new Date().toISOString(), read: false, link: '#', archived: false },
@@ -29,6 +30,7 @@ export default function AffiliateDashboardPage() {
     const [notifications, setNotifications] = useState(mockInitialAffiliateNotifications);
     const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread'>('all');
     const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
+    const [payoutRequested, setPayoutRequested] = useState(false);
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -74,6 +76,18 @@ export default function AffiliateDashboardPage() {
         navigator.clipboard.writeText(referralLink);
         toast({ title: "Referral Link Copied!" });
     }
+    
+    const handleRequestPayout = async () => {
+        if (!affiliate) return;
+        setPayoutRequested(true);
+        await addNotification({
+            type: 'payout-request',
+            title: 'Affiliate Payout Request',
+            description: `${affiliate.name} has requested a payout of ${formatCurrency(affiliate.pendingCommission)}.`,
+            link: `/dashboard/finances/payouts/${affiliate.id}`,
+        });
+        toast({ title: "Payout Requested", description: "The store owner has been notified of your request." });
+    }
 
     // Notification State Management
     const activeNotifications = useMemo(() => notifications.filter(n => !n.archived), [notifications]);
@@ -116,6 +130,7 @@ export default function AffiliateDashboardPage() {
     }
 
     const conversionRate = affiliate.linkClicks > 0 ? ((affiliate.conversions / affiliate.linkClicks) * 100).toFixed(2) : '0.00';
+    const meetsPayoutThreshold = affiliate.pendingCommission >= (affiliateSettings?.payoutThreshold || 0);
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -154,6 +169,16 @@ export default function AffiliateDashboardPage() {
                                     <div className="text-2xl font-bold">{formatCurrency(affiliate.pendingCommission)}</div>
                                     <p className="text-xs text-muted-foreground">Available for next payout</p>
                                 </CardContent>
+                                <CardFooter>
+                                    <Button 
+                                        className="w-full" 
+                                        disabled={!meetsPayoutThreshold || payoutRequested}
+                                        onClick={handleRequestPayout}
+                                    >
+                                        <Send className="mr-2 h-4 w-4" />
+                                        {payoutRequested ? 'Request Sent' : 'Request Payout'}
+                                    </Button>
+                                </CardFooter>
                             </Card>
                             <Card>
                                 <CardHeader className="flex-row items-center justify-between pb-2">

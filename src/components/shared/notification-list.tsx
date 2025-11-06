@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { BellRing, PackageX, Bell, Archive, Trash2 } from 'lucide-react';
+import { BellRing, PackageX, Bell, Archive, Trash2, DollarSign } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { Notification } from '@/lib/types';
 
@@ -13,6 +13,7 @@ const iconMap: Record<string, React.ElementType> = {
     'task-assigned': BellRing,
     'low-stock': PackageX,
     'new-order': BellRing,
+    'payout-request': DollarSign,
 };
 
 type NotificationListProps = {
