@@ -32,5 +32,4 @@ export function AffiliateHeader({ notificationCount }: AffiliateHeaderProps) {
         </header>
     );
 }
-
     

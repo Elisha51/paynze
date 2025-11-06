@@ -74,7 +74,7 @@ export default function AffiliateLoginPage() {
           </div>
           <div className="mt-4 text-center text-sm">
             Not an affiliate yet?{' '}
-            <Link href="/affiliate-signup" className="underline">
+            <Link href="/store/affiliate-signup" className="underline">
               Sign up
             </Link>
           </div>
