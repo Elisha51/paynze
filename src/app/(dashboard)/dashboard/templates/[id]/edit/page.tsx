@@ -1,11 +1,13 @@
-
 'use client';
 import { ProductTemplateForm } from '@/components/dashboard/product-template-form';
 import { mockProductTemplates } from '@/services/templates';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useParams } from 'next/navigation';
 
-export default function EditProductTemplatePage({ params }: { params: { id: string } }) {
-    const template = mockProductTemplates.find(t => t.id === params.id);
+export default function EditProductTemplatePage() {
+    const params = useParams();
+    const id = params.id as string;
+    const template = mockProductTemplates.find(t => t.id === id);
 
     if (!template) {
         return (
