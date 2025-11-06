@@ -134,18 +134,16 @@ const getColumns = (
     header: 'Payment Status',
     cell: ({ row }) => {
       const payment = row.original.payment;
-      if (!payment) {
-        return <Badge variant="secondary">N/A</Badge>;
-      }
+      const status = payment?.status || 'pending';
       return (
-        <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
-          Paid
+        <Badge variant={status === 'completed' ? 'default' : 'secondary'} className="capitalize">
+          {status}
         </Badge>
       );
     },
     filterFn: (row, id, value) => {
         const payment = row.original.payment;
-        if (!payment) return false;
+        if (!payment) return value.includes('pending');
         return value.includes(payment.status)
     },
   },
