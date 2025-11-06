@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -35,7 +34,9 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
     );
   }
   
-  if (staff.length === 0) {
+  const coreStaff = staff.filter(s => s.role !== 'Affiliate');
+
+  if (coreStaff.length === 0) {
       return (
           <Card>
               <CardContent>
@@ -57,7 +58,7 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
       )
   }
   
-  const displayedStaff = staff.slice(0, 3);
+  const displayedStaff = coreStaff.slice(0, 3);
   
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

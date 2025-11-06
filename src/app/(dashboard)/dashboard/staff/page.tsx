@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import type { Staff, Role } from '@/lib/types';
@@ -8,7 +7,7 @@ import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, SlidersHorizontal, Settings, Activity, Users } from 'lucide-react';
 import Link from 'next/link';
-import { StaffWidget } from '@/components/dashboard/staff-widget';
+import { StaffTable } from '@/components/dashboard/staff-table';
 import { RolesPermissionsTab } from '@/components/dashboard/roles-permissions-tab';
 import { StaffActivityLog } from '@/components/dashboard/staff-activity-log';
 import { useAuth } from '@/context/auth-context';
@@ -27,8 +26,8 @@ export default function StaffPage() {
     async function loadData() {
       setIsLoading(true);
       const [staffData, rolesData] = await Promise.all([getStaff(), getRoles()]);
-      setStaff(staffData.filter(s => s.role !== 'Affiliate'));
-      setRoles(rolesData.filter(r => r.name !== 'Affiliate'));
+      setStaff(staffData); // Load all staff, including affiliates
+      setRoles(rolesData.filter(r => r.name !== 'Affiliate')); // Keep roles tab for core staff roles
       setIsLoading(false);
     }
     loadData();
@@ -57,7 +56,7 @@ export default function StaffPage() {
       >
         <DashboardPageLayout.TabContent value="all-staff">
             <DashboardPageLayout.Content>
-                <StaffWidget staff={staff} isLoading={isLoading} />
+                <StaffTable staff={staff} setStaff={setStaff} isLoading={isLoading} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         {canEdit && (
