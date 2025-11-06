@@ -21,30 +21,41 @@ export function PaymentsSettings() {
     const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
     const [mtnCountryCode, setMtnCountryCode] = useState('+256');
     const [airtelCountryCode, setAirtelCountryCode] = useState('+256');
+    const [mtnNumber, setMtnNumber] = useState('');
+    const [airtelNumber, setAirtelNumber] = useState('');
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
         if (data) {
             const parsedData = JSON.parse(data);
             setSettings(prev => ({...prev, ...parsedData}));
+            setMtnNumber(parsedData.payoutAccounts?.mtn?.replace(mtnCountryCode, '') || '');
+            setAirtelNumber(parsedData.payoutAccounts?.airtel?.replace(airtelCountryCode, '') || '');
         }
         async function loadCountries() {
             const countryList = await getCountryList();
             setCountries(countryList);
         }
         loadCountries();
-    }, []);
+    }, [mtnCountryCode, airtelCountryCode]);
 
     const handleSwitchChange = (id: keyof OnboardingFormData['paymentOptions'], checked: boolean) => {
         setSettings(prev => ({...prev, paymentOptions: { ...prev.paymentOptions, [id]: checked } as OnboardingFormData['paymentOptions'] }));
     };
 
-    const handlePayoutAccountChange = (provider: 'mtn' | 'airtel', value: string) => {
+    const handlePayoutAccountChange = (provider: 'mtn' | 'airtel', numberValue: string) => {
+        const countryCode = provider === 'mtn' ? mtnCountryCode : airtelCountryCode;
+        if (provider === 'mtn') {
+            setMtnNumber(numberValue);
+        } else {
+            setAirtelNumber(numberValue);
+        }
+        
         setSettings(prev => ({
             ...prev,
             payoutAccounts: {
                 ...(prev.payoutAccounts || {}),
-                [provider]: value
+                [provider]: `${countryCode}${numberValue}`
             }
         }));
     }
@@ -105,8 +116,8 @@ export function PaymentsSettings() {
                                     <Input 
                                         type="tel" 
                                         placeholder="772 123456" 
-                                        value={settings.payoutAccounts?.mtn?.replace(mtnCountryCode, '') || ''}
-                                        onChange={(e) => handlePayoutAccountChange('mtn', `${mtnCountryCode}${e.target.value}`)}
+                                        value={mtnNumber}
+                                        onChange={(e) => handlePayoutAccountChange('mtn', e.target.value)}
                                     />
                                 </div>
                             </div>
@@ -124,8 +135,8 @@ export function PaymentsSettings() {
                                     <Input 
                                         type="tel" 
                                         placeholder="702 987654"
-                                        value={settings.payoutAccounts?.airtel?.replace(airtelCountryCode, '') || ''}
-                                        onChange={(e) => handlePayoutAccountChange('airtel', `${airtelCountryCode}${e.target.value}`)}
+                                        value={airtelNumber}
+                                        onChange={(e) => handlePayoutAccountChange('airtel', e.target.value)}
                                     />
                                 </div>
                             </div>
