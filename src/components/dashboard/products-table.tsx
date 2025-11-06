@@ -31,10 +31,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
-import type { Product } from '@/lib/types';
+import type { Product, Category } from '@/lib/types';
 import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { getCategories } from '@/services/categories';
 
 const productStatuses = [
     { value: 'published', label: 'Published', icon: PackageCheck },
@@ -204,6 +205,9 @@ const getColumns = (
           </Button>
         );
       },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
   },
   {
     id: 'actions',
@@ -278,6 +282,15 @@ type ProductsTableProps = {
 export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [categories, setCategories] = React.useState<Category[]>([]);
+
+  React.useEffect(() => {
+    async function loadCategories() {
+        const data = await getCategories();
+        setCategories(data);
+    }
+    loadCategories();
+  }, [])
 
   const canEdit = user?.permissions.products.edit ?? false;
   const canDelete = user?.permissions.products.delete ?? false;
@@ -321,6 +334,10 @@ export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) 
         description: "The product has been restored to 'Draft' status.",
     });
   }
+  
+  const categoryOptions = React.useMemo(() => {
+    return categories.map(c => ({ value: c.name, label: c.name }));
+  }, [categories]);
 
   const columns = React.useMemo(() => getColumns(archiveProduct, unarchiveProduct, canEdit, canDelete), [setData, canEdit, canDelete]);
 
@@ -331,7 +348,8 @@ export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) 
         isLoading={isLoading}
         filters={[
           { columnId: 'status', title: 'Status', options: productStatuses },
-          { columnId: 'productType', title: 'Type', options: productTypes }
+          { columnId: 'productType', title: 'Type', options: productTypes },
+          { columnId: 'category', title: 'Category', options: categoryOptions },
         ]}
         emptyState={{
             icon: Package,
