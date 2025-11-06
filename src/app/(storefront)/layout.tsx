@@ -37,7 +37,7 @@ export default function StorefrontLayout({
               <div className="space-y-2">
                   <h4 className="font-semibold">Shop</h4>
                   <ul className="space-y-1 text-sm text-muted-foreground">
-                      <li><Link href="/" className="hover:text-primary">All Products</Link></li>
+                      <li><Link href="/store" className="hover:text-primary">All Products</Link></li>
                   </ul>
               </div>
               <div className="space-y-2">
@@ -60,5 +60,3 @@ export default function StorefrontLayout({
     </CartProvider>
   );
 }
-
-    

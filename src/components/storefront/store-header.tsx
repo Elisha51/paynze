@@ -29,7 +29,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
     return (
          <header className="sticky top-0 z-40 w-full border-b bg-background">
             <div className="container flex h-16 items-center gap-4">
-                <Link href="/" className="hidden items-center gap-2 sm:flex">
+                <Link href="/store" className="hidden items-center gap-2 sm:flex">
                     <ShoppingCart className="h-6 w-6 text-primary" />
                     <span className="font-bold text-lg">{settings?.businessName || "Your Store"}</span>
                 </Link>

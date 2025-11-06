@@ -30,7 +30,7 @@ export function ProductCard({ product }: ProductCardProps) {
 
   return (
     <Card className="overflow-hidden transition-all group relative">
-      <Link href={`/product/${product.sku}`} className="block">
+      <Link href={`/store/product/${product.sku}`} className="block">
         <CardContent className="p-0">
           <div className="relative aspect-square w-full">
             <Image
