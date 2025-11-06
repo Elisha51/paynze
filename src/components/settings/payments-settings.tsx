@@ -12,15 +12,21 @@ import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { getCountryList } from '@/services/countries';
 
+const initialSettings: Partial<OnboardingFormData> = {
+    paymentOptions: { cod: true, mobileMoney: false },
+    payoutAccounts: { mtn: '', airtel: '' }
+};
+
 export function PaymentsSettings() {
-    const [settings, setSettings] = useState<Partial<OnboardingFormData>>({
-        paymentOptions: { cod: true, mobileMoney: false },
-        payoutAccounts: { mtn: '', airtel: '' }
-    });
+    const [settings, setSettings] = useState<Partial<OnboardingFormData>>(initialSettings);
     const { toast } = useToast();
     const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
-    const [mtnCountryCode, setMtnCountryCode] = useState('+256');
-    const [airtelCountryCode, setAirtelCountryCode] = useState('+256');
+    
+    // Derived state for country codes to avoid complex logic in useEffect dependencies
+    const mtnCountryCode = settings.payoutAccounts?.mtn?.match(/^\+\d+/)?.[0] || '+256';
+    const airtelCountryCode = settings.payoutAccounts?.airtel?.match(/^\+\d+/)?.[0] || '+256';
+    
+    // Local state for input fields to avoid controlled/uncontrolled issues
     const [mtnNumber, setMtnNumber] = useState('');
     const [airtelNumber, setAirtelNumber] = useState('');
 
@@ -28,16 +34,26 @@ export function PaymentsSettings() {
         const data = localStorage.getItem('onboardingData');
         if (data) {
             const parsedData = JSON.parse(data);
-            setSettings(prev => ({...prev, ...parsedData}));
-            setMtnNumber(parsedData.payoutAccounts?.mtn?.replace(mtnCountryCode, '') || '');
-            setAirtelNumber(parsedData.payoutAccounts?.airtel?.replace(airtelCountryCode, '') || '');
+            // Deep merge to ensure all keys are present
+            setSettings(prev => ({
+                ...prev,
+                ...parsedData,
+                paymentOptions: { ...prev.paymentOptions, ...parsedData.paymentOptions },
+                payoutAccounts: { ...prev.payoutAccounts, ...parsedData.payoutAccounts },
+            }));
+
+            // Initialize local input state from loaded data
+            const loadedMtnCode = parsedData.payoutAccounts?.mtn?.match(/^\+\d+/)?.[0] || '+256';
+            const loadedAirtelCode = parsedData.payoutAccounts?.airtel?.match(/^\+\d+/)?.[0] || '+256';
+            setMtnNumber(parsedData.payoutAccounts?.mtn?.replace(loadedMtnCode, '') || '');
+            setAirtelNumber(parsedData.payoutAccounts?.airtel?.replace(loadedAirtelCode, '') || '');
         }
         async function loadCountries() {
             const countryList = await getCountryList();
             setCountries(countryList);
         }
         loadCountries();
-    }, [mtnCountryCode, airtelCountryCode]);
+    }, []);
 
     const handleSwitchChange = (id: keyof OnboardingFormData['paymentOptions'], checked: boolean) => {
         setSettings(prev => ({...prev, paymentOptions: { ...prev.paymentOptions, [id]: checked } as OnboardingFormData['paymentOptions'] }));
@@ -56,6 +72,17 @@ export function PaymentsSettings() {
             payoutAccounts: {
                 ...(prev.payoutAccounts || {}),
                 [provider]: `${countryCode}${numberValue}`
+            }
+        }));
+    }
+
+    const handleCountryCodeChange = (provider: 'mtn' | 'airtel', newCode: string) => {
+        const numberValue = provider === 'mtn' ? mtnNumber : airtelNumber;
+        setSettings(prev => ({
+            ...prev,
+            payoutAccounts: {
+                ...(prev.payoutAccounts || {}),
+                [provider]: `${newCode}${numberValue}`
             }
         }));
     }
@@ -105,7 +132,7 @@ export function PaymentsSettings() {
                             <div className="space-y-2">
                                 <Label>MTN Mobile Money Number</Label>
                                 <div className="flex items-center gap-2">
-                                    <Select value={mtnCountryCode} onValueChange={setMtnCountryCode}>
+                                    <Select value={mtnCountryCode} onValueChange={(v) => handleCountryCodeChange('mtn', v)}>
                                     <SelectTrigger className="w-[120px]">
                                         <SelectValue placeholder="Code" />
                                     </SelectTrigger>
@@ -124,7 +151,7 @@ export function PaymentsSettings() {
                             <div className="space-y-2">
                                 <Label>Airtel Money Number</Label>
                                 <div className="flex items-center gap-2">
-                                    <Select value={airtelCountryCode} onValueChange={setAirtelCountryCode}>
+                                    <Select value={airtelCountryCode} onValueChange={(v) => handleCountryCodeChange('airtel', v)}>
                                     <SelectTrigger className="w-[120px]">
                                         <SelectValue placeholder="Code" />
                                     </SelectTrigger>
