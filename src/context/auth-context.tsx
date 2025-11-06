@@ -30,14 +30,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const roles = await getRoles();
     const userRole = roles.find(r => r.name === staffMember.role);
     
-    // Simulate fetching the tenant's plan from their configuration.
-    // For this prototype, we'll get it from localStorage or default to a plan.
+    const isDevMode = process.env.NODE_ENV === 'development';
     const onboardingDataRaw = localStorage.getItem('onboardingData');
-    const plan = onboardingDataRaw ? (JSON.parse(onboardingDataRaw) as OnboardingFormData).plan || 'Growth' : 'Growth';
+    const basePlan = onboardingDataRaw ? (JSON.parse(onboardingDataRaw) as OnboardingFormData).plan || 'Growth' : 'Growth';
+    const plan = isDevMode ? 'Enterprise' : basePlan;
 
     if (userRole) {
       setUser({ ...staffMember, permissions: userRole.permissions, plan });
     } else {
+      // Fallback for roles not explicitly defined (e.g., dynamic roles)
+      // This is a sensible default for a production environment.
       const defaultRole = roles.find(r => r.name === 'Sales Agent');
       setUser({ ...staffMember, permissions: defaultRole!.permissions, plan });
     }

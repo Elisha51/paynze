@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import Link from 'next/link';
@@ -80,6 +79,7 @@ export default function AppSidebar({ onboardingData, isDevMode }: AppSidebarProp
                 <ShoppingCart className="w-8 h-8 text-primary shrink-0" />
                 <div className={cn("flex flex-col transition-opacity duration-300", state === 'collapsed' && 'opacity-0 w-0')}>
                     <h2 className="text-lg font-semibold tracking-tight text-sidebar-foreground whitespace-nowrap">{onboardingData?.businessName || 'Paynze'}</h2>
+                    {isDevMode && <Badge variant="destructive" className="w-fit">DEV</Badge>}
                 </div>
             </Link>
         </SidebarHeader>
