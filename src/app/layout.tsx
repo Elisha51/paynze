@@ -46,12 +46,15 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
 
     const onboardingData = localStorage.getItem('onboardingData');
     const loggedInUser = localStorage.getItem('loggedInUserId');
-    const publicPaths = ['/', '/get-started', '/login'];
+    const publicPaths = ['/', '/get-started', '/login', '/store', '/affiliate-signup', '/affiliate/login'];
 
-    if (!onboardingData && !publicPaths.includes(pathname)) {
-        router.push('/');
+    if (
+      !onboardingData &&
+      !publicPaths.some(p => pathname.startsWith(p))
+    ) {
+      router.push('/');
     } else if (onboardingData && !loggedInUser && pathname.startsWith('/dashboard')) {
-        router.push('/login');
+      router.push('/login');
     }
 
     window.addEventListener('theme-changed', applyTheme);
