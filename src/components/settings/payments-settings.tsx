@@ -19,79 +19,41 @@ const initialSettings: Partial<OnboardingFormData> = {
 
 export function PaymentsSettings() {
     const [settings, setSettings] = useState<Partial<OnboardingFormData>>(initialSettings);
-    const { toast } = useToast();
     const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
-    
-    const [mtnCountryCode, setMtnCountryCode] = useState('+256');
-    const [airtelCountryCode, setAirtelCountryCode] = useState('+256');
-    
-    const [mtnNumber, setMtnNumber] = useState('');
-    const [airtelNumber, setAirtelNumber] = useState('');
+    const { toast } = useToast();
 
     useEffect(() => {
-        const data = localStorage.getItem('onboardingData');
-        if (data) {
-            const parsedData = JSON.parse(data);
-            setSettings(prev => ({
-                ...prev,
-                ...parsedData,
-                paymentOptions: { ...initialSettings.paymentOptions, ...parsedData.paymentOptions },
-                payoutAccounts: { ...initialSettings.payoutAccounts, ...parsedData.payoutAccounts },
-            }));
-
-            const savedMtn = parsedData.payoutAccounts?.mtn || '';
-            const detectedMtnCode = countries.find(c => savedMtn.startsWith(c.dialCode));
-            if (detectedMtnCode) {
-                setMtnCountryCode(detectedMtnCode.dialCode);
-                setMtnNumber(savedMtn.substring(detectedMtnCode.dialCode.length));
-            } else {
-                setMtnNumber(savedMtn);
-            }
-
-            const savedAirtel = parsedData.payoutAccounts?.airtel || '';
-            const detectedAirtelCode = countries.find(c => savedAirtel.startsWith(c.dialCode));
-            if (detectedAirtelCode) {
-                setAirtelCountryCode(detectedAirtelCode.dialCode);
-                setAirtelNumber(savedAirtel.substring(detectedAirtelCode.dialCode.length));
-            } else {
-                setAirtelNumber(savedAirtel);
-            }
-        }
-    }, [countries]);
-
-    useEffect(() => {
-        async function loadCountries() {
+        async function loadData() {
             const countryList = await getCountryList();
             setCountries(countryList);
+
+            const data = localStorage.getItem('onboardingData');
+            if (data) {
+                const parsedData = JSON.parse(data);
+                setSettings(prev => ({
+                    ...prev,
+                    ...parsedData,
+                    paymentOptions: { ...initialSettings.paymentOptions, ...parsedData.paymentOptions },
+                    payoutAccounts: { ...initialSettings.payoutAccounts, ...parsedData.payoutAccounts },
+                }));
+            }
         }
-        loadCountries();
+        loadData();
     }, []);
 
     const handleSwitchChange = (id: keyof OnboardingFormData['paymentOptions'], checked: boolean) => {
         setSettings(prev => ({...prev, paymentOptions: { ...prev.paymentOptions, [id]: checked } as OnboardingFormData['paymentOptions'] }));
     };
-
-    const handleMtnNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const number = e.target.value;
-        setMtnNumber(number);
-        setSettings(prev => ({...prev, payoutAccounts: {...prev.payoutAccounts, mtn: `${mtnCountryCode}${number}`}}));
-    }
     
-    const handleAirtelNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const number = e.target.value;
-        setAirtelNumber(number);
-        setSettings(prev => ({...prev, payoutAccounts: {...prev.payoutAccounts, airtel: `${airtelCountryCode}${number}`}}));
-    }
-
-    const handleMtnCodeChange = (code: string) => {
-        setMtnCountryCode(code);
-        setSettings(prev => ({...prev, payoutAccounts: {...prev.payoutAccounts, mtn: `${code}${mtnNumber}`}}));
-    }
-    
-    const handleAirtelCodeChange = (code: string) => {
-        setAirtelCountryCode(code);
-        setSettings(prev => ({...prev, payoutAccounts: {...prev.payoutAccounts, airtel: `${code}${airtelNumber}`}}));
-    }
+    const handlePayoutAccountChange = (provider: 'mtn' | 'airtel', value: string) => {
+        setSettings(prev => ({
+            ...prev, 
+            payoutAccounts: {
+                ...prev.payoutAccounts, 
+                [provider]: value
+            }
+        }));
+    };
 
     const handleSave = () => {
         localStorage.setItem('onboardingData', JSON.stringify(settings));
@@ -135,43 +97,25 @@ export function PaymentsSettings() {
                             <CardDescription>Specify the mobile money accounts where you will receive your funds.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-6">
-                            <div className="space-y-2">
-                                <Label>MTN Mobile Money Number</Label>
-                                <div className="flex items-center gap-2">
-                                    <Select value={mtnCountryCode} onValueChange={handleMtnCodeChange}>
-                                    <SelectTrigger className="w-[120px]">
-                                        <SelectValue placeholder="Code" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-                                    </SelectContent>
-                                    </Select>
-                                    <Input 
-                                        type="tel" 
-                                        placeholder="772 123456" 
-                                        value={mtnNumber}
-                                        onChange={handleMtnNumberChange}
-                                    />
-                                </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="mtn">MTN Mobile Money Number</Label>
+                                <Input 
+                                    id="mtn"
+                                    type="tel" 
+                                    placeholder="+256772123456" 
+                                    value={settings.payoutAccounts?.mtn || ''}
+                                    onChange={(e) => handlePayoutAccountChange('mtn', e.target.value)}
+                                />
                             </div>
                             <div className="space-y-2">
-                                <Label>Airtel Money Number</Label>
-                                <div className="flex items-center gap-2">
-                                    <Select value={airtelCountryCode} onValueChange={handleAirtelCodeChange}>
-                                    <SelectTrigger className="w-[120px]">
-                                        <SelectValue placeholder="Code" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-                                    </SelectContent>
-                                    </Select>
-                                    <Input 
-                                        type="tel" 
-                                        placeholder="702 987654"
-                                        value={airtelNumber}
-                                        onChange={handleAirtelNumberChange}
-                                    />
-                                </div>
+                                <Label htmlFor="airtel">Airtel Money Number</Label>
+                                <Input
+                                    id="airtel"
+                                    type="tel" 
+                                    placeholder="+256702987654"
+                                    value={settings.payoutAccounts?.airtel || ''}
+                                    onChange={(e) => handlePayoutAccountChange('airtel', e.target.value)}
+                                />
                             </div>
                         </CardContent>
                         <CardFooter>
