@@ -1,4 +1,3 @@
-
 import Link from 'next/link';
 import { ShoppingCart } from 'lucide-react';
 
@@ -9,7 +8,7 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
                 <div className="container flex h-14 items-center">
                 <Link href="/" className="flex items-center space-x-2">
                     <ShoppingCart className="h-6 w-6 text-primary" />
-                    <span className="font-bold text-xl font-headline">Paynze</span>
+                    <span className="font-bold text-xl font-headline">Paynze Merchant</span>
                 </Link>
                 </div>
             </header>
@@ -19,5 +18,3 @@ export function AuthLayout({ children }: { children: React.ReactNode }) {
         </div>
     )
 }
-
-    

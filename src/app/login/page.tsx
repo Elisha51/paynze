@@ -48,9 +48,9 @@ export default function LoginPage() {
     <AuthLayout>
       <Card className="mx-auto max-w-sm">
         <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
+          <CardTitle className="text-2xl">Merchant Login</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your email below to login to your dashboard.
           </CardDescription>
         </CardHeader>
         <CardContent>

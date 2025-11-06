@@ -1,4 +1,3 @@
-
 'use client';
 import { ShoppingCart, User, Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
