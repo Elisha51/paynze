@@ -1,4 +1,5 @@
 
+
 'use client';
 import {
   DropdownMenu,
@@ -64,7 +65,7 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
 
       <div className="flex items-center gap-2">
         <Button asChild variant="ghost" size="icon" className="rounded-full relative">
-            <Link href="/dashboard/my-tasks">
+            <Link href="/dashboard/dashboard/my-tasks">
                 <ClipboardCheck className="h-5 w-5" />
                 {taskCount > 0 && (
                     <Badge 
@@ -93,8 +94,8 @@ export default function AppHeader({ onboardingData }: AppHeaderProps) {
             <DropdownMenuContent align="end">
             <DropdownMenuLabel>{user?.name || 'My Account'}</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
-            <DropdownMenuItem asChild><Link href="/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
+            <DropdownMenuItem asChild><Link href="/dashboard/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
             <DropdownMenuItem>Support</DropdownMenuItem>
