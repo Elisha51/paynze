@@ -210,6 +210,12 @@ const paymentMethods = [
     { value: 'Cash on Delivery', label: 'Cash on Delivery' },
 ];
 
+const channels = [
+    { value: 'Online', label: 'Online' },
+    { value: 'Manual', label: 'Manual' },
+    { value: 'POS', label: 'POS' },
+];
+
 
 const getColumns = (
   onUpdate: (updatedOrder: Order) => void,
@@ -309,6 +315,17 @@ const getColumns = (
         const method = row.original.payment?.method;
         if (!method) return false;
         return value.includes(method)
+    },
+  },
+  {
+    accessorKey: 'channel',
+    header: 'Channel',
+    cell: ({ row }) => {
+        const channel = row.getValue('channel') as string;
+        return <Badge variant="outline">{channel}</Badge>
+    },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
     },
   },
   {
@@ -481,6 +498,7 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
           { columnId: 'status', title: 'Status', options: orderStatuses },
           { columnId: 'fulfillmentMethod', title: 'Fulfillment', options: fulfillmentMethods },
           { columnId: 'paymentMethod', title: 'Payment', options: paymentMethods },
+          { columnId: 'channel', title: 'Channel', options: channels },
       ]}
       emptyState={{
         icon: ShoppingCart,
