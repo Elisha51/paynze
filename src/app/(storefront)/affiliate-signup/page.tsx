@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -10,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { addAffiliate, getAffiliates } from '@/services/affiliates';
 import { OnboardingFormData } from '@/lib/types';
 import { StoreHeader } from '@/components/storefront/store-header';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCountryList } from '@/services/countries';
+
 
 export default function AffiliateSignupPage() {
   const [name, setName] = useState('');
@@ -18,12 +20,19 @@ export default function AffiliateSignupPage() {
   const { toast } = useToast();
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+  const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+  const [countryCode, setCountryCode] = useState('+256');
 
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
     if (data) {
         setSettings(JSON.parse(data));
     }
+    async function loadCountries() {
+        const countryList = await getCountryList();
+        setCountries(countryList);
+    }
+    loadCountries();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -44,7 +53,7 @@ export default function AffiliateSignupPage() {
     try {
         await addAffiliate({
             name,
-            contact,
+            contact: `${countryCode}${contact}`,
             uniqueId: uniqueId.toUpperCase(),
             status: 'Pending',
             linkClicks: 0,
@@ -99,8 +108,18 @@ export default function AffiliateSignupPage() {
                     <Input id="name" value={name} onChange={(e) => setName(e.target.value)} required />
                     </div>
                     <div className="grid gap-2">
-                    <Label htmlFor="contact">Payout Contact (Mobile Money #)</Label>
-                    <Input id="contact" value={contact} onChange={(e) => setContact(e.target.value)} required />
+                      <Label htmlFor="contact">Payout Contact (Mobile Money #)</Label>
+                       <div className="flex items-center gap-2">
+                          <Select value={countryCode} onValueChange={setCountryCode}>
+                            <SelectTrigger className="w-[120px]">
+                              <SelectValue placeholder="Code" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                            </SelectContent>
+                          </Select>
+                          <Input id="contact" value={contact} onChange={(e) => setContact(e.target.value)} required type="tel" />
+                      </div>
                     </div>
                     <div className="grid gap-2">
                     <Label htmlFor="uniqueId">Desired Unique Code</Label>

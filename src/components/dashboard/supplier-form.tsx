@@ -1,4 +1,3 @@
-
 'use client';
 import { ArrowLeft, Save, Check, ChevronsUpDown, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,6 +37,7 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
   const [supplier, setSupplier] = useState<Partial<Supplier>>(initialSupplier || emptySupplier);
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [countryCode, setCountryCode] = useState('+256');
   const { toast } = useToast();
   const router = useRouter();
   const { user } = useAuth();
@@ -142,7 +142,7 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
            <div className="space-y-2">
               <Label htmlFor="phone">Phone Number</Label>
               <div className="flex items-center gap-2">
-                <Select defaultValue="+256">
+                <Select value={countryCode} onValueChange={setCountryCode}>
                   <SelectTrigger className="w-[120px]">
                     <SelectValue placeholder="Code" />
                   </SelectTrigger>
@@ -164,14 +164,17 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
                       <Button
                           variant="outline"
                           role="combobox"
-                          className="w-full justify-between"
+                          className="w-full justify-between h-auto min-h-10"
                       >
-                          <span className="truncate">
-                              {supplier.productsSupplied && supplier.productsSupplied.length > 0 
-                                  ? `${supplier.productsSupplied.length} selected`
+                          <div className="flex flex-wrap gap-1">
+                              {(supplier.productsSupplied || []).length > 0 
+                                  ? (supplier.productsSupplied || []).map(sku => {
+                                      const product = products.find(p => p.sku === sku);
+                                      return <Badge key={sku} variant="secondary">{product?.name || sku}</Badge>;
+                                  })
                                   : "Select products..."
                               }
-                          </span>
+                          </div>
                           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                   </PopoverTrigger>
@@ -187,8 +190,7 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
                                   onSelect={() => handleProductSelect(product.sku || '')}
                               >
                                   <Check
-                                  className={cn(
-                                      "mr-2 h-4 w-4",
+                                  className={cn("mr-2 h-4 w-4",
                                       (supplier.productsSupplied || []).includes(product.sku || '') ? "opacity-100" : "opacity-0"
                                   )}
                                   />
@@ -199,19 +201,6 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
                       </Command>
                   </PopoverContent>
               </Popover>
-               <div className="flex flex-wrap gap-1 pt-1">
-                {(supplier.productsSupplied || []).map(sku => {
-                  const product = products.find(p => p.sku === sku);
-                  return product ? (
-                      <Badge key={sku} variant="secondary" className="flex items-center gap-1">
-                      {product.name}
-                      <button onClick={() => handleProductSelect(sku)} className="rounded-full hover:bg-muted-foreground/20">
-                          <X className="h-3 w-3"/>
-                      </button>
-                      </Badge>
-                  ) : null;
-                })}
-              </div>
           </div>
         </CardContent>
       </Card>

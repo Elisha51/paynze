@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -14,6 +13,8 @@ import { FileUploader } from '../ui/file-uploader';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
+import { getCountryList } from '@/services/countries';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 
 type StaffProfileFormProps = {
@@ -28,6 +29,16 @@ export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = fals
     const { toast } = useToast();
     const [imageToCrop, setImageToCrop] = useState<string | null>(null);
     const [crop, setCrop] = useState<Crop>();
+    const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+    const [countryCode, setCountryCode] = useState('+256');
+
+    useState(() => {
+        async function loadCountries() {
+            const countryList = await getCountryList();
+            setCountries(countryList);
+        }
+        loadCountries();
+    }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -131,7 +142,17 @@ export function StaffProfileForm({ staff, onSave, onCancel, isSelfEditing = fals
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="phone">Phone Number</Label>
-                        <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} />
+                         <div className="flex items-center gap-2">
+                            <Select value={countryCode} onValueChange={setCountryCode}>
+                              <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder="Code" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                            <Input id="phone" type="tel" value={formData.phone || ''} onChange={handleInputChange} />
+                        </div>
                     </div>
                     
                     <div className="flex gap-2">

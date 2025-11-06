@@ -1,6 +1,3 @@
-
-
-
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -185,6 +182,7 @@ export type Order = {
     customerId: string;
     customerName: string;
     customerEmail: string;
+    customerPhone?: string;
     date: string;
     status: 'Awaiting Payment' | 'Paid' | 'Ready for Pickup' | 'Shipped' | 'Delivered' | 'Picked Up' | 'Cancelled';
     fulfillmentMethod: 'Delivery' | 'Pickup';

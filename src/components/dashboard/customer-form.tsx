@@ -1,4 +1,3 @@
-
 'use client';
 import { ArrowLeft, Save, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -132,7 +130,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                  <div className="flex items-center gap-2">
-                    <Select defaultValue="+254">
+                    <Select defaultValue="+256">
                     <SelectTrigger className="w-[120px]">
                         <SelectValue placeholder="Code" />
                     </SelectTrigger>
@@ -149,7 +147,6 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
           <Card>
             <CardHeader>
                 <CardTitle>Shipping Information</CardTitle>
-                <CardDescription>Primary shipping address for the customer.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                  <div className="space-y-2">

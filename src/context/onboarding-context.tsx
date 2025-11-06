@@ -22,6 +22,10 @@ export type OnboardingFormData = {
     cod: boolean;
     mobileMoney: boolean;
   };
+  payoutAccounts: {
+    mtn?: string;
+    airtel?: string;
+  };
   delivery: {
     pickup: boolean;
     address: string;
@@ -57,6 +61,10 @@ const initialFormData: OnboardingFormData = {
   paymentOptions: {
     cod: true,
     mobileMoney: false,
+  },
+  payoutAccounts: {
+    mtn: '',
+    airtel: '',
   },
   delivery: {
     pickup: false,

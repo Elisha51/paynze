@@ -29,11 +29,12 @@ export default function Step1BusinessInfo() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    if (id === 'contactPhone') {
-        setFormData(prev => ({ ...prev, [id]: `${countryCode}${value}`}));
-    } else {
-        setFormData(prev => ({ ...prev, [id]: value }));
-    }
+    setFormData(prev => ({ ...prev, [id]: value }));
+  };
+  
+  const handlePhoneInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setFormData(prev => ({ ...prev, contactPhone: `${countryCode}${value}`}));
   };
 
   const handleRadioChange = (value: string) => {
@@ -93,7 +94,7 @@ export default function Step1BusinessInfo() {
                 {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
               </SelectContent>
             </Select>
-            <Input id="contactPhone" type="tel" placeholder="772 123456" onChange={handleInputChange} />
+            <Input id="contactPhone" type="tel" placeholder="772 123456" onChange={handlePhoneInputChange} />
           </div>
         </div>
       </CardContent>

@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -14,6 +13,7 @@ import { FileUploader } from '../ui/file-uploader';
 export function GeneralSettings() {
     const [settings, setSettings] = useState<Partial<OnboardingFormData>>({});
     const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+    const [countryCode, setCountryCode] = useState('+256');
     const { toast } = useToast();
 
     useEffect(() => {
@@ -82,7 +82,17 @@ export function GeneralSettings() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="contactPhone">Contact Phone</Label>
-                        <Input id="contactPhone" type="tel" value={settings.contactPhone || ''} onChange={handleInputChange} />
+                        <div className="flex items-center gap-2">
+                            <Select value={countryCode} onValueChange={setCountryCode}>
+                              <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder="Code" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                              </SelectContent>
+                            </Select>
+                            <Input id="contactPhone" type="tel" value={settings.contactPhone || ''} onChange={handleInputChange} />
+                        </div>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="country">Country / Region</Label>

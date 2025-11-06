@@ -1,6 +1,5 @@
-
 'use client';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCart } from '@/context/cart-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +14,8 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getCountryList } from '@/services/countries';
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, currency, clearCart } = useCart();
@@ -24,15 +25,22 @@ export default function CheckoutPage() {
   const [shippingInfo, setShippingInfo] = useState({ street: '', city: '', country: 'Uganda' });
   const [paymentMethod, setPaymentMethod] = useState<PaymentDetails['method']>('Cash on Delivery');
   const [isLoading, setIsLoading] = useState(false);
+  const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+  const [countryCode, setCountryCode] = useState('+256');
   
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
 
-  useState(() => {
+  useEffect(() => {
     const data = localStorage.getItem('onboardingData');
     if (data) {
         setSettings(JSON.parse(data));
     }
-  });
+     async function loadCountries() {
+        const countryList = await getCountryList();
+        setCountries(countryList);
+    }
+    loadCountries();
+  }, []);
   
   const shippingFee = Number(settings?.delivery.deliveryFee) || 0;
   const total = cartTotal + shippingFee;
@@ -44,6 +52,7 @@ export default function CheckoutPage() {
             customerId: `cust-${Date.now()}`, // Temporary customer ID
             customerName: customerInfo.name,
             customerEmail: customerInfo.email,
+            customerPhone: `${countryCode}${customerInfo.phone}`,
             date: new Date().toISOString(),
             status: 'Awaiting Payment' as const,
             fulfillmentMethod: 'Delivery' as const,
@@ -115,7 +124,17 @@ export default function CheckoutPage() {
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="phone">Phone Number</Label>
-                                <Input id="phone" type="tel" value={customerInfo.phone} onChange={(e) => setCustomerInfo(p => ({...p, phone: e.target.value}))} />
+                                <div className="flex items-center gap-2">
+                                    <Select value={countryCode} onValueChange={setCountryCode}>
+                                      <SelectTrigger className="w-[120px]">
+                                        <SelectValue placeholder="Code" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                                      </SelectContent>
+                                    </Select>
+                                    <Input id="phone" type="tel" value={customerInfo.phone} onChange={(e) => setCustomerInfo(p => ({...p, phone: e.target.value}))} />
+                                </div>
                             </div>
                         </div>
                     </CardContent>
