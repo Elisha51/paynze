@@ -14,15 +14,16 @@ import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
-import { ClipboardCheck, ShoppingCart } from 'lucide-react';
+import { ClipboardCheck, Search } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import React, { useEffect, useState } from 'react';
 import { getStaffOrders } from '@/services/staff';
-import type { Order, Staff } from '@/lib/types';
+import type { Order } from '@/lib/types';
 import { getTodos } from '@/services/todos';
 import { useAuth } from '@/context/auth-context';
 import { getInitials } from '@/lib/utils';
-
+import { useSearch } from '@/context/search-context';
+import { Input } from '../ui/input';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
@@ -32,6 +33,7 @@ type AppHeaderProps = {
 export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps) {
     const { user } = useAuth();
     const [taskCount, setTaskCount] = useState(0);
+    const { searchQuery, setSearchQuery } = useSearch();
 
     useEffect(() => {
         async function loadTaskCount() {
@@ -55,20 +57,27 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
         }
         return name.substring(0, 2);
     }
-    
-    const businessName = onboardingData?.businessName || 'Paynze';
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
       <SidebarTrigger className="md:hidden" />
       
       <div className="w-full flex-1">
-        {/* Search form removed */}
+        <div className="relative hidden md:block">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+                type="search"
+                placeholder="Search everything..."
+                className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
         <Button asChild variant="ghost" size="icon" className="rounded-full relative">
-            <Link href="/dashboard/dashboard/my-tasks">
+            <Link href="/dashboard/my-tasks">
                 <ClipboardCheck className="h-5 w-5" />
                 {taskCount > 0 && (
                     <Badge 
