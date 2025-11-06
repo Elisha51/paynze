@@ -1,3 +1,4 @@
+
 'use client';
 
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -11,12 +12,16 @@ import { PlusCircle } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 import { OrdersDeliveriesTable } from '@/components/dashboard/orders-deliveries-table';
 import { getStaff } from '@/services/staff';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
+import { OrderAnalyticsReport } from '@/components/dashboard/analytics/order-analytics-report';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-orders');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
   
   const canCreate = user?.permissions.orders.create;
@@ -38,7 +43,20 @@ export default function OrdersPage() {
   const tabs = [
     { value: 'all-orders', label: 'All Orders' },
     { value: 'deliveries', label: 'Deliveries' },
+    { value: 'analytics', label: 'Analytics' },
   ];
+  
+  const ctaContent = activeTab === 'analytics'
+    ? <DateRangePicker date={dateRange} setDate={setDateRange} />
+    : ( canCreate ? (
+         <Button asChild>
+            <Link href="/dashboard/orders/add">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Create Order
+            </Link>
+        </Button>
+      ) : null
+    );
 
   return (
     <DashboardPageLayout 
@@ -46,16 +64,7 @@ export default function OrdersPage() {
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        cta={
-            canCreate ? (
-                 <Button asChild>
-                    <Link href="/dashboard/orders/add">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Create Order
-                    </Link>
-                </Button>
-            ) : null
-        }
+        cta={ctaContent}
     >
         <DashboardPageLayout.TabContent value="all-orders">
             <DashboardPageLayout.Content>
@@ -65,6 +74,11 @@ export default function OrdersPage() {
         <DashboardPageLayout.TabContent value="deliveries">
             <DashboardPageLayout.Content>
                 <OrdersDeliveriesTable orders={orders} staff={staff} />
+            </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+         <DashboardPageLayout.TabContent value="analytics">
+            <DashboardPageLayout.Content>
+                <OrderAnalyticsReport orders={orders} dateRange={dateRange} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
