@@ -1,3 +1,4 @@
+
 'use client';
 import { ArrowLeft, Save, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -104,7 +105,6 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{initialCustomer ? 'Edit Customer' : 'Add New Customer'}</h1>
-          <p className="text-muted-foreground text-sm">{initialCustomer ? `Editing ${initialCustomer.name}` : 'Fill in the details to create a new customer profile.'}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
             <Button onClick={handleSave}>

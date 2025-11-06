@@ -85,7 +85,6 @@ export default function AddStaffPage() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Add New Staff Member</h1>
-                    <p className="text-muted-foreground">Invite a new member to your team.</p>
                 </div>
             </div>
             

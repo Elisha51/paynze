@@ -1,3 +1,4 @@
+
 'use client';
 import { ArrowLeft, Save, Check, ChevronsUpDown, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -110,7 +111,6 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
         </Button>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{initialSupplier ? 'Edit Supplier' : 'Add New Supplier'}</h1>
-          <p className="text-muted-foreground text-sm">{initialSupplier ? `Editing ${initialSupplier.name}` : 'Fill in the details to create a new supplier.'}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
             <Button onClick={handleSave}>

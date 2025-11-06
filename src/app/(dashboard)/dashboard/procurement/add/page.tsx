@@ -92,7 +92,6 @@ export default function AddPurchaseOrderPage() {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Create Purchase Order</h1>
-                    <p className="text-muted-foreground">Build a new order to send to a supplier.</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                     <Button onClick={handleSave}>

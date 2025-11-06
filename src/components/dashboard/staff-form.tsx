@@ -286,7 +286,6 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
                 </Button>
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">Edit {staffMember.name}</h1>
-                    <p className="text-muted-foreground">Modify details and role-specific attributes.</p>
                 </div>
                 <div className="ml-auto">
                     <Button onClick={handleSaveChanges}>

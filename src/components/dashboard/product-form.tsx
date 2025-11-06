@@ -481,9 +481,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
           <h1 className="text-2xl font-bold tracking-tight">
             {initialProduct?.sku ? `Edit Product` : 'Add New Product'}
           </h1>
-          <p className="text-muted-foreground text-sm">
-            {initialProduct?.sku ? `Editing "${initialProduct.name}"` : 'Fill in the details below.'}
-          </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
             <Button onClick={handleSave} disabled={isSaving}>

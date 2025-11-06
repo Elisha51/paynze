@@ -85,7 +85,6 @@ export default function AddOrderPage() {
                 </Button>
                 <div>
                 <h1 className="text-2xl font-bold tracking-tight">Create Manual Order</h1>
-                <p className="text-muted-foreground">Build an order for a customer manually.</p>
                 </div>
                 <div className="ml-auto flex items-center gap-2">
                     <Button onClick={handleSave}>

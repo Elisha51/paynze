@@ -1,4 +1,5 @@
 
+
 'use client';
 import { ProductForm } from '@/components/dashboard/product-form';
 import { useSearchParams } from 'next/navigation';
