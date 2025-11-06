@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
-import type { OrderItem, Product, ProductVariant } from '@/lib/types';
+import type { OrderItem, Product, ProductVariant, OnboardingFormData } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
 export type CartItem = OrderItem & {
@@ -37,7 +37,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
      const onboardingDataRaw = localStorage.getItem('onboardingData');
     if (onboardingDataRaw) {
-        setCurrency(JSON.parse(onboardingDataRaw).currency || 'UGX');
+        const settings: OnboardingFormData = JSON.parse(onboardingDataRaw);
+        setCurrency(settings.currency || 'UGX');
     }
   }, []);
 

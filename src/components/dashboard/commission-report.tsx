@@ -19,9 +19,10 @@ type CommissionRow = {
   name: string;
   role: string;
   commission: number;
+  currency: string;
 };
 
-const getColumns = (currency: string, canEdit: boolean, payoutThreshold?: number): ColumnDef<CommissionRow>[] => [
+const getColumns = (canEdit: boolean, payoutThreshold?: number): ColumnDef<CommissionRow>[] => [
     {
     id: 'select',
     header: ({ table }) => (
@@ -85,6 +86,7 @@ const getColumns = (currency: string, canEdit: boolean, payoutThreshold?: number
         ),
         cell: ({ row }) => {
             const amount = parseFloat(row.getValue('commission'));
+            const currency = row.original.currency;
             const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
             return <div className="text-right font-bold text-primary">{formatted}</div>;
         },
@@ -140,6 +142,7 @@ export function CommissionReport({ type, title, description, staff, roles, order
     const { user } = useAuth();
 
     const canEditFinances = user?.permissions.finances.edit;
+    const currency = settings?.currency || 'UGX';
 
     useEffect(() => {
         const data = localStorage.getItem('onboardingData');
@@ -161,12 +164,13 @@ export function CommissionReport({ type, title, description, staff, roles, order
                 name: s.name,
                 role: s.role,
                 commission: totalUnpaid,
+                currency: s.currency || currency,
             }
         }).filter(s => s.commission > 0);
-    }, [staff, orders, roles, affiliateSettings]);
+    }, [staff, orders, roles, affiliateSettings, currency]);
     
     const payoutThreshold = type === 'affiliate' ? affiliateSettings?.payoutThreshold : undefined;
-    const columns = useMemo(() => getColumns(settings?.currency || 'UGX', !!canEditFinances, payoutThreshold), [settings?.currency, canEditFinances, payoutThreshold]);
+    const columns = useMemo(() => getColumns(!!canEditFinances, payoutThreshold), [canEditFinances, payoutThreshold]);
 
     const Icon = type === 'staff' ? User : Users;
 

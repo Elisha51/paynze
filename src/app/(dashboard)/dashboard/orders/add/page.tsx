@@ -25,7 +25,7 @@ import {
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Order, Product, Customer } from '@/lib/types';
+import type { Order, Product, Customer, OnboardingFormData } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { getCustomers } from '@/services/customers';
 
@@ -40,14 +40,22 @@ export default function AddOrderPage() {
     const [items, setItems] = useState<OrderItemForm[]>([{ productId: '', quantity: 1, price: 0 }]);
     const [products, setProducts] = useState<Product[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const router = useRouter();
     const { toast } = useToast();
 
     useEffect(() => {
         async function loadData() {
-            const [productsData, customersData] = await Promise.all([getProducts(), getCustomers()]);
+            const [productsData, customersData, settingsData] = await Promise.all([
+              getProducts(),
+              getCustomers(),
+              localStorage.getItem('onboardingData')
+            ]);
             setProducts(productsData);
             setCustomers(customersData);
+            if (settingsData) {
+                setSettings(JSON.parse(settingsData));
+            }
         }
         loadData();
     }, []);
@@ -71,6 +79,7 @@ export default function AddOrderPage() {
     const removeItem = (index: number) => setItems(items.filter((_, i) => i !== index));
 
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const currency = settings?.currency || 'UGX';
 
     const handleSave = () => {
         toast({ title: "Order Created", description: "The new manual order has been saved." });
@@ -128,7 +137,7 @@ export default function AddOrderPage() {
                              <Button variant="outline" onClick={addItem}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
                         </CardContent>
                         <CardFooter className="flex justify-end font-bold text-lg">
-                            Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(total)}
+                            Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(total)}
                         </CardFooter>
                     </Card>
                 </div>
