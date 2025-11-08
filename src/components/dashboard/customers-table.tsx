@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { PlusCircle, Send, Users } from 'lucide-react';
@@ -15,24 +14,20 @@ import { useAuth } from '@/context/auth-context';
 
 type MessageType = 'WhatsApp' | 'SMS' | null;
 
-export function CustomersTable({ columns: initialColumns, data, isLoading }: { columns: any[], data: Customer[], isLoading: boolean }) {
+export function CustomersTable({ data, setData, isLoading }: { data: Customer[], setData: React.Dispatch<React.SetStateAction<Customer[]>>, isLoading: boolean }) {
     const [messageTarget, setMessageTarget] = React.useState<{customer: Customer, type: MessageType} | null>(null);
     const [messageContent, setMessageContent] = React.useState('');
-    const [customers, setCustomers] = React.useState(data);
     const { toast } = useToast();
     const { user } = useAuth();
     
-    React.useEffect(() => {
-        setCustomers(data);
-    }, [data]);
-    
+    const canCreate = user?.permissions.customers.create;
     const canEdit = user?.permissions.customers.edit ?? false;
     const canDelete = user?.permissions.customers.delete ?? false;
 
     const handleDeleteCustomer = (customerId: string) => {
         // In a real app, call a service to delete the customer
         console.log("Deleting customer:", customerId);
-        setCustomers(prev => prev.filter(c => c.id !== customerId));
+        setData(prev => prev.filter(c => c.id !== customerId));
         toast({ title: "Customer Deleted", variant: "destructive" });
     };
 
@@ -63,7 +58,7 @@ export function CustomersTable({ columns: initialColumns, data, isLoading }: { c
     <>
     <DataTable
       columns={columns}
-      data={customers}
+      data={data}
       isLoading={isLoading}
       filters={[{
         columnId: 'customerGroup',
@@ -74,7 +69,7 @@ export function CustomersTable({ columns: initialColumns, data, isLoading }: { c
         icon: Users,
         title: "No Customers Yet",
         description: "You haven't added any customers. Add your first customer to get started.",
-        cta: (
+        cta: (canCreate &&
             <Button asChild>
                 <Link href="/dashboard/customers/add">
                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -101,9 +96,7 @@ export function CustomersTable({ columns: initialColumns, data, isLoading }: { c
                 />
             </div>
             <DialogFooter>
-                <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                </DialogClose>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
                 <Button onClick={handleSendMessage}>
                     <Send className="mr-2 h-4 w-4" />
                     Send Message

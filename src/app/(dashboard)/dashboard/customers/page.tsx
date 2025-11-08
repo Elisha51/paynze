@@ -1,13 +1,11 @@
 
-
 'use client';
 
 import { PlusCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CustomersTable } from '@/components/dashboard/customers-table';
-import { getCustomerColumns } from '@/components/dashboard/customers-columns';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import type { Customer } from '@/lib/types';
 import { getCustomers } from '@/services/customers';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -22,6 +20,7 @@ export default function CustomersPage() {
   const [activeTab, setActiveTab] = useState('all-customers');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
+  const canCreate = user?.permissions.customers.create;
 
   useEffect(() => {
     async function loadData() {
@@ -33,10 +32,6 @@ export default function CustomersPage() {
     loadData();
   }, []);
   
-  const canEdit = user?.permissions.customers.edit ?? false;
-  const canDelete = user?.permissions.customers.delete ?? false;
-  const columns = useMemo(() => getCustomerColumns(() => {}, canEdit, canDelete), [user, canEdit, canDelete]);
-
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },
     { value: 'analytics', label: 'Analytics' },
@@ -47,9 +42,11 @@ export default function CustomersPage() {
     : (
         <div className="flex gap-2">
             <Button variant="outline"><Send className="mr-2 h-4 w-4" /> Message</Button>
-            <Button asChild>
-                <Link href="/dashboard/customers/add"><PlusCircle className="mr-2 h-4 w-4" /> Add Customer</Link>
-            </Button>
+             {canCreate && (
+                <Button asChild>
+                    <Link href="/dashboard/customers/add"><PlusCircle className="mr-2 h-4 w-4" /> Add Customer</Link>
+                </Button>
+            )}
         </div>
       );
 
@@ -63,7 +60,7 @@ export default function CustomersPage() {
     >
       <DashboardPageLayout.TabContent value="all-customers">
         <DashboardPageLayout.Content>
-            <CustomersTable columns={columns} data={customers} isLoading={isLoading} />
+            <CustomersTable data={customers} setData={setCustomers} isLoading={isLoading} />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
       <DashboardPageLayout.TabContent value="analytics">
