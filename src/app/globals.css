@@ -11,19 +11,19 @@
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 221 83% 53%; /* Default: Blue */
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 151 63% 45%; /* Default: Green */
-    --accent-foreground: 210 40% 98%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 221 83% 53%;
+    --ring: 222.2 47.4% 11.2%;
     --radius: 0.5rem;
 
     --chart-1: 221 83% 53%;
@@ -42,28 +42,34 @@
     --sidebar-ring: 221 83% 53%;
   }
 
-  .theme-sunset {
-    --primary: 346 76% 47%; /* #e11d48 */
-    --accent: 330 84% 71%; /* #f472b6 */
-    --ring: 346 76% 47%;
+  .theme-minimal-retail {
+    --primary: 240 5.9% 10%;
+    --accent: 240 4.8% 95.9%;
+    --ring: 240 5.9% 10%;
   }
 
-  .theme-mint {
-    --primary: 142 71% 36%; /* #16a34a */
-    --accent: 145 63% 59%; /* #4ade80 */
-    --ring: 142 71% 36%;
+  .theme-modern-boutique {
+    --primary: 349 83% 60%;
+    --accent: 349 83% 90%;
+    --ring: 349 83% 60%;
   }
 
-  .theme-ocean {
-    --primary: 192 90% 36%; /* #0891b2 */
-    --accent: 187 82% 56%; /* #22d3ee */
-    --ring: 192 90% 36%;
+  .theme-catalog-pro {
+    --primary: 215 28% 17%;
+    --accent: 210 40% 96.1%;
+    --ring: 215 28% 17%;
   }
 
-  .theme-burgundy {
-    --primary: 292 68% 48%; /* #c026d3 */
-    --accent: 289 89% 73%; /* #e879f9 */
-    --ring: 292 68% 48%;
+  .theme-hybrid-commerce {
+    --primary: 142 76% 36%;
+    --accent: 142 76% 86%;
+    --ring: 142 76% 36%;
+  }
+  
+  .theme-express-vendor {
+    --primary: 38 92% 50%;
+    --accent: 48 96% 89%;
+    --ring: 38 92% 50%;
   }
 
   .dark {
@@ -128,3 +134,4 @@
       @apply text-primary-foreground bg-primary/80 rounded px-1 py-0.5;
   }
 }
+
