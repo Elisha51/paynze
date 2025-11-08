@@ -104,7 +104,7 @@ function initializeMockOrders(): Order[] {
             salesAgentId: 'aff-001', // Referred by Fatuma Asha
             salesAgentName: 'Fatuma Asha',
             date: '2024-07-21', 
-            status: 'Delivered', 
+            status: 'Delivered', _ts: 1, 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 1, price: 50000, category: 'Groceries' }],
             total: 50000,
@@ -119,7 +119,7 @@ function initializeMockOrders(): Order[] {
             salesAgentId: 'aff-001', // Referred by Fatuma Asha
             salesAgentName: 'Fatuma Asha',
             date: '2024-07-20', 
-            status: 'Picked Up', 
+            status: 'Picked Up', _ts: 1, 
             fulfillmentMethod: 'Pickup',
             items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 4, price: 30000, category: 'Fabrics' }],
             total: 120000,
@@ -353,7 +353,7 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
 export async function updateProductStock(
     sku: string, 
     quantityChange: number, 
-    type: 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage' | 'Reserve' | 'Un-reserve', 
+    type: StockAdjustment['type'], 
     reason: string
 ) {
     // This function now interacts with the product service, which is tenant-aware.
@@ -361,3 +361,5 @@ export async function updateProductStock(
     // and best kept within the `updateProduct` function itself.
     // For now, we will assume `updateProduct` can handle these granular adjustments.
 }
+
+    

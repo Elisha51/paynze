@@ -1,4 +1,5 @@
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -36,10 +37,11 @@ export type InventoryItem = {
 export type StockAdjustment = {
     id: string;
     date: string;
-    type: 'Initial Stock' | 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage' | 'Reserve' | 'Un-reserve';
+    type: 'Initial Stock' | 'Sale' | 'Return' | 'Manual Adjustment' | 'Damage' | 'Reserve' | 'Un-reserve' | 'Transfer';
     quantity: number; // Can be positive or negative
     reason?: string;
     channel?: 'Online' | 'In-Store' | 'Manual';
+    details?: string; // e.g. "From X to Y" for transfers, or "At Location X" for others
 };
 
 export type ProductOption = {
@@ -502,3 +504,5 @@ export type Affiliate = {
     paidCommission: number;
     payoutHistory?: Payout[];
 };
+
+    

@@ -18,12 +18,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import type { Product, InventoryItem } from '@/lib/types';
+import type { Product, InventoryItem, StockAdjustment } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Separator } from '../ui/separator';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
-import { ShoppingBasket, PackageCheck, Ban, Truck, Calendar as CalendarIcon } from 'lucide-react';
+import { ShoppingBasket, PackageCheck, Ban, Truck, Calendar as CalendarIcon, ArrowRightLeft } from 'lucide-react';
 
 function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     const variant = {
@@ -42,7 +42,7 @@ function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     return <Badge variant={variant} className={cn(color)}>{status}</Badge>
 }
 
-const adjustmentTypeColors: { [key in Product['variants'][0]['stockAdjustments'][0]['type']]: string } = {
+const adjustmentTypeColors: { [key in StockAdjustment['type'] | 'Transfer']: string } = {
     'Initial Stock': 'text-blue-600',
     'Sale': 'text-red-600',
     'Return': 'text-green-600',
@@ -50,6 +50,7 @@ const adjustmentTypeColors: { [key in Product['variants'][0]['stockAdjustments']
     'Damage': 'text-yellow-600',
     'Reserve': 'text-orange-600',
     'Un-reserve': 'text-green-600',
+    'Transfer': 'text-indigo-600',
 };
 
 type ProductDetailsInventoryProps = {
@@ -283,7 +284,7 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
                                     <TableHead>Date</TableHead>
                                     {product.hasVariants && <TableHead>Variant</TableHead>}
                                     <TableHead>Type</TableHead>
-                                    <TableHead>Channel</TableHead>
+                                    <TableHead>Details</TableHead>
                                     <TableHead>Quantity</TableHead>
                                     <TableHead>Reason</TableHead>
                                 </TableRow>
@@ -296,7 +297,7 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
                                             <TableCell>{new Date(adj.date).toLocaleString()}</TableCell>
                                             {product.hasVariants && <TableCell>{variant ? Object.values(variant.optionValues).join(' / ') : 'Default'}</TableCell>}
                                             <TableCell><span className={cn('font-medium', adjustmentTypeColors[adj.type])}>{adj.type}</span></TableCell>
-                                            <TableCell>{adj.channel || 'N/A'}</TableCell>
+                                            <TableCell className="text-muted-foreground">{adj.details || 'N/A'}</TableCell>
                                             <TableCell className={cn('font-mono font-medium', adj.quantity > 0 ? 'text-green-600' : 'text-red-600')}>{adj.quantity > 0 ? '+' : ''}{adj.quantity}</TableCell>
                                             <TableCell className="text-muted-foreground">{adj.reason || '–'}</TableCell>
                                         </TableRow>
@@ -316,3 +317,5 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
         </div>
     );
 }
+
+    
