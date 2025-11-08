@@ -1,3 +1,4 @@
+
 'use client';
 import { ArrowLeft, Save, Check, ChevronsUpDown, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -105,23 +106,7 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="sr-only">Back</span>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{initialSupplier ? 'Edit Supplier' : 'Add New Supplier'}</h1>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-            <Button onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Save Supplier
-            </Button>
-        </div>
-      </div>
-      
+    <div className="space-y-6 max-w-4xl">
       <Card>
         <CardHeader>
           <CardTitle>Supplier Information</CardTitle>
@@ -206,6 +191,13 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
           </div>
         </CardContent>
       </Card>
+      <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={handleBack}>Cancel</Button>
+        <Button onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Supplier
+        </Button>
+      </div>
     </div>
   );
 }

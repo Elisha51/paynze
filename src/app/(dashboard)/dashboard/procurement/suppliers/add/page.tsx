@@ -5,7 +5,7 @@ import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function AddSupplierPage() {
     return (
-        <DashboardPageLayout title="Add New Supplier">
+        <DashboardPageLayout title="Add New Supplier" backHref="/dashboard/procurement">
             <SupplierForm />
         </DashboardPageLayout>
     );

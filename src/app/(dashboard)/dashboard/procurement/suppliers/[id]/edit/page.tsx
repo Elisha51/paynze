@@ -28,21 +28,21 @@ export default function EditSupplierPage() {
     if (isLoading) {
         return (
             <DashboardPageLayout title="Loading Supplier...">
-                 <Skeleton className="h-96 w-full" />
+                 <Skeleton className="h-96 w-full max-w-4xl" />
             </DashboardPageLayout>
         );
     }
     
     if (!supplier) {
         return (
-            <DashboardPageLayout title="Error">
+            <DashboardPageLayout title="Error" backHref="/dashboard/procurement">
                 <p>Supplier not found</p>
             </DashboardPageLayout>
         )
     }
 
     return (
-        <DashboardPageLayout title={`Edit ${supplier.name}`}>
+        <DashboardPageLayout title={`Edit ${supplier.name}`} backHref={`/dashboard/procurement/suppliers/${supplier.id}`}>
             <SupplierForm initialSupplier={supplier} />
         </DashboardPageLayout>
     );

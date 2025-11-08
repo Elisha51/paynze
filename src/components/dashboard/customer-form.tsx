@@ -1,6 +1,6 @@
 
 'use client';
-import { Save, ShieldAlert } from 'lucide-react';
+import { Save, ShieldAlert, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -23,7 +23,6 @@ import type { Customer } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { ArrowLeft } from 'lucide-react';
 
 const emptyCustomer: Partial<Customer> = {
     name: '',
@@ -98,7 +97,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -183,7 +182,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
             </Card>
         </div>
       </div>
-       <div className="flex justify-end gap-2">
+       <div className="flex justify-end gap-2 mt-6">
             <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
             <Button onClick={handleSave}>
               <Save className="mr-2 h-4 w-4" />

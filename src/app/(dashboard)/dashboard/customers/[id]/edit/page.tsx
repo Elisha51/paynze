@@ -30,15 +30,8 @@ export default function EditCustomerPage() {
 
     if (isLoading) {
         return (
-            <DashboardPageLayout title="Edit Customer">
+            <DashboardPageLayout title="Loading Customer...">
                  <div className="space-y-6">
-                    <div className="flex items-center gap-4">
-                        <Skeleton className="h-9 w-9" />
-                        <div className="space-y-1">
-                            <Skeleton className="h-6 w-48" />
-                            <Skeleton className="h-4 w-32" />
-                        </div>
-                    </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div className="lg:col-span-2 space-y-6">
                             <Skeleton className="h-64 w-full" />
@@ -55,22 +48,16 @@ export default function EditCustomerPage() {
 
     if (!customer) {
         return (
-             <DashboardPageLayout title="Error">
+             <DashboardPageLayout title="Error" backHref="/dashboard/customers">
                 <div className="text-center">
                     <p className="mb-4">Customer not found.</p>
-                     <Button asChild variant="outline">
-                        <Link href="/dashboard/customers">
-                            <ArrowLeft className="mr-2 h-4 w-4" />
-                            Back to Customers
-                        </Link>
-                    </Button>
                 </div>
              </DashboardPageLayout>
         )
     }
 
     return (
-        <DashboardPageLayout title={`Edit ${customer.name}`}>
+        <DashboardPageLayout title={`Edit ${customer.name}`} backHref={`/dashboard/customers/${customer.id}`}>
             <CustomerForm initialCustomer={customer} />
         </DashboardPageLayout>
     );

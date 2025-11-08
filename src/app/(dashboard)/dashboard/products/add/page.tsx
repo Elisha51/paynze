@@ -4,6 +4,7 @@
 import { ProductForm } from '@/components/dashboard/product-form';
 import { useSearchParams } from 'next/navigation';
 import { mockProductTemplates } from '@/services/templates';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function AddProductPage() {
     const searchParams = useSearchParams();
@@ -12,5 +13,11 @@ export default function AddProductPage() {
     const template = templateId ? mockProductTemplates.find(t => t.id === templateId) : null;
     const initialProduct = template ? template.product : null;
     
-    return <ProductForm initialProduct={initialProduct} />;
+    const pageTitle = template ? `New ${template.name}` : 'Add New Product';
+
+    return (
+        <DashboardPageLayout title={pageTitle} backHref="/dashboard/products">
+            <ProductForm initialProduct={initialProduct} />
+        </DashboardPageLayout>
+    )
 }
