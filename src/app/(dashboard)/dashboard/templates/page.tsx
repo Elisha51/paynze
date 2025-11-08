@@ -4,6 +4,7 @@ import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { ProductTemplatesTab } from '@/components/dashboard/product-templates-tab';
 import { EmailTemplatesTab } from '@/components/dashboard/email-templates-tab';
 import { SmsTemplatesTab } from '@/components/dashboard/sms-templates-tab';
+import { WhatsAppTemplatesTab } from '@/components/dashboard/whatsapp-templates-tab';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -19,6 +20,7 @@ export default function TemplatesPage() {
     { value: 'product-templates', label: 'Product Templates' },
     { value: 'email-templates', label: 'Email Templates' },
     { value: 'sms-templates', label: 'SMS Templates' },
+    { value: 'whatsapp-templates', label: 'WhatsApp Templates' },
   ];
   
   const getCta = () => {
@@ -53,6 +55,9 @@ export default function TemplatesPage() {
       </DashboardPageLayout.TabContent>
       <DashboardPageLayout.TabContent value="sms-templates">
         <SmsTemplatesTab />
+      </DashboardPageLayout.TabContent>
+      <DashboardPageLayout.TabContent value="whatsapp-templates">
+        <WhatsAppTemplatesTab />
       </DashboardPageLayout.TabContent>
     </DashboardPageLayout>
   );

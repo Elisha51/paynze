@@ -1,5 +1,6 @@
 
-import type { ProductTemplate, EmailTemplate, SmsTemplate } from '@/lib/types';
+
+import type { ProductTemplate, EmailTemplate, SmsTemplate, WhatsAppTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
 export const mockProductTemplates: ProductTemplate[] = [
@@ -86,11 +87,28 @@ export const mockSmsTemplates: SmsTemplate[] = [
         description: 'Sent when an order is out for delivery.',
         message: 'Your order #{{orderId}} is out for delivery today!',
     }
-]
+];
+
+export const mockWhatsAppTemplates: WhatsAppTemplate[] = [
+    {
+        id: 'wa-abandoned-cart',
+        name: 'Abandoned Cart Reminder',
+        description: 'Sent to customers who have items in their cart but have not checked out.',
+        message: 'Hi {{customerName}}! You left some items in your cart at {{storeName}}. Complete your order now before they run out!',
+    },
+    {
+        id: 'wa-delivery-update',
+        name: 'Delivery Update',
+        description: 'Notifies customers about the status of their delivery.',
+        message: 'Great news! Your order #{{orderId}} from {{storeName}} is now out for delivery and should arrive today.',
+    }
+];
+
 
 const productTemplateService = new DataService<ProductTemplate>('productTemplates', () => mockProductTemplates);
 const emailTemplateService = new DataService<EmailTemplate>('emailTemplates', () => mockEmailTemplates);
 const smsTemplateService = new DataService<SmsTemplate>('smsTemplates', () => mockSmsTemplates);
+const whatsAppTemplateService = new DataService<WhatsAppTemplate>('whatsAppTemplates', () => mockWhatsAppTemplates);
 
 
 export async function getProductTemplates(): Promise<ProductTemplate[]> {
@@ -103,4 +121,8 @@ export async function getEmailTemplates(): Promise<EmailTemplate[]> {
 
 export async function getSmsTemplates(): Promise<SmsTemplate[]> {
   return await smsTemplateService.getAll();
+}
+
+export async function getWhatsAppTemplates(): Promise<WhatsAppTemplate[]> {
+  return await whatsAppTemplateService.getAll();
 }

@@ -164,6 +164,13 @@ export type SmsTemplate = {
   message: string; // Can contain variables like {{orderId}}
 };
 
+export type WhatsAppTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  message: string; // Can contain variables
+};
+
 export type OrderItem = {
     sku: string;
     name: string;
