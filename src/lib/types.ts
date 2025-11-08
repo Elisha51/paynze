@@ -168,7 +168,7 @@ export type WhatsAppTemplate = {
   id: string;
   name: string;
   description: string;
-  message: string; // Can contain variables
+  message: string;
 };
 
 export type OrderItem = {
@@ -178,14 +178,14 @@ export type OrderItem = {
     price: number;
     imageUrl?: string;
     category?: string;
-}
+};
 
 export type PaymentDetails = {
     method: 'Mobile Money' | 'Cash on Delivery';
     status: 'pending' | 'completed' | 'failed' | 'refunded';
     transactionId?: string;
     provider?: 'MTN' | 'Airtel' | 'M-Pesa';
-}
+};
 
 export type Order = {
     id: string;
@@ -494,7 +494,7 @@ export type Campaign = {
   description: string;
   applicableProductIds?: string[];
   banner?: CampaignBanner;
-  affiliateAccess: 'all' | 'specific';
+  affiliateAccess: 'none' | 'all' | 'specific';
   allowedAffiliateIds: string[];
 };
 
@@ -513,7 +513,7 @@ export type Discount = {
   status: 'Active' | 'Expired' | 'Scheduled';
   redemptions: number;
   minPurchase: number;
-  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers' | 'Specific Affiliates';
+  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers' | 'No Affiliates' | 'Specific Affiliates';
   usageLimit: number | null;
   onePerCustomer: boolean;
   startDate?: string;

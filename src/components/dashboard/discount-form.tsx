@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, Save, Sparkles, Ticket, Check, ChevronsUpDown } from 'lucide-react';
@@ -367,6 +368,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                     <SelectTrigger><SelectValue/></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Everyone">Everyone</SelectItem>
+                                        <SelectItem value="No Affiliates">Store Only (No Affiliates)</SelectItem>
                                         <SelectItem value="New Customers">New Customers</SelectItem>
                                         <SelectItem value="Wholesalers">Wholesalers</SelectItem>
                                         <SelectItem value="Retailers">Retailers</SelectItem>

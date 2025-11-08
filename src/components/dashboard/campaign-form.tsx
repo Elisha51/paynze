@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown } from 'lucide-react';
@@ -46,7 +47,7 @@ const emptyCampaign: Partial<Campaign> = {
   channel: 'Email',
   audience: 'All Customers',
   startDate: new Date().toISOString(),
-  affiliateAccess: 'all',
+  affiliateAccess: 'none',
   allowedAffiliateIds: [],
   banner: {
     enabled: false,
@@ -319,6 +320,10 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <RadioGroup value={campaign.affiliateAccess} onValueChange={(v) => handleSelectChange('affiliateAccess', v)} className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="none" id="aff-none" />
+                                    <Label htmlFor="aff-none">No Affiliates (Store Only)</Label>
+                                </div>
                                 <div className="flex items-center space-x-2">
                                     <RadioGroupItem value="all" id="aff-all" />
                                     <Label htmlFor="aff-all">All Affiliates</Label>
