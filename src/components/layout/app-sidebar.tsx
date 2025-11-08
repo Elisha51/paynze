@@ -122,12 +122,15 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
                  </SidebarMenuItem>
             ))}
             <SidebarMenuItem>
-                <a href="mailto:support@paynze.app" target="_blank" rel="noopener noreferrer" className="w-full block">
-                    <SidebarMenuButton tooltip="Support">
+                <Link href="/dashboard/support" passHref>
+                    <SidebarMenuButton
+                        isActive={pathname.startsWith('/dashboard/support')}
+                        tooltip="Support"
+                    >
                         <LifeBuoy className="h-5 w-5 shrink-0" />
                         <span className="flex-1">Support</span>
                     </SidebarMenuButton>
-                </a>
+                </Link>
             </SidebarMenuItem>
             <SidebarMenuItem>
                 <Link href="/login" passHref>
