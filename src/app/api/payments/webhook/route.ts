@@ -7,6 +7,7 @@ import { addTransaction } from '@/services/finances';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    console.log("Webhook received:", body);
 
     // In a real-world scenario, you would validate the webhook signature here
     // to ensure the request is coming from the actual payment provider.
@@ -14,11 +15,13 @@ export async function POST(req: NextRequest) {
     const { orderId, status } = body;
 
     if (!orderId || !status) {
+      console.error('Webhook Error: Missing orderId or status');
       return NextResponse.json({ message: 'Missing orderId or status' }, { status: 400 });
     }
 
     const order = await getOrderById(orderId);
     if (!order) {
+      console.error(`Webhook Error: Order ${orderId} not found`);
       return NextResponse.json({ message: 'Order not found' }, { status: 404 });
     }
 
@@ -53,6 +56,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(updatedOrder);
     }
     
+    console.log(`Webhook for order ${orderId} processed with status: ${status}`);
     return NextResponse.json({ message: 'Webhook processed' });
 
   } catch (error) {

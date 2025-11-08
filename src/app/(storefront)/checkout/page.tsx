@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { PaymentDetails, OnboardingFormData } from '@/lib/types';
+import type { Order, PaymentDetails, OnboardingFormData } from '@/lib/types';
 import { addOrder } from '@/services/orders';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,14 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCountryList } from '@/services/countries';
+
+async function simulatePaymentWebhook(orderId: string, status: 'SUCCESS' | 'FAILED') {
+    await fetch('/api/payments/webhook', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId, status })
+    });
+}
 
 export default function CheckoutPage() {
   const { cartItems, cartTotal, currency, clearCart } = useCart();
@@ -48,7 +56,7 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     setIsLoading(true);
     try {
-        const orderData = {
+        const orderData: Omit<Order, 'id'> = {
             customerId: `cust-${Date.now()}`, // Temporary customer ID
             customerName: customerInfo.name,
             customerEmail: customerInfo.email,
@@ -68,12 +76,26 @@ export default function CheckoutPage() {
             shippingCost: shippingFee,
         };
         
-        await addOrder(orderData);
+        const newOrder = await addOrder(orderData);
         
         toast({
             title: 'Order Placed!',
-            description: 'Your order has been successfully placed.',
+            description: 'Your order has been successfully placed. Please complete payment if required.',
         });
+
+        if (paymentMethod === 'Mobile Money') {
+            // Simulate payment processing after a short delay
+            setTimeout(() => {
+                // In a real app, this would be handled by the payment provider's webhook
+                // Here we simulate a successful payment for demonstration
+                simulatePaymentWebhook(newOrder.id, 'SUCCESS');
+                 toast({
+                    title: 'Payment Successful',
+                    description: `Payment for order #${newOrder.id} has been confirmed.`,
+                });
+            }, 5000);
+        }
+
         clearCart();
         router.push('/store'); // Redirect to a success page or back to store
     } catch(error) {

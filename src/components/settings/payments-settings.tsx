@@ -51,6 +51,16 @@ export function PaymentsSettings() {
             }
         }));
     };
+    
+    const handleApiKeyChange = (key: string, value: string) => {
+        setSettings(prev => ({
+            ...prev,
+            paymentGatewaySettings: {
+                ...(prev.paymentGatewaySettings || {}),
+                [key]: value,
+            },
+        }));
+    };
 
     const handleSave = () => {
          const currentDataRaw = localStorage.getItem('onboardingData');
@@ -89,7 +99,32 @@ export function PaymentsSettings() {
                     <>
                         <Separator />
                         <div className="space-y-4">
+                             <h3 className="font-medium text-sm text-muted-foreground">Payment Gateway Integration</h3>
+                             <p className="text-xs text-muted-foreground">Enter your API keys from your payment provider (e.g., Paystack, Flutterwave).</p>
+                             <div className="space-y-2">
+                                <Label htmlFor="publicKey">Public Key</Label>
+                                <Input 
+                                    id="publicKey"
+                                    placeholder="pk_test_..." 
+                                    value={settings.paymentGatewaySettings?.publicKey || ''}
+                                    onChange={(e) => handleApiKeyChange('publicKey', e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="secretKey">Secret Key</Label>
+                                <Input
+                                    id="secretKey"
+                                    type="password"
+                                    placeholder="sk_test_..."
+                                    value={settings.paymentGatewaySettings?.secretKey || ''}
+                                    onChange={(e) => handleApiKeyChange('secretKey', e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <Separator />
+                        <div className="space-y-4">
                              <h3 className="font-medium text-sm text-muted-foreground">Your Payout Accounts</h3>
+                             <p className="text-xs text-muted-foreground">This is where we will send your money.</p>
                              <div className="space-y-2">
                                 <Label htmlFor="mtn">MTN Mobile Money Number</Label>
                                 <Input 
