@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -28,34 +27,34 @@ import {
 } from "@/components/ui/alert-dialog"
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import { UpdateDeliveryStatusDialog } from './_components/update-delivery-status-dialog';
 
 export default function MyTasksPage() {
     const { user } = useAuth();
     const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
-    const [newTodo, setNewTodo] = useState('');
     const [isLoading, setIsLoading] = useState(true);
+    
+    const loadTasks = async () => {
+        if (!user) return;
+        setIsLoading(true);
+        const [orders, userTodos] = await Promise.all([
+            getStaffOrders(user.id),
+            getTodos()
+        ]);
+        setAssignedOrders(orders.filter(o => !['Delivered', 'Picked Up', 'Cancelled'].includes(o.status)));
+        setTodos(userTodos);
+        setIsLoading(false);
+    }
 
     useEffect(() => {
-        async function loadTasks() {
-            if (!user) return;
-            setIsLoading(true);
-            const [orders, userTodos] = await Promise.all([
-                getStaffOrders(user.id),
-                getTodos()
-            ]);
-            setAssignedOrders(orders.filter(o => !['Delivered', 'Picked Up', 'Cancelled'].includes(o.status)));
-            setTodos(userTodos);
-            setIsLoading(false);
-        }
         loadTasks();
     }, [user]);
 
-    const handleAddTodo = async () => {
+    const handleAddTodo = async (newTodo: string) => {
         if (!newTodo.trim()) return;
         const added = await addTodo({ title: newTodo, status: 'To Do', createdAt: new Date().toISOString() });
         setTodos(prev => [added, ...prev]);
-        setNewTodo('');
     };
 
     const handleToggleTodo = async (id: string, currentStatus: 'To Do' | 'Completed') => {
@@ -74,62 +73,47 @@ export default function MyTasksPage() {
     }
 
     return (
-        <DashboardPageLayout title="My Tasks">
-            <div className="max-w-4xl space-y-8">
-                {assignedOrders.length === 0 && todos.length === 0 && (
-                    <EmptyState
-                        icon={<ClipboardList className="h-12 w-12 text-primary" />}
-                        title="No tasks here!"
-                        description="You have no assigned deliveries or personal to-do items."
-                    />
-                )}
-
-                {assignedOrders.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Assigned Deliveries</CardTitle>
-                        </CardHeader>
-                        <CardContent>
+        <DashboardPageLayout title="My Tasks" description="A list of your assigned deliveries and personal to-do items.">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Assigned Deliveries</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        {assignedOrders.length > 0 ? (
                             <ul className="space-y-3">
-                            {assignedOrders.map(order => (
-                                <li key={order.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                    <div className="flex items-center gap-3">
-                                        <Truck className="h-5 w-5 text-primary" />
-                                        <div>
-                                            <p className="font-medium">Deliver Order #{order.id}</p>
-                                            <p className="text-sm text-muted-foreground">To: {order.customerName}</p>
+                                {assignedOrders.map(order => (
+                                    <li key={order.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                        <div className="flex items-center gap-3">
+                                            <Truck className="h-5 w-5 text-primary" />
+                                            <div>
+                                                <Link href={`/dashboard/orders/${order.id}`} className="font-medium hover:underline">Deliver Order #{order.id}</Link>
+                                                <p className="text-sm text-muted-foreground">To: {order.customerName}</p>
+                                            </div>
+                                            <Badge variant={order.status === 'Shipped' ? 'default' : 'secondary'}>{order.status}</Badge>
                                         </div>
-                                        <Badge variant={order.status === 'Shipped' ? 'default' : 'secondary'}>{order.status}</Badge>
-                                    </div>
-                                    <Button asChild size="sm" variant="outline">
-                                        <Link href={`/dashboard/orders/${order.id}`}>View Order</Link>
-                                    </Button>
-                                </li>
-                            ))}
+                                         <UpdateDeliveryStatusDialog order={order} onUpdate={loadTasks} />
+                                    </li>
+                                ))}
                             </ul>
-                        </CardContent>
-                    </Card>
-                )}
+                        ) : (
+                             <EmptyState
+                                icon={<Truck className="h-12 w-12 text-muted-foreground" />}
+                                title="No Deliveries"
+                                description="You have no assigned deliveries at the moment."
+                            />
+                        )}
+                    </CardContent>
+                </Card>
 
                 <Card>
                     <CardHeader>
                         <CardTitle>Personal To-Do List</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="flex gap-2 mb-4">
-                            <Input 
-                                value={newTodo} 
-                                onChange={(e) => setNewTodo(e.target.value)}
-                                placeholder="Add a new task..."
-                                onKeyDown={(e) => e.key === 'Enter' && handleAddTodo()}
-                            />
-                            <Button onClick={handleAddTodo}>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Add
-                            </Button>
-                        </div>
+                         <TodoInput onAdd={handleAddTodo} />
                         {todos.length > 0 ? (
-                            <ul className="space-y-2">
+                            <ul className="space-y-2 mt-4">
                                 {todos.map(todo => (
                                     <li key={todo.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-muted/50">
                                         <AlertDialog>
@@ -193,11 +177,37 @@ export default function MyTasksPage() {
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-sm text-muted-foreground text-center py-4">You have no personal to-do items.</p>
+                            <EmptyState
+                                icon={<ClipboardList className="h-12 w-12 text-muted-foreground" />}
+                                title="All Clear!"
+                                description="You have no personal to-do items."
+                            />
                         )}
                     </CardContent>
                 </Card>
             </div>
         </DashboardPageLayout>
     );
+}
+
+function TodoInput({ onAdd }: { onAdd: (title: string) => void }) {
+    const [newTodo, setNewTodo] = useState('');
+    const handleAdd = () => {
+        onAdd(newTodo);
+        setNewTodo('');
+    }
+    return (
+        <div className="flex gap-2">
+            <Input 
+                value={newTodo} 
+                onChange={(e) => setNewTodo(e.target.value)}
+                placeholder="Add a new task..."
+                onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+            />
+            <Button onClick={handleAdd}>
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add
+            </Button>
+        </div>
+    )
 }
