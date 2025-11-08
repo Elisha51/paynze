@@ -8,12 +8,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Send, LifeBuoy } from 'lucide-react';
+import { PlusCircle, Send, LifeBuoy, ArrowUpDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type SupportTicket = {
     id: string;
@@ -30,6 +31,25 @@ const mockTickets: SupportTicket[] = [
 
 const getColumns = (): ColumnDef<SupportTicket>[] => [
     {
+        id: 'select',
+        header: ({ table }) => (
+        <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+        />
+        ),
+        cell: ({ row }) => (
+        <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+        />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+    },
+    {
         accessorKey: 'id',
         header: 'Ticket ID',
     },
@@ -39,7 +59,7 @@ const getColumns = (): ColumnDef<SupportTicket>[] => [
     },
     {
         accessorKey: 'category',
-        header: 'Category',
+        header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Category<ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
     },
     {
         accessorKey: 'status',
@@ -48,7 +68,7 @@ const getColumns = (): ColumnDef<SupportTicket>[] => [
     },
     {
         accessorKey: 'lastUpdated',
-        header: 'Last Updated',
+        header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Last Updated<ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
         cell: ({ row }) => format(new Date(row.original.lastUpdated), 'PPP')
     }
 ];
