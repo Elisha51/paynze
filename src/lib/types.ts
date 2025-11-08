@@ -496,10 +496,18 @@ export type Campaign = {
   banner?: CampaignBanner;
 };
 
+export type BogoDetails = {
+    buyQuantity: number;
+    buyProductIds: string[];
+    getQuantity: number;
+    getProductIds: string[];
+    getDiscountPercentage: number; // e.g., 100 for free, 50 for 50% off
+}
+
 export type Discount = {
   code: string;
-  type: 'Percentage' | 'Fixed Amount';
-  value: number;
+  type: 'Percentage' | 'Fixed Amount' | 'Buy X Get Y';
+  value: number; // For Percentage or Fixed Amount
   status: 'Active' | 'Expired' | 'Scheduled';
   redemptions: number;
   minPurchase: number;
@@ -508,7 +516,9 @@ export type Discount = {
   onePerCustomer: boolean;
   startDate?: string;
   endDate?: string;
+  description?: string;
   applicableProductIds?: string[];
+  bogoDetails?: BogoDetails;
 };
 
 export type Affiliate = {
@@ -524,3 +534,5 @@ export type Affiliate = {
     paidCommission: number;
     payoutHistory?: Payout[];
 };
+
+    

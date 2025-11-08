@@ -1,12 +1,14 @@
+
 'use client';
 
-import { ArrowLeft, Save, Sparkles, Ticket } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Ticket, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -20,12 +22,18 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Discount, OnboardingFormData } from '@/lib/types';
+import type { Discount, OnboardingFormData, Product } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Checkbox } from '../ui/checkbox';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Switch } from '../ui/switch';
+import { Separator } from '../ui/separator';
+import { getProducts } from '@/services/products';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
 
 const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   type: 'Percentage',
@@ -37,15 +45,70 @@ const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   usageLimit: null,
   onePerCustomer: true,
   startDate: new Date().toISOString(),
+  bogoDetails: {
+      buyQuantity: 1,
+      buyProductIds: [],
+      getQuantity: 1,
+      getProductIds: [],
+      getDiscountPercentage: 100,
+  }
 };
 
 type DiscountFormProps = {
     initialDiscount?: Discount | null;
 }
 
+const ProductSelector = ({
+    label,
+    allProducts,
+    selectedProductIds,
+    onSelect
+}: {
+    label: string,
+    allProducts: Product[],
+    selectedProductIds: string[],
+    onSelect: (sku: string) => void
+}) => (
+    <div className="space-y-2">
+        <Label>{label}</Label>
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" className="w-full justify-between h-auto min-h-10">
+                    <div className="flex flex-wrap gap-1">
+                        {selectedProductIds.length > 0
+                            ? selectedProductIds.map(id => {
+                                const product = allProducts.find(p => p.sku === id);
+                                return <Badge key={id} variant="secondary">{product?.name || id}</Badge>;
+                            })
+                            : "Select products..."
+                        }
+                    </div>
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                    <CommandInput placeholder="Search products..." />
+                    <CommandEmpty>No products found.</CommandEmpty>
+                    <CommandGroup>
+                        {allProducts.map((product) => (
+                        <CommandItem key={product.sku} value={product.name} onSelect={() => onSelect(product.sku || '')}>
+                            <Check className={cn("mr-2 h-4 w-4", selectedProductIds.includes(product.sku || '') ? "opacity-100" : "opacity-0")} />
+                            {product.name}
+                        </CommandItem>
+                        ))}
+                    </CommandGroup>
+                </Command>
+            </PopoverContent>
+        </Popover>
+    </div>
+);
+
+
 export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     const [discount, setDiscount] = useState<Partial<Discount>>(initialDiscount || emptyDiscount);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [products, setProducts] = useState<Product[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(
         initialDiscount?.startDate ? {
             from: new Date(initialDiscount.startDate),
@@ -63,6 +126,11 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         if (data) {
             setSettings(JSON.parse(data));
         }
+        async function loadProducts() {
+            const productData = await getProducts();
+            setProducts(productData);
+        }
+        loadProducts();
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +149,18 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     
     const handleCheckboxChange = (id: 'onePerCustomer', checked: boolean) => {
         setDiscount(prev => ({...prev, [id]: checked }));
+    }
+    
+    const handleBogoChange = (field: 'buyQuantity' | 'getQuantity' | 'getDiscountPercentage', value: number) => {
+        setDiscount(prev => ({ ...prev, bogoDetails: { ...(prev.bogoDetails || {}), [field]: value } as any }));
+    }
+
+    const handleBogoProductChange = (type: 'buyProductIds' | 'getProductIds', sku: string) => {
+        setDiscount(prev => {
+            const currentIds = prev.bogoDetails?.[type] || [];
+            const newIds = currentIds.includes(sku) ? currentIds.filter(id => id !== sku) : [...currentIds, sku];
+            return { ...prev, bogoDetails: { ...(prev.bogoDetails || {}), [type]: newIds } as any };
+        });
     }
 
     const generateCode = () => {
@@ -146,7 +226,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                     </Button>
                                 </div>
                             </div>
-                            <RadioGroup value={discount.type} onValueChange={(v) => handleSelectChange('type', v)} className="grid grid-cols-2 gap-4">
+                            <RadioGroup value={discount.type} onValueChange={(v) => handleSelectChange('type', v)} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
                                     <RadioGroupItem value="Percentage" id="type-percentage" className="peer sr-only" />
                                     <Label htmlFor="type-percentage" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
@@ -161,16 +241,70 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                         Fixed Amount
                                     </Label>
                                 </div>
-                            </RadioGroup>
-                            <div className="space-y-2">
-                                <Label htmlFor="value">Value</Label>
-                                <div className="relative">
-                                    <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={discount.type === 'Percentage' ? 'pr-8' : `pl-8`} />
-                                    <span className="absolute top-1/2 -translate-y-1/2 text-muted-foreground text-sm p-2">
-                                        {discount.type === 'Percentage' ? '%' : currency}
-                                    </span>
+                                 <div>
+                                    <RadioGroupItem value="Buy X Get Y" id="type-bogo" className="peer sr-only" />
+                                    <Label htmlFor="type-bogo" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
+                                         <Ticket className="mb-3 h-6 w-6" />
+                                        Buy X Get Y
+                                    </Label>
                                 </div>
-                            </div>
+                            </RadioGroup>
+                            
+                            {discount.type !== 'Buy X Get Y' && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="value">Value</Label>
+                                    <div className="relative">
+                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={discount.type === 'Percentage' ? 'pr-8' : `pl-8`} />
+                                        <span className="absolute top-1/2 -translate-y-1/2 text-muted-foreground text-sm p-2">
+                                            {discount.type === 'Percentage' ? '%' : currency}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
+                             {discount.type === 'Buy X Get Y' && (
+                                <div className="space-y-4 pt-4 border-t">
+                                    <Card>
+                                        <CardHeader><CardTitle className="text-base">Customer Buys</CardTitle></CardHeader>
+                                        <CardContent className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="buyQuantity">Quantity</Label>
+                                                <Input id="buyQuantity" type="number" value={discount.bogoDetails?.buyQuantity} onChange={(e) => handleBogoChange('buyQuantity', Number(e.target.value))} />
+                                            </div>
+                                            <ProductSelector
+                                                label="Specific products"
+                                                allProducts={products}
+                                                selectedProductIds={discount.bogoDetails?.buyProductIds || []}
+                                                onSelect={(sku) => handleBogoProductChange('buyProductIds', sku)}
+                                            />
+                                        </CardContent>
+                                    </Card>
+                                     <Card>
+                                        <CardHeader><CardTitle className="text-base">Customer Gets</CardTitle></CardHeader>
+                                        <CardContent className="space-y-4">
+                                             <div className="space-y-2">
+                                                <Label htmlFor="getQuantity">Quantity</Label>
+                                                <Input id="getQuantity" type="number" value={discount.bogoDetails?.getQuantity} onChange={(e) => handleBogoChange('getQuantity', Number(e.target.value))} />
+                                            </div>
+                                            <ProductSelector
+                                                label="Specific products"
+                                                allProducts={products}
+                                                selectedProductIds={discount.bogoDetails?.getProductIds || []}
+                                                onSelect={(sku) => handleBogoProductChange('getProductIds', sku)}
+                                            />
+                                            <div className="space-y-2">
+                                                <Label htmlFor="getDiscountPercentage">Discount Percentage on 'Get' items</Label>
+                                                <div className="relative">
+                                                    <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="pr-8" placeholder="100"/>
+                                                    <span className="absolute right-0 top-0 -translate-y-1/2 text-muted-foreground text-sm p-2">%</span>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">Enter 100 for a "Buy One, Get One Free" offer.</p>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                             )}
+
                         </CardContent>
                     </Card>
 
@@ -199,6 +333,17 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                     <Card>
                         <CardHeader><CardTitle>Configuration</CardTitle></CardHeader>
                         <CardContent className="space-y-4">
+                             <div className="space-y-2">
+                                <Label>Status</Label>
+                                <Select value={discount.status} onValueChange={(v) => setDiscount(p => ({...p, status: v as any}))}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="Active">Active</SelectItem>
+                                        <SelectItem value="Scheduled">Scheduled</SelectItem>
+                                        <SelectItem value="Expired">Expired</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2">
                                 <Label>Customer Eligibility</Label>
                                 <Select value={discount.customerGroup} onValueChange={(v) => handleSelectChange('customerGroup', v)}>
@@ -229,3 +374,5 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         </div>
     );
 }
+
+    

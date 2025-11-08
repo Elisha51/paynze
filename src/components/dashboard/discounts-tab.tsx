@@ -30,6 +30,7 @@ const discountStatuses = [
 const discountTypes = [
     { value: 'Percentage', label: 'Percentage' },
     { value: 'Fixed Amount', label: 'Fixed Amount' },
+    { value: 'Buy X Get Y', label: 'Buy X Get Y' },
 ];
 
 const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discount>[] => [
@@ -50,7 +51,13 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
             if (discount.type === 'Percentage') {
                 return `${discount.value}%`;
             }
-            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(discount.value);
+             if (discount.type === 'Fixed Amount') {
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(discount.value);
+            }
+             if (discount.type === 'Buy X Get Y') {
+                return `Buy ${discount.bogoDetails?.buyQuantity || 1}, Get ${discount.bogoDetails?.getQuantity || 1}`;
+            }
+            return 'N/A';
         }
     },
     {
@@ -173,3 +180,5 @@ export function DiscountsTab() {
     </Card>
   );
 }
+
+    
