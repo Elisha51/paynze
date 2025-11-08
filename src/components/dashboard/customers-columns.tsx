@@ -1,7 +1,8 @@
+
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, Send, Trash2, Edit } from 'lucide-react';
+import { MoreHorizontal, Info, ArrowUpDown, Trash2, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -13,7 +14,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import type { Customer, OnboardingFormData } from '@/lib/types';
+import type { Customer } from '@/lib/types';
 import Link from 'next/link';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
 

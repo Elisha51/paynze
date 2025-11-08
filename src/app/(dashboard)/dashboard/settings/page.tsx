@@ -51,8 +51,11 @@ export default function SettingsPage() {
         { value: "shipping", label: "Shipping" },
         { value: "payments", label: "Payments" },
         { value: "notifications", label: "Notifications" },
-        { value: "staff", label: "Staff & Permissions" },
     ];
+    
+    if (user?.permissions.staff.view) {
+        tabs.push({ value: "staff", label: "Staff & Permissions" });
+    }
     
     if (user?.plan === 'Pro' || user?.plan === 'Enterprise') {
         tabs.push({ value: "affiliates", label: "Affiliate Program" });

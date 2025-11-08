@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Package, PlusCircle, PackageCheck, FileArchive, File as FileIcon, Edit } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Package, PlusCircle, PackageCheck, FileArchive, File as FileIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';

@@ -1,6 +1,7 @@
+
 'use client';
 import * as React from 'react';
-import { PlusCircle, Send, Users } from 'lucide-react';
+import { PlusCircle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { Customer } from '@/lib/types';
 import { DataTable } from './data-table';

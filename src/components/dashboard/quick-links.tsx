@@ -42,8 +42,8 @@ export function QuickLinks() {
             permission: permissions.staff.create,
         },
         {
-            href: '/dashboard/settings',
-            label: 'Add Delivery Type',
+            href: '/dashboard/settings?tab=shipping',
+            label: 'Add Delivery Zone',
             icon: Truck,
             permission: permissions.settings.edit,
         }
