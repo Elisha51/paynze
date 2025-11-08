@@ -98,7 +98,7 @@ export function RichTextEditor({ id, value, onChange, placeholder }: RichTextEdi
                 if(!isDialog) onChange(e.target.value);
             }}
             placeholder={placeholder}
-            className={cn("border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none", isDialog ? "h-full" : "min-h-[150px]")}
+            className={cn("border-0 focus-visible:ring-0 focus-visible:ring-offset-0 resize-none p-3", isDialog ? "h-full" : "min-h-[150px]")}
           />
         </TabsContent>
         <TabsContent value="preview" className="m-0">
