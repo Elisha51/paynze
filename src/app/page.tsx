@@ -106,19 +106,19 @@ export default function LandingPage() {
                     <ul className="grid gap-6">
                         <li>
                         <div className="grid gap-1">
-                            <h3 className="text-xl font-bold flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Point of Sale (POS)</h3>
+                            <h3 className="text-xl font-bold flex items-center font-headline"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Point of Sale (POS)</h3>
                             <p className="text-muted-foreground">Manage in-person sales seamlessly with our integrated POS system.</p>
                         </div>
                         </li>
                         <li>
                         <div className="grid gap-1">
-                            <h3 className="text-xl font-bold flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Marketing Tools</h3>
+                            <h3 className="text-xl font-bold flex items-center font-headline"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Marketing Tools</h3>
                             <p className="text-muted-foreground">Run SMS and email campaigns. Manage discounts and affiliate marketers.</p>
                         </div>
                         </li>
                          <li>
                         <div className="grid gap-1">
-                            <h3 className="text-xl font-bold flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Staff Management</h3>
+                            <h3 className="text-xl font-bold flex items-center font-headline"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Staff Management</h3>
                             <p className="text-muted-foreground">Assign roles and permissions to your team members and delivery agents.</p>
                         </div>
                         </li>
@@ -126,19 +126,19 @@ export default function LandingPage() {
                      <ul className="grid gap-6">
                         <li>
                         <div className="grid gap-1">
-                            <h3 className="text-xl font-bold flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>AI-Powered Assistance</h3>
+                            <h3 className="text-xl font-bold flex items-center font-headline"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>AI-Powered Assistance</h3>
                             <p className="text-muted-foreground">Generate product descriptions and reconcile financial statements with AI.</p>
                         </div>
                         </li>
                         <li>
                         <div className="grid gap-1">
-                            <h3 className="text-xl font-bold flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Mobile-First Design</h3>
+                            <h3 className="text-xl font-bold flex items-center font-headline"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Mobile-First Design</h3>
                             <p className="text-muted-foreground">Manage your entire business from your phone with our progressive web app.</p>
                         </div>
                         </li>
                          <li>
                         <div className="grid gap-1">
-                            <h3 className="text-xl font-bold flex items-center"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Powerful Analytics</h3>
+                            <h3 className="text-xl font-bold flex items-center font-headline"><CheckCircle className="mr-2 h-5 w-5 text-accent"/>Powerful Analytics</h3>
                             <p className="text-muted-foreground">Get insights into your sales, customers, and marketing efforts.</p>
                         </div>
                         </li>
