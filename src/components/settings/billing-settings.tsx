@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import type { OnboardingFormData } from '@/lib/types';
 import { CheckCircle, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,7 +24,6 @@ const plans: {
 
 export function BillingSettings() {
     const { user, setUser } = useAuth();
-    const { toast } = useToast();
 
     const handlePlanChange = (newPlan: Plan) => {
         const onboardingDataRaw = localStorage.getItem('onboardingData');
