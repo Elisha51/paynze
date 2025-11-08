@@ -460,6 +460,16 @@ export type Todo = {
   createdAt: string;
 };
 
+export type CampaignBanner = {
+  enabled: boolean;
+  type: 'Product Highlight' | 'Discount Offer' | 'Announcement';
+  title: string;
+  description: string;
+  ctaText: string;
+  ctaLink: string;
+  imageUrl?: string;
+}
+
 // Marketing Types
 export type Campaign = {
   id: string;
@@ -474,6 +484,7 @@ export type Campaign = {
   endDate?: string;
   description: string;
   applicableProductIds?: string[];
+  banner?: CampaignBanner;
 };
 
 export type Discount = {

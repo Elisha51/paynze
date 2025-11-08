@@ -1,6 +1,8 @@
+
+
 'use client';
 
-import { ArrowLeft, Save, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,11 +23,13 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Campaign } from '@/lib/types';
+import type { Campaign, CampaignBanner } from '@/lib/types';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
-import { Textarea } from '../ui/textarea';
 import { RichTextEditor } from '../ui/rich-text-editor';
+import { Switch } from '../ui/switch';
+import { Separator } from '../ui/separator';
+import { FileUploader } from '../ui/file-uploader';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -34,6 +38,15 @@ const emptyCampaign: Partial<Campaign> = {
   channel: 'Email',
   audience: 'All Customers',
   startDate: new Date().toISOString(),
+  banner: {
+    enabled: false,
+    type: 'Announcement',
+    title: '',
+    description: '',
+    ctaText: 'Shop Now',
+    ctaLink: '',
+    imageUrl: '',
+  }
 };
 
 type CampaignFormProps = {
@@ -55,11 +68,11 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
     useEffect(() => {
         if (initialCampaign) {
-            setCampaign(initialCampaign);
+            setCampaign(prev => ({...prev, ...initialCampaign}));
         }
     }, [initialCampaign]);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
         setCampaign(prev => ({ ...prev, [id]: value }));
     };
@@ -70,6 +83,26 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
     const handleSelectChange = (id: 'status' | 'channel' | 'audience', value: string) => {
         setCampaign(prev => ({...prev, [id]: value as any}));
+    }
+    
+    const handleBannerChange = (field: keyof CampaignBanner, value: string | boolean) => {
+        setCampaign(prev => ({
+            ...prev,
+            banner: {
+                ...(prev.banner || {} as CampaignBanner),
+                [field]: value,
+            }
+        }))
+    }
+    
+    const handleBannerImageUpload = (files: (File | { url: string; id: string })[]) => {
+        if (files.length > 0) {
+            const file = files[0];
+            const url = file instanceof File ? URL.createObjectURL(file) : file.url;
+            handleBannerChange('imageUrl', url);
+        } else {
+            handleBannerChange('imageUrl', '');
+        }
     }
 
     const handleSave = () => {
@@ -88,7 +121,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
+        <div className="space-y-6 max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
                 <Button variant="outline" size="icon" onClick={() => router.back()}>
                     <ArrowLeft className="h-4 w-4" />
@@ -104,8 +137,8 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <div className="lg:col-span-2 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+                <div className="lg:col-span-3 space-y-6">
                     <Card>
                         <CardHeader>
                             <CardTitle>Campaign Details</CardTitle>
@@ -132,8 +165,50 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                              </div>
                         </CardContent>
                     </Card>
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Storefront Banner</CardTitle>
+                            <CardDescription>Optionally, feature this campaign in a banner on your storefront homepage.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <div className="flex items-center space-x-2">
+                                <Switch id="banner-enabled" checked={campaign.banner?.enabled} onCheckedChange={(c) => handleBannerChange('enabled', c)} />
+                                <Label htmlFor="banner-enabled">Enable banner for this campaign</Label>
+                            </div>
+                            {campaign.banner?.enabled && (
+                                <div className="space-y-4 pt-4 border-t">
+                                     <div className="space-y-2">
+                                        <Label htmlFor="banner-title">Banner Title</Label>
+                                        <Input id="banner-title" value={campaign.banner.title} onChange={(e) => handleBannerChange('title', e.target.value)} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="banner-description">Banner Description</Label>
+                                        <Input id="banner-description" value={campaign.banner.description} onChange={(e) => handleBannerChange('description', e.target.value)} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="banner-ctaText">CTA Button Text</Label>
+                                            <Input id="banner-ctaText" value={campaign.banner.ctaText} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label htmlFor="banner-ctaLink">CTA Link</Label>
+                                            <Input id="banner-ctaLink" value={campaign.banner.ctaLink} onChange={(e) => handleBannerChange('ctaLink', e.target.value)} placeholder="/store/product/SKU-123"/>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>Banner Image</Label>
+                                        <FileUploader 
+                                            files={campaign.banner.imageUrl ? [{id: 'banner-img', url: campaign.banner.imageUrl}] : []}
+                                            onFilesChange={handleBannerImageUpload}
+                                            maxFiles={1}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
-                <div className="lg:col-span-1 space-y-6">
+                <div className="lg:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
                             <CardTitle>Configuration</CardTitle>

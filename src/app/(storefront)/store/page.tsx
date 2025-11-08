@@ -1,9 +1,10 @@
 
+
 'use client';
 
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { getProducts } from "@/services/products";
-import type { Product, Category } from "@/lib/types";
+import type { Product, Category, Campaign } from "@/lib/types";
 import { useEffect, useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
@@ -13,12 +14,13 @@ import { ProductFilters } from "@/components/storefront/product-filters";
 import { getCategories } from "@/services/categories";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { PromotionalBanner } from "@/components/storefront/promotional-banner";
-import { PlaceHolderImages } from "@/lib/placeholder-images";
+import { PromotionalCarousel } from "@/components/storefront/promotional-carousel";
+import { getCampaigns } from "@/services/marketing";
 
 export default function StorefrontHomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortOption, setSortOption] = useState('newest');
@@ -26,18 +28,18 @@ export default function StorefrontHomePage() {
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
   const [showInStock, setShowInStock] = useState(false);
 
-  const bannerImage = PlaceHolderImages.find(p => p.id === 'store-banner');
-
   useEffect(() => {
     async function loadData() {
       setIsLoading(true);
-      const [fetchedProducts, fetchedCategories] = await Promise.all([
+      const [fetchedProducts, fetchedCategories, fetchedCampaigns] = await Promise.all([
         getProducts(),
-        getCategories()
+        getCategories(),
+        getCampaigns()
       ]);
       const publishedProducts = fetchedProducts.filter(p => p.status === 'published');
       setProducts(publishedProducts);
       setCategories(fetchedCategories);
+      setCampaigns(fetchedCampaigns);
 
       if (publishedProducts.length > 0) {
         const maxPrice = Math.max(...publishedProducts.map(p => p.retailPrice));
@@ -131,18 +133,15 @@ export default function StorefrontHomePage() {
           onReset={handleResetFilters}
       />
   );
+  
+  const activeBanners = useMemo(() => {
+    return campaigns.filter(c => c.status === 'Active' && c.banner && c.banner.enabled);
+  }, [campaigns]);
 
   return (
     <div className="container mx-auto py-8">
-        {bannerImage && (
-          <PromotionalBanner 
-            image={bannerImage}
-            title="Summer Kitenge Collection"
-            description="Vibrant new patterns and colors, perfect for any occasion. Limited stock available."
-            ctaText="Shop Now"
-            ctaLink="/store/product/KIT-001"
-          />
-        )}
+        {activeBanners.length > 0 && <PromotionalCarousel campaigns={activeBanners} />}
+        
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <aside className="hidden lg:block lg:col-span-1 sticky top-24">
                 <FilterComponent />
