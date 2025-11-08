@@ -14,6 +14,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 interface DateRangePickerProps extends React.HTMLAttributes<HTMLDivElement> {
   date: DateRange | undefined;
@@ -26,15 +33,46 @@ export function DateRangePicker({
   setDate
 }: DateRangePickerProps) {
 
+  const handlePresetChange = (value: string) => {
+    const now = new Date();
+    switch (value) {
+      case 'today':
+        setDate({ from: now, to: now });
+        break;
+      case 'last-7':
+        setDate({ from: addDays(now, -6), to: now });
+        break;
+      case 'last-30':
+        setDate({ from: addDays(now, -29), to: now });
+        break;
+      case 'ytd':
+         setDate({ from: new Date(now.getFullYear(), 0, 1), to: now });
+        break;
+      default:
+        setDate(undefined);
+    }
+  };
+
   return (
-    <div className={cn("grid gap-2", className)}>
+    <div className={cn("flex items-center gap-2", className)}>
+       <Select onValueChange={handlePresetChange}>
+          <SelectTrigger className="w-[180px] h-9">
+              <SelectValue placeholder="Select a preset" />
+          </SelectTrigger>
+          <SelectContent>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="last-7">Last 7 days</SelectItem>
+              <SelectItem value="last-30">Last 30 days</SelectItem>
+              <SelectItem value="ytd">Year to date</SelectItem>
+          </SelectContent>
+      </Select>
       <Popover>
         <PopoverTrigger asChild>
           <Button
             id="date"
             variant={"outline"}
             className={cn(
-              "w-[300px] justify-start text-left font-normal",
+              "w-[260px] justify-start text-left font-normal h-9",
               !date && "text-muted-foreground"
             )}
           >
