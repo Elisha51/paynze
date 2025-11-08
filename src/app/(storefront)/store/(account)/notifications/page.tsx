@@ -13,10 +13,10 @@ import type { Notification } from '@/lib/types';
 
 
 const mockCustomerNotifications: Notification[] = [
-    { id: 'cust-notif-1', type: 'new-order', title: 'Order Delivered', description: 'Your order #ORD-3210 has been successfully delivered.', timestamp: new Date(new Date().setDate(new Date().getDate() - 3)).toISOString(), read: true, link: '/store/account/orders/3210', archived: false },
-    { id: 'cust-notif-2', type: 'low-stock', title: 'Out for Delivery', description: 'Your order #ORD-3205 is out for delivery and will arrive today.', timestamp: new Date(new Date().setHours(new Date().getHours() - 8)).toISOString(), read: false, link: '/store/account/orders/3205', archived: false },
-    { id: 'cust-notif-3', type: 'task-assigned', title: 'Order Shipped', description: 'Your order #ORD-3205 has been shipped and is on its way to you.', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), read: true, link: '/store/account/orders/3205', archived: false },
-    { id: 'cust-notif-4', type: 'new-order', title: 'Order Confirmed', description: 'Your order #ORD-3210 has been confirmed and is being processed.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: true, link: '/store/account/orders/3210', archived: false },
+    { id: 'cust-notif-1', type: 'new-order', title: 'Order Delivered', description: 'Your order #ORD-001 has been successfully delivered.', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), read: true, link: '/store/account/orders/ORD-001', archived: false },
+    { id: 'cust-notif-2', type: 'low-stock', title: 'Out for Delivery', description: 'Your order #ORD-007 is out for delivery and will arrive today.', timestamp: new Date(new Date().setHours(new Date().getHours() - 2)).toISOString(), read: false, link: '/store/account/orders/ORD-007', archived: false },
+    { id: 'cust-notif-3', type: 'task-assigned', title: 'Order Shipped', description: 'Your order #ORD-007 has been shipped and is on its way to you.', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), read: false, link: '/store/account/orders/ORD-007', archived: false },
+    { id: 'cust-notif-4', type: 'new-order', title: 'Order Confirmed', description: 'Your order #ORD-003 has been confirmed and is being processed.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: false, link: '/store/account/orders/ORD-003', archived: false },
 ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
 

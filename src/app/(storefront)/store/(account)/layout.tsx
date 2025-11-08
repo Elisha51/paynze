@@ -10,15 +10,16 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, Package, User, LogOut, Bell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/store/account', label: 'My Profile', icon: User },
   { href: '/store/account/orders', label: 'My Orders', icon: Package },
-  { href: '/store/account/notifications', label: 'Notifications', icon: Bell, badge: 3 },
+  { href: '/store/account/notifications', label: 'Notifications', icon: Bell },
 ];
 
 export default function AccountLayout({
@@ -27,8 +28,28 @@ export default function AccountLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+    const isLoggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      router.push('/store/login');
+    }
+  }, [router]);
+  
+  const handleLogout = () => {
+      localStorage.setItem('isCustomerLoggedIn', 'false');
+      router.push('/store');
+  }
+
   // Mocking unread count. In a real app this would come from a context or API.
   const unreadNotificationCount = 3;
+
+  if (!isClient) {
+      return null;
+  }
   
   return (
     <div className="container py-12">
@@ -65,12 +86,10 @@ export default function AccountLayout({
                 <Button
                     variant="ghost"
                     className="justify-start text-destructive hover:text-destructive"
-                    asChild
+                    onClick={handleLogout}
                   >
-                    <Link href="/">
                       <LogOut className="mr-2 h-4 w-4" />
                       Log Out
-                    </Link>
                   </Button>
               </nav>
             </CardContent>

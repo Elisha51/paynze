@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import type { Order } from '@/lib/types';
 import { getOrderById } from '@/services/orders';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function OrderDetailsPage() {
   const params = useParams();
@@ -28,7 +29,8 @@ export default function OrderDetailsPage() {
   useEffect(() => {
     async function fetchOrder() {
       if (!id) return;
-      const fetchedOrder = await getOrderById(`ORD-${id}`);
+      // In a real app, you'd fetch based on the logged-in customer's orders
+      const fetchedOrder = await getOrderById(id);
       setOrder(fetchedOrder || null);
       setLoading(false);
     }
@@ -56,12 +58,16 @@ export default function OrderDetailsPage() {
 
   if (!order) {
     return (
-      <div>
-        <h2 className="text-xl font-semibold">Order not found</h2>
-        <Button asChild variant="link">
-          <Link href="/store/account/orders">Back to orders</Link>
-        </Button>
-      </div>
+        <EmptyState
+            icon={<Truck className="h-12 w-12 text-muted-foreground"/>}
+            title="Order Not Found"
+            description="We couldn't find the order you're looking for."
+            cta={
+                <Button asChild variant="outline">
+                    <Link href="/store/account/orders">Back to all orders</Link>
+                </Button>
+            }
+        />
     );
   }
 
@@ -78,6 +84,8 @@ export default function OrderDetailsPage() {
       'Picked Up': 'default',
       Cancelled: 'destructive',
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
+
+  const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
     <div className="space-y-6">
@@ -123,7 +131,7 @@ export default function OrderDetailsPage() {
         <CardContent className="space-y-2 pt-4">
              <div className="flex justify-between text-sm">
                 <p className="text-muted-foreground">Subtotal</p>
-                <p>{formatCurrency(order.total - (order.shippingCost || 0), order.currency)}</p>
+                <p>{formatCurrency(subtotal, order.currency)}</p>
             </div>
             <div className="flex justify-between text-sm">
                 <p className="text-muted-foreground">Shipping</p>
