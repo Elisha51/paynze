@@ -113,7 +113,7 @@ const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttri
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                {attribute.type === 'kpi' && value && (
+                {attribute.type === 'kpi' &amp;&amp; value &amp;&amp; (
                     <div className="space-y-4">
                         <div>
                             <div className="flex justify-between items-center mb-1">
@@ -124,24 +124,24 @@ const DynamicAttributeCard = ({ attribute, value }: { attribute: AssignableAttri
                         </div>
                     </div>
                 )}
-                {attribute.type === 'tags' && Array.isArray(value) && value.length > 0 && (
+                {attribute.type === 'tags' &amp;&amp; Array.isArray(value) &amp;&amp; value.length > 0 &amp;&amp; (
                      <div className="flex flex-wrap gap-2">
                         {value.map(tag => (
                             <Badge key={tag} variant="secondary">{tag}</Badge>
                         ))}
                     </div>
                 )}
-                 {(attribute.type === 'string' || attribute.type === 'number') && value && (
+                 {(attribute.type === 'string' || attribute.type === 'number') &amp;&amp; value &amp;&amp; (
                      <p className="text-lg font-medium">{value}</p>
                  )}
-                 {attribute.type === 'boolean' && typeof value === 'boolean' && (
+                 {attribute.type === 'boolean' &amp;&amp; typeof value === 'boolean' &amp;&amp; (
                      <Badge variant={value ? 'default' : 'secondary'}>{value ? 'Yes' : 'No'}</Badge>
                  )}
-                 {attribute.type === 'date' && value && (
+                 {attribute.type === 'date' &amp;&amp; value &amp;&amp; (
                      <p className="text-lg font-medium">{format(new Date(value), 'PPP')}</p>
                  )}
 
-                {(!value || (Array.isArray(value) && value.length === 0)) && (
+                {(!value || (Array.isArray(value) &amp;&amp; value.length === 0)) &amp;&amp; (
                     <p className="text-sm text-muted-foreground text-center py-4">No value assigned.</p>
                 )}
             </CardContent>
@@ -300,11 +300,11 @@ export default function ViewStaffPage() {
   
   const hasAttributes = assignedAttributes.length > 0;
   const isPendingVerification = staffMember.status === 'Pending Verification';
-  const hasDocuments = staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0;
-  const hasSchedule = staffMember.schedule && staffMember.schedule.length > 0;
+  const hasDocuments = staffMember.verificationDocuments &amp;&amp; staffMember.verificationDocuments.length > 0;
+  const hasSchedule = staffMember.schedule &amp;&amp; staffMember.schedule.length > 0;
   
   const assignedOrders = allOrders.filter(o => o.assignedStaffId === staffMember.id);
-  const unassignedDeliveryOrders = allOrders.filter(o => o.status === 'Paid' && o.fulfillmentMethod === 'Delivery' && !o.assignedStaffId);
+  const unassignedDeliveryOrders = allOrders.filter(o => o.status === 'Paid' &amp;&amp; o.fulfillmentMethod === 'Delivery' &amp;&amp; !o.assignedStaffId);
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
@@ -312,7 +312,7 @@ export default function ViewStaffPage() {
   const canEditStaff = user?.permissions.staff.edit;
 
   const renderVerificationCard = () => {
-    if (isPendingVerification && canEditStaff) {
+    if (isPendingVerification &amp;&amp; canEditStaff) {
       return (
         <Card className="border-yellow-400 bg-yellow-50">
               <CardHeader className="flex flex-row items-center justify-between p-4">
@@ -388,7 +388,7 @@ export default function ViewStaffPage() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-            {canEditStaff && (
+            {canEditStaff &amp;&amp; (
                 <Button variant="outline" asChild>
                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
                         <Edit className="mr-2 h-4 w-4" />
@@ -406,7 +406,7 @@ export default function ViewStaffPage() {
                     <DropdownMenuContent>
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuItem>View Activity Log</DropdownMenuItem>
-                        {canEditStaff && staffMember.status !== 'Deactivated' && (
+                        {canEditStaff &amp;&amp; staffMember.status !== 'Deactivated' &amp;&amp; (
                              <AlertDialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Deactivate Member</DropdownMenuItem>
                             </AlertDialogTrigger>
@@ -434,12 +434,12 @@ export default function ViewStaffPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance &amp; Attributes</TabsTrigger>}
+          {(hasAttributes || staffMember.totalCommission) &amp;&amp; <TabsTrigger value="performance">Performance &amp; Attributes</TabsTrigger>}
           <TabsTrigger value="activity">Activity Log</TabsTrigger>
           <TabsTrigger value="details">Documents &amp; Details</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6 space-y-6">
-            {showAssignedOrders && (
+            {showAssignedOrders &amp;&amp; (
                  <Card>
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -458,7 +458,7 @@ export default function ViewStaffPage() {
                             description: unassignedDeliveryOrders.length > 0 
                                 ? "You can assign one of the pending orders below."
                                 : "There are currently no unassigned orders ready for delivery.",
-                            cta: unassignedDeliveryOrders.length > 0 && canEditStaff
+                            cta: unassignedDeliveryOrders.length > 0 &amp;&amp; canEditStaff
                                 ? <UnassignedOrders orders={unassignedDeliveryOrders} staffMember={staffMember} onAssign={handleAssignOrder} />
                                 : undefined,
                           }}
@@ -467,18 +467,18 @@ export default function ViewStaffPage() {
                 </Card>
             )}
             
-            {hasSchedule && (
+            {hasSchedule &amp;&amp; (
                 <StaffScheduleCard schedule={staffMember.schedule || []} />
             )}
 
-            {!showAssignedOrders && !hasSchedule && (
+            {!showAssignedOrders &amp;&amp; !hasSchedule &amp;&amp; (
                  <Card>
                     <CardContent>
                         <EmptyState 
                             icon={<Award className="h-12 w-12 text-primary" />}
                             title="No Tasks or Schedule"
                             description="This staff member currently has no assigned orders or schedule to display."
-                            cta={( canEditStaff &&
+                            cta={( canEditStaff &amp;&amp;
                                 <Button asChild>
                                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
                                         <Edit className="mr-2 h-4 w-4" />
@@ -500,13 +500,13 @@ export default function ViewStaffPage() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="divide-y">
-                    {staffMember.totalCommission && staffMember.currency && (
+                    {staffMember.totalCommission &amp;&amp; staffMember.currency &amp;&amp; (
                         <div className="text-sm py-3 flex justify-between items-center">
                             <span className="text-muted-foreground">Unpaid Commission: </span>
                             <span className="font-bold text-lg text-primary">{formatCurrency(staffMember.totalCommission, staffMember.currency)}</span>
                         </div>
                     )}
-                    {staffMember.payoutHistory && staffMember.payoutHistory.length > 0 && (
+                    {staffMember.payoutHistory &amp;&amp; staffMember.payoutHistory.length > 0 &amp;&amp; (
                         <div className="pt-4">
                             <h4 className="font-medium text-sm mb-2">Payout History</h4>
                             <Table>
@@ -546,7 +546,7 @@ export default function ViewStaffPage() {
             <StaffActivityLog staffId={staffMember.id} />
         </TabsContent>
         <TabsContent value="details" className="mt-6 space-y-6">
-             {hasDocuments && (
+             {hasDocuments &amp;&amp; (
                 <Card>
                     <CardHeader>
                         <CardTitle>Verification Documents</CardTitle>

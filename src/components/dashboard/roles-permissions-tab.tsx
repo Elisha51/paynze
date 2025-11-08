@@ -100,7 +100,7 @@ const PermissionRow = ({ label, permissions, onPermissionChange, type = 'crud' }
     );
 };
 
-const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
+const emptyRole: Omit<Role, 'name'> &amp; {name: StaffRoleName | ''} = {
     name: '',
     description: '',
     permissions: {
@@ -297,8 +297,8 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                         <p className="text-sm text-muted-foreground">{role.description}</p>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {role.commissionRules && role.commissionRules.length > 0 && <Badge variant="outline"><DollarSign className="h-3 w-3 mr-1"/>Commission</Badge>}
-                                        {role.assignableAttributes && role.assignableAttributes.length > 0 && (
+                                        {role.commissionRules &amp;&amp; role.commissionRules.length > 0 &amp;&amp; <Badge variant="outline"><DollarSign className="h-3 w-3 mr-1"/>Commission</Badge>}
+                                        {role.assignableAttributes &amp;&amp; role.assignableAttributes.length > 0 &amp;&amp; (
                                             <Badge variant="secondary">
                                                 {role.assignableAttributes.length} Attribute{role.assignableAttributes.length > 1 ? 's' : ''}
                                             </Badge>

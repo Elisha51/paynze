@@ -504,5 +504,3 @@ export type Affiliate = {
     paidCommission: number;
     payoutHistory?: Payout[];
 };
-
-    
