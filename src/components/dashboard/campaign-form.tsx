@@ -168,7 +168,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                     <Card>
                         <CardHeader>
                             <CardTitle>Storefront Banner</CardTitle>
-                            <CardDescription>Optionally, feature this campaign in a banner on your storefront homepage.</CardDescription>
+                            <CardDescription>Feature this campaign in a banner on your storefront homepage. This is optional.</CardDescription>
                         </CardHeader>
                         <CardContent className="space-y-4">
                              <div className="flex items-center space-x-2">
@@ -202,6 +202,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                             onFilesChange={handleBannerImageUpload}
                                             maxFiles={1}
                                         />
+                                        <p className="text-xs text-muted-foreground">Recommended dimensions: 1200x400 pixels. Max file size: 2MB.</p>
                                     </div>
                                 </div>
                             )}
