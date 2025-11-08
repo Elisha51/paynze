@@ -1,4 +1,3 @@
-// src/components/onboarding/step4-theme.tsx
 'use client';
 import { useOnboarding } from '@/context/onboarding-context';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { themes } from '@/themes';
 import { CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export default function Step4Theme() {
+export function ThemeSelector() {
   const { formData, setFormData, nextStep, prevStep } = useOnboarding();
 
   const selectTheme = (themeName: string) => {

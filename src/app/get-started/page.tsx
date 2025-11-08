@@ -4,7 +4,7 @@ import { OnboardingProvider, useOnboarding } from '@/context/onboarding-context'
 import Step1BusinessInfo from '@/components/onboarding/step1-business-info';
 import Step2StoreSetup from '@/components/onboarding/step2-store-setup';
 import Step3Preferences from '@/components/onboarding/step3-preferences';
-import Step4Theme from '@/components/onboarding/step4-theme';
+import { ThemeSelector } from '@/themes/theme-selector';
 import Step5Confirmation from '@/components/onboarding/step5-confirmation';
 import { OnboardingLayout } from '@/components/layout/onboarding-layout';
 import { Progress } from '@/components/ui/progress';
@@ -35,7 +35,7 @@ function OnboardingWizard() {
             {step === 1 && <Step1BusinessInfo />}
             {step === 2 && <Step2StoreSetup />}
             {step === 3 && <Step3Preferences />}
-            {step === 4 && <Step4Theme />}
+            {step === 4 && <ThemeSelector />}
             {step === 5 && <Step5Confirmation />}
         </div>
 
