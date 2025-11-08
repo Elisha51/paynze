@@ -232,6 +232,8 @@ export type Customer = {
     createdAt?: string;
     orders?: Order[];
     communications?: Communication[];
+    wishlist?: string[]; // Array of product SKUs
+    discounts?: Discount[];
 };
 
 export type RecentSale = {

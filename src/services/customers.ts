@@ -1,11 +1,12 @@
 
+
 import type { Customer } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
 
 function initializeMockCustomers(): Customer[] {
-    const mockCustomers: Omit<Customer, 'communications' | 'orders'>[] = [
+    const mockCustomers: Omit<Customer, 'communications' | 'orders' | 'discounts' | 'wishlist'>[] = [
         { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'Wholesaler', lastOrderDate: '2023-01-23', totalSpend: 250000, currency: 'KES', createdAt: '2022-11-15' },
         { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', customerGroup: 'Retailer', lastOrderDate: '2023-02-10', totalSpend: 75000, currency: 'UGX', createdAt: '2023-01-20' },
         { id: 'cust-03', name: 'Noah Williams', email: 'noah@example.com', phone: '+254734567890', customerGroup: 'default', lastOrderDate: '2023-03-05', totalSpend: 15000, currency: 'KES', createdAt: '2023-03-01' },
@@ -59,6 +60,11 @@ function initializeMockCustomers(): Customer[] {
         return {
             ...customer,
             communications: baseComms,
+            wishlist: index === 1 ? ['COFF-01', 'JEWEL-01'] : [],
+            discounts: index === 1 ? [
+                { code: 'WELCOME15', type: 'Percentage', value: 15, status: 'Active', redemptions: 0, minPurchase: 0, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true },
+                { code: 'FREESHIP', type: 'Fixed Amount', value: 10000, status: 'Active', redemptions: 0, minPurchase: 50000, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true, description: 'Free shipping on your next order' },
+            ] : []
         };
     });
 }
@@ -83,4 +89,8 @@ export async function getCustomerById(customerId: string): Promise<Customer | un
   }
   
   return customer;
+}
+
+export async function updateCustomer(customer: Customer): Promise<Customer> {
+    return await customerService.update(customer.id, customer);
 }

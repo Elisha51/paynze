@@ -1,10 +1,12 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { getProducts } from '@/services/products';
-import { type Product, type ProductVariant } from '@/lib/types';
+import { getCustomerById, updateCustomer } from '@/services/customers';
+import { type Product, type ProductVariant, type Customer } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
@@ -17,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { AuthModal } from '@/components/storefront/auth-modal';
+import { Heart } from 'lucide-react';
 
 const md = new Remarkable();
 
@@ -31,15 +34,21 @@ export default function ProductDetailPage() {
   const { addToCart } = useCart();
   const { toast } = useToast();
   
-  // Simulate customer authentication state
-  const [isCustomerAuthenticated, setIsCustomerAuthenticated] = useState(false);
+  const [customer, setCustomer] = useState<Customer | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   
-  // In a real app, you would use a proper customer auth context.
-  // For this prototype, we'll just check a mock flag.
+  const isWishlisted = customer?.wishlist?.includes(sku) ?? false;
+  
   useEffect(() => {
-    const loggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
-    setIsCustomerAuthenticated(loggedIn);
+    async function loadCustomer() {
+        const loggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
+        if (loggedIn) {
+            // This is a mock. In a real app you'd get the ID from a session.
+            const currentCustomer = await getCustomerById('cust-02');
+            setCustomer(currentCustomer || null);
+        }
+    }
+    loadCustomer();
   }, []);
 
 
@@ -83,22 +92,47 @@ export default function ProductDetailPage() {
     setSelectedOptions(prev => ({ ...prev, [optionName]: value }));
   };
   
+  const handleProtectedAction = (callback: () => void, reason: string) => {
+    if (!customer) {
+      setIsAuthModalOpen(true);
+      return;
+    }
+    callback();
+  }
+  
   const handleAddToCart = () => {
-    if (!isCustomerAuthenticated) {
-        setIsAuthModalOpen(true);
-        return;
-    }
-    
-    if (product && (selectedVariant || (!product.hasVariants && product.variants.length > 0))) {
-        addToCart(product, selectedVariant || product.variants[0], quantity);
-    } else {
-        toast({
-            variant: 'destructive',
-            title: 'Unable to add to cart',
-            description: 'This product variant is currently unavailable.',
-        })
-    }
+    handleProtectedAction(() => {
+      if (product && (selectedVariant || (!product.hasVariants && product.variants.length > 0))) {
+          addToCart(product, selectedVariant || product.variants[0], quantity);
+      } else {
+          toast({
+              variant: 'destructive',
+              title: 'Unable to add to cart',
+              description: 'This product variant is currently unavailable.',
+          })
+      }
+    }, 'add items to your cart');
   };
+
+  const handleToggleWishlist = async () => {
+      handleProtectedAction(async () => {
+        if (!customer || !product) return;
+        
+        const currentWishlist = customer.wishlist || [];
+        const newWishlist = isWishlisted 
+            ? currentWishlist.filter(itemSku => itemSku !== product.sku)
+            : [...currentWishlist, product.sku];
+        
+        const updatedCustomer = await updateCustomer({ ...customer, wishlist: newWishlist });
+        setCustomer(updatedCustomer);
+
+        toast({
+            title: isWishlisted ? 'Removed from Wishlist' : 'Added to Wishlist',
+            description: `${product.name} has been ${isWishlisted ? 'removed from' : 'added to'} your wishlist.`
+        });
+    }, 'save items to your wishlist');
+  };
+
 
   const formatCurrency = (amount: number, currency: string) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
@@ -136,8 +170,6 @@ export default function ProductDetailPage() {
     return <div>Product not found</div>;
   }
   
-  // Use selectedVariant for price if available, otherwise fallback to base product price.
-  // For non-variant products, selectedVariant will be the default variant.
   const price = selectedVariant?.price ?? product.retailPrice;
   const isAvailable = selectedVariant ? selectedVariant.status === 'In Stock' || selectedVariant.status === 'Low Stock' : true;
 
@@ -217,6 +249,9 @@ export default function ProductDetailPage() {
               >
                 {isAvailable ? 'Add to Cart' : 'Out of Stock'}
               </Button>
+               <Button size="lg" variant="outline" onClick={handleToggleWishlist}>
+                    <Heart className={cn("h-5 w-5", isWishlisted && "fill-red-500 text-red-500")} />
+               </Button>
             </div>
             
             {product.longDescription && (
