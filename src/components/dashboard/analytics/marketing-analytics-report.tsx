@@ -70,9 +70,9 @@ export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRan
         return acc;
     }, {} as Record<string, number>);
 
-    const campaignData = Object.keys(reachByChannel).map((name, index) => ({ name, sent: reachByChannel[name], key: `camp-${index}` }));
+    const campaignData = Object.keys(reachByChannel).map((name, index) => ({ name, sent: reachByChannel[name] }));
     
-    const discountData = discounts.map((d, index) => ({ name: d.code, redemptions: d.redemptions, key: `disc-${index}` }));
+    const discountData = discounts.map((d, index) => ({ name: d.code, redemptions: d.redemptions }));
       
     return {
         summaryMetrics: {
@@ -155,7 +155,7 @@ export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRan
                   />
                   <Bar dataKey="sent" fill="var(--color-sent)" radius={[4, 4, 0, 0]}>
                     {campaignChannelData.map((entry) => (
-                        <div key={entry.key} />
+                        <div key={entry.name} />
                     ))}
                   </Bar>
               </RechartsBarChart>
@@ -189,7 +189,7 @@ export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRan
                   />
                   <Bar dataKey="redemptions" fill="var(--color-redemptions)" radius={[4, 4, 0, 0]}>
                      {discountChartData.map((entry) => (
-                        <div key={entry.key} />
+                        <div key={entry.name} />
                     ))}
                   </Bar>
               </RechartsBarChart>

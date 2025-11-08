@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import {
@@ -34,8 +35,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DataTableFacetedFilter } from '../ui/data-table-faceted-filter';
 import { X, Search } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
-import { Input } from './input';
-
+import { Input } from '../ui/input';
 
 interface DataTableFilter {
   columnId: string;
@@ -80,6 +80,7 @@ export function DataTable<TData, TValue>({
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
@@ -88,8 +89,6 @@ export function DataTable<TData, TValue>({
     getFacetedUniqueValues: getFacetedUniqueValues(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: 'auto',
     state: {
       sorting,
       columnFilters,
@@ -97,6 +96,7 @@ export function DataTable<TData, TValue>({
       rowSelection,
       globalFilter,
     },
+    globalFilterFn: 'auto',
   });
   
   const isFiltered = table.getState().columnFilters.length > 0;
@@ -108,8 +108,8 @@ export function DataTable<TData, TValue>({
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                   placeholder="Search table..."
-                  value={globalFilter ?? ''}
-                  onChange={(e) => setGlobalFilter(String(e.target.value))}
+                  value={globalFilter}
+                  onChange={(e) => setGlobalFilter(e.target.value)}
                   className="pl-8 w-full"
               />
           </div>
@@ -269,5 +269,3 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
-
-    
