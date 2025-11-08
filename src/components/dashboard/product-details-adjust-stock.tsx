@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -24,11 +23,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { Product, ProductVariant, StockAdjustment } from '@/lib/types';
-import { Move, MinusCircle, PlusCircle, ShieldAlert, BookLock, ArrowRightLeft } from 'lucide-react';
+import { Move, ShieldAlert, BookLock, ArrowRightLeft, PlusCircle } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
 import { updateProduct } from '@/services/products';
+import { ScrollArea } from '../ui/scroll-area';
 
 type AdjustmentAction = StockAdjustment['type'] | 'Transfer';
 const addReasons = ['Supplier Shipment', 'Stock Take Correction', 'Return Processing', 'Other'];
@@ -200,110 +200,111 @@ export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product:
       <DialogTrigger asChild>
         <Button variant="outline"><Move className="mr-2 h-4 w-4" /> Adjust Stock</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Adjust Stock</DialogTitle>
           <DialogDescription>
             Manually change stock levels, statuses, or transfer between locations.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-6 py-4">
-          
-          <div className="space-y-3">
-              <Label>Action</Label>
-              <RadioGroup value={action} onValueChange={(v) => { setAction(v as AdjustmentAction); setReason(''); }} className="grid grid-cols-2 lg:grid-cols-3 gap-2">
-                 <Label htmlFor="action-add" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Initial Stock' && "border-primary")}>
-                    <RadioGroupItem value="Initial Stock" id="action-add" className="sr-only" />
-                    <PlusCircle className="mb-2 h-5 w-5 text-green-600" />
-                    <span className="text-xs text-center">Add Stock</span>
-                </Label>
-                 <Label htmlFor="action-transfer" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Transfer' && "border-primary")}>
-                    <RadioGroupItem value="Transfer" id="action-transfer" className="sr-only" />
-                    <ArrowRightLeft className="mb-2 h-5 w-5 text-indigo-600" />
-                    <span className="text-xs text-center">Transfer</span>
-                </Label>
-                <Label htmlFor="action-reserve" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Reserve' && "border-primary")}>
-                    <RadioGroupItem value="Reserve" id="action-reserve" className="sr-only" />
-                    <BookLock className="mb-2 h-5 w-5 text-orange-600" />
-                    <span className="text-xs text-center">Reserve</span>
-                </Label>
-                 <Label htmlFor="action-unreserve" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Un-reserve' && "border-primary")}>
-                    <RadioGroupItem value="Un-reserve" id="action-unreserve" className="sr-only" />
-                    <BookLock className="mb-2 h-5 w-5 text-blue-600" />
-                    <span className="text-xs text-center">Un-reserve</span>
-                </Label>
-                <Label htmlFor="action-damage" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Damage' && "border-primary")}>
-                    <RadioGroupItem value="Damage" id="action-damage" className="sr-only" />
-                    <ShieldAlert className="mb-2 h-5 w-5 text-red-600" />
-                    <span className="text-xs text-center">Mark Damaged</span>
-                </Label>
-            </RadioGroup>
-          </div>
-          
-           <div className="space-y-2">
-                <Label htmlFor="variant">Product / Variant</Label>
-                <Select onValueChange={setSelectedVariantId} value={selectedVariantId || undefined}>
-                    <SelectTrigger id="variant">
-                        <SelectValue placeholder="Select a variant" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {product.variants.map(v => (
-                            <SelectItem key={v.id} value={v.id}>{getVariantName(v)}</SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+        <ScrollArea className="max-h-[70vh]">
+          <div className="grid gap-6 py-4 px-6">
+            <div className="space-y-3">
+                <Label>Action</Label>
+                <RadioGroup value={action} onValueChange={(v) => { setAction(v as AdjustmentAction); setReason(''); }} className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                   <Label htmlFor="action-add" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Initial Stock' && "border-primary")}>
+                      <RadioGroupItem value="Initial Stock" id="action-add" className="sr-only" />
+                      <PlusCircle className="mb-2 h-5 w-5 text-green-600" />
+                      <span className="text-xs text-center">Add Stock</span>
+                  </Label>
+                   <Label htmlFor="action-transfer" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Transfer' && "border-primary")}>
+                      <RadioGroupItem value="Transfer" id="action-transfer" className="sr-only" />
+                      <ArrowRightLeft className="mb-2 h-5 w-5 text-indigo-600" />
+                      <span className="text-xs text-center">Transfer</span>
+                  </Label>
+                  <Label htmlFor="action-reserve" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Reserve' && "border-primary")}>
+                      <RadioGroupItem value="Reserve" id="action-reserve" className="sr-only" />
+                      <BookLock className="mb-2 h-5 w-5 text-orange-600" />
+                      <span className="text-xs text-center">Reserve</span>
+                  </Label>
+                   <Label htmlFor="action-unreserve" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Un-reserve' && "border-primary")}>
+                      <RadioGroupItem value="Un-reserve" id="action-unreserve" className="sr-only" />
+                      <BookLock className="mb-2 h-5 w-5 text-blue-600" />
+                      <span className="text-xs text-center">Un-reserve</span>
+                  </Label>
+                  <Label htmlFor="action-damage" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Damage' && "border-primary")}>
+                      <RadioGroupItem value="Damage" id="action-damage" className="sr-only" />
+                      <ShieldAlert className="mb-2 h-5 w-5 text-red-600" />
+                      <span className="text-xs text-center">Mark Damaged</span>
+                  </Label>
+              </RadioGroup>
             </div>
-
-          {action === 'Transfer' ? (
-             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="fromLocation">From Location</Label>
-                    <Select onValueChange={setFromLocation} value={fromLocation || undefined}>
-                        <SelectTrigger id="fromLocation"><SelectValue placeholder="Select location" /></SelectTrigger>
-                        <SelectContent>{mockLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
-                    </Select>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="toLocation">To Location</Label>
-                    <Select onValueChange={setToLocation} value={toLocation || undefined}>
-                        <SelectTrigger id="toLocation"><SelectValue placeholder="Select location" /></SelectTrigger>
-                        <SelectContent>{mockLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
-                    </Select>
-                </div>
-             </div>
-          ) : (
-            <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Select onValueChange={setFromLocation} value={fromLocation || undefined}>
-                    <SelectTrigger id="location"><SelectValue placeholder="Select a location" /></SelectTrigger>
-                    <SelectContent>{mockLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
-                </Select>
-            </div>
-          )}
-
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
-                <Input id="quantity" type="number" min="1" value={quantity || ''} onChange={(e) => setQuantity(Number(e.target.value))} placeholder='e.g., 10' />
-            </div>
+            
              <div className="space-y-2">
-                <Label htmlFor="reason">Reason</Label>
-                <Select onValueChange={setReason} value={reason}>
-                    <SelectTrigger id="reason"><SelectValue placeholder="Select a reason" /></SelectTrigger>
-                    <SelectContent>{getReasonsForAction().map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
-                </Select>
-            </div>
-          </div>
+                  <Label htmlFor="variant">Product / Variant</Label>
+                  <Select onValueChange={setSelectedVariantId} value={selectedVariantId || undefined}>
+                      <SelectTrigger id="variant">
+                          <SelectValue placeholder="Select a variant" />
+                      </SelectTrigger>
+                      <SelectContent>
+                          {product.variants.map(v => (
+                              <SelectItem key={v.id} value={v.id}>{getVariantName(v)}</SelectItem>
+                          ))}
+                      </SelectContent>
+                  </Select>
+              </div>
 
-          {reason === 'Other' && (
-             <div className="space-y-2">
-                <Label htmlFor="otherReason">Additional Details</Label>
-                <Textarea id="otherReason" value={otherReason} onChange={(e) => setOtherReason(e.target.value)} placeholder="Provide more context for this adjustment..." />
+            {action === 'Transfer' ? (
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                      <Label htmlFor="fromLocation">From Location</Label>
+                      <Select onValueChange={setFromLocation} value={fromLocation || undefined}>
+                          <SelectTrigger id="fromLocation"><SelectValue placeholder="Select location" /></SelectTrigger>
+                          <SelectContent>{mockLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
+                      </Select>
+                  </div>
+                   <div className="space-y-2">
+                      <Label htmlFor="toLocation">To Location</Label>
+                      <Select onValueChange={setToLocation} value={toLocation || undefined}>
+                          <SelectTrigger id="toLocation"><SelectValue placeholder="Select location" /></SelectTrigger>
+                          <SelectContent>{mockLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
+                      </Select>
+                  </div>
+               </div>
+            ) : (
+              <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Select onValueChange={setFromLocation} value={fromLocation || undefined}>
+                      <SelectTrigger id="location"><SelectValue placeholder="Select a location" /></SelectTrigger>
+                      <SelectContent>{mockLocations.map(loc => <SelectItem key={loc} value={loc}>{loc}</SelectItem>)}</SelectContent>
+                  </Select>
+              </div>
+            )}
+
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                  <Label htmlFor="quantity">Quantity</Label>
+                  <Input id="quantity" type="number" min="1" value={quantity || ''} onChange={(e) => setQuantity(Number(e.target.value))} placeholder='e.g., 10' />
+              </div>
+               <div className="space-y-2">
+                  <Label htmlFor="reason">Reason</Label>
+                  <Select onValueChange={setReason} value={reason}>
+                      <SelectTrigger id="reason"><SelectValue placeholder="Select a reason" /></SelectTrigger>
+                      <SelectContent>{getReasonsForAction().map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}</SelectContent>
+                  </Select>
+              </div>
             </div>
-          )}
-        </div>
-        <DialogFooter>
+
+            {reason === 'Other' && (
+               <div className="space-y-2">
+                  <Label htmlFor="otherReason">Additional Details</Label>
+                  <Textarea id="otherReason" value={otherReason} onChange={(e) => setOtherReason(e.target.value)} placeholder="Provide more context for this adjustment..." />
+              </div>
+            )}
+          </div>
+        </ScrollArea>
+        <DialogFooter className="px-6 pb-6 pt-0">
             <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
             </DialogClose>
@@ -313,5 +314,3 @@ export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product:
     </Dialog>
   );
 }
-
-    

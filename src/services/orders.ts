@@ -1,6 +1,6 @@
 
 
-import type { Order, Product, Staff, Role } from '@/lib/types';
+import type { Order, Product, Staff, Role, StockAdjustment } from '@/lib/types';
 import { updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
@@ -104,7 +104,7 @@ function initializeMockOrders(): Order[] {
             salesAgentId: 'aff-001', // Referred by Fatuma Asha
             salesAgentName: 'Fatuma Asha',
             date: '2024-07-21', 
-            status: 'Delivered', _ts: 1, 
+            status: 'Delivered', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 1, price: 50000, category: 'Groceries' }],
             total: 50000,
@@ -119,7 +119,7 @@ function initializeMockOrders(): Order[] {
             salesAgentId: 'aff-001', // Referred by Fatuma Asha
             salesAgentName: 'Fatuma Asha',
             date: '2024-07-20', 
-            status: 'Picked Up', _ts: 1, 
+            status: 'Picked Up',
             fulfillmentMethod: 'Pickup',
             items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 4, price: 30000, category: 'Fabrics' }],
             total: 120000,
@@ -239,11 +239,19 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   if (!originalOrder) {
       throw new Error('Order not found');
   }
+  const isNewlyFulfilled = (updates.status === 'Delivered' || updates.status === 'Picked Up') && (originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up');
+
 
   if (updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled') {
       // Un-reserve stock if order is cancelled
       for (const item of originalOrder.items) {
           await updateProductStock(item.sku, item.quantity, 'Un-reserve', `Order #${orderId} Cancelled`);
+      }
+  }
+
+  if (isNewlyFulfilled) {
+      for (const item of originalOrder.items) {
+          await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${orderId}`);
       }
   }
 
@@ -261,7 +269,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   const updatedOrder = await orderService.update(orderId, finalUpdates);
 
   // Handle revenue logging for COD
-  if ( (updates.status === 'Delivered' || updates.status === 'Picked Up') && originalOrder.payment.method === 'Cash on Delivery') {
+  if ( isNewlyFulfilled && originalOrder.payment.method === 'Cash on Delivery') {
     await addTransaction({
         date: new Date().toISOString(),
         description: `Sale from Order #${orderId}`,
@@ -276,7 +284,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
 
 
   // Handle commissions after the order has been updated in the main array
-  if ((updates.status === 'Delivered' || updates.status === 'Picked Up') && originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up') {
+  if (isNewlyFulfilled) {
     await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
   }
   if (updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed') {
@@ -361,5 +369,3 @@ export async function updateProductStock(
     // and best kept within the `updateProduct` function itself.
     // For now, we will assume `updateProduct` can handle these granular adjustments.
 }
-
-    

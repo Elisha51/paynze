@@ -85,9 +85,6 @@ function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { or
         if (action === 'deliver' || action === 'pickup') {
             updates.fulfilledByStaffId = user.id;
             updates.fulfilledByStaffName = user.name;
-            for (const item of order.items) {
-                await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${order.id}`);
-            }
         }
         
         const updatedOrder = await updateOrder(order.id, updates);
