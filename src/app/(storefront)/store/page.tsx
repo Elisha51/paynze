@@ -13,6 +13,8 @@ import { ProductFilters } from "@/components/storefront/product-filters";
 import { getCategories } from "@/services/categories";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { PromotionalBanner } from "@/components/storefront/promotional-banner";
+import { PlaceHolderImages } from "@/lib/placeholder-images";
 
 export default function StorefrontHomePage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,6 +25,8 @@ export default function StorefrontHomePage() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000000]);
   const [showInStock, setShowInStock] = useState(false);
+
+  const bannerImage = PlaceHolderImages.find(p => p.id === 'store-banner');
 
   useEffect(() => {
     async function loadData() {
@@ -130,6 +134,15 @@ export default function StorefrontHomePage() {
 
   return (
     <div className="container mx-auto py-8">
+        {bannerImage && (
+          <PromotionalBanner 
+            image={bannerImage}
+            title="Summer Kitenge Collection"
+            description="Vibrant new patterns and colors, perfect for any occasion. Limited stock available."
+            ctaText="Shop Now"
+            ctaLink="/store/product/KIT-001"
+          />
+        )}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
             <aside className="hidden lg:block lg:col-span-1 sticky top-24">
                 <FilterComponent />
