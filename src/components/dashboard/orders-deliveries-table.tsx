@@ -54,7 +54,7 @@ function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { orde
     const { toast } = useToast();
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
 
-    const deliveryRiders = staff.filter(s => s.role === 'Delivery Rider');
+    const deliveryRiders = staff.filter(s => s.role === 'Agent');
     
     // Suggest riders based on availability and zone
     const suggestedRiders = React.useMemo(() => {

@@ -20,7 +20,7 @@ const defaultPermissions: Permissions = {
 const mockRoles: Role[] = [
   {
     name: 'Admin',
-    description: 'Has access to all features and settings.',
+    description: 'Full access to all features and settings.',
     permissions: {
       dashboard: { view: true },
       products: { view: true, create: true, edit: true, delete: true },
@@ -38,17 +38,31 @@ const mockRoles: Role[] = [
     commissionRules: [],
   },
   {
-    name: 'Sales Agent',
-    description: 'Manages products, orders, and customers.',
+    name: 'Manager',
+    description: 'Manages orders, staff, campaigns, and inventory.',
     permissions: {
       ...defaultPermissions,
       dashboard: { view: true },
       products: { view: true, create: true, edit: true, delete: false },
       orders: { view: true, create: true, edit: true, delete: false },
       customers: { view: true, create: true, edit: true, delete: false },
-      marketing: { view: true, create: false, edit: false, delete: false },
+      marketing: { view: true, create: true, edit: true, delete: false },
+      staff: { view: true, create: true, edit: true, delete: false },
+      tasks: { view: true, create: true, edit: true, delete: false },
+      templates: { view: true, create: true, edit: true, delete: false },
+    },
+    assignableAttributes: [],
+    commissionRules: [],
+  },
+  {
+    name: 'Sales Agent',
+    description: 'Handles product and customer management.',
+    permissions: {
+      ...defaultPermissions,
+      dashboard: { view: true },
+      products: { view: true, create: true, edit: true, delete: false },
+      customers: { view: true, create: true, edit: true, delete: false },
       tasks: { view: true, create: true, edit: false, delete: false },
-      templates: { view: true, create: false, edit: false, delete: false },
     },
     commissionRules: [
         { id: 'sales-1', name: 'Standard Sales Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 5 }
@@ -56,12 +70,11 @@ const mockRoles: Role[] = [
     assignableAttributes: [
         { key: 'salesTarget', label: 'Monthly Sales Target', type: 'kpi' },
         { key: 'assignedRegions', label: 'Sales Regions', type: 'tags' },
-        { key: 'isKeyAccountManager', label: 'Is Key Account Manager', type: 'boolean' }
     ]
   },
   {
-    name: 'Delivery Rider',
-    description: 'Views and updates order and delivery statuses.',
+    name: 'Agent',
+    description: 'Handles specific delivery or in-store duties.',
     permissions: {
       ...defaultPermissions,
       dashboard: { view: true },
@@ -75,7 +88,6 @@ const mockRoles: Role[] = [
         { key: 'deliveryTarget', label: 'Daily Delivery Target', type: 'kpi' },
         { key: 'deliveryZones', label: 'Delivery Zones', type: 'tags' },
         { key: 'vehicleId', label: 'Vehicle ID', type: 'string' },
-        { key: 'lastInspectionDate', label: 'Last Vehicle Inspection', type: 'date' }
     ]
   },
   {
@@ -96,13 +108,9 @@ const mockRoles: Role[] = [
     description: 'A marketing partner who earns commission on referred sales.',
     permissions: {
         ...defaultPermissions,
-        dashboard: { view: false },
-        tasks: { view: false, create: false, edit: false, delete: false },
     },
     assignableAttributes: [],
-    commissionRules: [
-        { id: 'affiliate-1', name: 'Standard Affiliate Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 10 }
-    ],
+    commissionRules: [],
   }
 ];
 

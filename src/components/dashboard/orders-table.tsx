@@ -120,7 +120,7 @@ function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Orde
     React.useEffect(() => {
         async function loadStaff() {
             const allStaff = await getStaff();
-            const assignableStaff = allStaff.filter(s => s.role === 'Delivery Rider');
+            const assignableStaff = allStaff.filter(s => s.role === 'Agent');
             setStaff(assignableStaff);
         }
         loadStaff();
@@ -182,6 +182,7 @@ const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'o
   Paid: 'default',
   'Ready for Pickup': 'outline',
   Shipped: 'outline',
+  'Attempted Delivery': 'outline',
   Delivered: 'default',
   'Picked Up': 'default',
   Cancelled: 'destructive',
@@ -192,6 +193,7 @@ const orderStatuses = [
     { value: 'Paid', label: 'Paid' },
     { value: 'Ready for Pickup', label: 'Ready for Pickup' },
     { value: 'Shipped', label: 'Shipped' },
+    { value: 'Attempted Delivery', label: 'Attempted Delivery' },
     { value: 'Delivered', label: 'Delivered' },
     { value: 'Picked Up', label: 'Picked Up' },
     { value: 'Cancelled', label: 'Cancelled' },

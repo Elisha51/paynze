@@ -24,7 +24,7 @@ export default function StaffPage() {
     async function loadData() {
       setIsLoading(true);
       const staffData = await getStaff();
-      setStaff(staffData); // Load all staff, including affiliates
+      setStaff(staffData.filter(s => s.role !== 'Affiliate')); // Exclude affiliates
       setIsLoading(false);
     }
     loadData();
