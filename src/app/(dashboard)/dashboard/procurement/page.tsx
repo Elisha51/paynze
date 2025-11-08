@@ -133,6 +133,7 @@ export default function ProcurementPage() {
     const { user } = useAuth();
     
     const canCreate = user?.permissions.procurement.create;
+    const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
     useEffect(() => {
         async function loadData() {
@@ -177,8 +178,11 @@ export default function ProcurementPage() {
     const tabs = [
         { value: 'suppliers', label: 'Suppliers' },
         { value: 'purchase-orders', label: 'Purchase Orders' },
-        { value: 'analytics', label: 'Analytics' }
     ];
+
+    if (canViewAnalytics) {
+        tabs.push({ value: 'analytics', label: 'Analytics' });
+    }
 
     return (
         <DashboardPageLayout
@@ -198,11 +202,13 @@ export default function ProcurementPage() {
                     <DataTable columns={poColumns} data={purchaseOrders} isLoading={isLoading} />
                 </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
-            <DashboardPageLayout.TabContent value="analytics">
-                <DashboardPageLayout.Content>
-                    <ProcurementAnalyticsReport purchaseOrders={purchaseOrders} dateRange={dateRange} />
-                </DashboardPageLayout.Content>
-            </DashboardPageLayout.TabContent>
+            {canViewAnalytics && (
+                <DashboardPageLayout.TabContent value="analytics">
+                    <DashboardPageLayout.Content>
+                        <ProcurementAnalyticsReport purchaseOrders={purchaseOrders} dateRange={dateRange} />
+                    </DashboardPageLayout.Content>
+                </DashboardPageLayout.TabContent>
+            )}
         </DashboardPageLayout>
     );
 }

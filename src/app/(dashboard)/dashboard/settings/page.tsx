@@ -19,6 +19,7 @@ import { Separator } from "@/components/ui/separator";
 import { AffiliateSettings } from "@/components/settings/affiliate-settings";
 import { useAuth } from "@/context/auth-context";
 import { DeveloperSettings } from "@/components/settings/developer-settings";
+import { BillingSettings } from "@/components/settings/billing-settings";
 
 export default function SettingsPage() {
     const { user } = useAuth();
@@ -47,6 +48,7 @@ export default function SettingsPage() {
 
     const tabs = [
         { value: "general", label: "General" },
+        { value: "billing", label: "Billing & Plan" },
         { value: "storefront", label: "Storefront" },
         { value: "locations", label: "Locations" },
         { value: "shipping", label: "Shipping" },
@@ -82,6 +84,11 @@ export default function SettingsPage() {
                     </>
                   )}
                 </div>
+              </DashboardPageLayout.Content>
+            </DashboardPageLayout.TabContent>
+            <DashboardPageLayout.TabContent value="billing">
+              <DashboardPageLayout.Content>
+                <BillingSettings />
               </DashboardPageLayout.Content>
             </DashboardPageLayout.TabContent>
             <DashboardPageLayout.TabContent value="storefront">

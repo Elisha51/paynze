@@ -17,6 +17,7 @@ import { getAffiliates } from '@/services/affiliates';
 import { DiscountsTab } from '@/components/dashboard/discounts-tab';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/auth-context';
 
 
 function MarketingOverview({ campaigns, discounts, affiliates }: { campaigns: Campaign[], discounts: Discount[], affiliates: Affiliate[] }) {
@@ -64,7 +65,8 @@ export default function MarketingPage() {
   const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-
+  const { user } = useAuth();
+  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
   useEffect(() => {
     async function loadData() {
@@ -87,8 +89,11 @@ export default function MarketingPage() {
     { value: 'campaigns', label: 'Campaigns' },
     { value: 'discounts', label: 'Discounts' },
     { value: 'affiliates', label: 'Affiliates' },
-    { value: 'analytics', label: 'Analytics' },
   ];
+  
+  if (canViewAnalytics) {
+    tabs.push({ value: 'analytics', label: 'Analytics' });
+  }
   
   const campaignStatusOptions = [
       { value: 'Active', label: 'Active'},
@@ -159,11 +164,13 @@ export default function MarketingPage() {
             <AffiliatesTab />
          </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
-      <DashboardPageLayout.TabContent value="analytics">
-        <DashboardPageLayout.Content>
-            <MarketingAnalyticsReport campaigns={campaigns} discounts={discounts} orders={orders} dateRange={dateRange} />
-        </DashboardPageLayout.Content>
-      </DashboardPageLayout.TabContent>
+      {canViewAnalytics && (
+        <DashboardPageLayout.TabContent value="analytics">
+          <DashboardPageLayout.Content>
+              <MarketingAnalyticsReport campaigns={campaigns} discounts={discounts} orders={orders} dateRange={dateRange} />
+          </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+      )}
     </DashboardPageLayout>
   );
 }

@@ -21,6 +21,7 @@ export default function CustomersPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
   const canCreate = user?.permissions.customers.create;
+  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
   useEffect(() => {
     async function loadData() {
@@ -34,8 +35,11 @@ export default function CustomersPage() {
   
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },
-    { value: 'analytics', label: 'Analytics' },
   ];
+
+  if (canViewAnalytics) {
+    tabs.push({ value: 'analytics', label: 'Analytics' });
+  }
 
   const ctaContent = activeTab === 'analytics'
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
@@ -62,11 +66,13 @@ export default function CustomersPage() {
             <CustomersTable data={customers} setData={setCustomers} isLoading={isLoading} />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
-      <DashboardPageLayout.TabContent value="analytics">
-        <DashboardPageLayout.Content>
-            <CustomerAnalyticsReport customers={customers} dateRange={dateRange} />
-        </DashboardPageLayout.Content>
-      </DashboardPageLayout.TabContent>
+      {canViewAnalytics && (
+        <DashboardPageLayout.TabContent value="analytics">
+          <DashboardPageLayout.Content>
+              <CustomerAnalyticsReport customers={customers} dateRange={dateRange} />
+          </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+      )}
     </DashboardPageLayout>
   );
 }

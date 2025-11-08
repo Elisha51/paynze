@@ -25,6 +25,7 @@ export default function OrdersPage() {
   const { user } = useAuth();
   
   const canCreate = user?.permissions.orders.create;
+  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
   useEffect(() => {
     async function loadData() {
@@ -43,8 +44,11 @@ export default function OrdersPage() {
   const tabs = [
     { value: 'all-orders', label: 'All Orders' },
     { value: 'deliveries', label: 'Deliveries' },
-    { value: 'analytics', label: 'Analytics' },
   ];
+  
+  if (canViewAnalytics) {
+    tabs.push({ value: 'analytics', label: 'Analytics' });
+  }
   
   const ctaContent = activeTab === 'analytics'
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
@@ -76,11 +80,13 @@ export default function OrdersPage() {
                 <OrdersDeliveriesTable orders={orders} staff={staff} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
-         <DashboardPageLayout.TabContent value="analytics">
-            <DashboardPageLayout.Content>
-                <OrderAnalyticsReport orders={orders} dateRange={dateRange} />
-            </DashboardPageLayout.Content>
-        </DashboardPageLayout.TabContent>
+        {canViewAnalytics && (
+          <DashboardPageLayout.TabContent value="analytics">
+              <DashboardPageLayout.Content>
+                  <OrderAnalyticsReport orders={orders} dateRange={dateRange} />
+              </DashboardPageLayout.Content>
+          </DashboardPageLayout.TabContent>
+        )}
     </DashboardPageLayout>
   );
 }

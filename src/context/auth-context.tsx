@@ -30,10 +30,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const roles = await getRoles();
     const userRole = roles.find(r => r.name === staffMember.role);
     
-    const isDevMode = process.env.NODE_ENV === 'development';
     const onboardingDataRaw = localStorage.getItem('onboardingData');
-    const basePlan = onboardingDataRaw ? (JSON.parse(onboardingDataRaw) as OnboardingFormData).plan || 'Growth' : 'Growth';
-    const plan = isDevMode ? 'Enterprise' : basePlan;
+    const plan = onboardingDataRaw ? (JSON.parse(onboardingDataRaw) as OnboardingFormData).plan || 'Growth' : 'Growth';
 
     if (userRole) {
       setUser({ ...staffMember, permissions: userRole.permissions, plan });

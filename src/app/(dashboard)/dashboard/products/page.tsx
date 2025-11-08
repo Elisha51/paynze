@@ -22,6 +22,7 @@ export default function ProductsPage() {
   const { user } = useAuth();
   
   const canCreate = user?.permissions.products.create;
+  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
   useEffect(() => {
     async function loadProducts() {
@@ -35,8 +36,10 @@ export default function ProductsPage() {
 
   const tabs = [
     { value: 'all-products', label: 'All Products' },
-    { value: 'analytics', label: 'Analytics' },
   ];
+  if (canViewAnalytics) {
+    tabs.push({ value: 'analytics', label: 'Analytics' });
+  }
 
   const ctaContent = activeTab === 'analytics'
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
@@ -62,11 +65,13 @@ export default function ProductsPage() {
             <ProductsTable data={products} setData={setProducts} isLoading={isLoading} />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
-      <DashboardPageLayout.TabContent value="analytics">
-        <DashboardPageLayout.Content>
-            <ProductPerformanceReport products={products} dateRange={dateRange} />
-        </DashboardPageLayout.Content>
-      </DashboardPageLayout.TabContent>
+      {canViewAnalytics && (
+        <DashboardPageLayout.TabContent value="analytics">
+          <DashboardPageLayout.Content>
+              <ProductPerformanceReport products={products} dateRange={dateRange} />
+          </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+      )}
     </DashboardPageLayout>
   );
 }
