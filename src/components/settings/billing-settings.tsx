@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -86,103 +87,103 @@ export function BillingSettings() {
     const selectedPlanDetails = plans.find(p => p.name === selectedPlan);
 
     return (
-        <div className="space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Current Plan</CardTitle>
-                    <CardDescription>You are currently on the <span className="font-semibold text-primary">{user?.plan}</span> plan.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-sm text-muted-foreground">Manage your subscription and view feature availability below.</p>
-                </CardContent>
-            </Card>
+        <Dialog open={isUpgradeDialogOpen} onOpenChange={setIsUpgradeDialogOpen}>
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Current Plan</CardTitle>
+                        <CardDescription>You are currently on the <span className="font-semibold text-primary">{user?.plan}</span> plan.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <p className="text-sm text-muted-foreground">Manage your subscription and view feature availability below.</p>
+                    </CardContent>
+                </Card>
 
-             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {plans.map((plan, index) => (
-                    <Card key={plan.name} className={cn("flex flex-col", user?.plan === plan.name && "border-primary ring-2 ring-primary")}>
-                        <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <Zap className={cn("h-6 w-6", user?.plan === plan.name && "text-primary")} />
-                                {plan.name}
-                            </CardTitle>
-                            <CardDescription className="text-2xl font-bold">{plan.price}</CardDescription>
-                        </CardHeader>
-                        <CardContent className="flex-1 space-y-3">
-                            <ul className="space-y-2 text-sm text-muted-foreground">
-                                {plan.features.map(feature => (
-                                    <li key={feature} className="flex items-start gap-2">
-                                        <CheckCircle className="h-4 w-4 mt-0.5 text-accent flex-shrink-0" />
-                                        <span>{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </CardContent>
-                        <CardFooter>
-                            {user?.plan === plan.name ? (
-                                <Button disabled className="w-full">Current Plan</Button>
-                            ) : index > currentPlanIndex ? (
-                                // Upgrade Button
-                                <Dialog open={isUpgradeDialogOpen && selectedPlan === plan.name} onOpenChange={(isOpen) => { if (!isOpen) setIsUpgradeDialogOpen(false); }}>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {plans.map((plan, index) => (
+                        <Card key={plan.name} className={cn("flex flex-col", user?.plan === plan.name && "border-primary ring-2 ring-primary")}>
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <Zap className={cn("h-6 w-6", user?.plan === plan.name && "text-primary")} />
+                                    {plan.name}
+                                </CardTitle>
+                                <CardDescription className="text-2xl font-bold">{plan.price}</CardDescription>
+                            </CardHeader>
+                            <CardContent className="flex-1 space-y-3">
+                                <ul className="space-y-2 text-sm text-muted-foreground">
+                                    {plan.features.map(feature => (
+                                        <li key={feature} className="flex items-start gap-2">
+                                            <CheckCircle className="h-4 w-4 mt-0.5 text-accent flex-shrink-0" />
+                                            <span>{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </CardContent>
+                            <CardFooter>
+                                {user?.plan === plan.name ? (
+                                    <Button disabled className="w-full">Current Plan</Button>
+                                ) : index > currentPlanIndex ? (
+                                    // Upgrade Button
                                     <DialogTrigger asChild>
-                                        <Button onClick={() => { setSelectedPlan(plan.name); setIsUpgradeDialogOpen(true); }} className="w-full">Upgrade</Button>
+                                        <Button onClick={() => { setSelectedPlan(plan.name); }} className="w-full">Upgrade</Button>
                                     </DialogTrigger>
-                                </Dialog>
-                            ) : (
-                                // Downgrade Button
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button onClick={() => setSelectedPlan(plan.name)} className="w-full" variant="outline">Downgrade</Button>
-                                    </AlertDialogTrigger>
-                                     <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Are you sure you want to downgrade to {plan.name}?</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                You will lose access to premium features at the end of your current billing cycle.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handlePlanChange(plan.name)}>Confirm Downgrade</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            )}
-                        </CardFooter>
-                    </Card>
-                ))}
-            </div>
+                                ) : (
+                                    // Downgrade Button
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button className="w-full" variant="outline">Downgrade</Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure you want to downgrade to {plan.name}?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    You will lose access to premium features at the end of your current billing cycle.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handlePlanChange(plan.name)}>Confirm Downgrade</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
+                            </CardFooter>
+                        </Card>
+                    ))}
+                </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Billing History</CardTitle>
-                    <CardDescription>A record of your past subscription payments.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Description</TableHead>
-                                <TableHead>Status</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {mockBillingHistory.map((item, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{item.date}</TableCell>
-                                    <TableCell>{item.description}</TableCell>
-                                    <TableCell><Badge variant="default">{item.status}</Badge></TableCell>
-                                    <TableCell className="text-right font-medium">${item.amount}.00</TableCell>
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Billing History</CardTitle>
+                        <CardDescription>A record of your past subscription payments.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>Status</TableHead>
+                                    <TableHead className="text-right">Amount</TableHead>
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-
+                            </TableHeader>
+                            <TableBody>
+                                {mockBillingHistory.map((item, index) => (
+                                    <TableRow key={index}>
+                                        <TableCell>{item.date}</TableCell>
+                                        <TableCell>{item.description}</TableCell>
+                                        <TableCell><Badge variant="default">{item.status}</Badge></TableCell>
+                                        <TableCell className="text-right font-medium">${item.amount}.00</TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
+            </div>
+            
             <DialogContent>
-                 <DialogHeader>
+                <DialogHeader>
                     <DialogTitle>Upgrade to {selectedPlanDetails?.name} Plan</DialogTitle>
                     <CardDescription>Confirm your payment to unlock new features.</CardDescription>
                 </DialogHeader>
@@ -191,14 +192,14 @@ export function BillingSettings() {
                         <span className="font-semibold">Amount Due Today</span>
                         <span className="font-bold text-lg">{selectedPlanDetails?.price.replace('/mo', '')}</span>
                     </div>
-                     <Separator />
+                    <Separator />
                     <div className="space-y-2">
                         <Label htmlFor="mobile-money">Mobile Money Number</Label>
                         <Input id="mobile-money" type="tel" placeholder="e.g. 0772123456" value={mobileMoneyNumber} onChange={(e) => setMobileMoneyNumber(e.target.value)} />
                         <p className="text-xs text-muted-foreground">A payment prompt will be sent to this number.</p>
                     </div>
                 </div>
-                 <DialogFooter>
+                <DialogFooter>
                     <DialogClose asChild>
                         <Button variant="outline" disabled={isProcessingPayment}>Cancel</Button>
                     </DialogClose>
@@ -207,6 +208,6 @@ export function BillingSettings() {
                     </Button>
                 </DialogFooter>
             </DialogContent>
-        </div>
+        </Dialog>
     );
 }
