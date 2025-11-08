@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import type { Staff } from '@/lib/types';
@@ -28,6 +29,8 @@ export default function StaffPage() {
     }
     loadData();
   }, []);
+
+  const internalStaff = staff.filter(s => s.role !== 'Affiliate');
 
   const tabs = [
     { value: 'all-staff', label: 'All Staff', icon: Users, permission: true },
@@ -60,7 +63,7 @@ export default function StaffPage() {
       >
         <DashboardPageLayout.TabContent value="all-staff">
             <DashboardPageLayout.Content>
-                <StaffTable staff={staff} setStaff={setStaff} isLoading={isLoading} />
+                <StaffTable staff={internalStaff} setStaff={setStaff} isLoading={isLoading} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="activity">

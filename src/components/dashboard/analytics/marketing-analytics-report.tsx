@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/card';
 import { Send, Gift, TrendingUp, BarChart, DollarSign, ShoppingCart } from 'lucide-react';
 import { ChartTooltipContent, ChartConfig, ChartContainer } from '@/components/ui/chart';
-import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip } from 'recharts';
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { DateRange } from 'react-day-picker';
 
 const chartConfig = {
@@ -154,8 +154,8 @@ export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRan
                       content={<ChartTooltipContent indicator="dot" />}
                   />
                   <Bar dataKey="sent" fill="var(--color-sent)" radius={[4, 4, 0, 0]}>
-                    {campaignChannelData.map((entry) => (
-                        <div key={entry.name} />
+                    {campaignChannelData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} />
                     ))}
                   </Bar>
               </RechartsBarChart>
@@ -188,8 +188,8 @@ export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRan
                       content={<ChartTooltipContent indicator="dot" />}
                   />
                   <Bar dataKey="redemptions" fill="var(--color-redemptions)" radius={[4, 4, 0, 0]}>
-                     {discountChartData.map((entry) => (
-                        <div key={entry.name} />
+                     {discountChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} />
                     ))}
                   </Bar>
               </RechartsBarChart>

@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -92,13 +91,13 @@ const getColumns = (
         Role <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
   },
   {
     accessorKey: 'status',
     header: 'Status',
     cell: ({ row }) => getStatusBadge(row.original.status),
-    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
   },
   {
     accessorKey: 'onlineStatus',

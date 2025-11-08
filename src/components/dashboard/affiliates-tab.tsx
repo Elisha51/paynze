@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -96,7 +97,7 @@ const getAffiliateColumns = (canEdit: boolean, handleStatusChange: (id: string, 
         header: 'Status',
         cell: ({ row }) => getStatusBadge(row.original.status),
         filterFn: (row, id, value) => {
-            return value.includes(row.getValue(id))
+            return (value as string[]).includes(row.getValue(id))
         },
     },
     {

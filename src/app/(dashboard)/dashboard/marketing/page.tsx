@@ -5,7 +5,7 @@ import { AffiliatesTab } from '@/components/dashboard/affiliates-tab';
 import { useState, useEffect } from 'react';
 import { DataTable } from '@/components/dashboard/data-table';
 import { campaignColumns } from '@/components/dashboard/analytics/report-columns';
-import type { Campaign, Discount, Order } from '@/lib/types';
+import type { Campaign, Discount, Order, Affiliate } from '@/lib/types';
 import { getCampaigns, getDiscounts } from '@/services/marketing';
 import { getOrders } from '@/services/orders';
 import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marketing-analytics-report';
@@ -19,7 +19,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 
-function MarketingOverview({ campaigns, discounts, affiliates }: { campaigns: Campaign[], discounts: Discount[], affiliates: any[] }) {
+function MarketingOverview({ campaigns, discounts, affiliates }: { campaigns: Campaign[], discounts: Discount[], affiliates: Affiliate[] }) {
     const totalCampaigns = campaigns.length;
     const totalDiscounts = discounts.length;
     const totalAffiliates = affiliates.length;
@@ -61,7 +61,7 @@ export default function MarketingPage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [discounts, setDiscounts] = useState<Discount[]>([]);
-  const [affiliates, setAffiliates] = useState<any[]>([]);
+  const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
 
