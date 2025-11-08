@@ -8,10 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Send, LifeBuoy } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { DataTable } from '@/components/dashboard/data-table';
+import { ColumnDef } from '@tanstack/react-table';
+import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 
 type SupportTicket = {
@@ -25,6 +26,31 @@ type SupportTicket = {
 const mockTickets: SupportTicket[] = [
     { id: 'TKT-001', subject: 'Problem with payout account', category: 'Billing', status: 'In Progress', lastUpdated: new Date().toISOString() },
     { id: 'TKT-002', subject: 'How to set up custom domain?', category: 'Technical', status: 'Resolved', lastUpdated: '2024-07-25T10:00:00Z' },
+];
+
+const getColumns = (): ColumnDef<SupportTicket>[] => [
+    {
+        accessorKey: 'id',
+        header: 'Ticket ID',
+    },
+    {
+        accessorKey: 'subject',
+        header: 'Subject',
+    },
+    {
+        accessorKey: 'category',
+        header: 'Category',
+    },
+    {
+        accessorKey: 'status',
+        header: 'Status',
+        cell: ({ row }) => <Badge variant={row.original.status === 'Resolved' ? 'default' : 'secondary'}>{row.original.status}</Badge>
+    },
+    {
+        accessorKey: 'lastUpdated',
+        header: 'Last Updated',
+        cell: ({ row }) => format(new Date(row.original.lastUpdated), 'PPP')
+    }
 ];
 
 export default function SupportPage() {
@@ -55,6 +81,8 @@ export default function SupportPage() {
         });
     };
 
+    const columns = getColumns();
+
     return (
         <DashboardPageLayout title="Support Center" description="Get help and report issues.">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -65,32 +93,7 @@ export default function SupportPage() {
                             <CardDescription>A history of your communication with our support team.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <Table>
-                                <TableHeader>
-                                    <TableRow>
-                                        <TableHead>Ticket ID</TableHead>
-                                        <TableHead>Subject</TableHead>
-                                        <TableHead>Status</TableHead>
-                                        <TableHead>Last Updated</TableHead>
-                                    </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                    {tickets.length > 0 ? tickets.map(ticket => (
-                                        <TableRow key={ticket.id}>
-                                            <TableCell className="font-mono">{ticket.id}</TableCell>
-                                            <TableCell className="font-medium">{ticket.subject}</TableCell>
-                                            <TableCell>
-                                                <Badge variant={ticket.status === 'Resolved' ? 'default' : 'secondary'}>{ticket.status}</Badge>
-                                            </TableCell>
-                                            <TableCell>{format(new Date(ticket.lastUpdated), 'PPP')}</TableCell>
-                                        </TableRow>
-                                    )) : (
-                                        <TableRow>
-                                            <TableCell colSpan={4} className="text-center h-24">You have no support tickets.</TableCell>
-                                        </TableRow>
-                                    )}
-                                </TableBody>
-                            </Table>
+                            <DataTable columns={columns} data={tickets} isLoading={false} />
                         </CardContent>
                     </Card>
                 </div>

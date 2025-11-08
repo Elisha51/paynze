@@ -24,6 +24,8 @@ import { Separator } from '../ui/separator';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { ShoppingBasket, PackageCheck, Ban, Truck, Calendar as CalendarIcon, ArrowRightLeft } from 'lucide-react';
+import { DataTable } from './data-table';
+import { ColumnDef } from '@tanstack/react-table';
 
 function InventoryStatusBadge({ status }: { status: InventoryItem['status'] }) {
     const variant = {
@@ -58,6 +60,15 @@ type ProductDetailsInventoryProps = {
     dateRange?: DateRange;
 };
 
+const getHistoryColumns = (productHasVariants: boolean): ColumnDef<StockAdjustment & {variantName: string}>[] => [
+    { accessorKey: 'date', header: 'Date', cell: ({row}) => format(new Date(row.original.date), 'PP p') },
+    ...(productHasVariants ? [{ id: 'variant', accessorKey: 'variantName', header: 'Variant' }] : []),
+    { accessorKey: 'type', header: 'Type', cell: ({row}) => <span className={cn('font-medium', adjustmentTypeColors[row.original.type])}>{row.original.type}</span> },
+    { accessorKey: 'details', header: 'Details' },
+    { accessorKey: 'quantity', header: 'Quantity', cell: ({row}) => <span className={cn('font-mono font-medium', row.original.quantity > 0 ? 'text-green-600' : 'text-red-600')}>{row.original.quantity > 0 ? '+' : ''}{row.original.quantity}</span> },
+    { accessorKey: 'reason', header: 'Reason' },
+];
+
 export function ProductDetailsInventory({ product, dateRange: date }: ProductDetailsInventoryProps) {
     const isSerialized = product.inventoryTracking === 'Track with Serial Numbers';
     
@@ -82,8 +93,10 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
         totalStock,
         stockByLocation
     } = useMemo(() => {
-        const filteredStockAdjustments = (product.variants || []).flatMap(v => 
-            (v.stockAdjustments || []).map(adj => ({...adj, variant: v}))
+        const filteredStockAdjustments = (product.variants || []).flatMap(v => {
+            const variantName = product.hasVariants ? Object.values(v.optionValues).join(' / ') : 'Default';
+            return (v.stockAdjustments || []).map(adj => ({...adj, variantName, variant: v}))
+        }
         ).filter(adj => {
             if (!date) return true; // Show all if no date range
             const adjDate = new Date(adj.date);
@@ -142,6 +155,8 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
         }
 
     }, [product, date]);
+    
+    const historyColumns = useMemo(() => getHistoryColumns(product.hasVariants), [product.hasVariants]);
     
     return (
         <div className="space-y-6">
@@ -278,44 +293,14 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
                         <CardDescription>A log of all inventory adjustments for this product for the selected period.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Date</TableHead>
-                                    {product.hasVariants && <TableHead>Variant</TableHead>}
-                                    <TableHead>Type</TableHead>
-                                    <TableHead>Details</TableHead>
-                                    <TableHead>Quantity</TableHead>
-                                    <TableHead>Reason</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {allStockAdjustments.length > 0 ? allStockAdjustments.map(adj => {
-                                   const variant = product.variants.find(v => v.stockAdjustments?.some(a => a.id === adj.id));
-                                   return (
-                                        <TableRow key={adj.id}>
-                                            <TableCell>{new Date(adj.date).toLocaleString()}</TableCell>
-                                            {product.hasVariants && <TableCell>{variant ? Object.values(variant.optionValues).join(' / ') : 'Default'}</TableCell>}
-                                            <TableCell><span className={cn('font-medium', adjustmentTypeColors[adj.type])}>{adj.type}</span></TableCell>
-                                            <TableCell className="text-muted-foreground">{adj.details || 'N/A'}</TableCell>
-                                            <TableCell className={cn('font-mono font-medium', adj.quantity > 0 ? 'text-green-600' : 'text-red-600')}>{adj.quantity > 0 ? '+' : ''}{adj.quantity}</TableCell>
-                                            <TableCell className="text-muted-foreground">{adj.reason || '–'}</TableCell>
-                                        </TableRow>
-                                   )
-                                }) : (
-                                    <TableRow>
-                                        <TableCell colSpan={product.hasVariants ? 6 : 5} className="text-center h-24">
-                                            No stock history available for the selected period.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                       <DataTable
+                            columns={historyColumns}
+                            data={allStockAdjustments}
+                            isLoading={false}
+                       />
                     </CardContent>
                 </Card>
             )}
         </div>
     );
 }
-
-    

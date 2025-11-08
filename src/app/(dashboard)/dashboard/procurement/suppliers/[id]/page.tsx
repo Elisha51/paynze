@@ -26,12 +26,12 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 
-const poColumns: ColumnDef<PurchaseOrder>[] = [
+const getPoColumns = (): ColumnDef<PurchaseOrder>[] => [
     {
         accessorKey: 'id',
         header: 'Order ID',
         cell: ({ row }) => (
-            <Link href={`/dashboard/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
+            <Link href={`/dashboard/procurement/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
                 {row.getValue('id')}
             </Link>
         )
@@ -152,7 +152,7 @@ export default function ViewSupplierPage() {
                     <CardTitle>Purchase Order History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <DataTable columns={poColumns} data={purchaseOrders} />
+                    <DataTable columns={getPoColumns()} data={purchaseOrders} isLoading={loading} />
                 </CardContent>
              </Card>
         </div>

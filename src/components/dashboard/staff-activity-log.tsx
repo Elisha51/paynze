@@ -89,6 +89,7 @@ export function StaffActivityLog({ staffId, staff }: StaffActivityLogProps) {
         <DataTable
           columns={columns}
           data={activity}
+          isLoading={isLoading}
           filters={staff ? [{
             columnId: 'staffName',
             title: 'Staff Member',
