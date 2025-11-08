@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -109,9 +110,9 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         customers: { view: false, create: false, edit: false, delete: false },
         procurement: { view: false, create: false, edit: false, delete: false },
         marketing: { view: false, create: false, edit: false, delete: false },
+        templates: { view: false, create: false, edit: false, delete: false },
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
-        templates: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
         settings: { view: false, edit: false },
     },
