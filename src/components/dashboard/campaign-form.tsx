@@ -2,7 +2,7 @@
 
 'use client';
 
-import { ArrowLeft, Save, Sparkles, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Image as ImageIcon, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -30,6 +30,9 @@ import { RichTextEditor } from '../ui/rich-text-editor';
 import { Switch } from '../ui/switch';
 import { Separator } from '../ui/separator';
 import { FileUploader } from '../ui/file-uploader';
+import { useAuth } from '@/context/auth-context';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import Link from 'next/link';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -65,6 +68,8 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const router = useRouter();
     const { toast } = useToast();
     const isEditing = !!initialCampaign;
+    const { user } = useAuth();
+    const canCreateBanners = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
     useEffect(() => {
         if (initialCampaign) {
@@ -165,49 +170,68 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                              </div>
                         </CardContent>
                     </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Storefront Banner</CardTitle>
-                            <CardDescription>Feature this campaign in a banner on your storefront homepage. This is optional.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                             <div className="flex items-center space-x-2">
-                                <Switch id="banner-enabled" checked={campaign.banner?.enabled} onCheckedChange={(c) => handleBannerChange('enabled', c)} />
-                                <Label htmlFor="banner-enabled">Enable banner for this campaign</Label>
-                            </div>
-                            {campaign.banner?.enabled && (
-                                <div className="space-y-4 pt-4 border-t">
-                                     <div className="space-y-2">
-                                        <Label htmlFor="banner-title">Banner Title</Label>
-                                        <Input id="banner-title" value={campaign.banner.title} onChange={(e) => handleBannerChange('title', e.target.value)} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="banner-description">Banner Description</Label>
-                                        <Input id="banner-description" value={campaign.banner.description} onChange={(e) => handleBannerChange('description', e.target.value)} />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="banner-ctaText">CTA Button Text</Label>
-                                            <Input id="banner-ctaText" value={campaign.banner.ctaText} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label htmlFor="banner-ctaLink">CTA Link</Label>
-                                            <Input id="banner-ctaLink" value={campaign.banner.ctaLink} onChange={(e) => handleBannerChange('ctaLink', e.target.value)} placeholder="/store/product/SKU-123"/>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>Banner Image</Label>
-                                        <FileUploader 
-                                            files={campaign.banner.imageUrl ? [{id: 'banner-img', url: campaign.banner.imageUrl}] : []}
-                                            onFilesChange={handleBannerImageUpload}
-                                            maxFiles={1}
-                                        />
-                                        <p className="text-xs text-muted-foreground">Recommended dimensions: 1200x400 pixels. Max file size: 2MB.</p>
-                                    </div>
+                    
+                    {canCreateBanners ? (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Storefront Banner</CardTitle>
+                                <CardDescription>Feature this campaign in a banner on your storefront homepage.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center space-x-2">
+                                    <Switch id="banner-enabled" checked={campaign.banner?.enabled} onCheckedChange={(c) => handleBannerChange('enabled', c)} />
+                                    <Label htmlFor="banner-enabled">Enable banner for this campaign</Label>
                                 </div>
-                            )}
-                        </CardContent>
-                    </Card>
+                                {campaign.banner?.enabled && (
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="banner-title">Banner Title</Label>
+                                            <Input id="banner-title" value={campaign.banner.title} onChange={(e) => handleBannerChange('title', e.target.value)} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="banner-description">Banner Description</Label>
+                                            <Input id="banner-description" value={campaign.banner.description} onChange={(e) => handleBannerChange('description', e.target.value)} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="banner-ctaText">CTA Button Text</Label>
+                                                <Input id="banner-ctaText" value={campaign.banner.ctaText} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="banner-ctaLink">CTA Link</Label>
+                                                <Input id="banner-ctaLink" value={campaign.banner.ctaLink} onChange={(e) => handleBannerChange('ctaLink', e.target.value)} placeholder="/store/product/SKU-123"/>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Banner Image</Label>
+                                            <FileUploader 
+                                                files={campaign.banner.imageUrl ? [{id: 'banner-img', url: campaign.banner.imageUrl}] : []}
+                                                onFilesChange={handleBannerImageUpload}
+                                                maxFiles={1}
+                                            />
+                                            <p className="text-xs text-muted-foreground">Recommended dimensions: 1200x400 pixels. Max file size: 2MB.</p>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    ) : (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Storefront Banner</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Alert>
+                                    <ShieldAlert className="h-4 w-4" />
+                                    <AlertTitle>Upgrade to Unlock</AlertTitle>
+                                    <AlertDescription>
+                                        Storefront banners are available on the Pro plan and above. 
+                                        <Button variant="link" asChild className="p-0 h-auto ml-1"><Link href="#">Upgrade your plan</Link></Button> to start using this feature.
+                                    </AlertDescription>
+                                </Alert>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
                 <div className="lg:col-span-2 space-y-6">
                     <Card>

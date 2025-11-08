@@ -1,7 +1,7 @@
 
 'use client';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -262,7 +262,7 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     cell: ({ row }) => {
         const campaign = row.original;
         return (
-             <Link href={`/dashboard/marketing/campaigns/${campaign.id}`} className="font-medium hover:underline">
+             <Link href={`/dashboard/marketing/campaigns/${campaign.id}/edit`} className="font-medium hover:underline">
                 {campaign.name}
             </Link>
         )
@@ -273,6 +273,14 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     header: 'Status',
     cell: ({ row }) => <Badge variant="outline">{row.getValue('status')}</Badge>,
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
+  {
+    id: 'banner',
+    header: 'Banner',
+    cell: ({ row }) => {
+        const campaign = row.original;
+        return campaign.banner?.enabled ? <ImageIcon className="h-5 w-5 text-muted-foreground" /> : null;
+    }
   },
   {
     accessorKey: 'channel',
