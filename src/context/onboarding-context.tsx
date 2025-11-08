@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { themes } from '@/lib/themes';
+import { themes } from '@/themes';
 
 export type OnboardingFormData = {
   plan: 'Free' | 'Premium';
@@ -76,7 +76,7 @@ const initialFormData: OnboardingFormData = {
   }
 };
 
-export function OnboardingProvider({ children }: { children: ReactNode }) {
+export function OnboardingProvider({ children }: { children: React.ReactNode }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<OnboardingFormData>(initialFormData);
 

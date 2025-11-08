@@ -1,4 +1,3 @@
-
 // src/components/onboarding/step5-confirmation.tsx
 'use client';
 import { useRouter } from 'next/navigation';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Store, Globe, Wallet, Truck, Paintbrush } from 'lucide-react';
-import { themes } from '@/lib/themes';
+import { themes } from '@/themes';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { addStaff } from '@/services/staff';

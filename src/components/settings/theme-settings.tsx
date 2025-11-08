@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import type { OnboardingFormData } from '@/lib/types';
-import { themes } from '@/lib/themes';
+import { themes } from '@/themes';
 import { CheckCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
