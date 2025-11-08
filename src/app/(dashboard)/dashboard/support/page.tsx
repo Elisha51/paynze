@@ -29,6 +29,21 @@ const mockTickets: SupportTicket[] = [
     { id: 'TKT-002', subject: 'How to set up custom domain?', category: 'Technical', status: 'Resolved', lastUpdated: '2024-07-25T10:00:00Z' },
 ];
 
+const ticketStatuses = [
+    { value: 'Open', label: 'Open' },
+    { value: 'In Progress', label: 'In Progress' },
+    { value: 'Resolved', label: 'Resolved' },
+];
+
+const ticketCategories = [
+    { value: 'Billing', label: 'Billing' },
+    { value: 'Technical', label: 'Technical' },
+    { value: 'Design', label: 'Design' },
+    { value: 'Integration', label: 'Integration' },
+    { value: 'General', label: 'General Inquiry' },
+];
+
+
 const getColumns = (): ColumnDef<SupportTicket>[] => [
     {
         id: 'select',
@@ -60,11 +75,13 @@ const getColumns = (): ColumnDef<SupportTicket>[] => [
     {
         accessorKey: 'category',
         header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Category<ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
+        filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
         accessorKey: 'status',
-        header: 'Status',
-        cell: ({ row }) => <Badge variant={row.original.status === 'Resolved' ? 'default' : 'secondary'}>{row.original.status}</Badge>
+        header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Status<ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
+        cell: ({ row }) => <Badge variant={row.original.status === 'Resolved' ? 'default' : 'secondary'}>{row.original.status}</Badge>,
+        filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
         accessorKey: 'lastUpdated',
@@ -113,7 +130,15 @@ export default function SupportPage() {
                             <CardDescription>A history of your communication with our support team.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DataTable columns={columns} data={tickets} isLoading={false} />
+                            <DataTable 
+                                columns={columns} 
+                                data={tickets} 
+                                isLoading={false}
+                                filters={[
+                                    { columnId: 'status', title: 'Status', options: ticketStatuses },
+                                    { columnId: 'category', title: 'Category', options: ticketCategories },
+                                ]}
+                             />
                         </CardContent>
                     </Card>
                 </div>
@@ -126,7 +151,12 @@ export default function SupportPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="subject">Subject</Label>
-                                <Input id="subject" value={newTicket.subject} onChange={(e) => setNewTicket(p => ({...p, subject: e.target.value}))}/>
+                                <Input 
+                                    id="subject" 
+                                    value={newTicket.subject} 
+                                    onChange={(e) => setNewTicket(p => ({...p, subject: e.target.value}))}
+                                    placeholder="e.g., Issue with my latest payout"
+                                />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="category">Category</Label>
