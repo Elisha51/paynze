@@ -1,6 +1,6 @@
 
 'use client';
-import { ShoppingCart, User, Bell, Menu } from 'lucide-react';
+import { ShoppingCart, User, Bell, Menu, Store } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { OnboardingFormData } from '@/lib/types';
@@ -24,6 +24,8 @@ import {
 } from '@/components/ui/sheet';
 import { useState, useEffect } from 'react';
 import { AuthModal } from './auth-modal';
+import { Separator } from '../ui/separator';
+import Image from 'next/image';
 
 
 type StoreHeaderProps = {
@@ -65,7 +67,11 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
             <header className="sticky top-0 z-40 w-full border-b bg-background">
                 <div className="container flex h-16 items-center gap-4">
                     <Link href="/store" className="flex items-center gap-2">
-                        <ShoppingCart className="h-6 w-6 text-primary" />
+                         {settings?.logoUrl ? (
+                            <Image src={settings.logoUrl} alt={settings.businessName || 'Store Logo'} width={32} height={32} className="h-8 w-8 object-contain" />
+                        ) : (
+                            <Store className="h-6 w-6 text-primary" />
+                        )}
                         <span className="font-bold text-lg hidden sm:inline-block">{settings?.businessName || "Your Store"}</span>
                     </Link>
                     <div className="flex-1" />
