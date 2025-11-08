@@ -187,6 +187,14 @@ export type PaymentDetails = {
     provider?: 'MTN' | 'Airtel' | 'M-Pesa';
 };
 
+export type DeliveryNote = {
+  id: string;
+  staffId: string;
+  staffName: string;
+  note: string;
+  date: string;
+};
+
 export type Order = {
     id: string;
     customerId: string;
@@ -194,7 +202,7 @@ export type Order = {
     customerEmail: string;
     customerPhone?: string;
     date: string;
-    status: 'Awaiting Payment' | 'Paid' | 'Ready for Pickup' | 'Shipped' | 'Delivered' | 'Picked Up' | 'Cancelled';
+    status: 'Awaiting Payment' | 'Paid' | 'Ready for Pickup' | 'Shipped' | 'Attempted Delivery' | 'Delivered' | 'Picked Up' | 'Cancelled';
     fulfillmentMethod: 'Delivery' | 'Pickup';
     channel: 'Online' | 'Manual' | 'POS';
     items: OrderItem[];
@@ -215,6 +223,8 @@ export type Order = {
     assignedStaffName?: string;
     fulfilledByStaffId?: string;
     fulfilledByStaffName?: string;
+    deliveryNotes?: DeliveryNote[];
+    proofOfDeliveryUrl?: string;
 };
 
 export type Communication = {

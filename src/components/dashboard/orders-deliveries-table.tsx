@@ -39,6 +39,7 @@ const deliveryStatusMap: { [key in Order['status']]: { label: string; color: str
   'Paid': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
   'Ready for Pickup': { label: 'In Store', color: 'bg-blue-100 text-blue-800' },
   'Shipped': { label: 'In Transit', color: 'bg-yellow-100 text-yellow-800' },
+  'Attempted Delivery': { label: 'Attempted', color: 'bg-orange-100 text-orange-800' },
   'Delivered': { label: 'Delivered', color: 'bg-green-100 text-green-800' },
   'Picked Up': { label: 'Completed', color: 'bg-green-100 text-green-800' },
   'Cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-800' },
@@ -54,6 +55,21 @@ function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { orde
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
 
     const deliveryRiders = staff.filter(s => s.role === 'Delivery Rider');
+    
+    // Suggest riders based on availability and zone
+    const suggestedRiders = React.useMemo(() => {
+        return deliveryRiders
+            .filter(rider => {
+                const isOnline = rider.onlineStatus === 'Online';
+                const deliveryZones = rider.attributes?.deliveryZones as string[] | undefined;
+                if (!deliveryZones || deliveryZones.length === 0) return isOnline; // Available if online and no zones set
+                return isOnline && deliveryZones.includes(order.shippingAddress.city);
+            })
+            .sort((a,b) => (a.assignedOrders?.length || 0) - (b.assignedOrders?.length || 0)); // Prioritize riders with fewer orders
+    }, [deliveryRiders, order.shippingAddress.city]);
+    
+    const otherRiders = deliveryRiders.filter(r => !suggestedRiders.find(s => s.id === r.id));
+
 
     const handleAssign = async () => {
         if (!selectedStaffId) {
@@ -81,14 +97,19 @@ function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { orde
             <DialogContent>
                 <DialogHeader>
                     <DialogTitle>Assign Order #{order.id} for Delivery</DialogTitle>
-                    <DialogDescription>Select a delivery rider for this order.</DialogDescription>
+                    <DialogDescription>To: {order.customerName} at {order.shippingAddress.street}, {order.shippingAddress.city}</DialogDescription>
                 </DialogHeader>
                 <div className="py-4">
                     <Select onValueChange={setSelectedStaffId}>
                         <SelectTrigger><SelectValue placeholder="Select a rider..." /></SelectTrigger>
                         <SelectContent>
-                            {deliveryRiders.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                             {suggestedRiders.length > 0 && <SelectValue>Suggested</SelectValue>}
+                             {suggestedRiders.map(s => (
+                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
+                            ))}
+                            {otherRiders.length > 0 && <SelectValue>Other Riders</SelectValue>}
+                            {otherRiders.map(s => (
+                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -267,7 +288,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
   const deliveryWorklist = data
     .filter(o => {
         const isPaid = o.payment?.status === 'completed';
-        const isReadyForFulfillment = ['Paid', 'Ready for Pickup', 'Shipped'].includes(o.status);
+        const isReadyForFulfillment = ['Paid', 'Ready for Pickup', 'Shipped', 'Attempted Delivery'].includes(o.status);
         return isPaid && isReadyForFulfillment;
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
