@@ -2,7 +2,7 @@
 'use client';
 
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, PT_Sans } from 'next/font/google';
 import { Toaster } from "@/components/ui/toaster";
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -14,6 +14,12 @@ import { usePathname, useRouter } from 'next/navigation';
 const inter = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
+});
+
+const ptSans = PT_Sans({
+  subsets: ['latin'],
+  weight: ['400', '700'],
+  variable: '--font-headline',
 });
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
@@ -28,7 +34,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         try {
           const onboardingData = JSON.parse(onboardingDataRaw);
           if (onboardingData.theme) {
-            const themeName = onboardingData.theme.toLowerCase();
+            const themeName = onboardingData.theme.toLowerCase().replace(/\s+/g, '-');
             document.documentElement.className = `light theme-${themeName}`;
           } else {
             document.documentElement.className = 'light';
@@ -72,7 +78,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={cn("font-sans antialiased", inter.variable)} suppressHydrationWarning={true}>
+      <body className={cn("font-sans antialiased", inter.variable, ptSans.variable)} suppressHydrationWarning={true}>
         <AuthProvider>
           <OnboardingProvider>
             {children}

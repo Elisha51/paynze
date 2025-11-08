@@ -87,7 +87,7 @@ export default function LandingPage() {
                 <Card key={feature.title}>
                   <CardContent className="p-6 flex flex-col items-center text-center gap-4">
                     <div className="p-3 rounded-full bg-primary/10">{feature.icon}</div>
-                    <h3 className="text-xl font-bold">{feature.title}</h3>
+                    <h3 className="text-xl font-bold font-headline">{feature.title}</h3>
                     <p className="text-muted-foreground">{feature.description}</p>
                   </CardContent>
                 </Card>
