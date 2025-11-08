@@ -4,9 +4,9 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { Button } from '../ui/button';
-import { getDiscounts } from '@/services/marketing';
+import { getDiscounts, deleteDiscount } from '@/services/marketing';
 import type { Discount } from '@/lib/types';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { DataTable } from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
@@ -16,7 +16,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const discountStatuses = [
     { value: 'Active', label: 'Active' },
@@ -29,7 +32,7 @@ const discountTypes = [
     { value: 'Fixed Amount', label: 'Fixed Amount' },
 ];
 
-const discountColumns: ColumnDef<Discount>[] = [
+const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discount>[] => [
     {
         accessorKey: 'code',
         header: 'Code',
@@ -54,8 +57,20 @@ const discountColumns: ColumnDef<Discount>[] = [
         accessorKey: 'status',
         header: 'Status',
         cell: ({ row }) => {
-            const status = row.original.status;
-            return <Badge variant={status === 'Active' ? 'default' : 'outline'}>{status}</Badge>
+            const discount = row.original;
+            const now = new Date();
+            let status: Discount['status'] = discount.status;
+
+            if (discount.startDate && new Date(discount.startDate) > now) {
+                status = 'Scheduled';
+            } else if (discount.endDate && new Date(discount.endDate) < now) {
+                status = 'Expired';
+            } else {
+                status = 'Active';
+            }
+            
+            const variant = status === 'Active' ? 'default' : status === 'Expired' ? 'destructive' : 'secondary';
+            return <Badge variant={variant}>{status}</Badge>
         },
         filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
@@ -69,17 +84,40 @@ const discountColumns: ColumnDef<Discount>[] = [
             const discount = row.original;
             return (
                 <div className="text-right">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Deactivate</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <AlertDialog>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/marketing/discounts/${discount.code}/edit`}><Edit className="mr-2 h-4 w-4"/> Edit</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={e => e.preventDefault()}>
+                                        <Trash2 className="mr-2 h-4 w-4"/> Delete
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                         <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    This action cannot be undone. This will permanently delete the discount code "{discount.code}".
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => onDelete(discount.code)} className="bg-destructive hover:bg-destructive/90">
+                                    Delete
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             )
         }
@@ -88,6 +126,7 @@ const discountColumns: ColumnDef<Discount>[] = [
 
 export function DiscountsTab() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
+  const { toast } = useToast();
 
   useEffect(() => {
     async function loadData() {
@@ -96,6 +135,14 @@ export function DiscountsTab() {
     }
     loadData();
   }, []);
+  
+  const handleDelete = async (code: string) => {
+    await deleteDiscount(code);
+    setDiscounts(prev => prev.filter(d => d.code !== code));
+    toast({ variant: 'destructive', title: "Discount Deleted" });
+  }
+
+  const columns = getDiscountColumns(handleDelete);
 
   return (
     <Card>
@@ -115,7 +162,7 @@ export function DiscountsTab() {
       </CardHeader>
       <CardContent>
         <DataTable 
-            columns={discountColumns} 
+            columns={columns} 
             data={discounts} 
             filters={[
                 { columnId: 'status', title: 'Status', options: discountStatuses },

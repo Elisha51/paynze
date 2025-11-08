@@ -1,4 +1,5 @@
 
+
 import type { Campaign, Discount } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -51,6 +52,10 @@ const mockDiscounts: Discount[] = [
         redemptions: 45,
         minPurchase: 50000,
         customerGroup: 'Everyone',
+        startDate: '2024-06-10',
+        endDate: '2024-06-17',
+        usageLimit: null,
+        onePerCustomer: false,
     },
     {
         code: 'NEWBIE10',
@@ -60,6 +65,9 @@ const mockDiscounts: Discount[] = [
         redemptions: 112,
         minPurchase: 0,
         customerGroup: 'New Customers',
+        startDate: '2024-01-01',
+        usageLimit: null,
+        onePerCustomer: true,
     },
     {
         code: 'WHOLESALE50K',
@@ -69,6 +77,9 @@ const mockDiscounts: Discount[] = [
         redemptions: 15,
         minPurchase: 1000000,
         customerGroup: 'Wholesalers',
+        startDate: '2024-01-01',
+        usageLimit: 50,
+        onePerCustomer: false,
     }
 ];
 
@@ -81,4 +92,17 @@ export async function getCampaigns(): Promise<Campaign[]> {
 
 export async function getDiscounts(): Promise<Discount[]> {
   return await discountService.getAll();
+}
+
+export async function addDiscount(discount: Omit<Discount, 'redemptions'>): Promise<Discount> {
+  const newDiscount = { ...discount, redemptions: 0 };
+  return await discountService.create(newDiscount);
+}
+
+export async function updateDiscount(updatedDiscount: Discount): Promise<Discount> {
+    return await discountService.update(updatedDiscount.code, updatedDiscount);
+}
+
+export async function deleteDiscount(code: string): Promise<void> {
+    return await discountService.delete(code);
 }

@@ -1,3 +1,4 @@
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -481,6 +482,10 @@ export type Discount = {
   redemptions: number;
   minPurchase: number;
   customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers';
+  usageLimit: number | null;
+  onePerCustomer: boolean;
+  startDate?: string;
+  endDate?: string;
   applicableProductIds?: string[];
 };
 
