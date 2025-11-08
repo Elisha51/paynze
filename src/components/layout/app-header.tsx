@@ -1,5 +1,3 @@
-
-
 'use client';
 import {
   DropdownMenu,
@@ -61,9 +59,7 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
       <SidebarTrigger className="md:hidden" />
       
-      <div className="w-full flex-1">
-        {/* Search has been removed from here */}
-      </div>
+      <div className="w-full flex-1" />
 
       <div className="flex items-center gap-2">
         <Button asChild variant="ghost" size="icon" className="rounded-full relative">

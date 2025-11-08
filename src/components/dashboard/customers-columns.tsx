@@ -1,8 +1,7 @@
-
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, Send, Trash2 } from 'lucide-react';
+import { MoreHorizontal, MessageCircle, Phone, Info, ArrowUpDown, Send, Trash2, Edit } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -118,7 +117,7 @@ export const getCustomerColumns = (onDelete: (customerId: string) => void, canEd
                     {canEdit && (
                        <DropdownMenuItem asChild>
                         <Link href={`/dashboard/customers/${customer.id}/edit`}>
-                           <MessageCircle className="mr-2 h-4 w-4" /> Edit Customer
+                           <Edit className="mr-2 h-4 w-4" /> Edit Customer
                         </Link>
                       </DropdownMenuItem>
                     )}

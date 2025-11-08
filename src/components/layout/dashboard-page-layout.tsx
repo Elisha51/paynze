@@ -1,4 +1,3 @@
-
 'use client';
 import {
   Card,
@@ -23,7 +22,7 @@ type DashboardPageLayoutProps = {
 
 // Main content container
 const Content = ({ children }: { children: React.ReactNode }) => {
-    return <div className="mt-4">{children}</div>;
+    return <>{children}</>;
 };
 Content.displayName = 'Content';
 
@@ -64,15 +63,13 @@ FilterTabs.displayName = 'FilterTabs';
 
 // Regular tab content
 const TabContent = ({ value, children }: { value: string, children: React.ReactNode }) => {
-    return <TabsContent value={value}>{children}</TabsContent>
+    return <TabsContent value={value} className="mt-6">{children}</TabsContent>
 }
 TabContent.displayName = 'TabContent';
 
 
 export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onTabChange }: DashboardPageLayoutProps) {
-  // Local search state for pages that need it.
-  const [searchQuery, setSearchQuery] = useState('');
-
+  
   const MainTabsWrapper = ({ children }: { children: React.ReactNode }) => {
     if (tabs && tabs.length > 0) {
         const defaultValue = tabs[0].value;
@@ -87,8 +84,7 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
                         </TabsTrigger>
                         ))}
                     </TabsList>
-                    <div className="flex w-full lg:w-auto items-center space-x-2">
-                        {/* Removed global search, local search could be re-added here if needed on a per-page basis */}
+                    <div className="flex w-full lg:w-auto items-center justify-end space-x-2">
                         {cta}
                     </div>
                 </div>
@@ -101,8 +97,7 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
         <>
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                  <h2 className="text-3xl font-bold tracking-tight font-headline">{title}</h2>
-                 <div className="flex w-full md:w-auto items-center space-x-2">
-                    {/* Removed global search */}
+                 <div className="flex w-full md:w-auto items-center justify-end space-x-2">
                     {cta}
                 </div>
             </div>

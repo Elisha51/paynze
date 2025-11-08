@@ -1,4 +1,3 @@
-
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -68,22 +67,23 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
             <StaffCard member={member} />
         </div>
       ))}
-       <div className="col-span-2 sm:col-span-1">
-        <Link href="/dashboard/staff" className="block h-full">
+       <div className="col-span-2 sm:col-span-1 h-full">
             <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
-            <CardContent className="p-4 flex items-center gap-4 h-full">
-                <Avatar className="h-12 w-12 bg-muted">
-                    <AvatarFallback className="bg-transparent">
-                        <Users className="h-6 w-6 text-muted-foreground" />
-                    </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                    <p className="font-semibold truncate">View All Staff</p>
-                    <p className="text-sm text-muted-foreground">Manage roles & permissions</p>
-                </div>
-            </CardContent>
+                <Link href="/dashboard/staff" className="block h-full">
+                    <CardContent className="p-4 flex flex-col items-center justify-center text-center gap-2 h-full">
+                        <Avatar className="h-12 w-12 bg-muted">
+                            <AvatarFallback className="bg-transparent">
+                                <Users className="h-6 w-6 text-muted-foreground" />
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 overflow-hidden">
+                            <p className="font-semibold truncate">View All Staff</p>
+                            <p className="text-sm text-muted-foreground">Manage roles & permissions</p>
+                        </div>
+                         <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                    </CardContent>
+                </Link>
             </Card>
-        </Link>
       </div>
     </div>
   );

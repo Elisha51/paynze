@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -109,7 +108,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
             <QuickLinks />
             <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-6">
-                <Card className="col-span-1">
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Orders Today</CardTitle>
                         <ShoppingCart className="h-4 w-4 text-muted-foreground" />
@@ -118,7 +117,7 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">+{summaryMetrics.ordersToday}</div>
                     </CardContent>
                 </Card>
-                <Card className="col-span-1">
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Revenue Today</CardTitle>
                         <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -127,7 +126,8 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">{formatCurrency(summaryMetrics.revenueToday)}</div>
                     </CardContent>
                 </Card>
-                <Card className="col-span-1">
+                <Card>
+                  <Link href="/dashboard/orders">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-yellow-500" />
@@ -135,8 +135,10 @@ export default function DashboardPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{summaryMetrics.pendingOrders}</div>
                     </CardContent>
+                  </Link>
                 </Card>
-                 <Card className="col-span-1">
+                 <Card>
+                  <Link href="/dashboard/orders?tab=deliveries">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Deliveries Today</CardTitle>
                         <Truck className="h-4 w-4 text-muted-foreground" />
@@ -144,8 +146,10 @@ export default function DashboardPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{summaryMetrics.deliveriesToday}</div>
                     </CardContent>
+                  </Link>
                 </Card>
-                <Card className="col-span-1">
+                <Card>
+                   <Link href="/dashboard/orders?tab=deliveries">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-red-500" />
@@ -153,8 +157,10 @@ export default function DashboardPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{summaryMetrics.pendingDeliveries}</div>
                     </CardContent>
+                  </Link>
                 </Card>
-                 <Card className="col-span-1">
+                 <Card>
+                  <Link href="/dashboard/staff">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Active Agents</CardTitle>
                         <Users className="h-4 w-4 text-muted-foreground" />
@@ -162,6 +168,7 @@ export default function DashboardPage() {
                     <CardContent>
                         <div className="text-2xl font-bold">{summaryMetrics.activeStaff}</div>
                     </CardContent>
+                  </Link>
                 </Card>
             </div>
             
