@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step1-business-info.tsx
 'use client';
 import { useOnboarding } from '@/context/onboarding-context';
@@ -53,6 +54,14 @@ export default function Step1BusinessInfo() {
       }
   }
 
+  const handleCountrySelect = (value: string) => {
+      setFormData(prev => ({ ...prev, country: value }));
+      const selectedCountry = countries.find(c => c.name === value);
+      if (selectedCountry) {
+          setCountryCode(selectedCountry.dialCode);
+      }
+  }
+
   return (
     <Card className="w-full max-w-2xl">
       <CardHeader>
@@ -82,20 +91,31 @@ export default function Step1BusinessInfo() {
             </div>
           </RadioGroup>
         </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="contactPhone">Contact Phone</Label>
-          <div className="flex items-center gap-2">
-            <Select value={countryCode} onValueChange={handleCountryCodeChange}>
-              <SelectTrigger className="w-[120px]">
-                <SelectValue placeholder="Code" />
-              </SelectTrigger>
-              <SelectContent>
-                {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <Input id="contactPhone" type="tel" placeholder="772 123456" onChange={handlePhoneInputChange} />
-          </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactPhone">Contact Phone</Label>
+              <div className="flex items-center gap-2">
+                <Select value={countryCode} onValueChange={handleCountryCodeChange}>
+                  <SelectTrigger className="w-[120px]">
+                    <SelectValue placeholder="Code" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Input id="contactPhone" type="tel" placeholder="772 123456" onChange={handlePhoneInputChange} />
+              </div>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                 <Select value={formData.country} onValueChange={handleCountrySelect}>
+                    <SelectTrigger><SelectValue/></SelectTrigger>
+                    <SelectContent>
+                        {countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
         </div>
       </CardContent>
       <CardFooter className="flex justify-end">

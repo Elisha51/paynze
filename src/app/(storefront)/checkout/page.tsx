@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useMemo, useEffect } from 'react';
 import { useCart } from '@/context/cart-context';
@@ -41,7 +42,9 @@ export default function CheckoutPage() {
   useEffect(() => {
     const data = localStorage.getItem('onboardingData');
     if (data) {
-        setSettings(JSON.parse(data));
+        const parsedSettings: OnboardingFormData = JSON.parse(data);
+        setSettings(parsedSettings);
+        setShippingInfo(prev => ({...prev, country: parsedSettings.country || 'Uganda'}));
     }
      async function loadCountries() {
         const countryList = await getCountryList();
@@ -177,7 +180,12 @@ export default function CheckoutPage() {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="country">Country</Label>
-                                <Input id="country" value={shippingInfo.country} onChange={(e) => setShippingInfo(p => ({...p, country: e.target.value}))} />
+                                 <Select value={shippingInfo.country} onValueChange={(v) => setShippingInfo(p => ({...p, country: v}))}>
+                                    <SelectTrigger><SelectValue/></SelectTrigger>
+                                    <SelectContent>
+                                        {countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
                             </div>
                         </div>
                     </CardContent>
