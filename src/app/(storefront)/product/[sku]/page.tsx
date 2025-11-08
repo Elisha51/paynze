@@ -101,17 +101,15 @@ export default function ProductDetailPage() {
   }
   
   const handleAddToCart = () => {
-    handleProtectedAction(() => {
-      if (product && (selectedVariant || (!product.hasVariants && product.variants.length > 0))) {
-          addToCart(product, selectedVariant || product.variants[0], quantity);
-      } else {
-          toast({
-              variant: 'destructive',
-              title: 'Unable to add to cart',
-              description: 'This product variant is currently unavailable.',
-          })
-      }
-    }, 'add items to your cart');
+    if (product && (selectedVariant || (!product.hasVariants && product.variants.length > 0))) {
+        addToCart(product, selectedVariant || product.variants[0], quantity);
+    } else {
+        toast({
+            variant: 'destructive',
+            title: 'Unable to add to cart',
+            description: 'This product variant is currently unavailable.',
+        })
+    }
   };
 
   const handleToggleWishlist = async () => {
@@ -178,7 +176,7 @@ export default function ProductDetailPage() {
       <AuthModal 
         isOpen={isAuthModalOpen} 
         onClose={() => setIsAuthModalOpen(false)} 
-        reason="add items to your cart"
+        reason="save items to your wishlist"
       />
       <div className="container mx-auto px-4 py-8">
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
