@@ -1,4 +1,3 @@
-
 'use client';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
@@ -90,10 +89,12 @@ export function NotificationList({
                                             {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
                                          </p>
                                      </div>
-                                     <div className="flex flex-col items-center gap-2">
-                                        {!notification.read && (
-                                            <div onClick={() => onMarkAsRead(notification.id)} className="h-2.5 w-2.5 rounded-full bg-primary mt-1.5 cursor-pointer" title="Mark as read" />
-                                        )}
+                                     <div className="flex flex-col items-center gap-2 h-full">
+                                        <div className="h-3 w-3 flex-shrink-0 pt-1.5">
+                                            {!notification.read && (
+                                                <div onClick={() => onMarkAsRead(notification.id)} className="h-2.5 w-2.5 rounded-full bg-primary cursor-pointer" title="Mark as read" />
+                                            )}
+                                        </div>
                                         <Button
                                             variant="ghost"
                                             size="icon"

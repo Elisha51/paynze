@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState } from 'react';
@@ -46,28 +45,29 @@ export function ProductDetails({ product }: { product: Product }) {
 
   return (
     <TooltipProvider>
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <div className="flex justify-between items-center mb-4">
-          <TabsList>
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div tabIndex={inventoryIsTracked ? 0 : -1}>
-                  <TabsTrigger value="inventory" disabled={!inventoryIsTracked} className="disabled:cursor-not-allowed">
-                    Inventory
-                  </TabsTrigger>
-                </div>
-              </TooltipTrigger>
-              {!inventoryIsTracked && (
-                <TooltipContent>
-                  <p>Enable inventory tracking to view details.</p>
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </TabsList>
+      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div tabIndex={inventoryIsTracked ? 0 : -1}>
+                      <TabsTrigger value="inventory" disabled={!inventoryIsTracked} className="disabled:cursor-not-allowed">
+                        Inventory
+                      </TabsTrigger>
+                    </div>
+                  </TooltipTrigger>
+                  {!inventoryIsTracked && (
+                    <TooltipContent>
+                      <p>Enable inventory tracking to view details.</p>
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TabsList>
+          </Tabs>
 
-          {activeTab === 'inventory' && inventoryIsTracked && (
-            <div className="flex items-center gap-2">
+          {inventoryIsTracked && (
+            <div className="flex w-full sm:w-auto items-center gap-2">
                 <Select onValueChange={handlePresetChange} defaultValue="last-30">
                     <SelectTrigger className="w-[180px] h-9">
                         <SelectValue placeholder="Select a preset" />
@@ -85,7 +85,7 @@ export function ProductDetails({ product }: { product: Product }) {
                         id="date"
                         variant={"outline"}
                         className={cn(
-                            "w-[260px] h-9 justify-start text-left font-normal",
+                            "w-full sm:w-[260px] h-9 justify-start text-left font-normal",
                             !date && "text-muted-foreground"
                         )}
                     >
@@ -124,7 +124,6 @@ export function ProductDetails({ product }: { product: Product }) {
         <TabsContent value="inventory">
           <ProductDetailsInventory product={product} dateRange={date} />
         </TabsContent>
-      </Tabs>
     </TooltipProvider>
   );
 }
