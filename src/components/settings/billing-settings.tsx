@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -123,12 +122,10 @@ export function BillingSettings() {
                                 {user?.plan === plan.name ? (
                                     <Button disabled className="w-full">Current Plan</Button>
                                 ) : index > currentPlanIndex ? (
-                                    // Upgrade Button
                                     <DialogTrigger asChild>
-                                        <Button onClick={() => { setSelectedPlan(plan.name); }} className="w-full">Upgrade</Button>
+                                        <Button onClick={() => setSelectedPlan(plan.name)} className="w-full">Upgrade</Button>
                                     </DialogTrigger>
                                 ) : (
-                                    // Downgrade Button
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button className="w-full" variant="outline">Downgrade</Button>
