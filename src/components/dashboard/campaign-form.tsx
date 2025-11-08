@@ -1,6 +1,7 @@
+
 'use client';
 
-import { ArrowLeft, Save, Sparkles, Image as ImageIcon, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,7 +22,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Campaign, CampaignBanner } from '@/lib/types';
+import type { Campaign, CampaignBanner, Affiliate } from '@/lib/types';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { RichTextEditor } from '../ui/rich-text-editor';
@@ -31,6 +32,12 @@ import { FileUploader } from '../ui/file-uploader';
 import { useAuth } from '@/context/auth-context';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import Link from 'next/link';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
+import { cn } from '@/lib/utils';
+import { Badge } from '../ui/badge';
+import { getAffiliates } from '@/services/affiliates';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -39,6 +46,8 @@ const emptyCampaign: Partial<Campaign> = {
   channel: 'Email',
   audience: 'All Customers',
   startDate: new Date().toISOString(),
+  affiliateAccess: 'all',
+  allowedAffiliateIds: [],
   banner: {
     enabled: false,
     type: 'Announcement',
@@ -56,6 +65,7 @@ type CampaignFormProps = {
 
 export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>(initialCampaign || emptyCampaign);
+    const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(
         initialCampaign?.startDate ? {
             from: new Date(initialCampaign.startDate),
@@ -73,6 +83,11 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         if (initialCampaign) {
             setCampaign(prev => ({...prev, ...initialCampaign}));
         }
+        async function loadAffiliates() {
+            const data = await getAffiliates();
+            setAffiliates(data.filter(a => a.status === 'Active'));
+        }
+        loadAffiliates();
     }, [initialCampaign]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -84,7 +99,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         setCampaign(prev => ({ ...prev, description: value }));
     }
 
-    const handleSelectChange = (id: 'status' | 'channel' | 'audience', value: string) => {
+    const handleSelectChange = (id: 'status' | 'channel' | 'audience' | 'affiliateAccess', value: string) => {
         setCampaign(prev => ({...prev, [id]: value as any}));
     }
     
@@ -106,6 +121,16 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         } else {
             handleBannerChange('imageUrl', '');
         }
+    }
+    
+    const handleAffiliateSelect = (affiliateId: string) => {
+        setCampaign(prev => {
+            const currentIds = prev.allowedAffiliateIds || [];
+            const newIds = currentIds.includes(affiliateId)
+                ? currentIds.filter(id => id !== affiliateId)
+                : [...currentIds, affiliateId];
+            return { ...prev, allowedAffiliateIds: newIds };
+        })
     }
 
     const handleSave = () => {
@@ -284,6 +309,65 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                 <Label>Active Dates</Label>
                                 <DateRangePicker date={dateRange} setDate={setDateRange} />
                             </div>
+                        </CardContent>
+                    </Card>
+                    
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Affiliate Access</CardTitle>
+                            <CardDescription>Control which affiliates can see and use this campaign.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <RadioGroup value={campaign.affiliateAccess} onValueChange={(v) => handleSelectChange('affiliateAccess', v)} className="space-y-2">
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="all" id="aff-all" />
+                                    <Label htmlFor="aff-all">All Affiliates</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="specific" id="aff-specific" />
+                                    <Label htmlFor="aff-specific">Specific Affiliates</Label>
+                                </div>
+                            </RadioGroup>
+                            
+                            {campaign.affiliateAccess === 'specific' && (
+                                <div className="space-y-2 pt-2">
+                                    <Label>Allowed Affiliates</Label>
+                                     <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" role="combobox" className="w-full justify-between h-auto min-h-10">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(campaign.allowedAffiliateIds || []).length > 0
+                                                        ? (campaign.allowedAffiliateIds || []).map(id => {
+                                                            const affiliate = affiliates.find(a => a.id === id);
+                                                            return <Badge key={id} variant="secondary">{affiliate?.name || id}</Badge>;
+                                                        })
+                                                        : "Select affiliates..."
+                                                    }
+                                                </div>
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search affiliates..." />
+                                                <CommandEmpty>No affiliates found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {affiliates.map((affiliate) => (
+                                                    <CommandItem
+                                                        key={affiliate.id}
+                                                        value={affiliate.name}
+                                                        onSelect={() => handleAffiliateSelect(affiliate.id)}
+                                                    >
+                                                        <Check className={cn("mr-2 h-4 w-4", (campaign.allowedAffiliateIds || []).includes(affiliate.id) ? "opacity-100" : "opacity-0")} />
+                                                        {affiliate.name}
+                                                    </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

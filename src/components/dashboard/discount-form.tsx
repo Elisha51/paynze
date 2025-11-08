@@ -22,7 +22,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Discount, OnboardingFormData, Product } from '@/lib/types';
+import type { Discount, OnboardingFormData, Product, Affiliate } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Checkbox } from '../ui/checkbox';
 import { DateRangePicker } from '../ui/date-range-picker';
@@ -34,6 +34,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
+import { getAffiliates } from '@/services/affiliates';
 
 const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   type: 'Percentage',
@@ -45,6 +46,7 @@ const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   usageLimit: null,
   onePerCustomer: true,
   startDate: new Date().toISOString(),
+  allowedAffiliateIds: [],
   bogoDetails: {
       buyQuantity: 1,
       buyProductIds: [],
@@ -109,6 +111,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     const [discount, setDiscount] = useState<Partial<Discount>>(initialDiscount || emptyDiscount);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
+    const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(
         initialDiscount?.startDate ? {
             from: new Date(initialDiscount.startDate),
@@ -126,11 +129,15 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         if (data) {
             setSettings(JSON.parse(data));
         }
-        async function loadProducts() {
-            const productData = await getProducts();
+        async function loadData() {
+            const [productData, affiliateData] = await Promise.all([
+                getProducts(),
+                getAffiliates()
+            ]);
             setProducts(productData);
+            setAffiliates(affiliateData.filter(a => a.status === 'Active'));
         }
-        loadProducts();
+        loadData();
     }, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -161,6 +168,16 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
             const newIds = currentIds.includes(sku) ? currentIds.filter(id => id !== sku) : [...currentIds, sku];
             return { ...prev, bogoDetails: { ...(prev.bogoDetails || {}), [type]: newIds } as any };
         });
+    }
+
+    const handleAffiliateSelect = (affiliateId: string) => {
+        setDiscount(prev => {
+            const currentIds = prev.allowedAffiliateIds || [];
+            const newIds = currentIds.includes(affiliateId)
+                ? currentIds.filter(id => id !== affiliateId)
+                : [...currentIds, affiliateId];
+            return { ...prev, allowedAffiliateIds: newIds };
+        })
     }
 
     const generateCode = () => {
@@ -353,9 +370,49 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                         <SelectItem value="New Customers">New Customers</SelectItem>
                                         <SelectItem value="Wholesalers">Wholesalers</SelectItem>
                                         <SelectItem value="Retailers">Retailers</SelectItem>
+                                        <SelectItem value="Specific Affiliates">Specific Affiliates</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
+                            {discount.customerGroup === 'Specific Affiliates' && (
+                                <div className="space-y-2">
+                                    <Label>Allowed Affiliates</Label>
+                                    <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" role="combobox" className="w-full justify-between h-auto min-h-10">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(discount.allowedAffiliateIds || []).length > 0
+                                                        ? (discount.allowedAffiliateIds || []).map(id => {
+                                                            const affiliate = affiliates.find(a => a.id === id);
+                                                            return <Badge key={id} variant="secondary">{affiliate?.name || id}</Badge>;
+                                                        })
+                                                        : "Select affiliates..."
+                                                    }
+                                                </div>
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search affiliates..." />
+                                                <CommandEmpty>No affiliates found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {affiliates.map((affiliate) => (
+                                                    <CommandItem
+                                                        key={affiliate.id}
+                                                        value={affiliate.name}
+                                                        onSelect={() => handleAffiliateSelect(affiliate.id)}
+                                                    >
+                                                        <Check className={cn("mr-2 h-4 w-4", (discount.allowedAffiliateIds || []).includes(affiliate.id) ? "opacity-100" : "opacity-0")} />
+                                                        {affiliate.name}
+                                                    </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                 <div className="relative">
@@ -374,5 +431,3 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         </div>
     );
 }
-
-    
