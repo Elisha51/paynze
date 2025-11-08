@@ -27,6 +27,7 @@ export default function SettingsPage() {
     const [roles, setRoles] = useState<Role[]>([]);
     const [staff, setStaff] = useState<Staff[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const isDevMode = process.env.NODE_ENV === 'development';
 
     useEffect(() => {
         async function loadData() {
@@ -74,7 +75,7 @@ export default function SettingsPage() {
               <DashboardPageLayout.Content>
                 <div className="space-y-6">
                   <GeneralSettings />
-                  {user?.plan === 'Enterprise' && (
+                  {isDevMode && (
                     <>
                       <Separator />
                       <DeveloperSettings />
