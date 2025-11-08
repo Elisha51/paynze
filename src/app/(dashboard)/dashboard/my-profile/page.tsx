@@ -1,5 +1,3 @@
-
-
 'use client';
 import { useAuth } from '@/context/auth-context';
 import { StaffProfileForm } from '@/components/dashboard/staff-profile-form';
@@ -22,9 +20,12 @@ export default function MyProfilePage() {
         <div className="space-y-6 max-w-4xl mx-auto">
              <div className="space-y-1">
                 <h1 className="text-2xl font-bold tracking-tight">My Profile</h1>
+                <p className="text-muted-foreground">Manage your personal information and password.</p>
             </div>
             <StaffProfileForm staff={user} onSave={handleSave} onCancel={() => {}} isSelfEditing />
             <PasswordSettings />
         </div>
     )
 }
+
+    
