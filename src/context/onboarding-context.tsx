@@ -2,7 +2,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { themes } from '@/lib/themes';
 
 export type OnboardingFormData = {
@@ -79,7 +79,6 @@ const initialFormData: OnboardingFormData = {
 export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<OnboardingFormData>(initialFormData);
-  const { toast } = useToast();
 
   useEffect(() => {
     // Autosave simulation
@@ -89,7 +88,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
         }, 3000);
         return () => clearTimeout(timer);
     }
-  }, [formData, step, toast]);
+  }, [formData, step]);
 
   useEffect(() => {
       // Load draft from local storage
@@ -106,7 +105,7 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
             console.error("Could not parse onboarding draft", e);
           }
       }
-  }, [toast])
+  }, [])
 
   const nextStep = () => setStep(prev => prev + 1);
   const prevStep = () => setStep(prev => prev - 1);
