@@ -16,6 +16,8 @@ const mockCampaigns: Campaign[] = [
         startDate: '2024-06-10',
         endDate: '2024-06-17',
         description: 'Eid Al-Adha promotion for all customers.',
+        affiliateAccess: 'all',
+        allowedAffiliateIds: [],
     },
     {
         id: 'camp-2',
@@ -28,6 +30,17 @@ const mockCampaigns: Campaign[] = [
         audience: 'Subscribers',
         startDate: '2024-07-20',
         description: 'Launch campaign for the new fabric collection.',
+        affiliateAccess: 'specific',
+        allowedAffiliateIds: ['aff-001', 'aff-002'],
+        banner: {
+            enabled: true,
+            type: 'Product Highlight',
+            title: 'New Kitenge Collection!',
+            description: 'Vibrant new patterns have just arrived. Shop the collection now.',
+            ctaText: 'Shop Now',
+            ctaLink: '/store?category=Fabrics',
+            imageUrl: 'https://images.unsplash.com/photo-1678066681916-f724a7f801b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxraXRlbmdlJTIwZmFicmljfGVufDB8fHx8MTc2MTI5MTY5MHww&ixlib=rb-4.1.0&q=80&w=1080',
+        }
     },
     {
         id: 'camp-3',
@@ -40,6 +53,8 @@ const mockCampaigns: Campaign[] = [
         audience: 'App Users',
         startDate: '2024-08-02',
         description: 'A 24-hour flash sale on selected items.',
+        affiliateAccess: 'all',
+        allowedAffiliateIds: [],
     }
 ];
 
@@ -80,6 +95,19 @@ const mockDiscounts: Discount[] = [
         startDate: '2024-01-01',
         usageLimit: 50,
         onePerCustomer: false,
+    },
+    {
+        code: 'FATUMA-SPECIAL',
+        type: 'Percentage',
+        value: 15,
+        status: 'Active',
+        redemptions: 5,
+        minPurchase: 0,
+        customerGroup: 'Specific Affiliates',
+        usageLimit: 20,
+        onePerCustomer: false,
+        allowedAffiliateIds: ['aff-001'],
+        description: 'Special 15% off coupon for Fatuma Asha\'s audience.'
     }
 ];
 

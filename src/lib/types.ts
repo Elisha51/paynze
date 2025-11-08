@@ -494,6 +494,8 @@ export type Campaign = {
   description: string;
   applicableProductIds?: string[];
   banner?: CampaignBanner;
+  affiliateAccess: 'all' | 'specific';
+  allowedAffiliateIds: string[];
 };
 
 export type BogoDetails = {
@@ -511,7 +513,7 @@ export type Discount = {
   status: 'Active' | 'Expired' | 'Scheduled';
   redemptions: number;
   minPurchase: number;
-  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers';
+  customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers' | 'Specific Affiliates';
   usageLimit: number | null;
   onePerCustomer: boolean;
   startDate?: string;
@@ -519,6 +521,7 @@ export type Discount = {
   description?: string;
   applicableProductIds?: string[];
   bogoDetails?: BogoDetails;
+  allowedAffiliateIds?: string[];
 };
 
 export type Affiliate = {
@@ -534,5 +537,3 @@ export type Affiliate = {
     paidCommission: number;
     payoutHistory?: Payout[];
 };
-
-    
