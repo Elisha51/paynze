@@ -39,6 +39,10 @@ export default function ViewProductPage() {
     }
   }, [sku]);
   
+  const handleStockUpdate = (updatedProduct: Product) => {
+    setProduct(updatedProduct);
+  }
+  
   if (loading) {
     return (
       <div className="space-y-6">
@@ -96,7 +100,7 @@ export default function ViewProductPage() {
           {product.name}
         </h1>
         <div className="ml-auto flex items-center gap-2">
-          {product.inventoryTracking !== "Don't Track" && <ProductDetailsAdjustStock product={product} />}
+          {product.inventoryTracking !== "Don't Track" && <ProductDetailsAdjustStock product={product} onStockUpdate={handleStockUpdate} />}
           <Button asChild>
             <Link href={`/dashboard/products/${product.sku}/edit`}>
               <Edit className="mr-2 h-4 w-4" /> Edit

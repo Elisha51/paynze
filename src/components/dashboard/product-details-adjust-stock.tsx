@@ -23,29 +23,31 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, ProductVariant } from '@/lib/types';
-import { Move, MinusCircle, PlusCircle } from 'lucide-react';
+import type { Product, ProductVariant, StockAdjustment } from '@/lib/types';
+import { Move, MinusCircle, PlusCircle, ShieldAlert, BookLock } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../ui/textarea';
+import { updateProduct } from '@/services/products';
 
-type AdjustmentAction = 'add' | 'remove';
+type AdjustmentAction = StockAdjustment['type'];
 const addReasons = ['Supplier Shipment', 'Stock Take Correction', 'Return Processing', 'Other'];
-const removeReasons = ['Damaged Goods', 'Stock Take Correction', 'Promotion/Giveaway', 'Loss/Theft', 'Other'];
+const damageReasons = ['Warehouse Damage', 'Expired Goods', 'Customer Return (Damaged)', 'Other'];
+const reserveReasons = ['Manual Order Hold', 'Quality Inspection', 'Photoshoot Sample', 'Other'];
 
 const mockLocations = ['Main Warehouse', 'Downtown Store']; 
 
-export function ProductDetailsAdjustStock({ product }: { product: Product }) {
+export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product: Product, onStockUpdate: (updatedProduct: Product) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedVariantId, setSelectedVariantId] = useState<string | null>(product.hasVariants ? null : product.variants[0]?.id);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
-  const [action, setAction] = useState<AdjustmentAction>('add');
+  const [action, setAction] = useState<AdjustmentAction>('Initial Stock');
   const [quantity, setQuantity] = useState<number>(0);
   const [reason, setReason] = useState('');
   const [otherReason, setOtherReason] = useState('');
   const { toast } = useToast();
 
-  const handleAdjustStock = () => {
+  const handleAdjustStock = async () => {
     if (!selectedVariantId || !selectedLocation || quantity <= 0 || !reason) {
       toast({
         variant: 'destructive',
@@ -55,20 +57,72 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
       return;
     }
 
-    const finalQuantity = action === 'add' ? quantity : -quantity;
     const finalReason = reason === 'Other' ? otherReason : reason;
 
-    console.log({
-        variantId: selectedVariantId,
-        location: selectedLocation,
-        action,
-        quantity: finalQuantity,
+    const updatedProduct = { ...product };
+    const variantIndex = updatedProduct.variants.findIndex(v => v.id === selectedVariantId);
+    if (variantIndex === -1) return;
+
+    const variant = { ...updatedProduct.variants[variantIndex] };
+    const locIndex = variant.stockByLocation.findIndex(l => l.locationName === selectedLocation);
+    if (locIndex === -1) {
+        variant.stockByLocation.push({ locationName: selectedLocation, stock: { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 } });
+    }
+    const stock = variant.stockByLocation.find(l => l.locationName === selectedLocation)!.stock;
+
+    const newAdjustment: StockAdjustment = {
+        id: `adj-${Date.now()}`,
+        date: new Date().toISOString(),
+        type: action,
+        quantity: action === 'Initial Stock' ? quantity : (action === 'Un-reserve' ? quantity : -quantity),
         reason: finalReason,
-    });
+        channel: 'Manual'
+    };
+
+    if (!variant.stockAdjustments) variant.stockAdjustments = [];
+    variant.stockAdjustments.push(newAdjustment);
+
+    switch(action) {
+        case 'Initial Stock':
+            stock.onHand += quantity;
+            stock.available += quantity;
+            break;
+        case 'Damage':
+            if (stock.available < quantity) {
+                toast({ variant: 'destructive', title: 'Not enough available stock to mark as damaged.' });
+                return;
+            }
+            stock.available -= quantity;
+            stock.damaged += quantity;
+            break;
+        case 'Reserve':
+            if (stock.available < quantity) {
+                toast({ variant: 'destructive', title: 'Not enough available stock to reserve.' });
+                return;
+            }
+            stock.available -= quantity;
+            stock.reserved += quantity;
+            break;
+        case 'Un-reserve':
+            if (stock.reserved < quantity) {
+                toast({ variant: 'destructive', title: 'Not enough reserved stock to un-reserve.' });
+                return;
+            }
+            stock.reserved -= quantity;
+            stock.available += quantity;
+            break;
+        default:
+             break;
+    }
+    
+    updatedProduct.variants[variantIndex] = variant;
+
+    await updateProduct(updatedProduct);
+    onStockUpdate(updatedProduct);
     
     toast({
         title: 'Stock Adjusted',
-        description: `Successfully adjusted stock by ${finalQuantity} for the selected variant at ${selectedLocation}.`,
+        description: `Successfully performed action: ${action}.`,
     });
     
     setIsOpen(false);
@@ -76,7 +130,7 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
     setTimeout(() => {
         setSelectedVariantId(product.hasVariants ? null : product.variants[0]?.id);
         setSelectedLocation(null);
-        setAction('add');
+        setAction('Initial Stock');
         setQuantity(0);
         setReason('');
         setOtherReason('');
@@ -88,7 +142,16 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
     return Object.values(variant.optionValues).join(' / ');
   }
   
-  const reasonsForAction = action === 'add' ? addReasons : removeReasons;
+  const getReasonsForAction = () => {
+      switch(action) {
+          case 'Initial Stock': return addReasons;
+          case 'Damage': return damageReasons;
+          case 'Reserve':
+          case 'Un-reserve':
+              return reserveReasons;
+          default: return [];
+      }
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -99,7 +162,7 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
         <DialogHeader>
           <DialogTitle>Adjust Stock</DialogTitle>
           <DialogDescription>
-            Manually change stock levels for a specific location.
+            Manually change stock levels and statuses for a specific location.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 py-4">
@@ -136,21 +199,27 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
           
           <div className="space-y-3">
               <Label>Action</Label>
-              <RadioGroup value={action} onValueChange={(v) => setAction(v as AdjustmentAction)} className="grid grid-cols-2 gap-4">
-                <div>
-                    <RadioGroupItem value="add" id="action-add" className="peer sr-only" />
-                    <Label htmlFor="action-add" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-green-500 [&:has([data-state=checked])]:border-green-500">
-                        <PlusCircle className="mb-2 h-6 w-6 text-green-600" />
-                        Add to Stock
-                    </Label>
-                </div>
-                 <div>
-                    <RadioGroupItem value="remove" id="action-remove" className="peer sr-only" />
-                    <Label htmlFor="action-remove" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-3 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-red-500 [&:has([data-state=checked])]:border-red-500">
-                         <MinusCircle className="mb-2 h-6 w-6 text-red-600" />
-                        Remove from Stock
-                    </Label>
-                </div>
+              <RadioGroup value={action} onValueChange={(v) => { setAction(v as AdjustmentAction); setReason(''); }} className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+                 <Label htmlFor="action-add" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Initial Stock' && "border-primary")}>
+                    <RadioGroupItem value="Initial Stock" id="action-add" className="sr-only" />
+                    <PlusCircle className="mb-2 h-5 w-5 text-green-600" />
+                    <span className="text-xs text-center">Add Stock</span>
+                </Label>
+                <Label htmlFor="action-damage" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Damage' && "border-primary")}>
+                    <RadioGroupItem value="Damage" id="action-damage" className="sr-only" />
+                    <ShieldAlert className="mb-2 h-5 w-5 text-red-600" />
+                    <span className="text-xs text-center">Mark Damaged</span>
+                </Label>
+                 <Label htmlFor="action-reserve" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Reserve' && "border-primary")}>
+                    <RadioGroupItem value="Reserve" id="action-reserve" className="sr-only" />
+                    <BookLock className="mb-2 h-5 w-5 text-orange-600" />
+                    <span className="text-xs text-center">Reserve</span>
+                </Label>
+                 <Label htmlFor="action-unreserve" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Un-reserve' && "border-primary")}>
+                    <RadioGroupItem value="Un-reserve" id="action-unreserve" className="sr-only" />
+                    <BookLock className="mb-2 h-5 w-5 text-blue-600" />
+                    <span className="text-xs text-center">Un-reserve</span>
+                </Label>
             </RadioGroup>
           </div>
 
@@ -173,7 +242,7 @@ export function ProductDetailsAdjustStock({ product }: { product: Product }) {
                         <SelectValue placeholder="Select a reason" />
                     </SelectTrigger>
                     <SelectContent>
-                        {reasonsForAction.map(r => (
+                        {getReasonsForAction().map(r => (
                             <SelectItem key={r} value={r}>{r}</SelectItem>
                         ))}
                     </SelectContent>
