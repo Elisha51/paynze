@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { Card, CardContent } from '@/components/ui/card';
@@ -69,15 +68,23 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
             <StaffCard member={member} />
         </div>
       ))}
-       <Link href="/dashboard/staff" className="block h-full col-span-2 sm:col-span-1">
-        <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 flex flex-col items-center justify-center text-center p-4">
-          <div className="p-3 rounded-full bg-primary/10 mb-2">
-            <Users className="h-6 w-6 text-primary" />
-          </div>
-          <h3 className="font-semibold text-sm">View All Staff</h3>
-          <p className="text-xs text-muted-foreground mt-1">Manage roles & permissions</p>
-        </Card>
-      </Link>
+       <div className="col-span-2 sm:col-span-1">
+        <Link href="/dashboard/staff" className="block h-full">
+            <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50">
+            <CardContent className="p-4 flex items-center gap-4 h-full">
+                <Avatar className="h-12 w-12 bg-muted">
+                    <AvatarFallback className="bg-transparent">
+                        <Users className="h-6 w-6 text-muted-foreground" />
+                    </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 overflow-hidden">
+                    <p className="font-semibold truncate">View All Staff</p>
+                    <p className="text-sm text-muted-foreground">Manage roles & permissions</p>
+                </div>
+            </CardContent>
+            </Card>
+        </Link>
+      </div>
     </div>
   );
 }
