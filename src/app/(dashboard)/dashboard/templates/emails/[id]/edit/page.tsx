@@ -1,32 +1,38 @@
 'use client';
-
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { EmailTemplateForm } from "@/components/dashboard/email-template-form";
+import { getEmailTemplates } from "@/services/templates";
+import type { EmailTemplate } from "@/lib/types";
+import { useEffect, useState } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
 
 export default function EditEmailTemplatePage() {
-  const params = useParams();
-  const id = params.id;
+    const params = useParams();
+    const id = params.id as string;
+    const [template, setTemplate] = useState<EmailTemplate | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-  return (
-    <Card className="max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>Edit Email Template</CardTitle>
-      </CardHeader>
-      <CardContent className="text-center">
-        <p className="text-muted-foreground">
-          The form for editing email template "{id}" will be available here.
-          This feature is currently under construction.
-        </p>
-         <Button asChild variant="outline" className="mt-4">
-            <Link href="/dashboard/templates?tab=email-templates">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Templates
-            </Link>
-        </Button>
-      </CardContent>
-    </Card>
-  );
+    useEffect(() => {
+        async function loadTemplate() {
+            const allTemplates = await getEmailTemplates();
+            const foundTemplate = allTemplates.find(t => t.id === id);
+            setTemplate(foundTemplate || null);
+            setIsLoading(false);
+        }
+        if (id) {
+            loadTemplate();
+        }
+    }, [id]);
+
+    if (isLoading) {
+        return (
+            <div className="space-y-6">
+                 <Skeleton className="h-10 w-1/4" />
+                 <Skeleton className="h-64 w-full" />
+                 <Skeleton className="h-48 w-full" />
+            </div>
+        )
+    }
+
+    return <EmailTemplateForm initialTemplate={template} />;
 }
