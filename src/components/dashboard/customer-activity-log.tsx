@@ -1,10 +1,11 @@
+
 'use client';
 import { useState, useMemo } from 'react';
 import type { Customer, Communication, Order } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { MessageSquare, Phone, Users, ShoppingCart, FileText, ShoppingBag, CornerDownRight, ChevronDown } from 'lucide-react';
+import { MessageSquare, Phone, Users, ShoppingBag, CornerDownRight, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -12,6 +13,8 @@ import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
+import { EmptyState } from '../ui/empty-state';
+import { FileText } from 'lucide-react';
 
 type CustomerActivityLogProps = {
   customer: Customer;
@@ -248,11 +251,11 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
                 isLast={index === visibleActivities.length - 1} 
               />
           )) : (
-            <div className="text-center py-10">
-                <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-                <h3 className="mt-2 text-sm font-semibold text-gray-900">No activities found</h3>
-                <p className="mt-1 text-sm text-gray-500">There are no activities matching the current filter.</p>
-            </div>
+            <EmptyState
+              icon={<FileText className="h-12 w-12 text-muted-foreground" />}
+              title="No Activities Found"
+              description="There are no activities matching the current filter."
+            />
           )}
 
           {filteredActivities.length > visibleCount && (
