@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, PlusCircle } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, PlusCircle, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import type { Product } from '@/lib/types';
 import { getProducts } from '@/services/products';

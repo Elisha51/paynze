@@ -1,4 +1,3 @@
-
 'use client';
 import * as React from 'react';
 import { PlusCircle, Send, Users } from 'lucide-react';
@@ -6,17 +5,11 @@ import { Button } from '@/components/ui/button';
 import type { Customer } from '@/lib/types';
 import { DataTable } from './data-table';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomerColumns } from './customers-columns';
 import { useAuth } from '@/context/auth-context';
 
-type MessageType = 'WhatsApp' | 'SMS' | null;
-
 export function CustomersTable({ data, setData, isLoading }: { data: Customer[], setData: React.Dispatch<React.SetStateAction<Customer[]>>, isLoading: boolean }) {
-    const [messageTarget, setMessageTarget] = React.useState<{customer: Customer, type: MessageType} | null>(null);
-    const [messageContent, setMessageContent] = React.useState('');
     const { toast } = useToast();
     const { user } = useAuth();
     
@@ -33,20 +26,6 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
 
     const columns = React.useMemo(() => getCustomerColumns(handleDeleteCustomer, canEdit, canDelete), [canEdit, canDelete]);
     
-    const handleSendMessage = () => {
-        if (!messageTarget) return;
-        if (!messageContent.trim()) {
-            toast({ variant: 'destructive', title: 'Message cannot be empty.' });
-            return;
-        }
-        
-        console.log(`Sending ${messageTarget.type} to ${messageTarget.customer.name}: ${messageContent}`);
-        
-        toast({ title: 'Message Sent', description: `Your ${messageTarget.type} has been sent to ${messageTarget.customer.name}.` });
-        setMessageTarget(null);
-        setMessageContent('');
-    };
-
     const customerGroups = [
         { value: 'default', label: 'Default' },
         { value: 'Wholesaler', label: 'Wholesaler' },
@@ -55,7 +34,6 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
 
 
   return (
-    <>
     <DataTable
       columns={columns}
       data={data}
@@ -79,31 +57,5 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
         )
       }}
     />
-    <Dialog open={!!messageTarget} onOpenChange={(open) => !open && setMessageTarget(null)}>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Send {messageTarget?.type} to {messageTarget?.customer.name}</DialogTitle>
-                <DialogDescription>
-                    Compose your message below. This will be sent via our simulated messaging service and logged in the customer's activity feed.
-                </DialogDescription>
-            </DialogHeader>
-            <div className="py-4">
-                <Textarea 
-                    value={messageContent}
-                    onChange={(e) => setMessageContent(e.target.value)}
-                    placeholder="Type your message here..."
-                    className="min-h-[120px]"
-                />
-            </div>
-            <DialogFooter>
-                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <Button onClick={handleSendMessage}>
-                    <Send className="mr-2 h-4 w-4" />
-                    Send Message
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
-    </>
   );
 }

@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
@@ -439,7 +437,7 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                 description: `${savedProduct.name} has been created successfully.`,
             });
         }
-        router.push(`/dashboard/products/${savedProduct.sku}`);
+        router.push(`/dashboard/products`);
     } catch (error) {
         toast({
             variant: 'destructive',
@@ -464,7 +462,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
 
   const singleVariantOnHand = product.variants[0]?.stockByLocation[0]?.stock.onHand || 0;
-  const singleVariantAvailable = product.variants[0]?.stockByLocation[0]?.stock.available || 0;
   
   const handleBack = () => {
       router.push('/dashboard/products');
@@ -774,7 +771,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                     <TableHead>Price</TableHead>
                                     <TableHead>SKU</TableHead>
                                     <TableHead>On Hand (Main)</TableHead>
-                                    <TableHead className="text-center">Available (Main)</TableHead>
                                     <TableHead className="text-center">Images</TableHead>
                                 </TableRow>
                             </TableHeader>
@@ -827,9 +823,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                                 className="h-8 w-20"
                                                 disabled={product.inventoryTracking === 'Don\'t Track'}
                                             />
-                                        </TableCell>
-                                        <TableCell className="text-center text-muted-foreground">
-                                          {variant.stockByLocation[0]?.stock.available || 0}
                                         </TableCell>
                                         <TableCell className="text-center">
                                         <Dialog>
@@ -922,12 +915,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                 <Label htmlFor="onHand">On Hand Quantity</Label>
                                 <Input id="onHand" type="number" value={singleVariantOnHand} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
                                 <p className="text-xs text-muted-foreground">Total physical stock.</p>
-                            </div>
-                            <div className="space-y-2">
-                                <Label>Available for Sale</Label>
-                                <div className="h-10 flex items-center px-3 text-sm text-muted-foreground">
-                                    {singleVariantAvailable}
-                                </div>
                             </div>
                             {settings?.inventory?.enableLowStockAlerts && (
                                 <div className="space-y-2">
@@ -1086,14 +1073,17 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                 <Button
                                     variant="outline"
                                     role="combobox"
-                                    className="w-full justify-between"
+                                    className="w-full justify-between h-auto min-h-10"
                                 >
-                                    <span className="truncate">
-                                        {product.supplierIds && product.supplierIds.length > 0 
-                                            ? `${product.supplierIds.length} selected`
+                                    <div className="flex flex-wrap gap-1">
+                                        {(product.supplierIds || []).length > 0 
+                                            ? (product.supplierIds || []).map(id => {
+                                                const supplier = suppliers.find(s => s.id === id);
+                                                return <Badge key={id} variant="secondary">{supplier?.name || id}</Badge>;
+                                            })
                                             : "Select suppliers..."
                                         }
-                                    </span>
+                                    </div>
                                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                 </Button>
                             </PopoverTrigger>
@@ -1121,19 +1111,6 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
                                 </Command>
                             </PopoverContent>
                         </Popover>
-                         <div className="flex flex-wrap gap-1 pt-1">
-                          {(product.supplierIds || []).map(id => {
-                            const supplier = suppliers.find(s => s.id === id);
-                            return supplier ? (
-                               <Badge key={id} variant="secondary" className="flex items-center gap-1">
-                                {supplier.name}
-                                <button onClick={() => handleSupplierSelect(id)} className="rounded-full hover:bg-muted-foreground/20">
-                                    <X className="h-3 w-3"/>
-                                </button>
-                               </Badge>
-                            ) : null;
-                          })}
-                        </div>
                     </div>
                 </CardContent>
             </Card>

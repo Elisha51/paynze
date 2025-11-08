@@ -14,7 +14,7 @@ type Tab = { value: string; label: string; className?: string };
 type DashboardPageLayoutProps = {
   title: string;
   tabs?: Tab[];
-  cta: React.ReactNode;
+  cta?: React.ReactNode;
   children: React.ReactNode;
   activeTab?: string;
   onTabChange?: (value: string) => void;
@@ -70,21 +70,28 @@ TabContent.displayName = 'TabContent';
 
 export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onTabChange }: DashboardPageLayoutProps) {
   
+  const HeaderContent = () => (
+     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        {cta && <div className="w-full sm:w-auto flex-shrink-0">{cta}</div>}
+     </div>
+  );
+  
   const MainTabsWrapper = ({ children }: { children: React.ReactNode }) => {
     if (tabs && tabs.length > 0) {
         const defaultValue = tabs[0].value;
         const value = activeTab || defaultValue;
         return (
             <Tabs defaultValue={defaultValue} value={value} onValueChange={onTabChange}>
-                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
-                    <TabsList className="overflow-x-auto w-full justify-start lg:w-auto">
+                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <TabsList className="overflow-x-auto w-full justify-start sm:w-auto">
                         {tabs.map((tab) => (
                         <TabsTrigger key={tab.value} value={tab.value} className={tab.className}>
                             {tab.label}
                         </TabsTrigger>
                         ))}
                     </TabsList>
-                    <div className="flex w-full lg:w-auto items-center justify-end space-x-2">
+                    <div className="flex w-full sm:w-auto items-center justify-end space-x-2">
                         {cta}
                     </div>
                 </div>
@@ -94,15 +101,10 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
     }
     // Layout for pages without main tabs
     return (
-        <>
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                 <h2 className="text-3xl font-bold tracking-tight font-headline">{title}</h2>
-                 <div className="flex w-full md:w-auto items-center justify-end space-x-2">
-                    {cta}
-                </div>
-            </div>
+        <div className="space-y-6">
+            <HeaderContent />
             {children}
-        </>
+        </div>
     )
   }
 

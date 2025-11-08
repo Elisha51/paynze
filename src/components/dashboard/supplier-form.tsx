@@ -1,4 +1,3 @@
-
 'use client';
 import { ArrowLeft, Save, Check, ChevronsUpDown, X, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,6 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import Link from 'next/link';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
 import { getCountryList } from '@/services/countries';
@@ -57,7 +55,10 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
         setProducts(productList);
     }
     loadData();
-  }, []);
+    if(initialSupplier) {
+        setSupplier(initialSupplier);
+    }
+  }, [initialSupplier]);
 
   const handleProductSelect = (productSku: string) => {
     setSupplier(prev => {

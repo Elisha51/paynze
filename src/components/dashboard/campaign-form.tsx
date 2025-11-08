@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { ArrowLeft, Save, Sparkles, Image as ImageIcon, ShieldAlert } from 'lucide-react';
@@ -125,10 +123,12 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         router.push('/dashboard/marketing?tab=campaigns');
     }
 
+    const handleBack = () => router.push('/dashboard/marketing?tab=campaigns');
+
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
             <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.back()}>
+                <Button variant="outline" size="icon" onClick={handleBack}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>

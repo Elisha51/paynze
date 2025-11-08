@@ -78,6 +78,8 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
     router.push('/dashboard/customers');
   }
 
+  const handleBack = () => router.back();
+
   if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
     return (
         <Card>
@@ -97,7 +99,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => router.back()}>
+        <Button variant="outline" size="icon" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4" />
           <span className="sr-only">Back</span>
         </Button>

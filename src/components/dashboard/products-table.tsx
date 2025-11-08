@@ -1,5 +1,3 @@
-
-
 'use client';
 import * as React from 'react';
 import Image from 'next/image';
@@ -292,6 +290,7 @@ export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) 
     loadCategories();
   }, [])
 
+  const canCreate = user?.permissions.products.create;
   const canEdit = user?.permissions.products.edit ?? false;
   const canDelete = user?.permissions.products.delete ?? false;
   
@@ -354,8 +353,8 @@ export function ProductsTable({ data, setData, isLoading }: ProductsTableProps) 
         emptyState={{
             icon: Package,
             title: "No Products Found",
-            description: "No products match the current filters. Try adjusting your search.",
-            cta: (
+            description: "You haven't added any products yet. Add your first product to get started.",
+            cta: ( canCreate &&
                 <Button asChild>
                     <Link href="/dashboard/products/add">
                         <PlusCircle className="mr-2 h-4 w-4" />

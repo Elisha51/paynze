@@ -29,6 +29,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { CustomerActivityLog } from '@/components/dashboard/customer-activity-log';
+import { ShoppingBag } from 'lucide-react';
 
 const orderColumns: ColumnDef<Order>[] = [
     {
@@ -200,6 +201,23 @@ export default function ViewCustomerPage() {
                         <span className="text-muted-foreground">Total Orders</span>
                         <span className="font-medium">{customer.orders?.length || 0}</span>
                     </div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Recent Orders</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <DataTable 
+                        columns={orderColumns}
+                        data={customer.orders || []}
+                        isLoading={loading}
+                        emptyState={{
+                            icon: ShoppingBag,
+                            title: 'No Orders Yet',
+                            description: 'This customer has not placed any orders.'
+                        }}
+                    />
                 </CardContent>
             </Card>
         </div>

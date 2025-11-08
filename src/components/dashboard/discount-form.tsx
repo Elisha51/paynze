@@ -1,14 +1,12 @@
-
 'use client';
 
-import { ArrowLeft, Save, Sparkles, Calendar as CalendarIcon, Ticket } from 'lucide-react';
+import { ArrowLeft, Save, Sparkles, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -28,7 +26,6 @@ import { Checkbox } from '../ui/checkbox';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Switch } from '../ui/switch';
-import { addDays } from 'date-fns';
 
 const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   type: 'Percentage',
@@ -111,12 +108,14 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         router.push('/dashboard/marketing?tab=discounts');
     }
 
+    const handleBack = () => router.push('/dashboard/marketing?tab=discounts');
+
     const currency = settings?.currency || 'UGX';
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
             <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.back()}>
+                <Button variant="outline" size="icon" onClick={handleBack}>
                     <ArrowLeft className="h-4 w-4" />
                 </Button>
                 <div>

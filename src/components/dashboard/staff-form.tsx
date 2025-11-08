@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -138,7 +136,10 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
             setAllRoles(rolesData);
         }
         loadRoles();
-    }, []);
+        if (initialStaff) {
+          setStaffMember(initialStaff);
+        }
+    }, [initialStaff]);
     
     if (!staffMember) {
         return <div>Loading...</div>; // Or a skeleton loader
@@ -231,7 +232,7 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
             description: `${staffMember.name}'s details have been saved.`,
         });
         
-        router.push(`/dashboard/staff/${staffMember.id}`);
+        router.push(`/dashboard/staff`);
     }
     
      const handleVerificationDocsChange = (files: File[]) => {
