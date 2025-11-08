@@ -3,7 +3,7 @@
 // A simplified form for creating a manual order.
 // In a real application, this would be a multi-step process with product selection,
 // customer lookup, shipping calculation, etc.
-import { ArrowLeft, Save, PlusCircle, Trash2 } from 'lucide-react';
+import { Save, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { Order, Product, Customer, OnboardingFormData } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { getCustomers } from '@/services/customers';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 type OrderItemForm = {
     productId: string;
@@ -85,24 +86,16 @@ export default function AddOrderPage() {
         toast({ title: "Order Created", description: "The new manual order has been saved." });
         router.push('/dashboard/orders');
     }
+    
+    const cta = (
+        <Button onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Order
+        </Button>
+    )
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.back()}>
-                <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                <h1 className="text-2xl font-bold tracking-tight">Create Manual Order</h1>
-                </div>
-                <div className="ml-auto flex items-center gap-2">
-                    <Button onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Order
-                    </Button>
-                </div>
-            </div>
-
+        <DashboardPageLayout title="Create Manual Order" cta={cta}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
@@ -156,6 +149,6 @@ export default function AddOrderPage() {
                      </Card>
                 </div>
             </div>
-        </div>
+        </DashboardPageLayout>
     )
 }

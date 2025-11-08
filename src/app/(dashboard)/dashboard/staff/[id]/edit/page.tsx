@@ -6,6 +6,7 @@ import type { Staff } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter, useParams } from 'next/navigation';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function EditStaffPage() {
     const params = useParams();
@@ -28,18 +29,24 @@ export default function EditStaffPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
-                <Skeleton className="h-10 w-1/4" />
-                <Skeleton className="h-64 w-full" />
-                <Skeleton className="h-48 w-full" />
-            </div>
+            <DashboardPageLayout title="Loading Staff Profile...">
+                 <div className="space-y-6">
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            </DashboardPageLayout>
         )
     }
 
     if (!staffMember) {
+        // This can happen on an invalid ID, redirect them.
         router.push('/dashboard/staff');
         return null;
     }
 
-    return <StaffForm initialStaff={staffMember} />;
+    return (
+        <DashboardPageLayout title={`Edit ${staffMember.name}`}>
+            <StaffForm initialStaff={staffMember} />
+        </DashboardPageLayout>
+    );
 }

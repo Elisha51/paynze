@@ -1,7 +1,13 @@
+
 'use client';
 
 import { CampaignForm } from '@/components/dashboard/campaign-form';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function AddCampaignPage() {
-  return <CampaignForm />;
+  return (
+    <DashboardPageLayout title="Create Campaign">
+        <CampaignForm />
+    </DashboardPageLayout>
+  );
 }

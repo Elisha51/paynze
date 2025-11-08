@@ -10,6 +10,7 @@ import { getStaff, updateStaff } from '@/services/staff';
 import { useToast } from '@/hooks/use-toast';
 import { addTransaction } from '@/services/finances';
 import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function PayoutPage() {
     const params = useParams();
@@ -80,30 +81,30 @@ export default function PayoutPage() {
     };
 
     if (isLoading) {
-        return <Skeleton className="h-[400px] w-full" />
+        return (
+            <DashboardPageLayout title="Confirm Payout">
+                 <Skeleton className="h-[400px] w-full max-w-2xl" />
+            </DashboardPageLayout>
+        )
     }
     
     if (!staffMember) {
         return (
-            <Card>
-                <CardHeader><CardTitle>Staff Member Not Found</CardTitle></CardHeader>
-                <CardContent>
-                    <p>The requested staff member could not be found.</p>
-                     <Button onClick={() => router.back()} className="mt-4"><ArrowLeft className="mr-2 h-4 w-4"/> Go Back</Button>
-                </CardContent>
-            </Card>
+            <DashboardPageLayout title="Error">
+                <Card>
+                    <CardHeader><CardTitle>Staff Member Not Found</CardTitle></CardHeader>
+                    <CardContent>
+                        <p>The requested staff member could not be found.</p>
+                        <Button onClick={() => router.back()} className="mt-4"><ArrowLeft className="mr-2 h-4 w-4"/> Go Back</Button>
+                    </CardContent>
+                </Card>
+            </DashboardPageLayout>
         )
     }
 
     return (
-        <div className="max-w-2xl mx-auto">
-             <div className="flex items-center gap-4 mb-4">
-                <Button variant="outline" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <h1 className="text-2xl font-bold tracking-tight">Confirm Payout</h1>
-             </div>
-             <Card>
+        <DashboardPageLayout title="Confirm Payout" backHref="/dashboard/finances?tab=commissions">
+             <Card className="max-w-2xl">
                 <CardHeader>
                     <CardTitle>Review & Confirm Payout</CardTitle>
                     <CardDescription>You are about to record a payout for the following staff member.</CardDescription>
@@ -135,8 +136,6 @@ export default function PayoutPage() {
                     </Button>
                 </CardFooter>
              </Card>
-        </div>
+        </DashboardPageLayout>
     )
 }
-
-    

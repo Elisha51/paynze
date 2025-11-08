@@ -6,6 +6,7 @@ import type { Discount } from "@/lib/types";
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
+import { DashboardPageLayout } from "@/components/layout/dashboard-page-layout";
 
 export default function EditDiscountPage() {
     const params = useParams();
@@ -27,13 +28,18 @@ export default function EditDiscountPage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
-                 <Skeleton className="h-10 w-1/4" />
-                 <Skeleton className="h-64 w-full" />
-                 <Skeleton className="h-48 w-full" />
-            </div>
+            <DashboardPageLayout title="Loading Discount...">
+                <div className="space-y-6">
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            </DashboardPageLayout>
         )
     }
 
-    return <DiscountForm initialDiscount={discount} />;
+    return (
+        <DashboardPageLayout title="Edit Discount">
+            <DiscountForm initialDiscount={discount} />
+        </DashboardPageLayout>
+    );
 }

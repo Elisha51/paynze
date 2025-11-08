@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -35,6 +34,7 @@ import {
   TableRow,
   TableFooter
 } from "@/components/ui/table"
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function ViewPurchaseOrderPage() {
   const params = useParams();
@@ -61,44 +61,37 @@ export default function ViewPurchaseOrderPage() {
   
   if (loading || !settings) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <Skeleton className="h-9 w-9" />
-          <div className="flex-1 space-y-1">
-            <Skeleton className="h-7 w-48" />
-            <Skeleton className="h-4 w-24" />
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <Skeleton className="h-10 w-20" />
-            <Skeleton className="h-10 w-10" />
-          </div>
+     <DashboardPageLayout title="Loading Purchase Order...">
+        <div className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+                <Skeleton className="h-80 w-full" />
+            </div>
+            <div className="lg:col-span-1 space-y-6">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+            </div>
+            </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <Skeleton className="h-80 w-full" />
-          </div>
-          <div className="lg:col-span-1 space-y-6">
-            <Skeleton className="h-48 w-full" />
-            <Skeleton className="h-48 w-full" />
-          </div>
-        </div>
-      </div>
+      </DashboardPageLayout>
     );
   }
 
 
   if (!order) {
     return (
-        <div className="flex flex-col items-center justify-center h-full text-center">
-            <h1 className="text-2xl font-bold">Purchase Order not found</h1>
-            <p className="text-muted-foreground">The PO you are looking for does not exist.</p>
-            <Button asChild className="mt-4">
-                <Link href="/dashboard/procurement">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Procurement
-                </Link>
-            </Button>
-        </div>
+       <DashboardPageLayout title="Error">
+            <div className="flex flex-col items-center justify-center h-full text-center">
+                <h1 className="text-2xl font-bold">Purchase Order not found</h1>
+                <p className="text-muted-foreground">The PO you are looking for does not exist.</p>
+                <Button asChild className="mt-4">
+                    <Link href="/dashboard/procurement">
+                        <ArrowLeft className="mr-2 h-4 w-4" />
+                        Back to Procurement
+                    </Link>
+                </Button>
+            </div>
+       </DashboardPageLayout>
     )
   }
 
@@ -115,43 +108,31 @@ export default function ViewPurchaseOrderPage() {
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
   
   const currency = order.currency || settings.currency;
+  
+  const cta = (
+    <div className="flex items-center gap-2">
+        <Button variant="outline" size="sm">
+            Mark as Received
+        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon" className="h-9 w-9">
+                <MoreVertical className="h-4 w-4" />
+                <span className="sr-only">More</span>
+            </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem>Edit PO</DropdownMenuItem>
+                <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/procurement?tab=purchase-orders">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-          </Link>
-        </Button>
-        <h1 className="flex-1 shrink-0 whitespace-nowrap text-2xl font-bold tracking-tight">
-            PO #{order.id}
-        </h1>
-        <Badge variant={statusVariant} className="hidden sm:inline-flex">
-            {order.status}
-        </Badge>
-        <div className="ml-auto flex items-center gap-2">
-            <Button variant="outline" size="sm">
-                Mark as Received
-            </Button>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-9 w-9">
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">More</span>
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuItem>Edit PO</DropdownMenuItem>
-                    <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-      </div>
-
+    <DashboardPageLayout title={`Purchase Order #${order.id}`} cta={cta} backHref="/dashboard/procurement?tab=purchase-orders">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
             <Card>
@@ -220,6 +201,6 @@ export default function ViewPurchaseOrderPage() {
             </Card>
         </div>
       </div>
-    </div>
+    </DashboardPageLayout>
   );
 }

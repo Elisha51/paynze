@@ -1,5 +1,6 @@
+
 'use client';
-import { ArrowLeft, Save, ShieldAlert } from 'lucide-react';
+import { Save, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,6 +23,7 @@ import type { Customer } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { ArrowLeft } from 'lucide-react';
 
 const emptyCustomer: Partial<Customer> = {
     name: '',
@@ -78,8 +80,6 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
     router.push('/dashboard/customers');
   }
 
-  const handleBack = () => router.back();
-
   if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
     return (
         <Card>
@@ -98,23 +98,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4" />
-          <span className="sr-only">Back</span>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{initialCustomer ? 'Edit Customer' : 'Add New Customer'}</h1>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-            <Button onClick={handleSave}>
-              <Save className="mr-2 h-4 w-4" />
-              Save Customer
-            </Button>
-        </div>
-      </div>
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -199,6 +183,13 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
             </Card>
         </div>
       </div>
+       <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+            <Button onClick={handleSave}>
+              <Save className="mr-2 h-4 w-4" />
+              Save Customer
+            </Button>
+        </div>
     </div>
   );
 }

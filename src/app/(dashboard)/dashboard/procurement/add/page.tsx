@@ -1,6 +1,6 @@
 
 'use client';
-import { ArrowLeft, Save, PlusCircle, Trash2 } from 'lucide-react';
+import { Save, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -29,6 +29,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function AddPurchaseOrderPage() {
     const [supplierId, setSupplierId] = useState('');
@@ -83,24 +84,16 @@ export default function AddPurchaseOrderPage() {
         toast({ title: "Purchase Order Created", description: "The new PO has been saved as a draft." });
         router.push('/dashboard/procurement');
     }
+    
+    const cta = (
+        <Button onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            Save as Draft
+        </Button>
+    );
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Create Purchase Order</h1>
-                </div>
-                <div className="ml-auto flex items-center gap-2">
-                    <Button onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save as Draft
-                    </Button>
-                </div>
-            </div>
-
+        <DashboardPageLayout title="Create Purchase Order" cta={cta}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
@@ -180,6 +173,6 @@ export default function AddPurchaseOrderPage() {
                      </Card>
                 </div>
             </div>
-        </div>
+        </DashboardPageLayout>
     )
 }

@@ -13,6 +13,8 @@ import { Input } from '@/components/ui/input';
 import { getOrdersByAffiliate } from '@/services/orders';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function AffiliateDetailsPage() {
     const params = useParams();
@@ -22,10 +24,12 @@ export default function AffiliateDetailsPage() {
     const [settings, setSettings] = useState<{ subdomain: string, currency: string } | null>(null);
     const [affiliateSettings, setAffiliateSettings] = useState<AffiliateProgramSettings | null>(null);
     const [referredOrders, setReferredOrders] = useState<Order[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         async function loadData() {
             if (!id) return;
+            setLoading(true);
             const [affData, ordersData] = await Promise.all([
                 getAffiliateById(id),
                 getOrdersByAffiliate(id)
@@ -41,12 +45,23 @@ export default function AffiliateDetailsPage() {
             if (affSettingsData) {
                 setAffiliateSettings(JSON.parse(affSettingsData));
             }
+            setLoading(false);
         }
         loadData();
     }, [id]);
-
-    if (!affiliate || !settings) {
-        return <div>Loading...</div>; // Or a skeleton loader
+    
+    if (loading || !affiliate || !settings) {
+        return (
+            <DashboardPageLayout title="Loading Affiliate...">
+                 <div className="space-y-6">
+                    <Skeleton className="h-40 w-full" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        {[...Array(4)].map((_,i) => <Skeleton key={i} className="h-32 w-full" />)}
+                    </div>
+                    <Skeleton className="h-64 w-full" />
+                </div>
+            </DashboardPageLayout>
+        )
     }
 
     const referralLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/?ref=${affiliate.uniqueId}`;
@@ -71,109 +86,99 @@ export default function AffiliateDetailsPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                 <Button variant="outline" size="icon" asChild>
-                    <Link href="/dashboard/marketing?tab=affiliates">
-                        <ArrowLeft className="h-4 w-4" />
-                        <span className="sr-only">Back</span>
-                    </Link>
-                </Button>
-                <h1 className="text-2xl font-bold tracking-tight">
-                    {affiliate.name}
-                </h1>
-            </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Referral Link</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="flex w-full max-w-lg items-center space-x-2">
-                        <div className="relative flex-1">
-                            <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input readOnly value={referralLink} className="pl-10" />
-                        </div>
-                        <Button onClick={copyReferralLink}><Copy className="mr-2 h-4 w-4" /> Copy Link</Button>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <DashboardPageLayout title={affiliate.name} backHref="/dashboard/marketing?tab=affiliates">
+            <div className="space-y-6">
                 <Card>
-                    <CardHeader className="flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Unpaid Commission</CardTitle>
-                        <DollarSign className="h-4 w-4 text-muted-foreground"/>
+                    <CardHeader>
+                        <CardTitle>Referral Link</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{formatCurrency(affiliate.pendingCommission)}</div>
+                        <div className="flex w-full max-w-lg items-center space-x-2">
+                            <div className="relative flex-1">
+                                <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                <Input readOnly value={referralLink} className="pl-10" />
+                            </div>
+                            <Button onClick={copyReferralLink}><Copy className="mr-2 h-4 w-4" /> Copy Link</Button>
+                        </div>
                     </CardContent>
                 </Card>
-                 <Card>
-                    <CardHeader className="flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Clicks</CardTitle>
-                        <BarChart className="h-4 w-4 text-muted-foreground"/>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card>
+                        <CardHeader className="flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Unpaid Commission</CardTitle>
+                            <DollarSign className="h-4 w-4 text-muted-foreground"/>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{formatCurrency(affiliate.pendingCommission)}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Clicks</CardTitle>
+                            <BarChart className="h-4 w-4 text-muted-foreground"/>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{affiliate.linkClicks}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Conversions</CardTitle>
+                            <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{affiliate.conversions}</div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardHeader className="flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
+                            <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold">{conversionRate}%</div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Referred Sales</CardTitle>
+                        <CardDescription>A list of completed sales referred by {affiliate.name}.</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{affiliate.linkClicks}</div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Conversions</CardTitle>
-                        <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{affiliate.conversions}</div>
-                    </CardContent>
-                </Card>
-                 <Card>
-                    <CardHeader className="flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">Conversion Rate</CardTitle>
-                        <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{conversionRate}%</div>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Order</TableHead>
+                                    <TableHead>Date</TableHead>
+                                    <TableHead>Customer</TableHead>
+                                    <TableHead className="text-right">Sale Amount</TableHead>
+                                    <TableHead className="text-right">Commission Earned</TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                {referredOrders.length > 0 ? (
+                                    referredOrders.map(order => (
+                                        <TableRow key={order.id}>
+                                            <TableCell className="font-mono">{order.id}</TableCell>
+                                            <TableCell>{format(new Date(order.date), 'PPP')}</TableCell>
+                                            <TableCell>{order.customerName}</TableCell>
+                                            <TableCell className="text-right">{formatCurrency(order.total)}</TableCell>
+                                            <TableCell className="text-right font-semibold text-primary">{formatCurrency(calculateCommission(order.total))}</TableCell>
+                                        </TableRow>
+                                    ))
+                                ) : (
+                                    <TableRow>
+                                        <TableCell colSpan={5} className="h-24 text-center">No referred sales found yet.</TableCell>
+                                    </TableRow>
+                                )}
+                            </TableBody>
+                        </Table>
                     </CardContent>
                 </Card>
             </div>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Referred Sales</CardTitle>
-                    <CardDescription>A list of completed sales referred by {affiliate.name}.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Order</TableHead>
-                                <TableHead>Date</TableHead>
-                                <TableHead>Customer</TableHead>
-                                <TableHead className="text-right">Sale Amount</TableHead>
-                                <TableHead className="text-right">Commission Earned</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {referredOrders.length > 0 ? (
-                                referredOrders.map(order => (
-                                    <TableRow key={order.id}>
-                                        <TableCell className="font-mono">{order.id}</TableCell>
-                                        <TableCell>{format(new Date(order.date), 'PPP')}</TableCell>
-                                        <TableCell>{order.customerName}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(order.total)}</TableCell>
-                                        <TableCell className="text-right font-semibold text-primary">{formatCurrency(calculateCommission(order.total))}</TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">No referred sales found yet.</TableCell>
-                                </TableRow>
-                            )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
-        </div>
+        </DashboardPageLayout>
     );
 }

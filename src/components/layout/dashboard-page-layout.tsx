@@ -1,23 +1,22 @@
+
 'use client';
-import {
-  Card,
-  CardHeader,
-  CardContent,
-} from '@/components/ui/card';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search } from 'lucide-react';
-import { Input } from '../ui/input';
-import { useState } from 'react';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '../ui/button';
 
 type Tab = { value: string; label: string; className?: string };
 
 type DashboardPageLayoutProps = {
   title: string;
+  description?: string;
   tabs?: Tab[];
   cta?: React.ReactNode;
   children: React.ReactNode;
   activeTab?: string;
   onTabChange?: (value: string) => void;
+  backHref?: string;
 };
 
 // Main content container
@@ -38,29 +37,6 @@ const SimpleContent = ({ children }: { children: React.ReactNode }) => {
 }
 SimpleContent.displayName = 'SimpleContent';
 
-// Wrapper for filterable tabs inside a card
-const FilterTabs = ({ filterTabs, defaultValue, children }: { filterTabs: Tab[], defaultValue: string, children: React.ReactNode }) => {
-    return (
-        <Card>
-            <Tabs defaultValue={defaultValue}>
-                <CardHeader>
-                    <TabsList className="flex-wrap h-auto justify-start">
-                        {filterTabs.map(tab => (
-                            <TabsTrigger key={tab.value} value={tab.value} className={`${tab.className} whitespace-nowrap`}>
-                                {tab.label}
-                            </TabsTrigger>
-                        ))}
-                    </TabsList>
-                </CardHeader>
-                <CardContent>
-                    {children}
-                </CardContent>
-            </Tabs>
-        </Card>
-    );
-};
-FilterTabs.displayName = 'FilterTabs';
-
 // Regular tab content
 const TabContent = ({ value, children }: { value: string, children: React.ReactNode }) => {
     return <TabsContent value={value} className="mt-6">{children}</TabsContent>
@@ -68,11 +44,23 @@ const TabContent = ({ value, children }: { value: string, children: React.ReactN
 TabContent.displayName = 'TabContent';
 
 
-export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onTabChange }: DashboardPageLayoutProps) {
+export function DashboardPageLayout({ title, description, tabs, cta, children, activeTab, onTabChange, backHref }: DashboardPageLayoutProps) {
   
   const HeaderContent = () => (
      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+        <div className="flex items-center gap-4">
+            {backHref && (
+                 <Button variant="outline" size="icon" asChild>
+                    <Link href={backHref}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Link>
+                </Button>
+            )}
+            <div>
+                <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+                {description && <p className="text-muted-foreground">{description}</p>}
+            </div>
+        </div>
         {cta && <div className="w-full sm:w-auto flex-shrink-0">{cta}</div>}
      </div>
   );
@@ -119,4 +107,3 @@ export function DashboardPageLayout({ title, tabs, cta, children, activeTab, onT
 
 DashboardPageLayout.TabContent = TabContent;
 DashboardPageLayout.Content = Content;
-DashboardPageLayout.FilterTabs = FilterTabs;

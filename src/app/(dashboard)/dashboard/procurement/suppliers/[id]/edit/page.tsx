@@ -6,6 +6,7 @@ import type { Supplier } from '@/lib/types';
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function EditSupplierPage() {
     const params = useParams();
@@ -25,8 +26,24 @@ export default function EditSupplierPage() {
     }, [id]);
 
     if (isLoading) {
-        return <Skeleton className="h-96 w-full" />
+        return (
+            <DashboardPageLayout title="Loading Supplier...">
+                 <Skeleton className="h-96 w-full" />
+            </DashboardPageLayout>
+        );
+    }
+    
+    if (!supplier) {
+        return (
+            <DashboardPageLayout title="Error">
+                <p>Supplier not found</p>
+            </DashboardPageLayout>
+        )
     }
 
-    return <SupplierForm initialSupplier={supplier} />;
+    return (
+        <DashboardPageLayout title={`Edit ${supplier.name}`}>
+            <SupplierForm initialSupplier={supplier} />
+        </DashboardPageLayout>
+    );
 }

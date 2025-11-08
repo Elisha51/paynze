@@ -4,6 +4,7 @@ import { useAuth } from '@/context/auth-context';
 import { StaffProfileForm } from '@/components/dashboard/staff-profile-form';
 import { PasswordSettings } from '@/components/dashboard/password-settings';
 import { updateStaff } from '@/services/staff';
+import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function MyProfilePage() {
     const { user, setUser } = useAuth();
@@ -18,13 +19,11 @@ export default function MyProfilePage() {
     }
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-             <div className="space-y-1">
-                <h1 className="text-2xl font-bold tracking-tight">My Profile</h1>
-                <p className="text-muted-foreground">Manage your personal information and password.</p>
+         <DashboardPageLayout title="My Profile" description="Manage your personal information and password.">
+            <div className="max-w-4xl space-y-6">
+                <StaffProfileForm staff={user} onSave={handleSave} onCancel={() => {}} isSelfEditing />
+                <PasswordSettings />
             </div>
-            <StaffProfileForm staff={user} onSave={handleSave} onCancel={() => {}} isSelfEditing />
-            <PasswordSettings />
-        </div>
+        </DashboardPageLayout>
     )
 }

@@ -1,3 +1,4 @@
+
 'use client';
 import { EmailTemplateForm } from "@/components/dashboard/email-template-form";
 import { getEmailTemplates } from "@/services/templates";
@@ -5,6 +6,7 @@ import type { EmailTemplate } from "@/lib/types";
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
+import { DashboardPageLayout } from "@/components/layout/dashboard-page-layout";
 
 export default function EditEmailTemplatePage() {
     const params = useParams();
@@ -26,13 +28,18 @@ export default function EditEmailTemplatePage() {
 
     if (isLoading) {
         return (
-            <div className="space-y-6">
-                 <Skeleton className="h-10 w-1/4" />
-                 <Skeleton className="h-64 w-full" />
-                 <Skeleton className="h-48 w-full" />
-            </div>
+            <DashboardPageLayout title="Loading Template...">
+                <div className="space-y-6">
+                    <Skeleton className="h-64 w-full" />
+                    <Skeleton className="h-48 w-full" />
+                </div>
+            </DashboardPageLayout>
         )
     }
 
-    return <EmailTemplateForm initialTemplate={template} />;
+    return (
+        <DashboardPageLayout title={`Edit "${template?.name}" Template`}>
+             <EmailTemplateForm initialTemplate={template} />
+        </DashboardPageLayout>
+    );
 }
