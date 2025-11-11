@@ -1,3 +1,4 @@
+
 // src/context/onboarding-context.tsx
 'use client';
 
@@ -18,6 +19,7 @@ export type OnboardingFormData = {
   domainType: 'subdomain' | 'custom';
   customDomain: string;
   logoUrl?: string;
+  taxRate?: number;
   paymentOptions: {
     cod: boolean;
     mobileMoney: boolean;
@@ -58,6 +60,7 @@ const initialFormData: OnboardingFormData = {
   theme: themes[0].name,
   domainType: 'subdomain',
   customDomain: '',
+  taxRate: 0,
   paymentOptions: {
     cod: true,
     mobileMoney: false,

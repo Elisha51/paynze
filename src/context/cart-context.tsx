@@ -9,6 +9,7 @@ export type CartItem = OrderItem & {
   variantId: string;
   productId: string;
   image?: string;
+  isTaxable?: boolean;
 };
 
 type CartContextType = {
@@ -60,6 +61,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         quantity,
         price: variant.price || product.retailPrice,
         image: (product.images[0] as { url: string })?.url,
+        isTaxable: product.isTaxable,
       };
       setCartItems(prev => [...prev, newItem]);
     }

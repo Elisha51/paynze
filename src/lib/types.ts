@@ -178,6 +178,7 @@ export type OrderItem = {
     price: number;
     imageUrl?: string;
     category?: string;
+    isTaxable?: boolean;
 };
 
 export type PaymentDetails = {
@@ -311,7 +312,7 @@ export type DeliveryMethod = {
   id: string;
   name: string;
   description: string;
-  type: 'Fixed' | 'Percentage';
+  type: 'Fixed' | 'Percentage' | 'Pickup';
   price: number; // For 'Fixed', this is the amount. For 'Percentage', it's the percentage rate (e.g., 5 for 5%).
 };
 

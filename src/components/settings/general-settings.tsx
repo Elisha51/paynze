@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
@@ -9,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import type { OnboardingFormData, ProductImage } from '@/lib/types';
 import { getCountryList } from '@/services/countries';
 import { FileUploader } from '../ui/file-uploader';
+import { Separator } from '../ui/separator';
 
 export function GeneralSettings() {
     const [settings, setSettings] = useState<Partial<OnboardingFormData>>({});
@@ -31,6 +33,10 @@ export function GeneralSettings() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSettings(prev => ({...prev, [e.target.id]: e.target.value}));
+    };
+    
+    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSettings(prev => ({...prev, [e.target.id]: Number(e.target.value) || 0}));
     };
 
     const handleSelectChange = (id: 'currency' | 'country', value: string) => {
@@ -118,6 +124,12 @@ export function GeneralSettings() {
                             <SelectItem value="TZS">TZS</SelectItem>
                         </SelectContent>
                     </Select>
+                </div>
+                <Separator />
+                <div className="space-y-2">
+                    <Label htmlFor="taxRate">Default Tax Rate (%)</Label>
+                    <Input id="taxRate" type="number" value={settings.taxRate || ''} onChange={handleNumberChange} className="w-[180px]" />
+                    <p className="text-sm text-muted-foreground">This rate will be applied to products marked as taxable.</p>
                 </div>
             </CardContent>
             <CardFooter>

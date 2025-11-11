@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { Order, PaymentDetails, OnboardingFormData } from '@/lib/types';
+import type { Order, PaymentDetails, OnboardingFormData, ShippingZone, DeliveryMethod } from '@/lib/types';
 import { addOrder } from '@/services/orders';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -17,6 +17,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCountryList } from '@/services/countries';
+import { getShippingZones } from '@/services/shipping';
 
 async function simulatePaymentWebhook(orderId: string, status: 'SUCCESS' | 'FAILED') {
     await fetch('/api/payments/webhook', {
@@ -37,23 +38,52 @@ export default function CheckoutPage() {
   const [countryCode, setCountryCode] = useState('+256');
   
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+  const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
+  const [selectedShippingMethod, setSelectedShippingMethod] = useState<DeliveryMethod | null>(null);
 
   useEffect(() => {
-    const data = localStorage.getItem('onboardingData');
-    if (data) {
-        const parsedSettings: OnboardingFormData = JSON.parse(data);
-        setSettings(parsedSettings);
-        setShippingInfo(prev => ({...prev, country: parsedSettings.country || 'Uganda'}));
-    }
-     async function loadCountries() {
-        const countryList = await getCountryList();
+    async function loadInitialData() {
+        const data = localStorage.getItem('onboardingData');
+        if (data) {
+            const parsedSettings: OnboardingFormData = JSON.parse(data);
+            setSettings(parsedSettings);
+            setShippingInfo(prev => ({...prev, country: parsedSettings.country || 'Uganda'}));
+        }
+        const [countryList, zones] = await Promise.all([
+            getCountryList(),
+            getShippingZones()
+        ]);
         setCountries(countryList);
+        setShippingZones(zones);
     }
-    loadCountries();
+    loadInitialData();
   }, []);
   
-  const shippingFee = Number(settings?.delivery.deliveryFee) || 0;
-  const total = cartTotal + shippingFee;
+  const { availableShippingMethods, taxAmount, shippingFee, total } = useMemo(() => {
+    const applicableZone = shippingZones.find(zone => zone.countries.includes(shippingInfo.country));
+    const methods = applicableZone?.deliveryMethods || [];
+    
+    // Set default shipping method if not already set or invalid
+    if (methods.length > 0 && (!selectedShippingMethod || !methods.find(m => m.id === selectedShippingMethod.id))) {
+        setSelectedShippingMethod(methods[0]);
+    } else if (methods.length === 0 && selectedShippingMethod) {
+        setSelectedShippingMethod(null);
+    }
+    
+    const fee = selectedShippingMethod?.price || 0;
+    const taxRate = (settings?.taxRate || 0) / 100;
+    const taxableAmount = cartItems.filter(item => item.isTaxable).reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const tax = taxableAmount * taxRate;
+    
+    const finalTotal = cartTotal + fee + tax;
+    
+    return {
+        availableShippingMethods: methods,
+        taxAmount: tax,
+        shippingFee: fee,
+        total: finalTotal,
+    };
+  }, [shippingZones, shippingInfo.country, cartItems, cartTotal, settings, selectedShippingMethod]);
 
   const handlePlaceOrder = async () => {
     setIsLoading(true);
@@ -65,9 +95,9 @@ export default function CheckoutPage() {
             customerPhone: `${countryCode}${customerInfo.phone}`,
             date: new Date().toISOString(),
             status: 'Awaiting Payment' as const,
-            fulfillmentMethod: 'Delivery' as const,
+            fulfillmentMethod: selectedShippingMethod?.type === 'Pickup' ? 'Pickup' : 'Delivery',
             channel: 'Online' as const,
-            items: cartItems.map(({ productId, variantId, image, ...rest }) => rest), // Remove client-side fields
+            items: cartItems.map(({ productId, variantId, image, isTaxable, ...rest }) => rest), // Remove client-side fields
             total: total,
             currency: currency,
             shippingAddress: { ...shippingInfo, postalCode: '00000' },
@@ -76,6 +106,7 @@ export default function CheckoutPage() {
                 status: 'pending' as const,
             },
             shippingCost: shippingFee,
+            taxes: taxAmount,
         };
         
         const newOrder = await addOrder(orderData);
@@ -165,7 +196,7 @@ export default function CheckoutPage() {
                 </Card>
                 <Card>
                     <CardHeader>
-                        <CardTitle>Shipping Address</CardTitle>
+                        <CardTitle>Shipping & Delivery</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
@@ -187,6 +218,25 @@ export default function CheckoutPage() {
                                 </Select>
                             </div>
                         </div>
+                        {availableShippingMethods.length > 0 && (
+                            <div className="space-y-2 pt-4">
+                                <Label>Delivery Method</Label>
+                                <RadioGroup value={selectedShippingMethod?.id} onValueChange={(id) => setSelectedShippingMethod(availableShippingMethods.find(m => m.id === id) || null)} className="space-y-2">
+                                    {availableShippingMethods.map(method => (
+                                         <Label key={method.id} htmlFor={`ship-${method.id}`} className="flex justify-between items-center border rounded-md p-3 cursor-pointer hover:bg-muted/50">
+                                            <div className="flex items-center gap-3">
+                                                <RadioGroupItem value={method.id} id={`ship-${method.id}`} />
+                                                <div className="flex flex-col">
+                                                    <span>{method.name}</span>
+                                                    <span className="text-xs text-muted-foreground">{method.description}</span>
+                                                </div>
+                                            </div>
+                                            <span className="font-semibold">{new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(method.price)}</span>
+                                        </Label>
+                                    ))}
+                                </RadioGroup>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
             </div>
@@ -210,6 +260,10 @@ export default function CheckoutPage() {
                         <div className="flex justify-between items-center text-sm">
                             <p className="text-muted-foreground">Shipping</p>
                             <p className="font-medium">{new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(shippingFee)}</p>
+                        </div>
+                        <div className="flex justify-between items-center text-sm">
+                            <p className="text-muted-foreground">Taxes</p>
+                            <p className="font-medium">{new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(taxAmount)}</p>
                         </div>
                         <Separator />
                          <div className="flex justify-between items-center font-bold text-lg">
