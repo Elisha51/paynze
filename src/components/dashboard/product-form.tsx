@@ -114,7 +114,7 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
 };
 
 
-export function ProductForm({ initialProduct, isEditing }: { initialProduct?: Partial<Product> | null, isEditing?: boolean }) {
+export function ProductForm({ initialProduct, isEditing, onSave }: { initialProduct?: Partial<Product> | null, isEditing?: boolean, onSave?: (product: Product) => void }) {
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -418,35 +418,6 @@ export function ProductForm({ initialProduct, isEditing }: { initialProduct?: Pa
         });
     } finally {
         setIsGenerating(false);
-    }
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-        let savedProduct;
-        if (initialProduct?.sku) {
-            savedProduct = await updateProduct(product);
-             toast({
-                title: 'Product Updated',
-                description: `${savedProduct.name} has been updated successfully.`,
-            });
-        } else {
-            savedProduct = await addProduct(product);
-             toast({
-                title: 'Product Created',
-                description: `${savedProduct.name} has been created successfully.`,
-            });
-        }
-        router.push(`/dashboard/products`);
-    } catch (error) {
-        toast({
-            variant: 'destructive',
-            title: 'Save Failed',
-            description: 'There was an error saving the product.',
-        });
-    } finally {
-        setIsSaving(false);
     }
   };
 
@@ -1097,13 +1068,6 @@ export function ProductForm({ initialProduct, isEditing }: { initialProduct?: Pa
                     </div>
                 </CardContent>
             </Card>
-        </div>
-        <div className="lg:col-span-3 flex justify-end gap-2">
-          <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
-          <Button onClick={handleSave} disabled={isSaving}>
-            <Save className="mr-2 h-4 w-4" />
-            {isSaving ? 'Saving...' : 'Save Product'}
-          </Button>
         </div>
       </div>
     </div>
