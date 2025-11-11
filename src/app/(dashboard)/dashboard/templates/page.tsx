@@ -42,9 +42,8 @@ export default function TemplatesPage() {
 
   return (
     <DashboardPageLayout 
-      title="Add Product"
-      description="Start from scratch or use a template to add a new product."
-      backHref='/dashboard/products'
+      title="Templates"
+      description="Manage reusable templates for products and communications."
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={setActiveTab}

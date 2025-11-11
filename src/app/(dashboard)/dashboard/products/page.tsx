@@ -46,7 +46,7 @@ export default function ProductsPage() {
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
     : canCreate ? (
         <Button asChild>
-          <Link href="/dashboard/templates">
+          <Link href="/dashboard/products/add">
             <PlusCircle className="mr-2 h-4 w-4" /> Add Product
           </Link>
         </Button>
