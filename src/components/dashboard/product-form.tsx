@@ -1,3 +1,4 @@
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
@@ -113,7 +114,7 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
 };
 
 
-export function ProductForm({ initialProduct }: { initialProduct?: Partial<Product> | null }) {
+export function ProductForm({ initialProduct, isEditing }: { initialProduct?: Partial<Product> | null, isEditing?: boolean }) {
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -469,23 +470,25 @@ export function ProductForm({ initialProduct }: { initialProduct?: Partial<Produ
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={handleBack} className="hidden md:inline-flex">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back</span>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">
-            {initialProduct?.sku ? `Edit Product` : 'Add New Product'}
-          </h1>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-            <Button onClick={handleSave} disabled={isSaving}>
-              <Save className="mr-2 h-4 w-4" />
-              {isSaving ? 'Saving...' : 'Save Product'}
+      {!isEditing && (
+        <div className="flex items-center gap-4">
+            <Button variant="outline" size="icon" onClick={handleBack} className="hidden md:inline-flex">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="sr-only">Back</span>
             </Button>
+            <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+                {initialProduct?.sku ? `Edit Product` : 'Add New Product'}
+            </h1>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+                <Button onClick={handleSave} disabled={isSaving}>
+                <Save className="mr-2 h-4 w-4" />
+                {isSaving ? 'Saving...' : 'Save Product'}
+                </Button>
+            </div>
         </div>
-      </div>
+      )}
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">

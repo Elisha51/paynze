@@ -53,7 +53,7 @@ export default function EditProductPage() {
 
     return (
         <DashboardPageLayout title={`Edit ${product.name}`} backHref={`/dashboard/products/${product.sku}`}>
-            <ProductForm initialProduct={product} />
+            <ProductForm initialProduct={product} isEditing />
         </DashboardPageLayout>
     )
 }
