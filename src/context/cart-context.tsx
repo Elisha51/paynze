@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, ReactNode, useMemo, useEffect } from 'react';
 import type { OrderItem, Product, ProductVariant, OnboardingFormData } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 export type CartItem = OrderItem & {
   variantId: string;
@@ -26,7 +26,6 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const { toast } = useToast();
   const [currency, setCurrency] = useState('UGX');
 
   useEffect(() => {
