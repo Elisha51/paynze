@@ -16,13 +16,22 @@ import { Separator } from '../ui/separator';
 import { Trash2, ShoppingBag } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 export function CartSheet({ children }: { children: React.ReactNode }) {
   const { cartItems, removeFromCart, updateQuantity, cartCount, cartTotal, currency } = useCart();
+  const [isCustomerAuthenticated, setIsCustomerAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const loggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
+    setIsCustomerAuthenticated(loggedIn);
+  }, []);
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   };
+
+  const checkoutHref = isCustomerAuthenticated ? '/checkout' : '/store/login?redirect=/checkout';
   
   return (
     <Sheet>
@@ -73,7 +82,7 @@ export function CartSheet({ children }: { children: React.ReactNode }) {
                 </div>
                  <SheetClose asChild>
                     <Button size="lg" className="w-full" asChild>
-                        <Link href="/checkout">Proceed to Checkout</Link>
+                        <Link href={checkoutHref}>Proceed to Checkout</Link>
                     </Button>
                  </SheetClose>
             </SheetFooter>

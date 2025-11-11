@@ -42,6 +42,13 @@ export default function CheckoutPage() {
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<DeliveryMethod | null>(null);
 
   useEffect(() => {
+    // Redirect to login if not authenticated
+    const isLoggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
+    if (!isLoggedIn) {
+      router.push('/store/login?redirect=/checkout');
+      return;
+    }
+
     async function loadInitialData() {
         const data = localStorage.getItem('onboardingData');
         if (data) {
@@ -57,7 +64,7 @@ export default function CheckoutPage() {
         setShippingZones(zones);
     }
     loadInitialData();
-  }, []);
+  }, [router]);
   
   const { availableShippingMethods, taxAmount, shippingFee, total } = useMemo(() => {
     const applicableZone = shippingZones.find(zone => zone.countries.includes(shippingInfo.country));

@@ -5,17 +5,18 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function StoreLoginPage() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const redirectUrl = searchParams.get('redirect');
 
     const handleLogin = () => {
         // Simulate successful customer login
         localStorage.setItem('isCustomerLoggedIn', 'true');
-        // A real app would redirect to the previous page or account page.
-        // For now, we'll go to the main store page.
-        router.push('/store');
+        // Redirect to the intended page, or back to the store.
+        router.push(redirectUrl || '/store');
     }
 
   return (
