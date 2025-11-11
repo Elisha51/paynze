@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -27,7 +28,7 @@ export function ProductImages({ product, selectedVariant }: ProductImagesProps) 
     }, [selectedVariant, product]);
 
     return (
-        <div className="grid gap-4">
+        <div className="grid gap-4 sticky top-24">
             <Card className="overflow-hidden">
                 <CardContent className="p-0">
                     <div className="relative aspect-square w-full">
