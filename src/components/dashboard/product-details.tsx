@@ -45,26 +45,25 @@ export function ProductDetails({ product }: { product: Product }) {
 
   return (
     <TooltipProvider>
-      <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div tabIndex={inventoryIsTracked ? 0 : -1}>
-                      <TabsTrigger value="inventory" disabled={!inventoryIsTracked} className="disabled:cursor-not-allowed">
-                        Inventory
-                      </TabsTrigger>
-                    </div>
-                  </TooltipTrigger>
-                  {!inventoryIsTracked && (
-                    <TooltipContent>
-                      <p>Enable inventory tracking to view details.</p>
-                    </TooltipContent>
-                  )}
-                </Tooltip>
-              </TabsList>
-          </Tabs>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+            <TabsList>
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div tabIndex={inventoryIsTracked ? 0 : -1}>
+                    <TabsTrigger value="inventory" disabled={!inventoryIsTracked} className="disabled:cursor-not-allowed">
+                      Inventory
+                    </TabsTrigger>
+                  </div>
+                </TooltipTrigger>
+                {!inventoryIsTracked && (
+                  <TooltipContent>
+                    <p>Enable inventory tracking to view details.</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TabsList>
 
           {inventoryIsTracked && (
             <div className="flex w-full sm:w-auto items-center gap-2">
@@ -124,6 +123,7 @@ export function ProductDetails({ product }: { product: Product }) {
         <TabsContent value="inventory">
           <ProductDetailsInventory product={product} dateRange={date} />
         </TabsContent>
+      </Tabs>
     </TooltipProvider>
   );
 }
