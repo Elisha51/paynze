@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { PlusCircle } from 'lucide-react';
@@ -45,7 +46,7 @@ export default function ProductsPage() {
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
     : canCreate ? (
         <Button asChild>
-          <Link href="/dashboard/products/add">
+          <Link href="/dashboard/templates">
             <PlusCircle className="mr-2 h-4 w-4" /> Add Product
           </Link>
         </Button>

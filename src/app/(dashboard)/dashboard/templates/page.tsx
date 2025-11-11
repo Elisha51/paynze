@@ -1,4 +1,5 @@
 
+
 'use client';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { ProductTemplatesTab } from '@/components/dashboard/product-templates-tab';
@@ -41,7 +42,9 @@ export default function TemplatesPage() {
 
   return (
     <DashboardPageLayout 
-      title="Templates"
+      title="Add Product"
+      description="Start from scratch or use a template to add a new product."
+      backHref='/dashboard/products'
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={setActiveTab}
