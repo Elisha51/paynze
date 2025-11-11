@@ -40,11 +40,10 @@ export default function DashboardLayout({
     }
   }, [isLoading, user, router]);
 
-  if (isLoading || !user) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
+  const SkeletonLoader = () => (
+    <div className="flex h-screen w-full items-center justify-center">
         <Skeleton className="h-full w-16" />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full">
             <Skeleton className="h-14 border-b" />
             <div className="p-8">
                 <Skeleton className="h-32 w-full mb-8" />
@@ -52,12 +51,14 @@ export default function DashboardLayout({
             </div>
         </div>
       </div>
-    );
-  }
+  );
 
   return (
     <SidebarProvider>
       <NotificationProvider>
+        {isLoading || !user ? (
+           <SkeletonLoader />
+        ) : (
           <div className="flex min-h-screen w-full">
             <AppSidebar onboardingData={onboardingData} />
             <div className="flex flex-1 flex-col">
@@ -67,6 +68,7 @@ export default function DashboardLayout({
               </main>
             </div>
           </div>
+        )}
       </NotificationProvider>
     </SidebarProvider>
   );
