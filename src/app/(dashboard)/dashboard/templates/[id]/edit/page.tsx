@@ -22,7 +22,7 @@ export default function EditProductTemplatePage() {
     }
 
     return (
-        <DashboardPageLayout title="Edit Product Template" description="Update the details of this template.">
+        <DashboardPageLayout title="Edit Product Template">
             <ProductTemplateForm initialTemplate={template} />
         </DashboardPageLayout>
     )

@@ -19,7 +19,7 @@ export default function MyProfilePage() {
     }
 
     return (
-         <DashboardPageLayout title="My Profile" description="Manage your personal information and password.">
+         <DashboardPageLayout title="My Profile">
             <div className="max-w-4xl space-y-6">
                 <StaffProfileForm staff={user} onSave={handleSave} onCancel={() => {}} isSelfEditing />
                 <PasswordSettings />

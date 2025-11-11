@@ -83,7 +83,7 @@ export default function AddStaffPage() {
     }
 
     return (
-        <DashboardPageLayout title="Add New Staff Member" description="An invitation will be sent to their email to set up their account." cta={cta}>
+        <DashboardPageLayout title="Add New Staff Member" cta={cta}>
             <div className="max-w-2xl">
                 <Card>
                     <CardHeader>

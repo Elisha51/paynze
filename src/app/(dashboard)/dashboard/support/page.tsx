@@ -121,7 +121,7 @@ export default function SupportPage() {
     const columns = getColumns();
 
     return (
-        <DashboardPageLayout title="Support Center" description="Get help and report issues.">
+        <DashboardPageLayout title="Support Center">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                     <Card>

@@ -73,7 +73,7 @@ export default function MyTasksPage() {
     }
 
     return (
-        <DashboardPageLayout title="My Tasks" description="A list of your assigned deliveries and personal to-do items.">
+        <DashboardPageLayout title="My Tasks">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
                 <Card>
                     <CardHeader>
