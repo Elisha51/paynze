@@ -115,7 +115,11 @@ export default function ViewProductPage() {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>Duplicate Product</DropdownMenuItem>
-              <DropdownMenuItem>View on Storefront</DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/store/product/${product.sku}`} target="_blank">
+                    View on Storefront
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-destructive">Archive Product</DropdownMenuItem>
             </DropdownMenuContent>
