@@ -1,10 +1,10 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Save, Calendar, X, FileText, Clock, PlusCircle, ShieldAlert } from 'lucide-react';
-import Link from 'next/link';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 import { cn, getInitials } from '@/lib/utils';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { updateStaff } from '@/services/staff';
+import { addStaff, updateStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import type { Staff, Role, AssignableAttribute, Shift } from '@/lib/types';
 import { FileUploader } from '../ui/file-uploader';
@@ -116,18 +116,26 @@ const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any,
 }
 
 const daysOfWeek: Shift['day'][] = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const emptyStaff: Partial<Staff> = {
+    name: '',
+    email: '',
+    role: 'Agent',
+    status: 'Pending Verification',
+};
 
 
 export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     const router = useRouter();
     const { toast } = useToast();
     const { user } = useAuth();
-    const [staffMember, setStaffMember] = useState<Staff | null>(initialStaff || null);
+    const [staffMember, setStaffMember] = useState<Partial<Staff>>(initialStaff || emptyStaff);
     const [allRoles, setAllRoles] = useState<Role[]>([]);
     const [imageToCrop, setImageToCrop] = useState<string | null>(null);
     const [crop, setCrop] = useState<Crop>();
 
     const selectedRole = allRoles.find(r => r.name === staffMember?.role);
+    const isEditing = !!initialStaff;
+    const canCreate = user?.permissions?.staff.create;
     const canEdit = user?.permissions?.staff.edit;
 
     useEffect(() => {
@@ -141,11 +149,7 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
         }
     }, [initialStaff]);
     
-    if (!staffMember) {
-        return <div>Loading...</div>; // Or a skeleton loader
-    }
-    
-    if (!canEdit) {
+    if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
         return (
             <Card>
                 <CardHeader>
@@ -225,12 +229,13 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     const handleSaveChanges = async () => {
         if (!staffMember) return;
         
-        await updateStaff(staffMember);
-        
-        toast({
-            title: 'Staff Member Updated',
-            description: `${staffMember.name}'s details have been saved.`,
-        });
+        if (isEditing) {
+            await updateStaff(staffMember as Staff);
+            toast({ title: 'Staff Member Updated' });
+        } else {
+            await addStaff(staffMember as Omit<Staff, 'id'>);
+            toast({ title: 'Staff Member Added' });
+        }
         
         router.push(`/dashboard/staff`);
     }
@@ -273,179 +278,167 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
         }
     }
 
-    const handleBack = () => {
-        router.back();
-    }
-
-
     return (
-        <div className="space-y-6">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={handleBack}>
-                    <ArrowLeft className="h-4 w-4" />
-                    <span className="sr-only">Back</span>
-                </Button>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Edit {staffMember.name}</h1>
-                </div>
-                <div className="ml-auto">
-                    <Button onClick={handleSaveChanges}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Changes
-                    </Button>
-                </div>
-            </div>
-            
-             <Card>
-                <CardHeader>
-                    <CardTitle>Personal Information</CardTitle>
-                    <CardDescription>Update name, contact details, and profile picture.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="flex items-center gap-4">
-                        <Avatar className="h-20 w-20">
-                            <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
-                            <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
-                        </Avatar>
-                        <div className="space-y-2 flex-1">
-                             <Label>Profile Picture</Label>
-                             <FileUploader 
-                                files={[]}
-                                onFilesChange={handleAvatarFileChange}
-                                maxFiles={1}
-                                accept={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
-                             />
-                             <p className="text-xs text-muted-foreground">Recommended size: 200x200px. Max 2MB.</p>
-                        </div>
-                    </div>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Full Name</Label>
-                            <Input id="name" value={staffMember.name} onChange={handleCoreInfoChange} />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="email">Email Address</Label>
-                            <Input id="email" type="email" value={staffMember.email} onChange={handleCoreInfoChange} />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input id="phone" type="tel" value={staffMember.phone || ''} onChange={handleCoreInfoChange} />
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Role & Permissions</CardTitle>
-                    <CardDescription>Assign a role to determine what this staff member can see and do.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                     <div className="space-y-2">
-                        <Label htmlFor="role">Role</Label>
-                         <Select value={staffMember.role} onValueChange={handleRoleChange}>
-                            <SelectTrigger id="role"><SelectValue placeholder="Select a role" /></SelectTrigger>
-                            <SelectContent>
-                                {allRoles.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Weekly Schedule</CardTitle>
-                    <CardDescription>Set the working hours for this staff member.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    {daysOfWeek.map(day => {
-                        const shift = staffMember?.schedule?.find(s => s.day === day);
-                        const isEnabled = !!shift;
-                        return (
-                             <div key={day} className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-2">
-                                        <Switch id={`switch-${day}`} checked={isEnabled} onCheckedChange={(c) => toggleDay(day, c)} />
-                                        <Label htmlFor={`switch-${day}`} className="font-semibold">{day}</Label>
-                                    </div>
-                                </div>
-                                {isEnabled && (
-                                     <div className="grid grid-cols-2 gap-4 pl-8">
-                                        <div className="space-y-1">
-                                            <Label htmlFor={`start-${day}`} className="text-xs">Start Time</Label>
-                                            <Input id={`start-${day}`} type="time" value={shift.startTime} onChange={(e) => handleShiftChange(day, 'startTime', e.target.value)} />
-                                        </div>
-                                        <div className="space-y-1">
-                                            <Label htmlFor={`end-${day}`} className="text-xs">End Time</Label>
-                                            <Input id={`end-${day}`} type="time" value={shift.endTime} onChange={(e) => handleShiftChange(day, 'endTime', e.target.value)} />
-                                        </div>
-                                    </div>
-                                )}
-                                <Separator />
-                            </div>
-                        )
-                    })}
-                </CardContent>
-            </Card>
-
-            <Card>
-                <CardHeader>
-                    <CardTitle>Verification Documents</CardTitle>
-                    <CardDescription>Upload identity or other verification documents for this staff member.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <FileUploader 
-                        files={[]}
-                        onFilesChange={handleVerificationDocsChange}
-                        maxFiles={5}
-                        accept={{ 'application/pdf': ['.pdf'], 'image/*': ['.jpeg', '.jpg', '.png'] }}
-                    />
-                    {staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0 && (
-                        <div className="space-y-2">
-                            <Label>Uploaded Documents</Label>
-                            <div className="space-y-2">
-                                {staffMember.verificationDocuments.map(doc => (
-                                    <div key={doc.name} className="flex items-center justify-between p-2 border rounded-md bg-muted">
-                                        <div className="flex items-center gap-2">
-                                            <FileText className="h-5 w-5 text-primary" />
-                                            <span className="text-sm font-medium">{doc.name}</span>
-                                        </div>
-                                        <Button variant="ghost" size="icon" onClick={() => removeDocument(doc.name)}>
-                                            <X className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-
-            {selectedRole?.assignableAttributes && selectedRole.assignableAttributes.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Manage Attributes</CardTitle>
-                        <CardDescription>
-                            Set and update the custom attributes for the <span className="font-semibold">{selectedRole.name}</span> role.
-                        </CardDescription>
+                        <CardTitle>Personal Information</CardTitle>
+                        <CardDescription>Update name, contact details, and profile picture.</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                        {selectedRole.assignableAttributes.map(attr => (
-                            <div key={attr.key} className="space-y-2">
-                                <Label htmlFor={attr.key} className="font-semibold">{attr.label}</Label>
-                                <DynamicAttributeInput
-                                    attribute={attr}
-                                    value={staffMember.attributes?.[attr.key]}
-                                    onChange={handleAttributeChange}
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-20 w-20">
+                                <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
+                                <AvatarFallback>{getInitials(staffMember.name || '')}</AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-2 flex-1">
+                                <Label>Profile Picture</Label>
+                                <FileUploader 
+                                    files={[]}
+                                    onFilesChange={handleAvatarFileChange}
+                                    maxFiles={1}
+                                    accept={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                                 />
+                                <p className="text-xs text-muted-foreground">Recommended size: 200x200px. Max 2MB.</p>
                             </div>
-                        ))}
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name">Full Name</Label>
+                                <Input id="name" value={staffMember.name} onChange={handleCoreInfoChange} />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="email">Email Address</Label>
+                                <Input id="email" type="email" value={staffMember.email} onChange={handleCoreInfoChange} />
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number</Label>
+                            <Input id="phone" type="tel" value={staffMember.phone || ''} onChange={handleCoreInfoChange} />
+                        </div>
                     </CardContent>
                 </Card>
-            )}
 
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Weekly Schedule</CardTitle>
+                        <CardDescription>Set the working hours for this staff member.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {daysOfWeek.map(day => {
+                            const shift = staffMember?.schedule?.find(s => s.day === day);
+                            const isEnabled = !!shift;
+                            return (
+                                <div key={day} className="space-y-2">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center space-x-2">
+                                            <Switch id={`switch-${day}`} checked={isEnabled} onCheckedChange={(c) => toggleDay(day, c)} />
+                                            <Label htmlFor={`switch-${day}`} className="font-semibold">{day}</Label>
+                                        </div>
+                                    </div>
+                                    {isEnabled && (
+                                        <div className="grid grid-cols-2 gap-4 pl-8">
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`start-${day}`} className="text-xs">Start Time</Label>
+                                                <Input id={`start-${day}`} type="time" value={shift.startTime} onChange={(e) => handleShiftChange(day, 'startTime', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`end-${day}`} className="text-xs">End Time</Label>
+                                                <Input id={`end-${day}`} type="time" value={shift.endTime} onChange={(e) => handleShiftChange(day, 'endTime', e.target.value)} />
+                                            </div>
+                                        </div>
+                                    )}
+                                    <Separator />
+                                </div>
+                            )
+                        })}
+                    </CardContent>
+                </Card>
+
+                 {selectedRole?.assignableAttributes && selectedRole.assignableAttributes.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Manage Attributes</CardTitle>
+                            <CardDescription>
+                                Set and update the custom attributes for the <span className="font-semibold">{selectedRole.name}</span> role.
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {selectedRole.assignableAttributes.map(attr => (
+                                <div key={attr.key} className="space-y-2">
+                                    <Label htmlFor={attr.key} className="font-semibold">{attr.label}</Label>
+                                    <DynamicAttributeInput
+                                        attribute={attr}
+                                        value={staffMember.attributes?.[attr.key]}
+                                        onChange={handleAttributeChange}
+                                    />
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                )}
+
+            </div>
+            <div className="lg:col-span-1 space-y-6">
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Role & Permissions</CardTitle>
+                        <CardDescription>Assign a role to determine what this staff member can see and do.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="space-y-2">
+                            <Label htmlFor="role">Role</Label>
+                            <Select value={staffMember.role} onValueChange={handleRoleChange}>
+                                <SelectTrigger id="role"><SelectValue placeholder="Select a role" /></SelectTrigger>
+                                <SelectContent>
+                                    {allRoles.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Verification Documents</CardTitle>
+                        <CardDescription>Upload identity or other verification documents for this staff member.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <FileUploader 
+                            files={[]}
+                            onFilesChange={handleVerificationDocsChange}
+                            maxFiles={5}
+                            accept={{ 'application/pdf': ['.pdf'], 'image/*': ['.jpeg', '.jpg', '.png'] }}
+                        />
+                        {staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0 && (
+                            <div className="space-y-2">
+                                <Label>Uploaded Documents</Label>
+                                <div className="space-y-2">
+                                    {staffMember.verificationDocuments.map(doc => (
+                                        <div key={doc.name} className="flex items-center justify-between p-2 border rounded-md bg-muted">
+                                            <div className="flex items-center gap-2">
+                                                <FileText className="h-5 w-5 text-primary" />
+                                                <span className="text-sm font-medium">{doc.name}</span>
+                                            </div>
+                                            <Button variant="ghost" size="icon" onClick={() => removeDocument(doc.name)}>
+                                                <X className="h-4 w-4" />
+                                            </Button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
+            <div className="lg:col-span-3 flex justify-end gap-2">
+                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+                <Button onClick={handleSaveChanges}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Changes
+                </Button>
+            </div>
         </div>
     );
 }
+

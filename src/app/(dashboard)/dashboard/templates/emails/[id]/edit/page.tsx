@@ -38,7 +38,7 @@ export default function EditEmailTemplatePage() {
     }
 
     return (
-        <DashboardPageLayout title={`Edit "${template?.name}" Template`}>
+        <DashboardPageLayout title={`Edit "${template?.name}" Template`} backHref="/dashboard/templates?tab=email-templates">
              <EmailTemplateForm initialTemplate={template} />
         </DashboardPageLayout>
     );

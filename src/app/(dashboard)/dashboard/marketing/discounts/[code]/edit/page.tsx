@@ -38,7 +38,7 @@ export default function EditDiscountPage() {
     }
 
     return (
-        <DashboardPageLayout title="Edit Discount">
+        <DashboardPageLayout title="Edit Discount" backHref="/dashboard/marketing?tab=discounts">
             <DiscountForm initialDiscount={discount} />
         </DashboardPageLayout>
     );

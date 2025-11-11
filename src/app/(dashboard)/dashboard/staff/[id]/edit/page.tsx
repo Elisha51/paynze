@@ -45,7 +45,7 @@ export default function EditStaffPage() {
     }
 
     return (
-        <DashboardPageLayout title={`Edit ${staffMember.name}`}>
+        <DashboardPageLayout title={`Edit ${staffMember.name}`} backHref={`/dashboard/staff/${staffMember.id}`}>
             <StaffForm initialStaff={staffMember} />
         </DashboardPageLayout>
     );

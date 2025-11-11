@@ -93,7 +93,7 @@ export default function AddPurchaseOrderPage() {
     );
 
     return (
-        <DashboardPageLayout title="Create Purchase Order" cta={cta}>
+        <DashboardPageLayout title="Create Purchase Order" cta={cta} backHref="/dashboard/procurement?tab=purchase-orders">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>

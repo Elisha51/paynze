@@ -38,7 +38,7 @@ export default function EditCampaignPage() {
     }
 
     return (
-        <DashboardPageLayout title="Edit Campaign">
+        <DashboardPageLayout title="Edit Campaign" backHref="/dashboard/marketing?tab=campaigns">
             <CampaignForm initialCampaign={campaign} />
         </DashboardPageLayout>
     );

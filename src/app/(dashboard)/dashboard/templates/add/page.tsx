@@ -4,7 +4,7 @@ import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function AddProductTemplatePage() {
     return (
-        <DashboardPageLayout title="Create Product Template">
+        <DashboardPageLayout title="Create Product Template" backHref="/dashboard/templates">
              <ProductTemplateForm />
         </DashboardPageLayout>
     );

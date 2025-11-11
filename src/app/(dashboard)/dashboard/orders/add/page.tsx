@@ -1,8 +1,5 @@
 
 'use client'
-// A simplified form for creating a manual order.
-// In a real application, this would be a multi-step process with product selection,
-// customer lookup, shipping calculation, etc.
 import { Save, PlusCircle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardFooter
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -95,7 +91,7 @@ export default function AddOrderPage() {
     )
 
     return (
-        <DashboardPageLayout title="Create Manual Order" cta={cta}>
+        <DashboardPageLayout title="Create Manual Order" cta={cta} backHref="/dashboard/orders">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
