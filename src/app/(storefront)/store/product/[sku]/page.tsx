@@ -179,12 +179,12 @@ export default function ProductDetailPage() {
         reason="save items to your wishlist"
       />
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 lg:gap-12">
-          <div className="lg:col-span-3 xl:col-span-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+          <div className="lg:col-span-1">
              <ProductImages product={product} selectedVariant={selectedVariant} />
           </div>
           
-          <div className="lg:col-span-2 xl:col-span-2 lg:sticky lg:top-24 self-start">
+          <div className="lg:col-span-1">
             <div className="space-y-6">
               <div>
                 <h1 className="text-3xl lg:text-4xl font-bold">{product.name}</h1>

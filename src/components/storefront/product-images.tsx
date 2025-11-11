@@ -31,12 +31,12 @@ export function ProductImages({ product, selectedVariant }: ProductImagesProps) 
         <div className="grid gap-4 sticky top-24">
             <Card className="overflow-hidden">
                 <CardContent className="p-0">
-                    <div className="relative aspect-square w-full">
+                    <div className="relative aspect-square w-full max-h-[calc(100vh-8rem)]">
                         <Image
                             src={mainImage}
                             alt={product.name}
                             fill
-                            className="object-cover"
+                            className="object-contain"
                         />
                     </div>
                 </CardContent>

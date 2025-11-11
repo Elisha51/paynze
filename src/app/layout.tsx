@@ -79,11 +79,13 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <body className={cn("font-sans antialiased", inter.variable, ptSans.variable)} suppressHydrationWarning={true}>
-        <AuthProvider>
-          <OnboardingProvider>
-            {children}
-          </OnboardingProvider>
-        </AuthProvider>
+        <div className="max-w-screen-2xl mx-auto">
+          <AuthProvider>
+            <OnboardingProvider>
+              {children}
+            </OnboardingProvider>
+          </AuthProvider>
+        </div>
         <Toaster />
       </body>
     </html>
