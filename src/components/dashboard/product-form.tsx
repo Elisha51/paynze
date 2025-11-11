@@ -470,27 +470,7 @@ export function ProductForm({ initialProduct, isEditing }: { initialProduct?: Pa
 
   return (
     <div className="space-y-6">
-      {!isEditing && (
-        <div className="flex items-center gap-4">
-            <Button variant="outline" size="icon" onClick={handleBack} className="hidden md:inline-flex">
-                <ArrowLeft className="h-4 w-4" />
-                <span className="sr-only">Back</span>
-            </Button>
-            <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-                {initialProduct?.sku ? `Edit Product` : 'Add New Product'}
-            </h1>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-                <Button onClick={handleSave} disabled={isSaving}>
-                <Save className="mr-2 h-4 w-4" />
-                {isSaving ? 'Saving...' : 'Save Product'}
-                </Button>
-            </div>
-        </div>
-      )}
-      
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
@@ -1117,6 +1097,13 @@ export function ProductForm({ initialProduct, isEditing }: { initialProduct?: Pa
                     </div>
                 </CardContent>
             </Card>
+        </div>
+        <div className="lg:col-span-3 flex justify-end gap-2">
+          <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            <Save className="mr-2 h-4 w-4" />
+            {isSaving ? 'Saving...' : 'Save Product'}
+          </Button>
         </div>
       </div>
     </div>
