@@ -92,14 +92,30 @@ export function ProductTemplatesTab() {
     loadTemplates();
   }, []);
 
-  const myTemplates = useMemo(() => {
-    if (!user) return [];
-    return allTemplates.filter(t => t.author === user.name);
-  }, [allTemplates, user]);
+  const { myTemplates, communityTemplates } = useMemo(() => {
+    const my: ProductTemplate[] = [];
+    const community: ProductTemplate[] = [];
 
-  const communityTemplates = useMemo(() => {
-    if (!user) return allTemplates.filter(t => t.published);
-    return allTemplates.filter(t => t.published && t.author !== user.name);
+    if (user) {
+        allTemplates.forEach(t => {
+            if (t.author === user.name) {
+                my.push(t);
+            }
+            // Add to community if it's published and not authored by the current user
+            if (t.published && t.author !== user.name) {
+                community.push(t);
+            }
+        });
+    } else {
+        // If user is not loaded, show all published as community
+        allTemplates.forEach(t => {
+             if (t.published) {
+                community.push(t);
+            }
+        })
+    }
+
+    return { myTemplates: my, communityTemplates: community };
   }, [allTemplates, user]);
 
 
@@ -185,18 +201,11 @@ export function ProductTemplatesTab() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    {filteredCommunityTemplates.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {filteredCommunityTemplates.map(template => (
-                               <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
-                            ))}
-                        </div>
-                    ) : (
-                         <div className="text-center py-12">
-                            <h3 className="text-lg font-semibold">No Templates Found</h3>
-                            <p className="text-muted-foreground mt-1">Try adjusting your search terms.</p>
-                        </div>
-                    )}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {filteredCommunityTemplates.map(template => (
+                           <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
+                        ))}
+                    </div>
                 </CardContent>
             </Card>
         </TabsContent>
