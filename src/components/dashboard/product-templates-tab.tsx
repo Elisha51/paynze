@@ -100,7 +100,8 @@ export function ProductTemplatesTab() {
       return { myTemplates: [], communityTemplates: allTemplates.filter(t => t.published) };
     }
     const my = allTemplates.filter(t => t.author === user.name);
-    const community = allTemplates.filter(t => t.published && t.author !== user.name);
+    // Show all published templates in the hub, including the user's own published ones.
+    const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
   }, [allTemplates, user]);
 
@@ -193,7 +194,7 @@ export function ProductTemplatesTab() {
                     {filteredCommunityTemplates.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                             {filteredCommunityTemplates.map(template => {
-                                const isCopied = myTemplates.some(myTpl => myTpl.name === template.name && myTpl.description === template.description);
+                                const isCopied = myTemplates.some(myTpl => myTpl.name === template.name && myTpl.author === template.author);
                                 return (
                                    <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} isCopied={isCopied} />
                                 )
