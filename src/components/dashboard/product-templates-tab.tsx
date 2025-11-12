@@ -101,6 +101,7 @@ export function ProductTemplatesTab() {
       return { myTemplates: [], communityTemplates: [] };
     }
     const my = allTemplates.filter(t => t.author === user.name);
+    // Show all published templates in the hub
     const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
   }, [allTemplates, user]);
@@ -108,6 +109,7 @@ export function ProductTemplatesTab() {
 
   const filteredCommunityTemplates = useMemo(() => {
       if (!searchQuery) {
+          // Per your request, show all templates by default in the hub
           return communityTemplates;
       }
       return communityTemplates.filter(t => 
@@ -124,7 +126,12 @@ export function ProductTemplatesTab() {
     };
     
     try {
-        const newTemplate = await addProductTemplate(templateToCopy, user.name);
+        // We create a new template object with the current user as the author
+        const newTemplateData: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'> & { author: string } = {
+            ...templateToCopy,
+            author: user.name, // Set current user as author
+        };
+        const newTemplate = await addProductTemplate(newTemplateData, user.name);
         setAllTemplates(prev => [...prev, newTemplate]);
         toast({
             title: "Template Copied!",
@@ -140,7 +147,9 @@ export function ProductTemplatesTab() {
   }
 
   const renderGrid = (templates: ProductTemplate[], isMyTemplates: boolean) => {
-    if (isLoading || isUserLoading) {
+    const isDataLoading = isLoading || isUserLoading;
+    
+    if (isDataLoading) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[250px] w-full" />)}
@@ -148,33 +157,36 @@ export function ProductTemplatesTab() {
       );
     }
 
-    if (templates.length === 0 && isMyTemplates) {
-       return (
-          <EmptyState
-            icon={<PlusCircle className="h-12 w-12 text-muted-foreground" />}
-            title="You haven't created any templates yet."
-            description="Create a template from scratch or copy one from the Template Hub to get started."
-            cta={
-              <Button asChild>
-                  <Link href="/dashboard/templates/add">
-                      <PlusCircle className="mr-2 h-4 w-4" />
-                      Create Your First Template
-                  </Link>
-              </Button>
-            }
-          />
-       );
+    if (templates.length === 0) {
+       if (isMyTemplates) {
+            return (
+              <EmptyState
+                icon={<PlusCircle className="h-12 w-12 text-muted-foreground" />}
+                title="You haven't created any templates yet."
+                description="Create a template from scratch or copy one from the Template Hub to get started."
+                cta={
+                  <Button asChild>
+                      <Link href="/dashboard/templates/add">
+                          <PlusCircle className="mr-2 h-4 w-4" />
+                          Create Your First Template
+                      </Link>
+                  </Button>
+                }
+              />
+            );
+       }
+       // Only show search empty state if a search is active
+       if (searchQuery) {
+            return (
+              <EmptyState
+                icon={<Search className="h-12 w-12 text-muted-foreground" />}
+                title="No Templates Found"
+                description="No community templates match your search query."
+              />
+            );
+       }
     }
-    
-     if (templates.length === 0 && !isMyTemplates) {
-       return (
-          <EmptyState
-            icon={<Search className="h-12 w-12 text-muted-foreground" />}
-            title="No Templates Found"
-            description="No community templates match your search query."
-          />
-       );
-    }
+
 
     return (
        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
