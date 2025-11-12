@@ -94,7 +94,7 @@ export function ProductTemplatesTab() {
   }, []);
 
   const myTemplates = templates.filter(t => t.author === user?.name || t.author === 'Kato Coffee Roasters'); // Second condition for demo
-  const communityTemplates = templates.filter(t => !myTemplates.some(mt => mt.id === t.id) && t.published);
+  const communityTemplates = templates.filter(t => t.published);
 
   const filteredCommunityTemplates = communityTemplates.filter(t =>
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
