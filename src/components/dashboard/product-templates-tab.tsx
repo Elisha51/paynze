@@ -156,12 +156,6 @@ export function ProductTemplatesTab() {
                            <TemplateCard key={template.id} template={template} />
                         ))}
                     </div>
-                     {filteredCommunityTemplates.length === 0 && (
-                        <div className="text-center py-12">
-                            <h3 className="text-lg font-semibold">No community templates found.</h3>
-                            <p className="text-muted-foreground mt-1">Be the first to create and publish a template!</p>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
         </TabsContent>
