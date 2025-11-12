@@ -108,7 +108,6 @@ export function ProductTemplatesTab() {
       return { myTemplates: [], communityTemplates: [] };
     }
     
-    // Correctly filter templates
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published);
     
@@ -149,8 +148,8 @@ export function ProductTemplatesTab() {
     }
   }
 
-  const renderGrid = (templates: ProductTemplate[], isMyTemplates: boolean, isDataLoading: boolean) => {
-    if (isDataLoading) {
+  const renderGrid = (templates: ProductTemplate[], isMyTemplates: boolean) => {
+    if (isLoading) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[250px] w-full" />)}
@@ -218,7 +217,7 @@ export function ProductTemplatesTab() {
                     <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     {renderGrid(myTemplates, true, isLoading)}
+                     {renderGrid(myTemplates, true)}
                 </CardContent>
             </Card>
         </TabsContent>
@@ -238,7 +237,7 @@ export function ProductTemplatesTab() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    {renderGrid(filteredCommunityTemplates, false, isLoading)}
+                    {renderGrid(filteredCommunityTemplates, false)}
                 </CardContent>
             </Card>
         </TabsContent>

@@ -32,19 +32,23 @@ export default function ProductsPage() {
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
+    if (!user) return;
     const [fetchedProducts, fetchedTemplates] = await Promise.all([
         getProducts(),
         getProductTemplates()
     ]);
     setProducts(fetchedProducts);
-    // Correctly load ALL templates for use, not just published ones.
-    setTemplates(fetchedTemplates); 
+    // Filter templates to only those created by the current user
+    const userTemplates = fetchedTemplates.filter(t => t.author === user.name);
+    setTemplates(userTemplates); 
     setIsLoading(false);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData, pathname]);
+    if (user) {
+      loadData();
+    }
+  }, [loadData, user, pathname]);
 
   const tabs = [
     { value: 'all-products', label: 'All Products' },
@@ -79,7 +83,7 @@ export default function ProductsPage() {
                         {templates.length > 0 && (
                              <>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuLabel>From Template</DropdownMenuLabel>
+                                <DropdownMenuLabel>From My Templates</DropdownMenuLabel>
                                 {templates.map(template => (
                                     <DropdownMenuItem key={template.id} asChild>
                                         <Link href={`/dashboard/products/add?template=${template.id}`}>
