@@ -8,7 +8,7 @@ import type { ProductTemplate } from '@/lib/types';
 import * as Lucide from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { PlusCircle, Edit, Users, Copy, Download } from 'lucide-react';
+import { PlusCircle, Edit, Download } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
@@ -83,7 +83,7 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 export function ProductTemplatesTab() {
   const [templates, setTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const { user } = useAuth(); // Assuming business name is part of user/auth context
+  const { user } = useAuth();
 
   useEffect(() => {
     async function loadTemplates() {
@@ -93,7 +93,7 @@ export function ProductTemplatesTab() {
     loadTemplates();
   }, []);
 
-  const myTemplates = templates.filter(t => t.author === user?.name || t.author === 'Kato Coffee Roasters'); // Second condition for demo
+  const myTemplates = templates.filter(t => t.author === user?.name || t.author === 'Kato Coffee Roasters');
   const communityTemplates = templates.filter(t => t.published);
 
   const filteredCommunityTemplates = communityTemplates.filter(t =>
