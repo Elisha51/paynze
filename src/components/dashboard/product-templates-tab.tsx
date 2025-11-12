@@ -77,7 +77,6 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
     </Card>
 );
 
-
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -92,32 +91,29 @@ export function ProductTemplatesTab() {
     loadTemplates();
   }, []);
 
-  const { myTemplates, communityTemplates } = useMemo(() => {
-    const my: ProductTemplate[] = [];
-    const community: ProductTemplate[] = [];
-
-    if (user) {
-        allTemplates.forEach(t => {
-            if (t.author === user.name) {
-                my.push(t);
-            }
-            // Add to community if it's published and not authored by the current user
-            if (t.published && t.author !== user.name) {
-                community.push(t);
-            }
-        });
-    } else {
-        // If user is not loaded, show all published as community
-        allTemplates.forEach(t => {
-             if (t.published) {
-                community.push(t);
-            }
-        })
-    }
-
-    return { myTemplates: my, communityTemplates: community };
+  const myTemplates = useMemo(() => {
+      if (!user) return [];
+      return allTemplates.filter(t => t.author === user.name);
   }, [allTemplates, user]);
+  
+  const communityTemplates = useMemo(() => {
+      const filtered = allTemplates.filter(t => {
+          // A template is in the community hub if it's published
+          // AND it's not authored by the current user (to avoid duplicates)
+          const isPublished = t.published;
+          const isNotMine = user ? t.author !== user.name : true;
+          return isPublished && isNotMine;
+      });
 
+      if (!searchQuery) {
+          return filtered;
+      }
+      return filtered.filter(t => 
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.author.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+  }, [allTemplates, user, searchQuery]);
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) {
@@ -140,20 +136,9 @@ export function ProductTemplatesTab() {
         });
     }
   }
-  
-  const filteredCommunityTemplates = useMemo(() => {
-      if (!searchQuery) {
-          return communityTemplates;
-      }
-      return communityTemplates.filter(t => 
-        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.author.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-  }, [communityTemplates, searchQuery]);
 
   return (
-    <Tabs defaultValue="my-templates">
+    <Tabs defaultValue="hub">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="my-templates">My Templates</TabsTrigger>
             <TabsTrigger value="hub">Template Hub</TabsTrigger>
@@ -202,7 +187,7 @@ export function ProductTemplatesTab() {
                         />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {filteredCommunityTemplates.map(template => (
+                        {communityTemplates.map(template => (
                            <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
                         ))}
                     </div>

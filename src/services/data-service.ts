@@ -43,24 +43,29 @@ export class DataService<T extends { [key: string]: any }> {
         return await this.initialize();
     }
     const storageKey = this.getStorageKey();
-    const data = localStorage.getItem(storageKey);
+    let data: T[] | null = null;
     
-    if (data) {
-      try {
-        const parsedData = JSON.parse(data);
-        // If parsed data is not an array or is an empty array, re-initialize
-        if (Array.isArray(parsedData) && parsedData.length > 0) {
-          return parsedData;
+    try {
+        const rawData = localStorage.getItem(storageKey);
+        if (rawData) {
+            const parsedData = JSON.parse(rawData);
+            // Ensure we have a non-empty array
+            if (Array.isArray(parsedData) && parsedData.length > 0) {
+                data = parsedData;
+            }
         }
-      } catch (e) {
+    } catch (e) {
         console.error(`Failed to parse data for key ${storageKey}`, e);
-        // Fallback to initial data if parsing fails
-      }
-    } 
-    // This block now runs if data is null, not valid JSON, or an empty array
-    const initialData = await this.initialize();
-    localStorage.setItem(storageKey, JSON.stringify(initialData));
-    return initialData;
+    }
+    
+    // If data is null (either not present, invalid JSON, or empty array), re-initialize.
+    if (data === null) {
+        const initialData = await this.initialize();
+        localStorage.setItem(storageKey, JSON.stringify(initialData));
+        return initialData;
+    }
+
+    return data;
   }
 
   private async setData(data: T[]): Promise<void> {
