@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
@@ -114,7 +115,7 @@ const generateVariants = (options: ProductOption[]): ProductVariant[] => {
 };
 
 
-export function ProductForm({ initialProduct, isEditing, onSave }: { initialProduct?: Partial<Product> | null, isEditing?: boolean, onSave?: (product: Product) => void }) {
+export function ProductForm({ initialProduct, onSave }: { initialProduct?: Partial<Product> | null, onSave?: (product: Product) => void }) {
   const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -436,7 +437,41 @@ export function ProductForm({ initialProduct, isEditing, onSave }: { initialProd
   const singleVariantOnHand = product.variants[0]?.stockByLocation[0]?.stock.onHand || 0;
   
   const handleBack = () => {
-      router.push('/dashboard/products');
+      router.back();
+  }
+
+  const handleSave = async () => {
+    if (onSave) {
+        onSave(product);
+        return;
+    }
+
+    setIsSaving(true);
+    try {
+        if (initialProduct?.sku) {
+            await updateProduct(product as Product);
+            toast({
+                title: 'Product Updated',
+                description: `${product.name} has been updated successfully.`,
+            });
+        } else {
+            await addProduct(product as Product);
+             toast({
+                title: 'Product Created',
+                description: `${product.name} has been created successfully.`,
+            });
+        }
+        router.push('/dashboard/products');
+    } catch (e) {
+        console.error(e);
+        toast({
+            variant: 'destructive',
+            title: 'Save Failed',
+            description: 'There was an error saving the product.',
+        });
+    } finally {
+        setIsSaving(false);
+    }
   }
 
   return (
