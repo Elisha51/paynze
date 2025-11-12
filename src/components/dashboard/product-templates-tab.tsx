@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -97,10 +96,10 @@ export function ProductTemplatesTab() {
   }, []);
   
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (isUserLoading || isLoading) {
+    if (isUserLoading || isLoading || !user) {
       return { myTemplates: [], communityTemplates: [] };
     }
-    const my = allTemplates.filter(t => t.author === user?.name);
+    const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
   }, [allTemplates, user, isLoading, isUserLoading]);
@@ -182,7 +181,7 @@ export function ProductTemplatesTab() {
               />
             );
        }
-       // If no search query and community templates are empty (which shouldn't happen with seeded data)
+       // If no search query and community templates are empty
        return (
          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             <p className="col-span-full text-center text-muted-foreground">No community templates available at the moment.</p>
