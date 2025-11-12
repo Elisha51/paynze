@@ -47,7 +47,8 @@ export class DataService<T extends { [key: string]: any }> {
     if (data) {
       try {
         const parsedData = JSON.parse(data);
-        if (Array.isArray(parsedData)) {
+        // If parsed data is not an array or is an empty array, re-initialize
+        if (Array.isArray(parsedData) && parsedData.length > 0) {
           return parsedData;
         }
       } catch (e) {
@@ -55,6 +56,7 @@ export class DataService<T extends { [key: string]: any }> {
         // Fallback to initial data if parsing fails
       }
     } 
+    // This block now runs if data is null, not valid JSON, or an empty array
     const initialData = await this.initialize();
     localStorage.setItem(storageKey, JSON.stringify(initialData));
     return initialData;
