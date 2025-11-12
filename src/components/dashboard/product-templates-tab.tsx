@@ -80,41 +80,44 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 
 
 export function ProductTemplatesTab() {
-  const [templates, setTemplates] = useState<ProductTemplate[]>([]);
+  const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
+  const [myTemplates, setMyTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
   const loadTemplates = async () => {
       const fetchedTemplates = await getProductTemplates();
-      setTemplates(fetchedTemplates);
+      setAllTemplates(fetchedTemplates);
+      if (user) {
+        setMyTemplates(fetchedTemplates.filter(t => t.author === user.name));
+      }
   }
 
   useEffect(() => {
     loadTemplates();
-  }, []);
+  }, [user]);
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) return;
     
-    const newTemplateData: Omit<ProductTemplate, 'id'> = {
+    const newTemplateData: Omit<ProductTemplate, 'id' | 'usageCount'> = {
         ...templateToCopy,
         name: `${templateToCopy.name} (Copy)`,
         author: user.name,
         published: false, // Copied templates are private by default
-        usageCount: 0,
     };
     
-    await addProductTemplate(newTemplateData);
-    await loadTemplates(); // Re-fetch all templates
+    const newTemplate = await addProductTemplate(newTemplateData);
+    setMyTemplates(prev => [...prev, newTemplate]);
+    
     toast({
         title: "Template Copied!",
         description: `"${templateToCopy.name}" has been added to "My Templates".`
     })
   }
 
-  const myTemplates = templates.filter(t => t.author === user?.name);
-  const communityTemplates = templates.filter(t => t.published);
+  const communityTemplates = allTemplates.filter(t => t.published);
   
   const filteredCommunityTemplates = communityTemplates.filter(t => 
       t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
