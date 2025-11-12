@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -88,6 +87,7 @@ export function ProductTemplatesTab() {
 
   useEffect(() => {
     async function loadData() {
+      if(isUserLoading) return; // Wait for user data to be available
       setIsLoading(true);
       try {
         const templates = await getProductTemplates();
@@ -95,26 +95,25 @@ export function ProductTemplatesTab() {
       } catch (error) {
         console.error("Failed to load templates:", error);
       } finally {
-        // Wait for user to be loaded as well
-        if (!isUserLoading) {
-            setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     }
     loadData();
   }, [isUserLoading]);
 
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (isLoading || !user) {
+    if (!user) {
       return { myTemplates: [], communityTemplates: [] };
     }
     
+    // Correctly filter for "My Templates"
     const my = allTemplates.filter(t => t.author === user.name);
+    // Correctly filter for "Template Hub" - all published templates
     const community = allTemplates.filter(t => t.published);
     
     return { myTemplates: my, communityTemplates: community };
 
-  }, [allTemplates, user, isLoading]);
+  }, [allTemplates, user]);
 
 
   const filteredCommunityTemplates = useMemo(() => {
@@ -186,9 +185,11 @@ export function ProductTemplatesTab() {
             );
        }
        return (
-         <div className="text-center py-8">
-            <p className="text-muted-foreground">No community templates available at the moment.</p>
-        </div>
+        <EmptyState
+            icon={<Lucide.Archive className="h-12 w-12 text-muted-foreground" />}
+            title="No Community Templates"
+            description="There are no community templates available at the moment. Check back later!"
+        />
        );
     }
 

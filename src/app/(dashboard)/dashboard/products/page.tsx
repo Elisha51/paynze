@@ -1,4 +1,3 @@
-
 'use client';
 
 import { PlusCircle, Settings, ChevronDown } from 'lucide-react';
@@ -38,7 +37,7 @@ export default function ProductsPage() {
         getProductTemplates()
     ]);
     setProducts(fetchedProducts);
-    // Filter templates to only those created by the current user
+    // Correctly filter templates to only those created by the current user for the dropdown
     const userTemplates = fetchedTemplates.filter(t => t.author === user.name);
     setMyTemplates(userTemplates); 
     setIsLoading(false);
