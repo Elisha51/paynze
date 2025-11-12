@@ -93,7 +93,7 @@ export function ProductTemplatesTab() {
     loadTemplates();
   }, []);
 
-  const myTemplates = templates.filter(t => t.author === user?.name || t.author === 'Kato Coffee Roasters');
+  const myTemplates = templates.filter(t => t.author === user?.name);
   const communityTemplates = templates.filter(t => t.published);
 
   const filteredCommunityTemplates = communityTemplates.filter(t =>
