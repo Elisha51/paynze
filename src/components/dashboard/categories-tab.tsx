@@ -2,23 +2,11 @@
 
 'use client';
 
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
-import {
-  ColumnDef,
-} from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import type { Category } from '@/lib/types';
 import { getCategories, addCategory, updateCategory, deleteCategory } from '@/services/categories';
-import { DataTable } from '@/components/dashboard/data-table';
 import {
   Dialog,
   DialogContent,
@@ -32,85 +20,35 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Checkbox } from '../ui/checkbox';
-
-
-const getColumns = (
-    openEditDialog: (category: Category) => void,
-    handleDelete: (categoryId: string) => void,
-): ColumnDef<Category>[] => [
-  {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: 'name',
-    header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Name
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-  },
-  {
-    accessorKey: 'description',
-    header: 'Description',
-  },
-  {
-    id: 'actions',
-    enableHiding: false,
-    header: () => <div className="text-right">Actions</div>,
-    cell: ({ row }) => {
-        const category = row.original;
-      return (
-        <div className="relative bg-background text-right sticky right-0">
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => openEditDialog(category)}>Edit</DropdownMenuItem>
-                <DropdownMenuItem className="text-destructive" onClick={() => handleDelete(category.id)}>Delete</DropdownMenuItem>
-            </DropdownMenuContent>
-            </DropdownMenu>
-        </div>
-      );
-    },
-  },
-];
-
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+ import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogDescription,
+} from "@/components/ui/alert-dialog"
 
 export function CategoriesTab() {
-  const [data, setData] = React.useState<Category[]>([]);
+  const [categories, setCategories] = React.useState<Category[]>([]);
   const [isAddOpen, setIsAddOpen] = React.useState(false);
   const [isEditOpen, setIsEditOpen] = React.useState(false);
   const [newCategory, setNewCategory] = React.useState<Omit<Category, 'id'>>({ name: '', description: ''});
@@ -119,16 +57,27 @@ export function CategoriesTab() {
 
   const loadData = React.useCallback(async () => {
     const fetchedData = await getCategories();
-    setData(fetchedData);
+    setCategories(fetchedData);
   }, []);
 
   React.useEffect(() => {
     loadData();
   }, [loadData]);
+  
+  const groupedCategories = React.useMemo(() => {
+    return categories.reduce((acc, category) => {
+        const mainCategory = category.description || 'Uncategorized';
+        if (!acc[mainCategory]) {
+            acc[mainCategory] = [];
+        }
+        acc[mainCategory].push(category);
+        return acc;
+    }, {} as Record<string, Category[]>);
+  }, [categories]);
 
   const handleAddCategory = async () => {
-    if (!newCategory.name) {
-        toast({ variant: 'destructive', title: 'Name is required' });
+    if (!newCategory.name || !newCategory.description) {
+        toast({ variant: 'destructive', title: 'Main category and sub-category name are required.' });
         return;
     }
     await addCategory(newCategory);
@@ -149,7 +98,7 @@ export function CategoriesTab() {
 
   const handleDeleteCategory = async (id: string) => {
     await deleteCategory(id);
-    toast({ title: 'Category deleted' });
+    toast({ title: 'Sub-category deleted' });
     loadData();
   }
 
@@ -158,15 +107,13 @@ export function CategoriesTab() {
     setIsEditOpen(true);
   }
 
-  const columns = React.useMemo(() => getColumns(openEditDialog, handleDeleteCategory), [loadData]);
-
   return (
     <>
       <Card>
           <CardHeader className="flex-row items-center justify-between">
               <div>
                 <CardTitle>Manage Categories</CardTitle>
-                <CardDescription>Create and manage reusable configurations for faster product listing.</CardDescription>
+                <CardDescription>Group products into categories and sub-categories.</CardDescription>
               </div>
                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                 <DialogTrigger asChild>
@@ -181,12 +128,12 @@ export function CategoriesTab() {
                     </DialogHeader>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Category Name</Label>
-                            <Input id="name" value={newCategory.name} onChange={(e) => setNewCategory({...newCategory, name: e.target.value})} />
+                            <Label htmlFor="description">Main Category</Label>
+                            <Input id="description" value={newCategory.description || ''} onChange={(e) => setNewCategory({...newCategory, description: e.target.value})} placeholder="e.g., Apparel" />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="description">Description (Optional)</Label>
-                            <Textarea id="description" value={newCategory.description} onChange={(e) => setNewCategory({...newCategory, description: e.target.value})} />
+                            <Label htmlFor="name">Sub-category Name</Label>
+                            <Input id="name" value={newCategory.name} onChange={(e) => setNewCategory({...newCategory, name: e.target.value})} placeholder="e.g., T-Shirts" />
                         </div>
                     </div>
                     <DialogFooter>
@@ -197,10 +144,54 @@ export function CategoriesTab() {
                 </Dialog>
           </CardHeader>
           <CardContent>
-            <DataTable
-                columns={columns}
-                data={data}
-            />
+            <Accordion type="multiple" className="w-full">
+              {Object.entries(groupedCategories).map(([mainCategory, subCategories]) => (
+                <AccordionItem value={mainCategory} key={mainCategory}>
+                  <AccordionTrigger className="hover:no-underline">
+                    <div className="flex items-center justify-between w-full pr-4">
+                       <h3 className="font-semibold text-md">{mainCategory}</h3>
+                       <span className="text-sm text-muted-foreground">{subCategories.length} sub-categories</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2 pl-4">
+                      {subCategories.map(subCategory => (
+                        <div key={subCategory.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                           <span>{subCategory.name}</span>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => openEditDialog(subCategory)}>
+                                        <Edit className="mr-2 h-4 w-4" /> Edit
+                                    </DropdownMenuItem>
+                                     <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                                <AlertDialogDescription>This will delete the "{subCategory.name}" sub-category.</AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteCategory(subCategory.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </CardContent>
       </Card>
       
@@ -211,13 +202,13 @@ export function CategoriesTab() {
             </DialogHeader>
              {editingCategory && (
                 <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="name">Category Name</Label>
-                        <Input id="name" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})} />
+                     <div className="space-y-2">
+                        <Label htmlFor="description-edit">Main Category</Label>
+                        <Input id="description-edit" value={editingCategory.description} onChange={(e) => setEditingCategory({...editingCategory, description: e.target.value || ''})} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="description">Description (Optional)</Label>
-                        <Textarea id="description" value={editingCategory.description} onChange={(e) => setEditingCategory({...editingCategory, description: e.target.value || ''})} />
+                        <Label htmlFor="name-edit">Sub-category Name</Label>
+                        <Input id="name-edit" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})} />
                     </div>
                 </div>
              )}
@@ -230,3 +221,4 @@ export function CategoriesTab() {
     </>
   );
 }
+
