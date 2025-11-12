@@ -44,12 +44,19 @@ export class DataService<T extends { [key: string]: any }> {
     const storageKey = this.getStorageKey();
     const data = localStorage.getItem(storageKey);
     if (data) {
-      return JSON.parse(data);
-    } else {
-      const initialData = await this.initialize();
-      localStorage.setItem(storageKey, JSON.stringify(initialData));
-      return initialData;
-    }
+      try {
+        const parsedData = JSON.parse(data);
+        if (Array.isArray(parsedData)) {
+          return parsedData;
+        }
+      } catch (e) {
+        console.error(`Failed to parse data for key ${storageKey}`, e);
+        // Fallback to initial data if parsing fails
+      }
+    } 
+    const initialData = await this.initialize();
+    localStorage.setItem(storageKey, JSON.stringify(initialData));
+    return initialData;
   }
 
   private async setData(data: T[]): Promise<void> {

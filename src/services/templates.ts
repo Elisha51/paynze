@@ -191,7 +191,8 @@ export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 
         id: `tpl-${Date.now()}`,
         usageCount: 0,
     };
-    return await productTemplateService.create(newTemplate);
+    await productTemplateService.create(newTemplate);
+    return productTemplateService.getAll();
 }
 
 export async function getEmailTemplates(): Promise<EmailTemplate[]> {
