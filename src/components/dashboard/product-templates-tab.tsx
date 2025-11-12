@@ -87,30 +87,61 @@ export function ProductTemplatesTab() {
 
   useEffect(() => {
     async function loadTemplates() {
-      const fetchedTemplates = await getProductTemplates();
+      const allTemplates = await getProductTemplates();
       if (user) {
-        setMyTemplates(fetchedTemplates.filter(t => t.author === user.name));
-        setCommunityTemplates(fetchedTemplates.filter(t => t.published && t.author !== user.name));
+        setMyTemplates(allTemplates.filter(t => t.author === user.name));
+        setCommunityTemplates(allTemplates.filter(t => t.published && t.author !== user.name));
       } else {
-        setCommunityTemplates(fetchedTemplates.filter(t => t.published));
+        // If user is not loaded yet, just show published community templates
+        setCommunityTemplates(allTemplates.filter(t => t.published));
       }
     }
     loadTemplates();
   }, [user]);
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
-    if (!user) return;
-    const newTemplate = await addProductTemplate(templateToCopy, user.name);
-    setMyTemplates(prev => [newTemplate, ...prev]);
-    toast({
-        title: "Template Copied!",
-        description: `"${templateToCopy.name}" has been added to "My Templates".`
-    })
+    if (!user) {
+        toast({ variant: 'destructive', title: "You must be logged in to copy templates."});
+        return;
+    };
+    
+    // Optimistically update UI
+    const newTemplateForUI: ProductTemplate = { 
+        ...templateToCopy, 
+        id: `tpl-${Date.now()}`,
+        author: user.name, 
+        published: false, // Copied templates are private by default
+        usageCount: 0,
+    };
+    setMyTemplates(prev => [newTemplateForUI, ...prev]);
+
+    try {
+        await addProductTemplate(templateToCopy, user.name);
+        // The service handles persistence, no need to update state from return value here
+        // as we are already doing it optimistically.
+        toast({
+            title: "Template Copied!",
+            description: `"${templateToCopy.name}" has been added to "My Templates".`
+        });
+    } catch (e) {
+        // Rollback optimistic update on failure
+        setMyTemplates(prev => prev.filter(t => t.id !== newTemplateForUI.id));
+        toast({
+            variant: 'destructive',
+            title: 'Copy Failed',
+            description: 'Could not copy the template. Please try again.'
+        });
+    }
   }
   
   const filteredCommunityTemplates = useMemo(() => {
+      if (!searchQuery) {
+          return communityTemplates;
+      }
       return communityTemplates.filter(t => 
-        t.name.toLowerCase().includes(searchQuery.toLowerCase())
+        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        t.author.toLowerCase().includes(searchQuery.toLowerCase())
       );
   }, [communityTemplates, searchQuery]);
 
@@ -163,11 +194,18 @@ export function ProductTemplatesTab() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {filteredCommunityTemplates.map(template => (
-                           <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
-                        ))}
-                    </div>
+                    {filteredCommunityTemplates.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {filteredCommunityTemplates.map(template => (
+                               <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
+                            ))}
+                        </div>
+                    ) : (
+                         <div className="text-center py-12">
+                            <h3 className="text-lg font-semibold">No Templates Found</h3>
+                            <p className="text-muted-foreground mt-1">Try adjusting your search terms.</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </TabsContent>
