@@ -37,23 +37,23 @@ import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import type { Permissions } from '@/lib/types';
 
 const menuItems = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: any) => p?.dashboard?.view },
-  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, permission: (p: any) => p?.orders?.view },
-  { href: '/dashboard/products', label: 'Products', icon: Package, permission: (p: any) => p?.products?.view },
-  { href: '/dashboard/customers', label: 'Customers', icon: Users, permission: (p: any) => p?.customers?.view },
-  { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: any) => p?.procurement?.view },
-  { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, permission: (p: any) => p?.marketing?.view },
-  { href: '/dashboard/finances', label: 'Finances', icon: Landmark, permission: (p: any) => p?.finances?.view },
-  { href: '/dashboard/my-tasks', label: 'My Tasks', icon: ClipboardCheck, permission: (p: any) => p?.tasks?.view },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: Permissions) => p && p.dashboard && p.dashboard.view },
+  { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, permission: (p: Permissions) => p && p.orders && p.orders.view },
+  { href: '/dashboard/products', label: 'Products', icon: Package, permission: (p: Permissions) => p && p.products && p.products.view },
+  { href: '/dashboard/customers', label: 'Customers', icon: Users, permission: (p: Permissions) => p && p.customers && p.customers.view },
+  { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: Permissions) => p && p.procurement && p.procurement.view },
+  { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, permission: (p: Permissions) => p && p.marketing && p.marketing.view },
+  { href: '/dashboard/finances', label: 'Finances', icon: Landmark, permission: (p: Permissions) => p && p.finances && p.finances.view },
 ];
 
 
 const bottomMenuItems = [
-  { href: '/dashboard/staff', label: 'Staff', icon: UserCog, permission: (p: any) => p?.staff?.view },
-  { href: '/dashboard/templates', label: 'Templates', icon: FileText, permission: (p: any) => p?.templates?.view },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings, permission: (p: any) => p?.settings?.view },
+  { href: '/dashboard/staff', label: 'Staff', icon: UserCog, permission: (p: Permissions) => p && p.staff && p.staff.view },
+  { href: '/dashboard/templates', label: 'Templates', icon: FileText, permission: (p: Permissions) => p && p.templates && p.templates.view },
+  { href: '/dashboard/settings', label: 'Settings', icon: Settings, permission: (p: Permissions) => p && p.settings && p.settings.view },
 ]
 
 type AppSidebarProps = {
