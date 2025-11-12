@@ -15,6 +15,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { EmptyState } from '../ui/empty-state';
+import { Skeleton } from '../ui/skeleton';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
@@ -94,16 +95,16 @@ export function ProductTemplatesTab() {
     }
     loadTemplates();
   }, []);
-
+  
   const { myTemplates, communityTemplates } = useMemo(() => {
     if (!user || allTemplates.length === 0) {
-      return { myTemplates: [], communityTemplates: allTemplates.filter(t => t.published) };
+      return { myTemplates: [], communityTemplates: [] };
     }
     const my = allTemplates.filter(t => t.author === user.name);
-    // Show all published templates in the hub, including the user's own published ones.
     const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
   }, [allTemplates, user]);
+
 
   const filteredCommunityTemplates = useMemo(() => {
       if (!searchQuery) {
@@ -138,6 +139,56 @@ export function ProductTemplatesTab() {
     }
   }
 
+  const renderGrid = (templates: ProductTemplate[], isMyTemplates: boolean) => {
+    if (isLoading || isUserLoading) {
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[250px] w-full" />)}
+        </div>
+      );
+    }
+
+    if (templates.length === 0 && isMyTemplates) {
+       return (
+          <EmptyState
+            icon={<PlusCircle className="h-12 w-12 text-muted-foreground" />}
+            title="You haven't created any templates yet."
+            description="Create a template from scratch or copy one from the Template Hub to get started."
+            cta={
+              <Button asChild>
+                  <Link href="/dashboard/templates/add">
+                      <PlusCircle className="mr-2 h-4 w-4" />
+                      Create Your First Template
+                  </Link>
+              </Button>
+            }
+          />
+       );
+    }
+    
+     if (templates.length === 0 && !isMyTemplates) {
+       return (
+          <EmptyState
+            icon={<Search className="h-12 w-12 text-muted-foreground" />}
+            title="No Templates Found"
+            description="No community templates match your search query."
+          />
+       );
+    }
+
+    return (
+       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        {templates.map(template => {
+          if(isMyTemplates) {
+            return <MyTemplateCard key={template.id} template={template} />;
+          }
+          const isCopied = myTemplates.some(myTpl => myTpl.name === template.name && myTpl.author === template.author);
+          return <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} isCopied={isCopied} />;
+        })}
+      </div>
+    );
+  };
+
   return (
     <Tabs defaultValue="hub">
         <TabsList className="grid w-full grid-cols-2">
@@ -151,27 +202,7 @@ export function ProductTemplatesTab() {
                     <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     {myTemplates.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {myTemplates.map(template => (
-                               <MyTemplateCard key={template.id} template={template} />
-                            ))}
-                        </div>
-                    ) : (
-                        <EmptyState
-                          icon={<PlusCircle className="h-12 w-12 text-muted-foreground" />}
-                          title="You haven't created any templates yet."
-                          description="Create a template from scratch or copy one from the Template Hub to get started."
-                          cta={
-                            <Button asChild>
-                                <Link href="/dashboard/templates/add">
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Create Your First Template
-                                </Link>
-                            </Button>
-                          }
-                        />
-                    )}
+                     {renderGrid(myTemplates, true)}
                 </CardContent>
             </Card>
         </TabsContent>
@@ -191,22 +222,7 @@ export function ProductTemplatesTab() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    {filteredCommunityTemplates.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {filteredCommunityTemplates.map(template => {
-                                const isCopied = myTemplates.some(myTpl => myTpl.name === template.name && myTpl.author === template.author);
-                                return (
-                                   <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} isCopied={isCopied} />
-                                )
-                            })}
-                        </div>
-                    ) : (
-                        <EmptyState
-                          icon={<Search className="h-12 w-12 text-muted-foreground" />}
-                          title="No Templates Found"
-                          description="No community templates match your search query."
-                        />
-                    )}
+                    {renderGrid(filteredCommunityTemplates, false)}
                 </CardContent>
             </Card>
         </TabsContent>
