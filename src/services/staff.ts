@@ -172,10 +172,12 @@ export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {
         { name: 'Drivers_License.pdf', url: '#' },
       ] : [],
     };
-  return await staffService.create(newMember, { prepend: true });
+  await staffService.create(newMember, { prepend: true });
+  return newMember;
 }
 
-export async function updateStaff(updatedMember: Staff): Promise<Staff> {
+export async function updateStaff(updatedMember: Partial<Staff>): Promise<Staff> {
+  if (!updatedMember.id) throw new Error("Staff ID is required for update.");
   return await staffService.update(updatedMember.id, updatedMember);
 }
 

@@ -17,7 +17,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-02',
             customerName: 'Olivia Smith',
             customerEmail: 'olivia@example.com',
-            date: '2024-07-25', 
+            date: '2024-07-25T10:30:00Z', 
             status: 'Delivered', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
@@ -29,7 +29,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-01',
             customerName: 'Liam Johnson', 
             customerEmail: 'liam@example.com', 
-            date: '2024-07-25', 
+            date: '2024-07-25T11:00:00Z', 
             status: 'Picked Up', 
             fulfillmentMethod: 'Pickup',
             items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 5, price: 32000, category: 'Fabrics' }],
@@ -41,7 +41,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-03',
             customerName: 'Noah Williams', 
             customerEmail: 'noah@example.com', 
-            date: '2024-07-24', 
+            date: '2024-07-24T14:00:00Z', 
             status: 'Paid', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
@@ -53,7 +53,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-04',
             customerName: 'Emma Brown', 
             customerEmail: 'emma@example.com', 
-            date: '2024-07-24', 
+            date: '2024-07-24T09:00:00Z', 
             status: 'Awaiting Payment', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
@@ -65,7 +65,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-05',
             customerName: 'James Jones', 
             customerEmail: 'james@example.com', 
-            date: '2024-07-23', 
+            date: '2024-07-23T16:00:00Z', 
             status: 'Ready for Pickup', 
             fulfillmentMethod: 'Pickup',
             items: [{ sku: 'SHOE-002-43', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
@@ -77,7 +77,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-01',
             customerName: 'Liam Johnson', 
             customerEmail: 'liam@example.com', 
-            date: '2024-07-23', 
+            date: '2024-07-23T10:00:00Z', 
             status: 'Cancelled', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 10, price: 30000, category: 'Fabrics' }],
@@ -89,7 +89,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-06',
             customerName: 'Sophia Miller', 
             customerEmail: 'sophia@example.com', 
-            date: '2024-07-22', 
+            date: '2024-07-22T18:00:00Z', 
             status: 'Shipped', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 2, price: 25000, category: 'Accessories' }],
@@ -103,7 +103,7 @@ function initializeMockOrders(): Order[] {
             customerEmail: 'ben@example.com',
             salesAgentId: 'aff-001', // Referred by Fatuma Asha
             salesAgentName: 'Fatuma Asha',
-            date: '2024-07-21', 
+            date: '2024-07-21T12:00:00Z', 
             status: 'Delivered', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 1, price: 50000, category: 'Groceries' }],
@@ -118,7 +118,7 @@ function initializeMockOrders(): Order[] {
             customerEmail: 'chloe@example.com',
             salesAgentId: 'aff-001', // Referred by Fatuma Asha
             salesAgentName: 'Fatuma Asha',
-            date: '2024-07-20', 
+            date: '2024-07-20T15:00:00Z', 
             status: 'Picked Up',
             fulfillmentMethod: 'Pickup',
             items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 4, price: 30000, category: 'Fabrics' }],
@@ -337,7 +337,7 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
     if (totalEarnedCommission > 0 || trigger === 'On Order Delivered') { // Update KPIs even if no commission
         let shouldUpdateStaff = totalEarnedCommission > 0;
         
-        if (staffRole.name === 'Delivery Rider' && trigger === 'On Order Delivered') {
+        if (staffRole.name === 'Agent' && trigger === 'On Order Delivered') {
             const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number, goal: number } | undefined;
             if (deliveryTarget) {
                 staffMember.attributes = {

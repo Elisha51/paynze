@@ -66,7 +66,7 @@ export function ProductDetails({ product }: { product: Product }) {
               </Tooltip>
             </TabsList>
 
-          {inventoryIsTracked && (
+          {activeTab === 'inventory' && inventoryIsTracked && (
             <div className="flex w-full sm:w-auto items-center gap-2">
                 <Select onValueChange={handlePresetChange} defaultValue="last-30">
                     <SelectTrigger className="w-[180px] h-9">

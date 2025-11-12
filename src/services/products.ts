@@ -56,10 +56,10 @@ const initializeMockProducts: () => Product[] = () => [
           { locationName: 'Downtown Store', stock: { onHand: 20, available: 20, reserved: 0, damaged: 0, sold: 0 } }
         ],
         stockAdjustments: [
-            { id: 'adj-001', date: '2023-01-15', type: 'Initial Stock', quantity: 50, reason: 'Initial import', channel: 'Manual' },
-            { id: 'adj-002', date: '2023-02-20', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' },
-            { id: 'adj-005', date: '2023-03-01', type: 'Sale', quantity: -5, reason: 'Order #ORD-012', channel: 'Online' },
-            { id: 'adj-006', date: '2023-03-10', type: 'Sale', quantity: -10, reason: 'Order #ORD-014', channel: 'In-Store' },
+            { id: 'adj-001', date: '2023-01-15T12:00:00Z', type: 'Initial Stock', quantity: 50, reason: 'Initial import', channel: 'Manual' },
+            { id: 'adj-002', date: '2023-02-20T12:00:00Z', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' },
+            { id: 'adj-005', date: '2023-03-01T12:00:00Z', type: 'Sale', quantity: -5, reason: 'Order #ORD-012', channel: 'Online' },
+            { id: 'adj-006', date: '2023-03-10T12:00:00Z', type: 'Sale', quantity: -10, reason: 'Order #ORD-014', channel: 'In-Store' },
         ]
       },
       {
@@ -73,8 +73,8 @@ const initializeMockProducts: () => Product[] = () => [
             { locationName: 'Downtown Store', stock: { onHand: 10, available: 10, reserved: 0, damaged: 0, sold: 0 } }
         ],
         stockAdjustments: [
-            { id: 'adj-003', date: '2023-01-15', type: 'Initial Stock', quantity: 30, reason: 'Initial import', channel: 'Manual' },
-            { id: 'adj-004', date: '2023-02-22', type: 'Sale', quantity: -5, reason: 'Order #ORD-011', channel: 'In-Store' }
+            { id: 'adj-003', date: '2023-01-15T12:00:00Z', type: 'Initial Stock', quantity: 30, reason: 'Initial import', channel: 'Manual' },
+            { id: 'adj-004', date: '2023-02-22T12:00:00Z', type: 'Sale', quantity: -5, reason: 'Order #ORD-011', channel: 'In-Store' }
         ]
       },
     ],
@@ -87,7 +87,7 @@ const initializeMockProducts: () => Product[] = () => [
     longDescription: '<p>This e-book covers everything from setting up your store to marketing and logistics.</p>',
     status: 'published',
     images: [{ id: 'img2', url: `https://picsum.photos/seed/EBOOK-001/400/400` }],
-    digitalFile: undefined,
+    digitalFile: undefined, // This would be a File object in the real app
     downloadLimit: 5,
     retailPrice: 10000,
     currency: 'KES',
@@ -225,7 +225,8 @@ export async function addProduct(product: Omit<Product, 'sku'> & { sku?: string 
     ...product,
     sku: product.sku || `PROD-${Date.now()}`,
   } as Product;
-  return await productService.create(newProduct);
+  await productService.create(newProduct);
+  return newProduct;
 }
 
 export async function updateProduct(updatedProduct: Product): Promise<Product> {
