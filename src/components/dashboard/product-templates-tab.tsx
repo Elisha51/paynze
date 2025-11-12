@@ -94,7 +94,7 @@ export function ProductTemplatesTab() {
   }, []);
 
   const myTemplates = templates.filter(t => t.author === user?.name || t.author === 'Kato Coffee Roasters'); // Second condition for demo
-  const communityTemplates = templates.filter(t => !myTemplates.some(mt => mt.id === t.id));
+  const communityTemplates = templates.filter(t => !myTemplates.some(mt => mt.id === t.id) && t.published);
 
   const filteredCommunityTemplates = communityTemplates.filter(t =>
     t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -103,11 +103,38 @@ export function ProductTemplatesTab() {
   );
 
   return (
-    <Tabs defaultValue="hub">
+    <Tabs defaultValue="my-templates">
         <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="hub">Template Hub</TabsTrigger>
             <TabsTrigger value="my-templates">My Templates</TabsTrigger>
+            <TabsTrigger value="hub">Template Hub</TabsTrigger>
         </TabsList>
+        <TabsContent value="my-templates" className="mt-6">
+            <Card>
+                 <CardHeader>
+                    <CardTitle>My Templates</CardTitle>
+                    <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {myTemplates.map(template => (
+                           <MyTemplateCard key={template.id} template={template} />
+                        ))}
+                    </div>
+                     {myTemplates.length === 0 && (
+                        <div className="text-center py-12">
+                            <h3 className="text-lg font-semibold">You haven't created any templates yet.</h3>
+                            <p className="text-muted-foreground mt-1">Create a template to reuse product configurations.</p>
+                            <Button asChild className="mt-4">
+                                <Link href="/dashboard/templates/add">
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Create Your First Template
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+        </TabsContent>
         <TabsContent value="hub" className="mt-6">
             <Card>
                 <CardHeader>
@@ -129,21 +156,12 @@ export function ProductTemplatesTab() {
                            <TemplateCard key={template.id} template={template} />
                         ))}
                     </div>
-                </CardContent>
-            </Card>
-        </TabsContent>
-        <TabsContent value="my-templates" className="mt-6">
-            <Card>
-                 <CardHeader>
-                    <CardTitle>My Templates</CardTitle>
-                    <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {myTemplates.map(template => (
-                           <MyTemplateCard key={template.id} template={template} />
-                        ))}
-                    </div>
+                     {filteredCommunityTemplates.length === 0 && (
+                        <div className="text-center py-12">
+                            <h3 className="text-lg font-semibold">No community templates found.</h3>
+                            <p className="text-muted-foreground mt-1">Be the first to create and publish a template!</p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         </TabsContent>
