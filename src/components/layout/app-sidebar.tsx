@@ -27,6 +27,7 @@ import {
   Landmark,
   UserCog,
   Megaphone,
+  ClipboardCheck,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -45,6 +46,7 @@ const menuItems = [
   { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: any) => p?.procurement?.view },
   { href: '/dashboard/marketing', label: 'Marketing', icon: Megaphone, permission: (p: any) => p?.marketing?.view },
   { href: '/dashboard/finances', label: 'Finances', icon: Landmark, permission: (p: any) => p?.finances?.view },
+  { href: '/dashboard/my-tasks', label: 'My Tasks', icon: ClipboardCheck, permission: (p: any) => p?.tasks?.view },
 ];
 
 
