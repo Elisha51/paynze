@@ -1,5 +1,4 @@
 
-
 import type { ProductTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -182,7 +181,6 @@ const whatsAppTemplateService = new DataService<WhatsAppTemplate>('whatsAppTempl
 
 
 export async function getProductTemplates(): Promise<ProductTemplate[]> {
-  // Always return the mock data to ensure it's available.
   return await productTemplateService.getAll();
 }
 

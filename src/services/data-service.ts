@@ -57,7 +57,6 @@ export class DataService<T extends { [key: string]: any }> {
         console.error(`Failed to parse data for key ${storageKey}`, e);
     }
     
-    // If data is null or an empty array, it means we should re-initialize.
     if (!data) {
         const initialData = await this.initialize();
         localStorage.setItem(storageKey, JSON.stringify(initialData));
