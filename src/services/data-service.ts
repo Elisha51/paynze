@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { OnboardingFormData } from "@/context/onboarding-context";
@@ -59,7 +58,7 @@ export class DataService<T extends { [key: string]: any }> {
     }
     
     // If data is null (not present, invalid JSON, or empty array), re-initialize.
-    if (data === null) {
+    if (data === null || data.length === 0) {
         const initialData = await this.initialize();
         localStorage.setItem(storageKey, JSON.stringify(initialData));
         return initialData;
@@ -84,11 +83,11 @@ export class DataService<T extends { [key: string]: any }> {
     return data.find(item => item[this.primaryKey] === id);
   }
 
-  async create(item: T, options: { prepend?: boolean } = {}): Promise<T[]> {
+  async create(item: T, options: { prepend?: boolean } = {}): Promise<T> {
     const data = await this.getData();
     const newData = options.prepend ? [item, ...data] : [...data, item];
     await this.setData(newData);
-    return newData;
+    return item;
   }
 
   async update(id: string | number, updates: Partial<T>): Promise<T> {

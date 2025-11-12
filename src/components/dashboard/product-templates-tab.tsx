@@ -102,7 +102,6 @@ export function ProductTemplatesTab() {
     return { myTemplates: my, communityTemplates: community };
   }, [allTemplates, user]);
 
-
   const filteredCommunityTemplates = useMemo(() => {
       if (!searchQuery) {
           return communityTemplates;
@@ -121,8 +120,8 @@ export function ProductTemplatesTab() {
     };
     
     try {
-        const updatedTemplates = await addProductTemplate(templateToCopy, user.name);
-        setAllTemplates(updatedTemplates);
+        const newTemplate = await addProductTemplate(templateToCopy, user.name);
+        setAllTemplates(prev => [...prev, newTemplate]);
         toast({
             title: "Template Copied!",
             description: `"${templateToCopy.name}" has been added to "My Templates".`

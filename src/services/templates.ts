@@ -186,7 +186,7 @@ export async function getProductTemplates(): Promise<ProductTemplate[]> {
   return await productTemplateService.getAll();
 }
 
-export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount' | 'author' | 'published'>, author: string): Promise<ProductTemplate[]> {
+export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount' | 'author' | 'published'>, author: string): Promise<ProductTemplate> {
     const newTemplate: ProductTemplate = { 
         ...template, 
         author,
@@ -194,7 +194,7 @@ export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 
         id: `tpl-${Date.now()}`,
         usageCount: 0,
     };
-    return await productTemplateService.create(newTemplate, { prepend: true });
+    return await productTemplateService.create(newTemplate);
 }
 
 export async function getEmailTemplates(): Promise<EmailTemplate[]> {
@@ -208,3 +208,27 @@ export async function getSmsTemplates(): Promise<SmsTemplate[]> {
 export async function getWhatsAppTemplates(): Promise<WhatsAppTemplate[]> {
   return await whatsAppTemplateService.getAll();
 }
+
+// Defining EmailTemplate type because it might not be globally available
+// in all contexts this file is used.
+type EmailTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  subject: string;
+  body: string; // Can contain variables like {{customerName}}
+};
+
+type SmsTemplate = {
+  id: string;
+  name:string;
+  description: string;
+  message: string; // Can contain variables like {{orderId}}
+};
+
+type WhatsAppTemplate = {
+  id: string;
+  name: string;
+  description: string;
+  message: string;
+};
