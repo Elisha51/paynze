@@ -104,12 +104,8 @@ export function ProductTemplatesTab() {
   const isLoading = isDataLoading || isUserLoading;
 
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (isLoading) {
-      return { myTemplates: [], communityTemplates: [] };
-    }
-    if (!user) {
-      const community = allTemplates.filter(t => t.published);
-      return { myTemplates: [], communityTemplates: community };
+    if (isLoading || !user) {
+      return { myTemplates: [], communityTemplates: allTemplates.filter(t => t.published) };
     }
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published);
