@@ -105,11 +105,15 @@ export function ProductTemplatesTab() {
 
   const { myTemplates, communityTemplates } = useMemo(() => {
     if (isLoading || !user) {
-      return { myTemplates: [], communityTemplates: allTemplates.filter(t => t.published) };
+      return { myTemplates: [], communityTemplates: [] };
     }
+    
+    // Correctly filter templates
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published);
+    
     return { myTemplates: my, communityTemplates: community };
+
   }, [allTemplates, user, isLoading]);
 
 
