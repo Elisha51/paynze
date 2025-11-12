@@ -80,7 +80,7 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const { user } = useAuth();
+  const { user, isLoading: isUserLoading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
@@ -92,15 +92,16 @@ export function ProductTemplatesTab() {
   }, []);
 
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (!user) {
-        // If user is not loaded yet, show all published as community, and none as my templates.
-        const community = allTemplates.filter(t => t.published);
-        return { myTemplates: [], communityTemplates: community };
+    if (isUserLoading || !user) {
+        return { 
+            myTemplates: [], 
+            communityTemplates: allTemplates.filter(t => t.published) 
+        };
     }
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published && t.author !== user.name);
     return { myTemplates: my, communityTemplates: community };
-  }, [allTemplates, user]);
+  }, [allTemplates, user, isUserLoading]);
 
   const filteredCommunityTemplates = useMemo(() => {
       if (!searchQuery) {
