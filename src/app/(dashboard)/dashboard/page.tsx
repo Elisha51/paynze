@@ -1,6 +1,8 @@
+
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { usePathname } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -29,28 +31,30 @@ export default function DashboardPage() {
     const [todos, setTodos] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const pathname = usePathname();
+
+    const loadData = useCallback(async () => {
+        setIsLoading(true);
+        const [ordersData, staffData, todosData] = await Promise.all([
+            getOrders(),
+            getStaff(),
+            getTodos(),
+        ]);
+        
+        const storedSettings = localStorage.getItem('onboardingData');
+        if (storedSettings) {
+            setSettings(JSON.parse(storedSettings));
+        }
+
+        setOrders(ordersData);
+        setStaff(staffData.filter(s => s.role !== 'Affiliate'));
+        setTodos(todosData);
+        setIsLoading(false);
+    }, []);
 
     useEffect(() => {
-        async function loadData() {
-            setIsLoading(true);
-            const [ordersData, staffData, todosData] = await Promise.all([
-                getOrders(),
-                getStaff(),
-                getTodos(),
-            ]);
-            
-            const storedSettings = localStorage.getItem('onboardingData');
-            if (storedSettings) {
-                setSettings(JSON.parse(storedSettings));
-            }
-
-            setOrders(ordersData);
-            setStaff(staffData.filter(s => s.role !== 'Affiliate'));
-            setTodos(todosData);
-            setIsLoading(false);
-        }
         loadData();
-    }, []);
+    }, [loadData, pathname]);
 
     const { summaryMetrics, currency } = useMemo(() => {
         const currencyCode = settings?.currency || 'UGX';

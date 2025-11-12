@@ -3,7 +3,7 @@
 
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { OrdersTable } from '@/components/dashboard/orders-table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Order, Staff } from '@/lib/types';
 import { getOrders } from '@/services/orders';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import { getStaff } from '@/services/staff';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { OrderAnalyticsReport } from '@/components/dashboard/analytics/order-analytics-report';
+import { usePathname } from 'next/navigation';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -23,23 +24,25 @@ export default function OrdersPage() {
   const [activeTab, setActiveTab] = useState('all-orders');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
+  const pathname = usePathname();
   
   const canCreate = user?.permissions.orders.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
-  useEffect(() => {
-    async function loadData() {
-        setIsLoading(true);
-        const [fetchedOrders, fetchedStaff] = await Promise.all([
-            getOrders(),
-            getStaff(),
-        ]);
-        setOrders(fetchedOrders);
-        setStaff(fetchedStaff);
-        setIsLoading(false);
-    }
-    loadData();
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    const [fetchedOrders, fetchedStaff] = await Promise.all([
+        getOrders(),
+        getStaff(),
+    ]);
+    setOrders(fetchedOrders);
+    setStaff(fetchedStaff);
+    setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData, pathname]);
 
   const tabs = [
     { value: 'all-orders', label: 'All Orders' },

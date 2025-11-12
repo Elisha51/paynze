@@ -1,12 +1,11 @@
 
-
 'use client';
 
 import { PlusCircle, Settings, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ProductsTable } from '@/components/dashboard/products-table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -16,6 +15,7 @@ import { DateRange } from 'react-day-picker';
 import { ProductPerformanceReport } from '@/components/dashboard/analytics/product-performance-report';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { CategoriesTab } from '@/components/dashboard/categories-tab';
+import { usePathname } from 'next/navigation';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,19 +23,21 @@ export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState('all-products');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
+  const pathname = usePathname();
   
   const canCreate = user?.permissions.products.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
-  useEffect(() => {
-    async function loadProducts() {
-        setIsLoading(true);
-        const fetchedProducts = await getProducts();
-        setProducts(fetchedProducts);
-        setIsLoading(false);
-    }
-    loadProducts();
+  const loadProducts = useCallback(async () => {
+    setIsLoading(true);
+    const fetchedProducts = await getProducts();
+    setProducts(fetchedProducts);
+    setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts, pathname]);
 
   const tabs = [
     { value: 'all-products', label: 'All Products' },

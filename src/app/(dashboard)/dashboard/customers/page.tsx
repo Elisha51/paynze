@@ -5,7 +5,7 @@ import { PlusCircle, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { CustomersTable } from '@/components/dashboard/customers-table';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Customer } from '@/lib/types';
 import { getCustomers } from '@/services/customers';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -13,6 +13,7 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
 import { useAuth } from '@/context/auth-context';
+import { usePathname } from 'next/navigation';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -22,16 +23,18 @@ export default function CustomersPage() {
   const { user } = useAuth();
   const canCreate = user?.permissions.customers.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
+  const pathname = usePathname();
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    const data = await getCustomers();
+    setCustomers(data);
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    async function loadData() {
-        setIsLoading(true);
-        const data = await getCustomers();
-        setCustomers(data);
-        setIsLoading(false);
-    }
     loadData();
-  }, []);
+  }, [loadData, pathname]);
   
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },
