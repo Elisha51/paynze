@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
@@ -430,6 +429,15 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             : [...currentIds, supplierId];
         return { ...prev, supplierIds: newIds };
     });
+  }
+  
+  const handleSeoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { id, value } = e.target;
+    const field = id.replace('seo-', '');
+    setProduct(prev => ({
+        ...prev,
+        seo: { ...(prev.seo || {}), [field]: value }
+    }));
   }
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
@@ -952,6 +960,31 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         </div>
                      )}
                 </CardContent>
+            </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Search Engine Optimization</CardTitle>
+                <CardDescription>Customize how your product appears in search engine results.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                    <Label htmlFor="seo-pageTitle">SEO Page Title</Label>
+                    <Input id="seo-pageTitle" value={product.seo?.pageTitle || ''} onChange={handleSeoChange} />
+                    <p className="text-xs text-muted-foreground">Defaults to product name if empty.</p>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="seo-metaDescription">Meta Description</Label>
+                    <Textarea id="seo-metaDescription" value={product.seo?.metaDescription || ''} onChange={handleSeoChange} maxLength={320} />
+                    <p className="text-xs text-muted-foreground text-right">{product.seo?.metaDescription?.length || 0} / 320</p>
+                </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="seo-urlHandle">URL Handle</Label>
+                    <div className="flex items-center">
+                        <span className="text-sm text-muted-foreground p-2 rounded-l-md border border-r-0 bg-muted">/store/product/</span>
+                        <Input id="seo-urlHandle" value={product.seo?.urlHandle || ''} onChange={handleSeoChange} className="rounded-l-none" />
+                    </div>
+                </div>
+              </CardContent>
             </Card>
             </>
           )}

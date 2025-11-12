@@ -87,7 +87,7 @@ export type Product = {
   videoUrl?: string;
 
   // II. Inventory & Logistics
-  sku: string;
+  sku?: string;
   barcode?: string; // GTIN, EAN, UPC
   inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | 'Don\'t Track';
   unitOfMeasure?: string;
