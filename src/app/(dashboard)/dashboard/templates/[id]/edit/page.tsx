@@ -1,4 +1,3 @@
-
 'use client';
 import { ProductTemplateForm } from '@/components/dashboard/product-template-form';
 import { getProductTemplates } from '@/services/templates';
@@ -46,7 +45,7 @@ export default function EditProductTemplatePage() {
     }
 
     return (
-        <DashboardPageLayout title="Edit Product Template" backHref="/dashboard/templates">
+        <DashboardPageLayout title={`Edit "${template.name}" Template`} backHref="/dashboard/templates">
             <ProductTemplateForm initialTemplate={template} />
         </DashboardPageLayout>
     )

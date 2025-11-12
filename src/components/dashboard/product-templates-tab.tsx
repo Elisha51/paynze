@@ -87,7 +87,7 @@ export function ProductTemplatesTab() {
 
   useEffect(() => {
     async function loadData() {
-      if(isUserLoading) return; // Wait for user data to be available
+      if (isUserLoading) return;
       setIsLoading(true);
       try {
         const templates = await getProductTemplates();
@@ -101,28 +101,22 @@ export function ProductTemplatesTab() {
     loadData();
   }, [isUserLoading]);
 
-  const { myTemplates, communityTemplates } = useMemo(() => {
-    if (!user) {
-      return { myTemplates: [], communityTemplates: [] };
-    }
-    
-    // Correctly filter for "My Templates"
-    const my = allTemplates.filter(t => t.author === user.name);
-    // Correctly filter for "Template Hub" - all published templates
-    const community = allTemplates.filter(t => t.published);
-    
-    return { myTemplates: my, communityTemplates: community };
-
+  const myTemplates = useMemo(() => {
+    if (!user) return [];
+    return allTemplates.filter(t => t.author === user.name);
   }, [allTemplates, user]);
 
+  const communityTemplates = useMemo(() => {
+    return allTemplates.filter(t => t.published);
+  }, [allTemplates]);
 
   const filteredCommunityTemplates = useMemo(() => {
     if (!searchQuery) return communityTemplates;
-    
+    const lowercasedQuery = searchQuery.toLowerCase();
     return communityTemplates.filter(t => 
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.author.toLowerCase().includes(searchQuery.toLowerCase())
+      t.name.toLowerCase().includes(lowercasedQuery) ||
+      t.description.toLowerCase().includes(lowercasedQuery) ||
+      t.author.toLowerCase().includes(lowercasedQuery)
     );
   }, [communityTemplates, searchQuery]);
 
@@ -149,7 +143,7 @@ export function ProductTemplatesTab() {
   }
 
   const renderGrid = (templates: ProductTemplate[], isMyTemplates: boolean) => {
-    if (isLoading) {
+    if (isLoading || isUserLoading) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[250px] w-full" />)}
