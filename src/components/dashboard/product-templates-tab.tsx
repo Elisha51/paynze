@@ -1,18 +1,18 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getProductTemplates, addProductTemplate } from '@/services/templates';
 import type { ProductTemplate } from '@/lib/types';
 import * as Lucide from 'lucide-react';
 import Link from 'next/link';
-import { PlusCircle, Edit, Download, Copy } from 'lucide-react';
+import { PlusCircle, Edit, Download, Copy, Search } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { Input } from '../ui/input';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
@@ -79,6 +79,7 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -93,18 +94,24 @@ export function ProductTemplatesTab() {
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) return;
-    
     const updatedTemplates = await addProductTemplate(templateToCopy, user.name);
     setAllTemplates(updatedTemplates);
-    
     toast({
         title: "Template Copied!",
         description: `"${templateToCopy.name}" has been added to "My Templates".`
     })
   }
   
-  const myTemplates = allTemplates.filter(t => t.author === user?.name);
-  const communityTemplates = allTemplates.filter(t => t.published);
+  const myTemplates = useMemo(() => {
+    return allTemplates.filter(t => t.author === user?.name);
+  }, [allTemplates, user]);
+  
+  const filteredCommunityTemplates = useMemo(() => {
+      return allTemplates.filter(t => 
+        t.published && 
+        t.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+  }, [allTemplates, searchQuery]);
 
   return (
     <Tabs defaultValue="my-templates">
@@ -146,8 +153,17 @@ export function ProductTemplatesTab() {
                     <CardDescription>Discover official and community-made templates to kickstart your product setup.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <div className="relative mb-4">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search hub..."
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {communityTemplates.map(template => (
+                        {filteredCommunityTemplates.map(template => (
                            <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
                         ))}
                     </div>
