@@ -442,7 +442,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
   const handleSave = async () => {
     if (onSave) {
-        onSave(product);
+        onSave(product as Product);
         return;
     }
 
@@ -1100,6 +1100,10 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                 </Command>
                             </PopoverContent>
                         </Popover>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="tags">Tags</Label>
+                        <Input id="tags" value={product.tags?.join(', ') || ''} onChange={(e) => setProduct(p => ({...p, tags: e.target.value.split(',').map(t => t.trim())}))} placeholder="e.g. vibrant, summer, new" />
                     </div>
                 </CardContent>
             </Card>

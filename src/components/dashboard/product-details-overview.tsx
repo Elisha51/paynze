@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React from 'react';
@@ -243,8 +244,16 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                         <div className="flex flex-wrap gap-1 mt-1">
                             {productSuppliers.length > 0 ? productSuppliers.map(sup => (
                                 <Badge key={sup.id} variant="secondary" asChild>
-                                    <Link href={`/dashboard/suppliers/${sup.id}`}>{sup.name}</Link>
+                                    <Link href={`/dashboard/procurement/suppliers/${sup.id}`}>{sup.name}</Link>
                                 </Badge>
+                            )) : <p>-</p>}
+                        </div>
+                    </div>
+                    <div>
+                        <h3 className="font-medium text-sm text-muted-foreground">Tags</h3>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                             {(product.tags || []).length > 0 ? product.tags?.map(tag => (
+                                <Badge key={tag} variant="outline">{tag}</Badge>
                             )) : <p>-</p>}
                         </div>
                     </div>
