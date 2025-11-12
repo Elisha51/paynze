@@ -182,10 +182,10 @@ const whatsAppTemplateService = new DataService<WhatsAppTemplate>('whatsAppTempl
 
 export async function getProductTemplates(): Promise<ProductTemplate[]> {
   // Directly return mock data to ensure it's always available
-  return mockProductTemplates;
+  return await productTemplateService.getAll();
 }
 
-export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount'>): Promise<ProductTemplate> {
+export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount'>): Promise<ProductTemplate[]> {
     const newTemplate: ProductTemplate = { 
         ...template, 
         id: `tpl-${Date.now()}`,

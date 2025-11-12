@@ -3,11 +3,11 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { getProductTemplates, addProductTemplate } from '@/services/templates';
 import type { ProductTemplate } from '@/lib/types';
 import * as Lucide from 'lucide-react';
 import Link from 'next/link';
-import { Button } from '../ui/button';
 import { PlusCircle, Edit, Download, Copy } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
@@ -108,8 +108,9 @@ export function ProductTemplatesTab() {
         published: false, // Copied templates are private by default
     };
     
-    const newTemplate = await addProductTemplate(newTemplateData);
-    setMyTemplates(prev => [...prev, newTemplate]);
+    const updatedTemplates = await addProductTemplate(newTemplateData);
+    setAllTemplates(updatedTemplates);
+    setMyTemplates(updatedTemplates.filter(t => t.author === user.name));
     
     toast({
         title: "Template Copied!",

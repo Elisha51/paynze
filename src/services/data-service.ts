@@ -1,3 +1,4 @@
+
 'use client';
 
 import { OnboardingFormData } from "@/context/onboarding-context";
@@ -67,7 +68,7 @@ export class DataService<T extends { [key: string]: any }> {
     return data.find(item => item[this.primaryKey] === id);
   }
 
-  async create(item: T, options: { prepend?: boolean } = {}): Promise<T> {
+  async create(item: T, options: { prepend?: boolean } = {}): Promise<T[]> {
     const data = await this.getData();
     if (options.prepend) {
       data.unshift(item);
@@ -75,7 +76,7 @@ export class DataService<T extends { [key: string]: any }> {
       data.push(item);
     }
     await this.setData(data);
-    return item;
+    return data;
   }
 
   async update(id: string | number, updates: Partial<T>): Promise<T> {
