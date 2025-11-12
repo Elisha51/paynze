@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -16,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
-import type { ProductTemplate, Product } from '@/lib/types';
+import type { ProductTemplate, Product, ProductOption } from '@/lib/types';
 import * as Lucide from 'lucide-react';
 import {
   Select,
@@ -133,7 +134,7 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
   const pageTitle = initialTemplate?.id ? 'Edit Product Template' : 'Create Product Template';
   const pageDescription = initialTemplate?.id ? 'Update the details of this template.' : 'Design a new reusable template for your products.';
 
-  const productOptions = template.product?.options || [];
+  const productOptions: ProductOption[] = (template.product?.options || []) as ProductOption[];
 
   if (!canEdit) {
     return (
@@ -337,6 +338,12 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
                     </Card>
                 </CardContent>
             </Card>
+            <div className="flex justify-end">
+                 <Button onClick={handleSave}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Template
+                </Button>
+            </div>
         </div>
       </div>
     </div>

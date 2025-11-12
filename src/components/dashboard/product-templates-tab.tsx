@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -81,7 +82,6 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
-  const [myTemplates, setMyTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
@@ -89,9 +89,6 @@ export function ProductTemplatesTab() {
   const loadTemplates = async () => {
       const fetchedTemplates = await getProductTemplates();
       setAllTemplates(fetchedTemplates);
-      if (user) {
-        setMyTemplates(fetchedTemplates.filter(t => t.author === user.name));
-      }
   }
 
   useEffect(() => {
@@ -110,14 +107,14 @@ export function ProductTemplatesTab() {
     
     const updatedTemplates = await addProductTemplate(newTemplateData);
     setAllTemplates(updatedTemplates);
-    setMyTemplates(updatedTemplates.filter(t => t.author === user.name));
     
     toast({
         title: "Template Copied!",
         description: `"${templateToCopy.name}" has been added to "My Templates".`
     })
   }
-
+  
+  const myTemplates = allTemplates.filter(t => t.author === user?.name);
   const communityTemplates = allTemplates.filter(t => t.published);
   
   const filteredCommunityTemplates = communityTemplates.filter(t => 
