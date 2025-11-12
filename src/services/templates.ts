@@ -65,6 +65,23 @@ export const mockProductTemplates: ProductTemplate[] = [
     },
   },
   {
+    id: 'tpl-crafts',
+    name: 'Artisan Crafts',
+    icon: 'Palette',
+    description: 'For unique, handcrafted items. Tracks quantity but has no complex variants.',
+    author: 'Paynze Official',
+    published: true,
+    usageCount: 67,
+    product: {
+        productType: 'Physical',
+        category: 'Arts & Crafts',
+        requiresShipping: true,
+        inventoryTracking: 'Track Quantity',
+        hasVariants: false,
+        tags: ['handmade', 'artisan', 'craft'],
+    }
+  },
+  {
     id: 'tpl-coffee',
     name: 'Packaged Goods',
     icon: 'Coffee',
@@ -86,6 +103,27 @@ export const mockProductTemplates: ProductTemplate[] = [
       category: 'Food & Beverage',
       tags: ['packaged', 'food', 'coffee', 'groceries'],
     },
+  },
+  {
+    id: 'tpl-jewelry',
+    name: 'Custom Jewelry',
+    icon: 'Gem',
+    description: 'Template for jewelry with options for material (e.g., Silver, Gold) and stone (e.g., None, Diamond).',
+    author: 'Binti Creations',
+    published: true,
+    usageCount: 58,
+    product: {
+        productType: 'Physical',
+        category: 'Jewelry',
+        requiresShipping: true,
+        inventoryTracking: 'Track Quantity',
+        hasVariants: true,
+        options: [
+            { name: 'Material', values: ['Silver', 'Gold-Plated'] },
+            { name: 'Stone', values: ['None', 'Zirconia'] }
+        ],
+        tags: ['jewelry', 'fashion', 'accessories'],
+    }
   },
 ];
 
