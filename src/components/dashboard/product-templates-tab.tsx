@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -13,8 +12,6 @@ import { PlusCircle, Edit, Download, Copy } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
-import { Input } from '../ui/input';
-import { Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
@@ -82,7 +79,6 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -93,7 +89,7 @@ export function ProductTemplatesTab() {
 
   useEffect(() => {
     loadTemplates();
-  }, [user]);
+  }, []);
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) return;
@@ -116,12 +112,6 @@ export function ProductTemplatesTab() {
   
   const myTemplates = allTemplates.filter(t => t.author === user?.name);
   const communityTemplates = allTemplates.filter(t => t.published);
-  
-  const filteredCommunityTemplates = communityTemplates.filter(t => 
-      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   return (
     <Tabs defaultValue="my-templates">
@@ -163,17 +153,8 @@ export function ProductTemplatesTab() {
                     <CardDescription>Discover official and community-made templates to kickstart your product setup.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="mb-4 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search template hub..." 
-                            className="pl-10"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {filteredCommunityTemplates.map(template => (
+                        {communityTemplates.map(template => (
                            <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
                         ))}
                     </div>
