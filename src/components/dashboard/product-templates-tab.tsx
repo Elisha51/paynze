@@ -96,12 +96,6 @@ export function ProductTemplatesTab() {
   const myTemplates = templates.filter(t => t.author === user?.name);
   const communityTemplates = templates.filter(t => t.published);
 
-  const filteredCommunityTemplates = communityTemplates.filter(t =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.author.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
     <Tabs defaultValue="my-templates">
         <TabsList className="grid w-full grid-cols-2">
@@ -142,17 +136,8 @@ export function ProductTemplatesTab() {
                     <CardDescription>Discover official and community-made templates to kickstart your product setup.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="relative mb-6">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                        <Input 
-                            placeholder="Search Template Hub..."
-                            className="pl-10 h-11"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {filteredCommunityTemplates.map(template => (
+                        {communityTemplates.map(template => (
                            <TemplateCard key={template.id} template={template} />
                         ))}
                     </div>
