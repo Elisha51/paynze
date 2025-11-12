@@ -97,13 +97,13 @@ export function ProductTemplatesTab() {
   }, []);
   
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (isUserLoading || isLoading || !user) {
+    if (!user) {
       return { myTemplates: [], communityTemplates: [] };
     }
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
-  }, [allTemplates, user, isLoading, isUserLoading]);
+  }, [allTemplates, user]);
 
 
   const filteredCommunityTemplates = useMemo(() => {
@@ -124,11 +124,7 @@ export function ProductTemplatesTab() {
     };
     
     try {
-        const newTemplateData: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'> & { author: string } = {
-            ...templateToCopy,
-            author: user.name, // Set current user as author
-        };
-        const newTemplate = await addProductTemplate(newTemplateData, user.name);
+        const newTemplate = await addProductTemplate(templateToCopy, user.name);
         setAllTemplates(prev => [...prev, newTemplate]);
         toast({
             title: "Template Copied!",
@@ -172,7 +168,6 @@ export function ProductTemplatesTab() {
               />
             );
        }
-       // Only show search empty state if a search is active
        if (searchQuery) {
             return (
               <EmptyState
@@ -182,10 +177,9 @@ export function ProductTemplatesTab() {
               />
             );
        }
-       // If no search query and community templates are empty
        return (
-         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-            <p className="col-span-full text-center text-muted-foreground">No community templates available at the moment.</p>
+         <div className="text-center py-8">
+            <p className="text-muted-foreground">No community templates available at the moment.</p>
         </div>
        );
     }

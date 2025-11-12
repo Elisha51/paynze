@@ -1,5 +1,4 @@
 
-
 import type { ProductTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -187,7 +186,8 @@ export async function getProductTemplates(): Promise<ProductTemplate[]> {
 
 export async function addProductTemplate(template: ProductTemplate, author: string): Promise<ProductTemplate> {
     const newTemplate: ProductTemplate = { 
-        ...template, 
+        ...template,
+        product: { ...template.product },
         author,
         published: false,
         id: `tpl-${Date.now()}`,

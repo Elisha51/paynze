@@ -48,8 +48,7 @@ export class DataService<T extends { [key: string]: any }> {
         const rawData = localStorage.getItem(storageKey);
         if (rawData) {
             const parsedData = JSON.parse(rawData);
-            // If we have a non-empty array, use it. Otherwise, re-initialize.
-            if (Array.isArray(parsedData) && parsedData.length > 0) {
+            if (Array.isArray(parsedData)) {
                 data = parsedData;
             }
         }
@@ -57,15 +56,16 @@ export class DataService<T extends { [key: string]: any }> {
         console.error(`Failed to parse data for key ${storageKey}`, e);
     }
     
-    // This is the key change: if data is null (or an empty array from a faulty save),
-    // re-initialize and save it back to localStorage.
-    if (!data) {
+    if (data === null || data.length === 0) {
         const initialData = await this.initialize();
-        localStorage.setItem(storageKey, JSON.stringify(initialData));
-        return initialData;
+        // Check if the initial data is also empty before overwriting a potentially intentionally empty array
+        if (initialData.length > 0 || data === null) {
+            localStorage.setItem(storageKey, JSON.stringify(initialData));
+            return initialData;
+        }
     }
 
-    return data;
+    return data || [];
   }
 
   private async setData(data: T[]): Promise<void> {
