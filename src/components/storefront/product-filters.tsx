@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "../ui/separator";
 import type { Category } from "@/lib/types";
+import { useMemo } from "react";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion";
 
 interface ProductFiltersProps {
     categories: Category[];
@@ -43,6 +45,17 @@ export function ProductFilters({
         return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(amount);
     }
 
+    const groupedCategories = useMemo(() => {
+        return categories.reduce((acc, category) => {
+            const mainCategory = category.description || 'Uncategorized';
+            if (!acc[mainCategory]) {
+                acc[mainCategory] = [];
+            }
+            acc[mainCategory].push(category);
+            return acc;
+        }, {} as Record<string, Category[]>);
+    }, [categories]);
+
     return (
         <Card>
             <CardHeader className="flex-row items-center justify-between pb-4">
@@ -69,20 +82,29 @@ export function ProductFilters({
 
                 <div className="space-y-3">
                     <h4 className="font-semibold">Category</h4>
-                    <div className="space-y-2">
-                        {categories.map(category => (
-                            <div key={category.id} className="flex items-center space-x-2">
-                                <Checkbox 
-                                    id={`cat-${category.id}`} 
-                                    checked={selectedCategories.includes(category.name)}
-                                    onCheckedChange={() => handleCategoryToggle(category.name)}
-                                />
-                                <Label htmlFor={`cat-${category.id}`} className="font-normal cursor-pointer">
-                                    {category.name}
-                                </Label>
-                            </div>
+                    <Accordion type="multiple" className="w-full">
+                        {Object.entries(groupedCategories).map(([mainCategory, subCategories]) => (
+                            <AccordionItem value={mainCategory} key={mainCategory}>
+                                <AccordionTrigger>{mainCategory}</AccordionTrigger>
+                                <AccordionContent>
+                                    <div className="space-y-2 pl-2">
+                                    {subCategories.map(category => (
+                                        <div key={category.id} className="flex items-center space-x-2">
+                                            <Checkbox 
+                                                id={`cat-${category.id}`} 
+                                                checked={selectedCategories.includes(category.name)}
+                                                onCheckedChange={() => handleCategoryToggle(category.name)}
+                                            />
+                                            <Label htmlFor={`cat-${category.id}`} className="font-normal cursor-pointer">
+                                                {category.name}
+                                            </Label>
+                                        </div>
+                                    ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
                         ))}
-                    </div>
+                    </Accordion>
                 </div>
 
                 <Separator />
