@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -78,40 +79,40 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 
 
 export function ProductTemplatesTab() {
-  const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
+  const [myTemplates, setMyTemplates] = useState<ProductTemplate[]>([]);
+  const [communityTemplates, setCommunityTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
-  const loadTemplates = async () => {
-      const fetchedTemplates = await getProductTemplates();
-      setAllTemplates(fetchedTemplates);
-  }
-
   useEffect(() => {
+    async function loadTemplates() {
+      const fetchedTemplates = await getProductTemplates();
+      if (user) {
+        setMyTemplates(fetchedTemplates.filter(t => t.author === user.name));
+        setCommunityTemplates(fetchedTemplates.filter(t => t.published && t.author !== user.name));
+      } else {
+        setCommunityTemplates(fetchedTemplates.filter(t => t.published));
+      }
+    }
     loadTemplates();
-  }, []);
+  }, [user]);
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) return;
-    const updatedTemplates = await addProductTemplate(templateToCopy, user.name);
-    setAllTemplates(updatedTemplates);
+    const newTemplate = await addProductTemplate(templateToCopy, user.name);
+    setMyTemplates(prev => [newTemplate, ...prev]);
     toast({
         title: "Template Copied!",
         description: `"${templateToCopy.name}" has been added to "My Templates".`
     })
   }
   
-  const myTemplates = useMemo(() => {
-    return allTemplates.filter(t => t.author === user?.name);
-  }, [allTemplates, user]);
-  
   const filteredCommunityTemplates = useMemo(() => {
-      return allTemplates.filter(t => 
-        t.published && 
+      return communityTemplates.filter(t => 
         t.name.toLowerCase().includes(searchQuery.toLowerCase())
       );
-  }, [allTemplates, searchQuery]);
+  }, [communityTemplates, searchQuery]);
 
   return (
     <Tabs defaultValue="my-templates">

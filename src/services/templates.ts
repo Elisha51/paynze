@@ -1,4 +1,5 @@
 
+
 import type { ProductTemplate, EmailTemplate, SmsTemplate, WhatsAppTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -185,14 +186,16 @@ export async function getProductTemplates(): Promise<ProductTemplate[]> {
   return await productTemplateService.getAll();
 }
 
-export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount'>, author: string): Promise<ProductTemplate[]> {
+export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount' | 'author' | 'published'>, author: string): Promise<ProductTemplate> {
     const newTemplate: ProductTemplate = { 
         ...template, 
         author,
+        published: false,
         id: `tpl-${Date.now()}`,
         usageCount: 0,
     };
-    return await productTemplateService.create(newTemplate);
+    await productTemplateService.create(newTemplate, { prepend: true });
+    return newTemplate;
 }
 
 export async function getEmailTemplates(): Promise<EmailTemplate[]> {
