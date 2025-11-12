@@ -79,25 +79,29 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 
 
 export function ProductTemplatesTab() {
-  const [myTemplates, setMyTemplates] = useState<ProductTemplate[]>([]);
-  const [communityTemplates, setCommunityTemplates] = useState<ProductTemplate[]>([]);
+  const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     async function loadTemplates() {
-      const allTemplates = await getProductTemplates();
-      if (user) {
-        setMyTemplates(allTemplates.filter(t => t.author === user.name));
-        setCommunityTemplates(allTemplates.filter(t => t.published && t.author !== user.name));
-      } else {
-        // If user is not loaded yet, just show published community templates
-        setCommunityTemplates(allTemplates.filter(t => t.published));
-      }
+      const templates = await getProductTemplates();
+      setAllTemplates(templates);
     }
     loadTemplates();
-  }, [user]);
+  }, []);
+
+  const myTemplates = useMemo(() => {
+    if (!user) return [];
+    return allTemplates.filter(t => t.author === user.name);
+  }, [allTemplates, user]);
+
+  const communityTemplates = useMemo(() => {
+    if (!user) return allTemplates.filter(t => t.published);
+    return allTemplates.filter(t => t.published && t.author !== user.name);
+  }, [allTemplates, user]);
+
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) {
@@ -105,27 +109,14 @@ export function ProductTemplatesTab() {
         return;
     };
     
-    // Optimistically update UI
-    const newTemplateForUI: ProductTemplate = { 
-        ...templateToCopy, 
-        id: `tpl-${Date.now()}`,
-        author: user.name, 
-        published: false, // Copied templates are private by default
-        usageCount: 0,
-    };
-    setMyTemplates(prev => [newTemplateForUI, ...prev]);
-
     try {
-        await addProductTemplate(templateToCopy, user.name);
-        // The service handles persistence, no need to update state from return value here
-        // as we are already doing it optimistically.
+        const updatedTemplates = await addProductTemplate(templateToCopy, user.name);
+        setAllTemplates(updatedTemplates);
         toast({
             title: "Template Copied!",
             description: `"${templateToCopy.name}" has been added to "My Templates".`
         });
     } catch (e) {
-        // Rollback optimistic update on failure
-        setMyTemplates(prev => prev.filter(t => t.id !== newTemplateForUI.id));
         toast({
             variant: 'destructive',
             title: 'Copy Failed',
