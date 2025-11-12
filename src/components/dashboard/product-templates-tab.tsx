@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -87,17 +86,22 @@ export function ProductTemplatesTab() {
   const { toast } = useToast();
 
   useEffect(() => {
-    async function loadTemplates() {
+    async function loadData() {
       setIsLoading(true);
-      const templates = await getProductTemplates();
-      setAllTemplates(templates);
-      setIsLoading(false);
+      try {
+        const templates = await getProductTemplates();
+        setAllTemplates(templates);
+      } catch (error) {
+        console.error("Failed to load templates:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
-    loadTemplates();
+    loadData();
   }, []);
-  
+
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (isUserLoading || isLoading) {
+    if (isLoading || isUserLoading) {
       return { myTemplates: [], communityTemplates: [] };
     }
     if (!user) {
@@ -111,14 +115,13 @@ export function ProductTemplatesTab() {
 
 
   const filteredCommunityTemplates = useMemo(() => {
-      if (!searchQuery) {
-          return communityTemplates;
-      }
-      return communityTemplates.filter(t => 
-        t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.author.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+    if (!searchQuery) return communityTemplates;
+    
+    return communityTemplates.filter(t => 
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.author.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   }, [communityTemplates, searchQuery]);
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
