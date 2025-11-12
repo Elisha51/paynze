@@ -1,5 +1,4 @@
 
-
 import type { ProductTemplate, EmailTemplate, SmsTemplate, WhatsAppTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
