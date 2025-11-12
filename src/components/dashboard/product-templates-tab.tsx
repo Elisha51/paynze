@@ -97,19 +97,17 @@ export function ProductTemplatesTab() {
   }, []);
   
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (!user || allTemplates.length === 0) {
+    if (isUserLoading || isLoading) {
       return { myTemplates: [], communityTemplates: [] };
     }
-    const my = allTemplates.filter(t => t.author === user.name);
-    // Show all published templates in the hub
+    const my = allTemplates.filter(t => t.author === user?.name);
     const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
-  }, [allTemplates, user]);
+  }, [allTemplates, user, isLoading, isUserLoading]);
 
 
   const filteredCommunityTemplates = useMemo(() => {
       if (!searchQuery) {
-          // Per your request, show all templates by default in the hub
           return communityTemplates;
       }
       return communityTemplates.filter(t => 
@@ -126,7 +124,6 @@ export function ProductTemplatesTab() {
     };
     
     try {
-        // We create a new template object with the current user as the author
         const newTemplateData: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'> & { author: string } = {
             ...templateToCopy,
             author: user.name, // Set current user as author
@@ -185,6 +182,12 @@ export function ProductTemplatesTab() {
               />
             );
        }
+       // If no search query and community templates are empty (which shouldn't happen with seeded data)
+       return (
+         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <p className="col-span-full text-center text-muted-foreground">No community templates available at the moment.</p>
+        </div>
+       );
     }
 
 
