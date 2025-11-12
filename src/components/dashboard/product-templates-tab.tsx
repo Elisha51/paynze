@@ -97,13 +97,17 @@ export function ProductTemplatesTab() {
   }, []);
   
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (!user) {
+    if (isUserLoading || isLoading) {
       return { myTemplates: [], communityTemplates: [] };
+    }
+    if (!user) {
+      const community = allTemplates.filter(t => t.published);
+      return { myTemplates: [], communityTemplates: community };
     }
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
-  }, [allTemplates, user]);
+  }, [allTemplates, user, isLoading, isUserLoading]);
 
 
   const filteredCommunityTemplates = useMemo(() => {
@@ -139,9 +143,7 @@ export function ProductTemplatesTab() {
     }
   }
 
-  const renderGrid = (templates: ProductTemplate[], isMyTemplates: boolean) => {
-    const isDataLoading = isLoading || isUserLoading;
-    
+  const renderGrid = (templates: ProductTemplate[], isMyTemplates: boolean, isDataLoading: boolean) => {
     if (isDataLoading) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -184,7 +186,6 @@ export function ProductTemplatesTab() {
        );
     }
 
-
     return (
        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {templates.map(template => {
@@ -211,7 +212,7 @@ export function ProductTemplatesTab() {
                     <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     {renderGrid(myTemplates, true)}
+                     {renderGrid(myTemplates, true, isLoading || isUserLoading)}
                 </CardContent>
             </Card>
         </TabsContent>
@@ -231,7 +232,7 @@ export function ProductTemplatesTab() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    {renderGrid(filteredCommunityTemplates, false)}
+                    {renderGrid(filteredCommunityTemplates, false, isLoading || isUserLoading)}
                 </CardContent>
             </Card>
         </TabsContent>
