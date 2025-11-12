@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -81,27 +82,29 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDataLoading, setIsDataLoading] = useState(true);
   const { user, isLoading: isUserLoading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     async function loadData() {
-      setIsLoading(true);
+      setIsDataLoading(true);
       try {
         const templates = await getProductTemplates();
         setAllTemplates(templates);
       } catch (error) {
         console.error("Failed to load templates:", error);
       } finally {
-        setIsLoading(false);
+        setIsDataLoading(false);
       }
     }
     loadData();
   }, []);
 
+  const isLoading = isDataLoading || isUserLoading;
+
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (isLoading || isUserLoading) {
+    if (isLoading) {
       return { myTemplates: [], communityTemplates: [] };
     }
     if (!user) {
@@ -111,7 +114,7 @@ export function ProductTemplatesTab() {
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published);
     return { myTemplates: my, communityTemplates: community };
-  }, [allTemplates, user, isLoading, isUserLoading]);
+  }, [allTemplates, user, isLoading]);
 
 
   const filteredCommunityTemplates = useMemo(() => {
@@ -215,7 +218,7 @@ export function ProductTemplatesTab() {
                     <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     {renderGrid(myTemplates, true, isLoading || isUserLoading)}
+                     {renderGrid(myTemplates, true, isLoading)}
                 </CardContent>
             </Card>
         </TabsContent>
@@ -235,7 +238,7 @@ export function ProductTemplatesTab() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    {renderGrid(filteredCommunityTemplates, false, isLoading || isUserLoading)}
+                    {renderGrid(filteredCommunityTemplates, false, isLoading)}
                 </CardContent>
             </Card>
         </TabsContent>

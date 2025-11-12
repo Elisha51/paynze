@@ -15,16 +15,16 @@ export default function EditProductTemplatePage() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        if (id) {
-            async function loadTemplate() {
+        async function loadTemplate() {
+            if (id) {
                 setIsLoading(true);
                 const allTemplates = await getProductTemplates();
                 const foundTemplate = allTemplates.find(t => t.id === id);
                 setTemplate(foundTemplate || null);
                 setIsLoading(false);
             }
-            loadTemplate();
         }
+        loadTemplate();
     }, [id]);
 
     if (isLoading) {
