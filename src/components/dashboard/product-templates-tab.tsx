@@ -14,13 +14,14 @@ import { useAuth } from '@/context/auth-context';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
+import { EmptyState } from '../ui/empty-state';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
     return LucideIcon ? <LucideIcon {...props} /> : <Lucide.Package {...props} />;
 };
 
-const TemplateCard = ({ template, onCopy }: { template: ProductTemplate, onCopy: (template: ProductTemplate) => void }) => (
+const TemplateCard = ({ template, onCopy, isCopied }: { template: ProductTemplate, onCopy: (template: ProductTemplate) => void, isCopied: boolean }) => (
     <Card className="flex flex-col">
         <CardHeader className="flex-row items-start gap-4">
             <div className="p-3 rounded-md bg-primary/10">
@@ -35,8 +36,8 @@ const TemplateCard = ({ template, onCopy }: { template: ProductTemplate, onCopy:
             <p className="text-sm text-muted-foreground">{template.description}</p>
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-2">
-            <Button onClick={() => onCopy(template)}>
-                <Copy className="mr-2 h-4 w-4" /> Copy to My Templates
+            <Button onClick={() => onCopy(template)} disabled={isCopied}>
+                <Copy className="mr-2 h-4 w-4" /> {isCopied ? 'Copied' : 'Copy to My Templates'}
             </Button>
             <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                 <Download className="h-3 w-3"/> {template.usageCount} times used
@@ -80,28 +81,28 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const { user, isLoading: isUserLoading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     async function loadTemplates() {
+      setIsLoading(true);
       const templates = await getProductTemplates();
       setAllTemplates(templates);
+      setIsLoading(false);
     }
     loadTemplates();
   }, []);
 
   const { myTemplates, communityTemplates } = useMemo(() => {
-    if (isUserLoading || !user) {
-        return { 
-            myTemplates: [], 
-            communityTemplates: allTemplates.filter(t => t.published) 
-        };
+    if (!user || allTemplates.length === 0) {
+      return { myTemplates: [], communityTemplates: allTemplates.filter(t => t.published) };
     }
     const my = allTemplates.filter(t => t.author === user.name);
     const community = allTemplates.filter(t => t.published && t.author !== user.name);
     return { myTemplates: my, communityTemplates: community };
-  }, [allTemplates, user, isUserLoading]);
+  }, [allTemplates, user]);
 
   const filteredCommunityTemplates = useMemo(() => {
       if (!searchQuery) {
@@ -149,22 +150,26 @@ export function ProductTemplatesTab() {
                     <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
                 </CardHeader>
                 <CardContent>
-                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {myTemplates.map(template => (
-                           <MyTemplateCard key={template.id} template={template} />
-                        ))}
-                    </div>
-                     {myTemplates.length === 0 && (
-                        <div className="text-center py-12">
-                            <h3 className="text-lg font-semibold">You haven't created any templates yet.</h3>
-                            <p className="text-muted-foreground mt-1">Create a template or copy one from the Template Hub.</p>
-                            <Button asChild className="mt-4">
+                     {myTemplates.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {myTemplates.map(template => (
+                               <MyTemplateCard key={template.id} template={template} />
+                            ))}
+                        </div>
+                    ) : (
+                        <EmptyState
+                          icon={<PlusCircle className="h-12 w-12 text-muted-foreground" />}
+                          title="You haven't created any templates yet."
+                          description="Create a template from scratch or copy one from the Template Hub to get started."
+                          cta={
+                            <Button asChild>
                                 <Link href="/dashboard/templates/add">
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Create Your First Template
                                 </Link>
                             </Button>
-                        </div>
+                          }
+                        />
                     )}
                 </CardContent>
             </Card>
@@ -185,11 +190,22 @@ export function ProductTemplatesTab() {
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {filteredCommunityTemplates.map(template => (
-                           <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
-                        ))}
-                    </div>
+                    {filteredCommunityTemplates.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                            {filteredCommunityTemplates.map(template => {
+                                const isCopied = myTemplates.some(myTpl => myTpl.name === template.name && myTpl.description === template.description);
+                                return (
+                                   <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} isCopied={isCopied} />
+                                )
+                            })}
+                        </div>
+                    ) : (
+                        <EmptyState
+                          icon={<Search className="h-12 w-12 text-muted-foreground" />}
+                          title="No Templates Found"
+                          description="No community templates match your search query."
+                        />
+                    )}
                 </CardContent>
             </Card>
         </TabsContent>
