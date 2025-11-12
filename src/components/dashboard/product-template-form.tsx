@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -90,9 +89,24 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
   }
 
   const handleProductChange = (field: keyof Product, value: any) => {
+     let productUpdates: Partial<Product> = { [field]: value };
+      
+    if (field === 'productType') {
+        const isPhysical = value === 'Physical';
+        productUpdates.requiresShipping = isPhysical;
+        productUpdates.inventoryTracking = isPhysical ? 'Track Quantity' : 'Don\'t Track';
+        if (!isPhysical) {
+            productUpdates.hasVariants = false;
+        }
+    }
+    
+    if (field === 'inventoryTracking' && value === "Don't Track") {
+      productUpdates.hasVariants = false;
+    }
+
     setTemplate(prev => ({
       ...prev,
-      product: { ...(prev?.product || {}), [field]: value }
+      product: { ...(prev?.product || {}), ...productUpdates }
     }));
   };
   
@@ -132,7 +146,6 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
   };
   
   const pageTitle = initialTemplate?.id ? 'Edit Product Template' : 'Create Product Template';
-  const pageDescription = initialTemplate?.id ? 'Update the details of this template.' : 'Design a new reusable template for your products.';
 
   const productOptions: ProductOption[] = (template.product?.options || []) as ProductOption[];
 
@@ -243,11 +256,34 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
                     </div>
                 </div>
 
-                <div className="flex items-start space-x-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
+                        <Select value={template.product?.inventoryTracking} onValueChange={(v) => handleProductChange('inventoryTracking', v)}>
+                            <SelectTrigger id="inventoryTracking">
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Don't Track">Don't Track</SelectItem>
+                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2 pt-6">
+                        <div className="flex items-center space-x-2">
+                            <Checkbox id="isTaxable" checked={template.product?.isTaxable} onCheckedChange={(c) => handleProductChange('isTaxable', !!c)} />
+                            <Label htmlFor="isTaxable">Charge tax on this product</Label>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div className="flex items-start space-x-3 pt-4">
                    <Checkbox
                       id="hasVariants"
                       checked={template.product?.hasVariants}
                       onCheckedChange={(c) => handleProductChange('hasVariants', !!c)}
+                      disabled={template.product?.inventoryTracking === "Don't Track"}
                     />
                     <div className="grid gap-1.5 leading-none">
                         <label
@@ -349,3 +385,4 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
     </div>
   );
 }
+
