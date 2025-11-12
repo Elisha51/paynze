@@ -91,29 +91,28 @@ export function ProductTemplatesTab() {
     loadTemplates();
   }, []);
 
-  const myTemplates = useMemo(() => {
-      if (!user) return [];
-      return allTemplates.filter(t => t.author === user.name);
+  const { myTemplates, communityTemplates } = useMemo(() => {
+    if (!user) {
+        // If user is not loaded yet, show all published as community, and none as my templates.
+        const community = allTemplates.filter(t => t.published);
+        return { myTemplates: [], communityTemplates: community };
+    }
+    const my = allTemplates.filter(t => t.author === user.name);
+    const community = allTemplates.filter(t => t.published && t.author !== user.name);
+    return { myTemplates: my, communityTemplates: community };
   }, [allTemplates, user]);
-  
-  const communityTemplates = useMemo(() => {
-      const filtered = allTemplates.filter(t => {
-          // A template is in the community hub if it's published
-          // AND it's not authored by the current user (to avoid duplicates)
-          const isPublished = t.published;
-          const isNotMine = user ? t.author !== user.name : true;
-          return isPublished && isNotMine;
-      });
 
+
+  const filteredCommunityTemplates = useMemo(() => {
       if (!searchQuery) {
-          return filtered;
+          return communityTemplates;
       }
-      return filtered.filter(t => 
+      return communityTemplates.filter(t => 
         t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         t.author.toLowerCase().includes(searchQuery.toLowerCase())
       );
-  }, [allTemplates, user, searchQuery]);
+  }, [communityTemplates, searchQuery]);
 
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) {
@@ -187,7 +186,7 @@ export function ProductTemplatesTab() {
                         />
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {communityTemplates.map(template => (
+                        {filteredCommunityTemplates.map(template => (
                            <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
                         ))}
                     </div>
