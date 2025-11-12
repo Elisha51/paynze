@@ -185,9 +185,10 @@ export async function getProductTemplates(): Promise<ProductTemplate[]> {
   return await productTemplateService.getAll();
 }
 
-export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount'>): Promise<ProductTemplate[]> {
+export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'usageCount'>, author: string): Promise<ProductTemplate[]> {
     const newTemplate: ProductTemplate = { 
         ...template, 
+        author,
         id: `tpl-${Date.now()}`,
         usageCount: 0,
     };

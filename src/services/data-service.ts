@@ -44,13 +44,6 @@ export class DataService<T extends { [key: string]: any }> {
     const storageKey = this.getStorageKey();
     const data = localStorage.getItem(storageKey);
     
-    // For specific keys like 'productTemplates', always start with the mock data.
-    if (this.dataKey === 'productTemplates' && !data) {
-        const initialData = await this.initialize();
-        localStorage.setItem(storageKey, JSON.stringify(initialData));
-        return initialData;
-    }
-
     if (data) {
       try {
         const parsedData = JSON.parse(data);
@@ -85,13 +78,9 @@ export class DataService<T extends { [key: string]: any }> {
 
   async create(item: T, options: { prepend?: boolean } = {}): Promise<T[]> {
     const data = await this.getData();
-    if (options.prepend) {
-      data.unshift(item);
-    } else {
-      data.push(item);
-    }
-    await this.setData(data);
-    return data;
+    const newData = options.prepend ? [item, ...data] : [...data, item];
+    await this.setData(newData);
+    return newData;
   }
 
   async update(id: string | number, updates: Partial<T>): Promise<T> {

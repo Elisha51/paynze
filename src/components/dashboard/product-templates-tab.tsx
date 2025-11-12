@@ -94,14 +94,7 @@ export function ProductTemplatesTab() {
   const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
     if (!user) return;
     
-    const newTemplateData: Omit<ProductTemplate, 'id' | 'usageCount'> = {
-        ...templateToCopy,
-        name: `${templateToCopy.name} (Copy)`,
-        author: user.name,
-        published: false, // Copied templates are private by default
-    };
-    
-    const updatedTemplates = await addProductTemplate(newTemplateData);
+    const updatedTemplates = await addProductTemplate(templateToCopy, user.name);
     setAllTemplates(updatedTemplates);
     
     toast({
