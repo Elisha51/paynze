@@ -20,11 +20,11 @@ import { usePathname } from 'next/navigation';
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
-  const [templates, setTemplates] = useState<ProductTemplate[]>([]);
+  const [myTemplates, setMyTemplates] = useState<ProductTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-products');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const { user } = useAuth();
+  const { user, isLoading: isUserLoading } = useAuth();
   const pathname = usePathname();
   
   const canCreate = user?.permissions.products.create;
@@ -40,15 +40,15 @@ export default function ProductsPage() {
     setProducts(fetchedProducts);
     // Filter templates to only those created by the current user
     const userTemplates = fetchedTemplates.filter(t => t.author === user.name);
-    setTemplates(userTemplates); 
+    setMyTemplates(userTemplates); 
     setIsLoading(false);
   }, [user]);
 
   useEffect(() => {
-    if (user) {
+    if (!isUserLoading) {
       loadData();
     }
-  }, [loadData, user, pathname]);
+  }, [loadData, isUserLoading, pathname]);
 
   const tabs = [
     { value: 'all-products', label: 'All Products' },
@@ -80,11 +80,11 @@ export default function ProductsPage() {
                                 From Scratch
                             </Link>
                         </DropdownMenuItem>
-                        {templates.length > 0 && (
+                        {myTemplates.length > 0 && (
                              <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuLabel>From My Templates</DropdownMenuLabel>
-                                {templates.map(template => (
+                                {myTemplates.map(template => (
                                     <DropdownMenuItem key={template.id} asChild>
                                         <Link href={`/dashboard/products/add?template=${template.id}`}>
                                             {template.name}

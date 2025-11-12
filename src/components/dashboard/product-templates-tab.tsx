@@ -82,26 +82,27 @@ const MyTemplateCard = ({ template }: { template: ProductTemplate }) => (
 export function ProductTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDataLoading, setIsDataLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
   const { user, isLoading: isUserLoading } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     async function loadData() {
-      setIsDataLoading(true);
+      setIsLoading(true);
       try {
         const templates = await getProductTemplates();
         setAllTemplates(templates);
       } catch (error) {
         console.error("Failed to load templates:", error);
       } finally {
-        setIsDataLoading(false);
+        // Wait for user to be loaded as well
+        if (!isUserLoading) {
+            setIsLoading(false);
+        }
       }
     }
     loadData();
-  }, []);
-
-  const isLoading = isDataLoading || isUserLoading;
+  }, [isUserLoading]);
 
   const { myTemplates, communityTemplates } = useMemo(() => {
     if (isLoading || !user) {
