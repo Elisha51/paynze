@@ -3,24 +3,25 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { getProductTemplates } from '@/services/templates';
+import { getProductTemplates, addProductTemplate } from '@/services/templates';
 import type { ProductTemplate } from '@/lib/types';
 import * as Lucide from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '../ui/button';
-import { PlusCircle, Edit, Download } from 'lucide-react';
+import { PlusCircle, Edit, Download, Copy } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { Input } from '../ui/input';
 import { Search } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
     return LucideIcon ? <LucideIcon {...props} /> : <Lucide.Package {...props} />;
 };
 
-const TemplateCard = ({ template }: { template: ProductTemplate }) => (
+const TemplateCard = ({ template, onCopy }: { template: ProductTemplate, onCopy: (template: ProductTemplate) => void }) => (
     <Card className="flex flex-col">
         <CardHeader className="flex-row items-start gap-4">
             <div className="p-3 rounded-md bg-primary/10">
@@ -35,10 +36,8 @@ const TemplateCard = ({ template }: { template: ProductTemplate }) => (
             <p className="text-sm text-muted-foreground">{template.description}</p>
         </CardContent>
         <CardFooter className="flex-col items-stretch gap-2">
-            <Button asChild>
-                <Link href={`/dashboard/products/add?template=${template.id}`}>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Use Template
-                </Link>
+            <Button onClick={() => onCopy(template)}>
+                <Copy className="mr-2 h-4 w-4" /> Copy to My Templates
             </Button>
             <p className="text-xs text-muted-foreground text-center flex items-center justify-center gap-1">
                 <Download className="h-3 w-3"/> {template.usageCount} times used
@@ -84,17 +83,44 @@ export function ProductTemplatesTab() {
   const [templates, setTemplates] = useState<ProductTemplate[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const { user } = useAuth();
+  const { toast } = useToast();
 
-  useEffect(() => {
-    async function loadTemplates() {
+  const loadTemplates = async () => {
       const fetchedTemplates = await getProductTemplates();
       setTemplates(fetchedTemplates);
-    }
+  }
+
+  useEffect(() => {
     loadTemplates();
   }, []);
 
+  const handleCopyTemplate = async (templateToCopy: ProductTemplate) => {
+    if (!user) return;
+    
+    const newTemplateData: Omit<ProductTemplate, 'id'> = {
+        ...templateToCopy,
+        name: `${templateToCopy.name} (Copy)`,
+        author: user.name,
+        published: false, // Copied templates are private by default
+        usageCount: 0,
+    };
+    
+    await addProductTemplate(newTemplateData);
+    await loadTemplates(); // Re-fetch all templates
+    toast({
+        title: "Template Copied!",
+        description: `"${templateToCopy.name}" has been added to "My Templates".`
+    })
+  }
+
   const myTemplates = templates.filter(t => t.author === user?.name);
   const communityTemplates = templates.filter(t => t.published);
+  
+  const filteredCommunityTemplates = communityTemplates.filter(t => 
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.author.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <Tabs defaultValue="my-templates">
@@ -117,7 +143,7 @@ export function ProductTemplatesTab() {
                      {myTemplates.length === 0 && (
                         <div className="text-center py-12">
                             <h3 className="text-lg font-semibold">You haven't created any templates yet.</h3>
-                            <p className="text-muted-foreground mt-1">Create a template to reuse product configurations.</p>
+                            <p className="text-muted-foreground mt-1">Create a template or copy one from the Template Hub.</p>
                             <Button asChild className="mt-4">
                                 <Link href="/dashboard/templates/add">
                                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -136,9 +162,18 @@ export function ProductTemplatesTab() {
                     <CardDescription>Discover official and community-made templates to kickstart your product setup.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                    <div className="mb-4 relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input 
+                            placeholder="Search template hub..." 
+                            className="pl-10"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                        {communityTemplates.map(template => (
-                           <TemplateCard key={template.id} template={template} />
+                        {filteredCommunityTemplates.map(template => (
+                           <TemplateCard key={template.id} template={template} onCopy={handleCopyTemplate} />
                         ))}
                     </div>
                 </CardContent>

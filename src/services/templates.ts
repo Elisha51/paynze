@@ -184,6 +184,11 @@ export async function getProductTemplates(): Promise<ProductTemplate[]> {
   return await productTemplateService.getAll();
 }
 
+export async function addProductTemplate(template: Omit<ProductTemplate, 'id'>): Promise<ProductTemplate> {
+    const newTemplate = { ...template, id: `tpl-${Date.now()}` } as ProductTemplate;
+    return await productTemplateService.create(newTemplate);
+}
+
 export async function getEmailTemplates(): Promise<EmailTemplate[]> {
   return await emailTemplateService.getAll();
 }
