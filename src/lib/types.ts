@@ -1,5 +1,4 @@
 
-
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -147,6 +146,9 @@ export type ProductTemplate = {
   description: string;
   icon: string; // Lucide icon name
   product: Partial<Product>;
+  author: string; // "Paynze Official" or Merchant Name
+  published: boolean; // Is it available in the community hub?
+  usageCount: number;
 };
 
 export type EmailTemplate = {

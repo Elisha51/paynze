@@ -37,7 +37,7 @@ export default function ProductsPage() {
         getProductTemplates()
     ]);
     setProducts(fetchedProducts);
-    setTemplates(fetchedTemplates);
+    setTemplates(fetchedTemplates.filter(t => t.published)); // Only show published templates in dropdown
     setIsLoading(false);
   }, []);
 

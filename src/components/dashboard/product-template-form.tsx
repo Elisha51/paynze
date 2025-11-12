@@ -1,7 +1,8 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Save, PlusCircle, X, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Save, PlusCircle, X, ShieldAlert, BadgeInfo } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -27,11 +28,14 @@ import {
 import { Checkbox } from '../ui/checkbox';
 import { useAuth } from '@/context/auth-context';
 import { useRouter } from 'next/navigation';
+import { Switch } from '../ui/switch';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 const emptyTemplate: Partial<ProductTemplate> = {
   name: '',
   description: '',
   icon: 'Package',
+  published: false,
   product: {
     productType: 'Physical',
     status: 'draft',
@@ -150,33 +154,13 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/templates">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Templates</span>
-          </Link>
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{pageTitle}</h1>
-          <p className="text-muted-foreground">
-            {pageDescription}
-          </p>
-        </div>
-        <div className="ml-auto">
-          <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Template
-          </Button>
-        </div>
-      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Template Details</CardTitle>
               <CardDescription>
-                This information will help you identify the template later.
+                This information will help you and other merchants identify the template.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -324,6 +308,22 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
         <div className="lg:col-span-1 space-y-6">
             <Card>
                 <CardHeader>
+                    <CardTitle>Publishing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center space-x-2">
+                        <Switch
+                            id="published"
+                            checked={template.published}
+                            onCheckedChange={(c) => setTemplate(p => ({...p, published: c}))}
+                        />
+                        <Label htmlFor="published">Publish to Template Hub</Label>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">Make this template available for other merchants on Paynze to use.</p>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
                     <CardTitle>Preview</CardTitle>
                     <CardDescription>A glimpse of the template card.</CardDescription>
                 </CardHeader>
@@ -335,26 +335,6 @@ export function ProductTemplateForm({ initialTemplate }: { initialTemplate?: Par
                         <h3 className="font-semibold">{template.name || 'Template Name'}</h3>
                         <p className="text-sm text-muted-foreground">{template.description || 'Template Description'}</p>
                     </Card>
-                </CardContent>
-            </Card>
-            <Card>
-                <CardHeader>
-                    <CardTitle>Configuration Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="text-sm space-y-2 text-muted-foreground">
-                    <p><span className="font-semibold text-foreground">Type:</span> {template.product?.productType}</p>
-                    <p><span className="font-semibold text-foreground">Category:</span> {template.product?.category || 'Not set'}</p>
-                    <p><span className="font-semibold text-foreground">Variants:</span> {template.product?.hasVariants ? 'Yes' : 'No'}</p>
-                    {template.product?.hasVariants && productOptions.length > 0 && (
-                        <div>
-                            <p className="font-semibold text-foreground">Options:</p>
-                            <ul className="list-disc list-inside pl-4">
-                                {productOptions.filter(opt => opt.name).map((opt, i) => (
-                                    <li key={i}>{opt.name}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
                 </CardContent>
             </Card>
         </div>

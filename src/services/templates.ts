@@ -6,9 +6,12 @@ import { DataService } from './data-service';
 export const mockProductTemplates: ProductTemplate[] = [
   {
     id: 'tpl-tshirt',
-    name: 'T-Shirt',
+    name: 'Standard Apparel',
     icon: 'Shirt',
-    description: 'Standard t-shirt with size and color options.',
+    description: 'A template for clothing items with size and color variants. Perfect for t-shirts, dresses, and more.',
+    author: 'Paynze Official',
+    published: true,
+    usageCount: 128,
     product: {
       productType: 'Physical',
       category: 'Apparel',
@@ -18,17 +21,20 @@ export const mockProductTemplates: ProductTemplate[] = [
       inventoryTracking: 'Track Quantity',
       unitOfMeasure: 'unit',
       options: [
-        { name: 'Size', values: ['Small', 'Medium', 'Large'] },
-        { name: 'Color', values: ['Black', 'White'] }
+        { name: 'Size', values: ['Small', 'Medium', 'Large', 'XL'] },
+        { name: 'Color', values: [] }
       ],
-      tags: ['t-shirt', 'apparel', 'clothing'],
+      tags: ['apparel', 'clothing'],
     },
   },
   {
     id: 'tpl-ebook',
-    name: 'E-Book',
+    name: 'Digital Product',
     icon: 'Book',
-    description: 'A digital book or guide for instant delivery.',
+    description: 'For selling digital goods like e-books, guides, or software with instant delivery.',
+    author: 'Paynze Official',
+    published: true,
+    usageCount: 92,
     product: {
       productType: 'Digital',
       requiresShipping: false,
@@ -36,14 +42,17 @@ export const mockProductTemplates: ProductTemplate[] = [
       isTaxable: false,
       hasVariants: false,
       category: 'Digital Goods',
-      tags: ['ebook', 'guide', 'digital'],
+      tags: ['ebook', 'guide', 'digital', 'download'],
     },
   },
   {
-    id: 'tpl-consult',
-    name: 'Consultation',
+    id: 'tpl-service',
+    name: 'Bookable Service',
     icon: 'Briefcase',
-    description: 'A time-based service, like a coaching call.',
+    description: 'A template for time-based services like consultations, coaching calls, or classes.',
+    author: 'Paynze Official',
+    published: true,
+    usageCount: 45,
     product: {
       productType: 'Service',
       requiresShipping: false,
@@ -52,7 +61,30 @@ export const mockProductTemplates: ProductTemplate[] = [
       isTaxable: true,
       hasVariants: false,
       category: 'Professional Services',
-      tags: ['consulting', 'coaching', 'service'],
+      tags: ['consulting', 'coaching', 'service', 'booking'],
+    },
+  },
+  {
+    id: 'tpl-coffee',
+    name: 'Packaged Goods',
+    icon: 'Coffee',
+    description: 'Great for items sold by weight, like coffee, flour, or spices. Includes weight-based shipping fields.',
+    author: 'Kato Coffee Roasters',
+    published: true,
+    usageCount: 23,
+    product: {
+      productType: 'Physical',
+      requiresShipping: true,
+      inventoryTracking: 'Track Quantity',
+      isTaxable: false,
+      hasVariants: true,
+      unitOfMeasure: 'kg',
+      weight: 1,
+      options: [
+        { name: 'Weight', values: ['250g', '500g', '1kg'] }
+      ],
+      category: 'Food & Beverage',
+      tags: ['packaged', 'food', 'coffee', 'groceries'],
     },
   },
 ];
