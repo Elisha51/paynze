@@ -1,8 +1,7 @@
-
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Truck, Store, PackageCheck, User } from 'lucide-react';
+import { MoreHorizontal, Truck, Store } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,6 +31,8 @@ import { getInitials, cn } from '@/lib/utils';
 import { updateOrder } from '@/services/orders';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { useAuth } from '@/context/auth-context';
+import { User } from 'lucide-react';
+
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
   'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
@@ -49,13 +50,18 @@ const paymentMethods = [
     { value: 'Cash on Delivery', label: 'Cash on Delivery' },
 ];
 
+const fulfillmentMethods = [
+    { value: 'Delivery', label: 'Delivery' },
+    { value: 'Pickup', label: 'Pickup' },
+];
+
+
 function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { order: Order, staff: Staff[], onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
     const { toast } = useToast();
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
 
     const deliveryRiders = staff.filter(s => s.role === 'Agent');
     
-    // Suggest riders based on availability and zone
     const suggestedRiders = React.useMemo(() => {
         return deliveryRiders
             .filter(rider => {
@@ -150,24 +156,6 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'payment.status',
-    header: 'Payment Status',
-    cell: ({ row }) => {
-      const payment = row.original.payment;
-      const status = payment?.status || 'pending';
-      return (
-        <Badge variant={status === 'completed' ? 'default' : 'secondary'} className="capitalize">
-          {status}
-        </Badge>
-      );
-    },
-    filterFn: (row, id, value) => {
-        const payment = row.original.payment;
-        if (!payment) return value.includes('pending');
-        return value.includes(payment.status)
-    },
-  },
-  {
     id: 'paymentMethod',
     accessorFn: row => row.payment?.method,
     header: 'Payment Method',
@@ -189,7 +177,8 @@ const getColumns = (
         {row.original.fulfillmentMethod === 'Delivery' ? <Truck className="h-4 w-4 text-muted-foreground"/> : <Store className="h-4 w-4 text-muted-foreground"/>}
         {row.original.fulfillmentMethod}
       </div>
-    )
+    ),
+     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
     accessorKey: 'status',
@@ -233,7 +222,8 @@ const getColumns = (
                 <span className="font-medium text-xs">{staffName}</span>
             </Link>
         )
-    }
+    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {
     id: 'actions',
@@ -292,6 +282,12 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
+  const staffOptions = React.useMemo(() => 
+    staff
+      .filter(s => s.role === 'Agent')
+      .map(s => ({ value: s.name, label: s.name }))
+  , [staff]);
+
 
   return (
     <Card>
@@ -304,11 +300,18 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                 columns={columns}
                 data={deliveryWorklist}
                 isLoading={!orders || !staff}
-                filters={[{
-                    columnId: 'paymentMethod',
-                    title: 'Payment Method',
-                    options: paymentMethods
-                }]}
+                filters={[
+                    {
+                        columnId: 'fulfillmentMethod',
+                        title: 'Delivery Type',
+                        options: fulfillmentMethods
+                    },
+                    {
+                        columnId: 'assignedStaffName',
+                        title: 'Assigned To',
+                        options: staffOptions
+                    },
+                ]}
             />
         </CardContent>
     </Card>
