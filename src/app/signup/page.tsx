@@ -19,10 +19,10 @@ import { useToast } from '@/hooks/use-toast';
 
 export default function SignupPage() {
   const { login } = useAuth();
+  const { toast } = useToast();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { toast } = useToast();
 
   const handleSignup = async () => {
     if (!name || !email || !password) {
