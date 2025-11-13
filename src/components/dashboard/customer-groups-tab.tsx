@@ -21,6 +21,13 @@ import { useToast } from '@/hooks/use-toast';
 import type { CustomerGroup } from '@/lib/types';
 import { getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup } from '@/services/customer-groups';
 import { useAuth } from '@/context/auth-context';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+
 
 export function CustomerGroupsTab() {
   const [groups, setGroups] = useState<CustomerGroup[]>([]);
