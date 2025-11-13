@@ -10,12 +10,16 @@ import { themes } from '@/themes';
 import Image from 'next/image';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '../ui/alert';
+import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/context/auth-context';
+import { addStaff } from '@/services/staff';
 
 export default function Step5Confirmation() {
   const { formData, prevStep } = useOnboarding();
   const router = useRouter();
   const [isLaunching, setIsLaunching] = useState(false);
   const [launchError, setLaunchError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const selectedTheme = themes.find(t => t.name === formData.theme) || themes[0];
 
@@ -24,13 +28,24 @@ export default function Step5Confirmation() {
     setIsLaunching(true);
 
     try {
-      console.log("Saving onboarding data...");
-
       // 1. Save final onboarding data to localStorage for the new tenant
       localStorage.setItem('onboardingData', JSON.stringify(formData));
       
-      // 2. Redirect to dashboard. The user is already logged in.
-      router.push('/dashboard');
+      // 2. Set onboarding complete flag
+      localStorage.setItem('onboardingComplete', 'true');
+      
+      // 3. Show a toast on success. Since we are about to redirect,
+      // this toast might not be visible for long, but it's good practice.
+      toast({
+        title: "Store Setup Complete!",
+        description: "Redirecting you to your new dashboard.",
+      });
+
+      // 4. Redirect to dashboard. The user is already logged in.
+      // A slight delay can help ensure the user sees the toast.
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 500);
 
     } catch (error) {
       console.error("Launch process failed:", error);
@@ -42,7 +57,11 @@ export default function Step5Confirmation() {
       } 
       setLaunchError(errorMessage);
     } finally {
-      setIsLaunching(false);
+      // No need to set isLaunching to false if we are redirecting on success.
+      // It will only be set to false on error.
+      if (launchError) {
+        setIsLaunching(false);
+      }
     }
   };
 
