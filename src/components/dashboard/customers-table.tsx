@@ -3,20 +3,30 @@
 import * as React from 'react';
 import { PlusCircle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Customer } from '@/lib/types';
+import type { Customer, CustomerGroup } from '@/lib/types';
 import { DataTable } from './data-table';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
 import { getCustomerColumns } from './customers-columns';
 import { useAuth } from '@/context/auth-context';
+import { getCustomerGroups } from '@/services/customer-groups';
 
 export function CustomersTable({ data, setData, isLoading }: { data: Customer[], setData: React.Dispatch<React.SetStateAction<Customer[]>>, isLoading: boolean }) {
     const { toast } = useToast();
     const { user } = useAuth();
+    const [customerGroups, setCustomerGroups] = React.useState<CustomerGroup[]>([]);
     
     const canCreate = user?.permissions.customers.create;
     const canEdit = user?.permissions.customers.edit ?? false;
     const canDelete = user?.permissions.customers.delete ?? false;
+
+    React.useEffect(() => {
+        async function loadGroups() {
+            const groups = await getCustomerGroups();
+            setCustomerGroups(groups);
+        }
+        loadGroups();
+    }, []);
 
     const handleDeleteCustomer = (customerId: string) => {
         // In a real app, call a service to delete the customer
@@ -27,11 +37,7 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
 
     const columns = React.useMemo(() => getCustomerColumns(handleDeleteCustomer, canEdit, canDelete), [canEdit, canDelete]);
     
-    const customerGroups = [
-        { value: 'default', label: 'Default' },
-        { value: 'Wholesaler', label: 'Wholesaler' },
-        { value: 'Retailer', label: 'Retailer' },
-    ];
+    const customerGroupOptions = customerGroups.map(g => ({ value: g.name, label: g.name }));
     
     const createdByOptions = React.useMemo(() => {
         if (!user?.permissions.customers.viewAll) return [];
@@ -49,7 +55,7 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
         {
             columnId: 'customerGroup',
             title: 'Group',
-            options: customerGroups
+            options: customerGroupOptions
         },
         ...(user?.permissions.customers.viewAll ? [{
             columnId: 'createdByName',

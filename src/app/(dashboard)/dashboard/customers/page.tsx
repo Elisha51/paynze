@@ -14,6 +14,7 @@ import { DateRange } from 'react-day-picker';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
 import { useAuth } from '@/context/auth-context';
 import { usePathname } from 'next/navigation';
+import { CustomerGroupsTab } from '@/components/dashboard/customer-groups-tab';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -40,6 +41,7 @@ export default function CustomersPage() {
   
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },
+    { value: 'groups', label: 'Groups' },
   ];
 
   if (canViewAnalytics) {
@@ -48,7 +50,7 @@ export default function CustomersPage() {
 
   const ctaContent = activeTab === 'analytics'
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
-    : (
+    : ( canCreate && activeTab === 'all-customers' && (
         <div className="flex gap-2">
              {canCreate && (
                 <Button asChild>
@@ -56,7 +58,8 @@ export default function CustomersPage() {
                 </Button>
             )}
         </div>
-      );
+      )
+    );
 
   return (
     <DashboardPageLayout 
@@ -69,6 +72,11 @@ export default function CustomersPage() {
       <DashboardPageLayout.TabContent value="all-customers">
         <DashboardPageLayout.Content>
             <CustomersTable data={customers} setData={setCustomers} isLoading={isLoading} />
+        </DashboardPageLayout.Content>
+      </DashboardPageLayout.TabContent>
+       <DashboardPageLayout.TabContent value="groups">
+        <DashboardPageLayout.Content>
+            <CustomerGroupsTab />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
       {canViewAnalytics && (

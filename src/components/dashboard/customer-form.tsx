@@ -19,11 +19,12 @@ import {
 } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
 import { getCountryList } from '@/services/countries';
-import type { Customer } from '@/lib/types';
+import type { Customer, CustomerGroup } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
 import { addCustomer, updateCustomer } from '@/services/customers';
+import { getCustomerGroups } from '@/services/customer-groups';
 
 const emptyCustomer: Partial<Customer> = {
     name: '',
@@ -42,6 +43,7 @@ const emptyCustomer: Partial<Customer> = {
 export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer | null }) {
   const [customer, setCustomer] = useState<Partial<Customer>>(initialCustomer || emptyCustomer);
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+  const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
   const [countryCode, setCountryCode] = useState('+256');
   const router = useRouter();
   const { toast } = useToast();
@@ -52,19 +54,30 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
   const isEditing = !!initialCustomer;
 
   useEffect(() => {
-    async function loadCountries() {
-        const countryList = await getCountryList();
+    async function loadInitialData() {
+        const [countryList, groupData] = await Promise.all([
+            getCountryList(),
+            getCustomerGroups()
+        ]);
+        
         setCountries(countryList);
-        const defaultCountry = countryList.find(c => c.name === (initialCustomer?.shippingAddress?.country || 'Uganda'));
-        if (defaultCountry) {
-            setCountryCode(defaultCountry.dialCode);
+        setCustomerGroups(groupData);
+        
+        if (initialCustomer) {
+            setCustomer(initialCustomer);
+            const initialCountry = countryList.find(c => c.name === initialCustomer.shippingAddress?.country);
+            if (initialCountry) {
+                setCountryCode(initialCountry.dialCode);
+            }
+        } else {
+             const defaultCountry = countryList.find(c => c.name === 'Uganda');
+             if (defaultCountry) {
+                setCountryCode(defaultCountry.dialCode);
+            }
         }
     }
-    loadCountries();
+    loadInitialData();
 
-    if (initialCustomer) {
-        setCustomer(initialCustomer);
-    }
   }, [initialCustomer]);
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -212,9 +225,9 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
                                 <SelectValue placeholder="Select group" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="default">Default</SelectItem>
-                                <SelectItem value="Wholesaler">Wholesaler</SelectItem>
-                                <SelectItem value="Retailer">Retailer</SelectItem>
+                                {customerGroups.map(group => (
+                                    <SelectItem key={group.id} value={group.name}>{group.name}</SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

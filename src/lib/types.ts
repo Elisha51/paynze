@@ -1,4 +1,5 @@
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -140,6 +141,11 @@ export type Category = {
   description?: string;
 };
 
+export type CustomerGroup = {
+  id: string;
+  name: string;
+};
+
 export type ProductTemplate = {
   id: string;
   name: string;
@@ -245,7 +251,7 @@ export type Customer = {
     name: string;
     email: string;
     phone: string;
-    customerGroup: 'default' | 'Wholesaler' | 'Retailer';
+    customerGroup: string;
     lastOrderDate: string;
     totalSpend: number;
     currency: string;
