@@ -13,7 +13,6 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
 import { useAuth } from '@/context/auth-context';
-import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { CustomerGroupsTab } from '@/components/dashboard/customer-groups-tab';
 import type { ColumnFiltersState } from '@tanstack/react-table';
 
@@ -25,9 +24,6 @@ export default function CustomersPage() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const { user } = useAuth();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const pathname = usePathname();
 
   const canCreate = user?.permissions.customers.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
@@ -44,16 +40,6 @@ export default function CustomersPage() {
         loadData();
     }
   }, [loadData, user]);
-  
-  useEffect(() => {
-    const groupFilter = searchParams.get('group');
-    if (groupFilter) {
-      setActiveTab('all-customers');
-      setColumnFilters([{ id: 'customerGroup', value: [groupFilter] }]);
-      // Clean up URL
-      router.replace(pathname, { scroll: false });
-    }
-  }, [searchParams, pathname, router]);
 
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },
@@ -64,15 +50,6 @@ export default function CustomersPage() {
     tabs.push({ value: 'analytics', label: 'Analytics' });
   }
   
-  const handleTabChange = (tab: string) => {
-      // Clear filters when switching away from the main table view
-      // This prevents the group filter from persisting when the user manually clicks back to "All Customers"
-      if (tab === 'all-customers' && columnFilters.length > 0 && !searchParams.get('group')) {
-        setColumnFilters([]);
-      }
-      setActiveTab(tab);
-  };
-
   const ctaContent = activeTab === 'analytics'
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
     : ( canCreate && activeTab === 'all-customers' && (
@@ -91,7 +68,7 @@ export default function CustomersPage() {
         title="Customers"
         tabs={tabs}
         activeTab={activeTab}
-        onTabChange={handleTabChange}
+        onTabChange={setActiveTab}
         cta={ctaContent}
     >
       <DashboardPageLayout.TabContent value="all-customers">
@@ -107,7 +84,7 @@ export default function CustomersPage() {
       </DashboardPageLayout.TabContent>
        <DashboardPageLayout.TabContent value="groups">
         <DashboardPageLayout.Content>
-            <CustomerGroupsTab customers={customers} isLoading={isLoading} />
+            <CustomerGroupsTab customers={customers} isLoading={isLoading} setCustomers={setCustomers} />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
       {canViewAnalytics && (

@@ -1,8 +1,8 @@
 
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { useState, useMemo } from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,7 +16,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, MoreHorizontal, Edit, Trash2, Users } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, Users, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import type { Customer, CustomerGroup } from '@/lib/types';
 import { getCustomerGroups, addCustomerGroup, updateCustomerGroup, deleteCustomerGroup } from '@/services/customer-groups';
@@ -27,31 +27,31 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import Link from 'next/link';
 import { Skeleton } from '../ui/skeleton';
+import { CustomersTable } from './customers-table';
 
-export function CustomerGroupsTab({ customers, isLoading: isLoadingCustomers }: { customers: Customer[], isLoading: boolean }) {
+export function CustomerGroupsTab({ customers, isLoading: isLoadingCustomers, setCustomers }: { customers: Customer[], isLoading: boolean, setCustomers: React.Dispatch<React.SetStateAction<Customer[]>> }) {
   const [groups, setGroups] = useState<CustomerGroup[]>([]);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
   const [editingGroup, setEditingGroup] = useState<CustomerGroup | null>(null);
   const [isLoadingGroups, setIsLoadingGroups] = useState(true);
+  const [selectedGroup, setSelectedGroup] = useState<CustomerGroup | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
   
   const canEdit = user?.permissions.customers.edit;
 
-  const loadData = useCallback(async () => {
-    setIsLoadingGroups(true);
-    const fetchedData = await getCustomerGroups();
-    setGroups(fetchedData);
-    setIsLoadingGroups(false);
-  }, []);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useState(() => {
+    async function loadGroups() {
+        setIsLoadingGroups(true);
+        const fetchedData = await getCustomerGroups();
+        setGroups(fetchedData);
+        setIsLoadingGroups(false);
+    }
+    loadGroups();
+  });
   
   const groupCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -70,7 +70,6 @@ export function CustomerGroupsTab({ customers, isLoading: isLoadingCustomers }: 
     toast({ title: 'Customer Group Added' });
     setIsAddOpen(false);
     setNewGroupName('');
-    loadData();
   };
 
   const handleUpdateGroup = async () => {
@@ -82,13 +81,11 @@ export function CustomerGroupsTab({ customers, isLoading: isLoadingCustomers }: 
     toast({ title: 'Customer Group Updated' });
     setIsEditOpen(false);
     setEditingGroup(null);
-    loadData();
   };
 
   const handleDeleteGroup = async (groupId: string) => {
     await deleteCustomerGroup(groupId);
     toast({ title: 'Customer Group Deleted', variant: 'destructive' });
-    loadData();
   };
   
   const openEditDialog = (group: CustomerGroup) => {
@@ -101,6 +98,27 @@ export function CustomerGroupsTab({ customers, isLoading: isLoadingCustomers }: 
   }
   
   const isLoading = isLoadingGroups || isLoadingCustomers;
+
+  if (selectedGroup) {
+      const filteredCustomers = customers.filter(c => c.customerGroup === selectedGroup.name);
+      return (
+          <div>
+              <div className="flex items-center gap-4 mb-4">
+                  <Button variant="outline" size="icon" onClick={() => setSelectedGroup(null)}>
+                      <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  <h2 className="text-2xl font-bold tracking-tight">Customers in "{selectedGroup.name}"</h2>
+              </div>
+              <CustomersTable 
+                data={filteredCustomers} 
+                setData={setCustomers} 
+                isLoading={isLoading} 
+                columnFilters={[{ id: 'customerGroup', value: [selectedGroup.name] }]}
+                setColumnFilters={() => {}}
+              />
+          </div>
+      )
+  }
 
   return (
     <>
@@ -143,30 +161,30 @@ export function CustomerGroupsTab({ customers, isLoading: isLoadingCustomers }: 
                 [...Array(3)].map((_, i) => <Skeleton key={i} className="h-32" />)
             ) : (
                 groups.map(group => (
-                    <Card key={group.id} className="hover:bg-muted/50 transition-colors">
-                        <Link href={`/dashboard/customers?group=${encodeURIComponent(group.name)}`} className="flex flex-col h-full">
+                    <Card key={group.id} className="hover:bg-muted/50 transition-colors cursor-pointer" onClick={() => setSelectedGroup(group)}>
+                        <div className="flex flex-col h-full">
                             <CardHeader className="flex-row items-center justify-between pb-2">
                                 <CardTitle className="text-lg">{group.name}</CardTitle>
                                 {canEdit && (
                                     <AlertDialog>
                                         <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2" onClick={(e) => e.preventDefault()}>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8 -mr-2" onClick={(e) => e.stopPropagation()}>
                                                 <MoreHorizontal className="h-4 w-4" />
                                             </Button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
-                                            <DropdownMenuItem onClick={(e) => { e.preventDefault(); openEditDialog(group); }}>
+                                            <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEditDialog(group); }}>
                                                 <Edit className="mr-2 h-4 w-4" /> Edit
                                             </DropdownMenuItem>
                                             <AlertDialogTrigger asChild>
-                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={e => e.preventDefault()}>
+                                            <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={e => {e.preventDefault(); e.stopPropagation();}}>
                                                 <Trash2 className="mr-2 h-4 w-4" /> Delete
                                             </DropdownMenuItem>
                                             </AlertDialogTrigger>
                                         </DropdownMenuContent>
                                         </DropdownMenu>
-                                        <AlertDialogContent>
+                                        <AlertDialogContent onClick={(e) => e.stopPropagation()}>
                                             <AlertDialogHeader>
                                                 <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                                                 <AlertDialogDescription>This will delete the "{group.name}" group. This action cannot be undone.</AlertDialogDescription>
@@ -186,7 +204,7 @@ export function CustomerGroupsTab({ customers, isLoading: isLoadingCustomers }: 
                                     <span>customer{groupCounts[group.name] !== 1 && 's'}</span>
                                 </div>
                             </CardContent>
-                        </Link>
+                        </div>
                     </Card>
                 ))
             )}
