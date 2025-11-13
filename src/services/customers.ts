@@ -1,4 +1,5 @@
 
+'use client';
 import type { Customer, Staff } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
