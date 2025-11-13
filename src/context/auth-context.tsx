@@ -64,7 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (userToLogin: Staff) => {
     localStorage.setItem('loggedInUserId', userToLogin.id);
     await fetchUserPermissions(userToLogin);
-    router.push('/dashboard');
+    const onboardingDataRaw = localStorage.getItem('onboardingData');
+    if (onboardingDataRaw) {
+        router.push('/dashboard');
+    } else {
+        router.push('/get-started');
+    }
   }, [fetchUserPermissions, router]);
 
   const logout = useCallback(() => {

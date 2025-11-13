@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { CheckCircle, Store, Globe, Wallet, Truck, Loader2 } from 'lucide-react';
 import { themes } from '@/themes';
 import Image from 'next/image';
-import { addStaff } from '@/services/staff';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '../ui/alert';
 
@@ -25,24 +24,13 @@ export default function Step5Confirmation() {
     setIsLaunching(true);
 
     try {
-      console.log("Starting launch sequence...");
+      console.log("Saving onboarding data...");
 
       // 1. Save final onboarding data to localStorage for the new tenant
       localStorage.setItem('onboardingData', JSON.stringify(formData));
       
-      // 2. Create the first user (Account Owner) for this new tenant
-      const adminUser = await addStaff({
-          name: formData.businessName,
-          email: `admin@${formData.subdomain}.com`,
-          role: 'Admin',
-          status: 'Active',
-      });
-
-      // 3. Set this new user as the logged-in user for the session
-      localStorage.setItem('loggedInUserId', adminUser.id);
-      
-      // 4. Redirect to login page with a success flag
-      router.push('/login?onboarding=success');
+      // 2. Redirect to dashboard. The user is already logged in.
+      router.push('/dashboard');
 
     } catch (error) {
       console.error("Launch process failed:", error);

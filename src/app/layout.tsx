@@ -3,13 +3,13 @@
 
 import type { Metadata } from 'next';
 import { Inter, PT_Sans } from 'next/font/google';
-import { Toaster } from "@/components/ui/toaster";
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { useEffect, useState } from 'react';
 import { AuthProvider } from '@/context/auth-context';
 import { usePathname, useRouter } from 'next/navigation';
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -23,7 +23,6 @@ const ptSans = PT_Sans({
 });
 
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
-  const [themeClass, setThemeClass] = useState('light');
   const pathname = usePathname();
   const router = useRouter();
 
@@ -50,17 +49,11 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
 
     applyTheme();
 
-    const onboardingData = localStorage.getItem('onboardingData');
     const loggedInUser = localStorage.getItem('loggedInUserId');
-    const publicPaths = ['/', '/get-started', '/login', '/store', '/affiliate-signup', '/affiliate/login'];
+    const publicPaths = ['/', '/login', '/signup', '/store', '/affiliate-signup', '/affiliate/login'];
 
-    if (
-      !onboardingData &&
-      !publicPaths.some(p => pathname.startsWith(p))
-    ) {
-      router.push('/');
-    } else if (onboardingData && !loggedInUser && pathname.startsWith('/dashboard')) {
-      router.push('/login');
+    if (!loggedInUser && pathname === '/get-started') {
+        router.push('/signup');
     }
 
     window.addEventListener('theme-changed', applyTheme);
@@ -83,6 +76,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
           <AuthProvider>
             <OnboardingProvider>
               {children}
+              <Toaster />
             </OnboardingProvider>
           </AuthProvider>
         </div>

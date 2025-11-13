@@ -92,7 +92,7 @@ export default function LandingPage() {
     <div className="flex flex-col min-h-screen bg-background">
       <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-14 items-center">
-          <Link href="#" className="flex items-center space-x-2">
+          <Link href="/" className="flex items-center space-x-2">
             <Store className="h-6 w-6 text-primary" />
             <span className="font-bold text-xl font-headline">Paynze</span>
           </Link>
@@ -104,7 +104,7 @@ export default function LandingPage() {
                 <Link href="#">Book a Demo</Link>
             </Button>
             <Button asChild>
-                <Link href="/get-started">Start Free Trial</Link>
+                <Link href="/signup">Start Free Trial</Link>
             </Button>
           </div>
         </div>
@@ -123,7 +123,7 @@ export default function LandingPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                         <Button size="lg" asChild>
-                            <Link href="/get-started">Start Free Trial</Link>
+                            <Link href="/signup">Start Free Trial</Link>
                         </Button>
                         <Button size="lg" variant="outline" asChild>
                              <Link href="#">Book a Demo</Link>
@@ -267,7 +267,7 @@ export default function LandingPage() {
                  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl font-headline">Ready to grow your business online?</h2>
                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-8">
                     <Button size="lg" asChild>
-                        <Link href="/get-started">Start Free Trial</Link>
+                        <Link href="/signup">Start Free Trial</Link>
                     </Button>
                     <Button size="lg" variant="outline" asChild>
                          <Link href="#">Book a Demo</Link>
@@ -280,7 +280,7 @@ export default function LandingPage() {
       <footer className="border-t bg-background">
         <div className="container py-12 grid grid-cols-2 md:grid-cols-5 gap-8">
             <div className="col-span-2 md:col-span-1 space-y-2">
-                 <Link href="#" className="flex items-center space-x-2">
+                 <Link href="/" className="flex items-center space-x-2">
                     <Store className="h-6 w-6 text-primary" />
                     <span className="font-bold text-xl font-headline">Paynze</span>
                 </Link>

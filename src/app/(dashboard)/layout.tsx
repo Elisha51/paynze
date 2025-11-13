@@ -27,13 +27,11 @@ export default function DashboardLayout({
     const data = localStorage.getItem('onboardingData');
     if (data) {
       setOnboardingData(JSON.parse(data));
-    } else if (pathname !== '/get-started') {
-        // If there's no onboarding data and we are not on the setup page,
-        // it's likely a fresh start, so guide them to setup.
-        // But only if they somehow bypass other auth checks.
-        // router.push('/get-started');
+    } else if (!isLoading && user && pathname !== '/get-started') {
+        // If user is logged in but has no onboarding data, redirect to setup
+        router.push('/get-started');
     }
-  }, [pathname, router]);
+  }, [pathname, router, user, isLoading]);
 
   useEffect(() => {
     if (!isLoading && !user) {
