@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 export default function Step2StoreSetup() {
   const { formData, setFormData, nextStep, prevStep } = useOnboarding();
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
+  const [isChecking, setIsChecking] = useState(false);
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -26,15 +27,28 @@ export default function Step2StoreSetup() {
     setFormData(prev => ({ ...prev, [id]: value }));
   };
 
-  const checkAvailability = () => {
-    // Mock availability check
-    setTimeout(() => {
-        setIsAvailable(true);
+  const checkAvailability = async () => {
+    setIsChecking(true);
+    try {
+      // Mock availability check with a delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      setIsAvailable(true);
+      toast({
+          title: "Subdomain available!",
+          description: `${formData.subdomain}.paynze.app is yours.`,
+      });
+    } catch (error) {
+        console.error("Availability check failed:", error);
+        setIsAvailable(false);
         toast({
-            title: "Subdomain available!",
-            description: `${formData.subdomain}.paynze.app is yours.`,
+            variant: 'destructive',
+            title: "Error",
+            description: "Could not check subdomain availability. Please try again.",
         });
-    }, 500)
+    } finally {
+        setIsChecking(false);
+    }
   };
 
   return (
@@ -56,7 +70,9 @@ export default function Step2StoreSetup() {
                      <div className="flex items-center space-x-2 pl-6">
                         <Input id="subdomain" placeholder="e.g. katos" value={formData.subdomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'subdomain'}/>
                          <span className="text-muted-foreground">.paynze.app</span>
-                        <Button variant="outline" onClick={checkAvailability} disabled={formData.domainType !== 'subdomain' || !formData.subdomain}>Check</Button>
+                        <Button variant="outline" onClick={checkAvailability} disabled={formData.domainType !== 'subdomain' || !formData.subdomain || isChecking}>
+                            {isChecking ? 'Checking...' : 'Check'}
+                        </Button>
                     </div>
                     {isAvailable && formData.domainType === 'subdomain' && (
                         <p className="text-sm text-green-600 flex items-center gap-1 mt-2 pl-6">
