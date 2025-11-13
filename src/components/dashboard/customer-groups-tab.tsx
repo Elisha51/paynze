@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,14 +32,14 @@ export function CustomerGroupsTab() {
   const { user } = useAuth();
   const canEdit = user?.permissions.customers.edit;
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const fetchedData = await getCustomerGroups();
     setGroups(fetchedData);
-  };
+  }, []);
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [loadData]);
 
   const handleAddGroup = async () => {
     if (!newGroupName.trim()) {
