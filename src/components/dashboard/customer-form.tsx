@@ -23,17 +23,25 @@ import type { Customer } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
+import { addCustomer, updateCustomer } from '@/services/customers';
 
 const emptyCustomer: Partial<Customer> = {
     name: '',
     email: '',
     phone: '',
     customerGroup: 'default',
+    shippingAddress: {
+        street: '',
+        city: '',
+        country: 'Uganda',
+        postalCode: '',
+    }
 };
 
 export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer | null }) {
   const [customer, setCustomer] = useState<Partial<Customer>>(initialCustomer || emptyCustomer);
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
+  const [countryCode, setCountryCode] = useState('+256');
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -46,6 +54,10 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
     async function loadCountries() {
         const countryList = await getCountryList();
         setCountries(countryList);
+        const defaultCountry = countryList.find(c => c.name === (initialCustomer?.shippingAddress?.country || 'Uganda'));
+        if (defaultCountry) {
+            setCountryCode(defaultCountry.dialCode);
+        }
     }
     loadCountries();
 
@@ -58,25 +70,45 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
     const { id, value } = e.target;
     setCustomer(prev => ({...prev, [id]: value }));
   }
+
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setCustomer(prev => ({...prev, shippingAddress: { ...prev.shippingAddress!, [id]: value }}));
+  };
   
   const handleSelectChange = (id: 'customerGroup' | 'country', value: string) => {
-      // In a real app you might have a more complex address object
       if (id === 'country') {
-          // This is a simplification
-          console.log('Country changed to:', value);
+          setCustomer(prev => ({...prev, shippingAddress: { ...prev.shippingAddress!, country: value }}));
+          const selectedCountry = countries.find(c => c.name === value);
+          if (selectedCountry) {
+            setCountryCode(selectedCountry.dialCode);
+          }
       } else {
           setCustomer(prev => ({...prev, [id]: value as any}));
       }
   }
   
-  const handleSave = () => {
-    // Mock saving logic
-    console.log("Saving customer", customer);
-    toast({
-        title: initialCustomer ? "Customer Updated" : "Customer Created",
-        description: `Customer ${customer.name} has been saved.`
-    });
-    router.push('/dashboard/customers');
+  const handleSave = async () => {
+    if (!customer.name || !customer.email) {
+        toast({ variant: 'destructive', title: 'Name and email are required.' });
+        return;
+    }
+
+    try {
+        if (isEditing && customer.id) {
+            await updateCustomer(customer as Customer);
+        } else {
+            await addCustomer(customer as Omit<Customer, 'id'>);
+        }
+        toast({
+            title: initialCustomer ? "Customer Updated" : "Customer Created",
+            description: `Customer ${customer.name} has been saved.`
+        });
+        router.push('/dashboard/customers');
+    } catch (e) {
+        console.error(e);
+        toast({ variant: 'destructive', title: 'Save failed' });
+    }
   }
 
   if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
@@ -115,7 +147,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                  <div className="flex items-center gap-2">
-                    <Select defaultValue="+256">
+                    <Select value={countryCode} onValueChange={(code) => setCountryCode(code)}>
                     <SelectTrigger className="w-[120px]">
                         <SelectValue placeholder="Code" />
                     </SelectTrigger>
@@ -135,17 +167,17 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
             </CardHeader>
             <CardContent className="space-y-4">
                  <div className="space-y-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input id="address" placeholder="e.g., 123 Main St"/>
+                    <Label htmlFor="street">Address</Label>
+                    <Input id="street" placeholder="e.g., 123 Main St" value={customer.shippingAddress?.street} onChange={handleAddressChange}/>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="e.g., Nairobi"/>
+                        <Input id="city" placeholder="e.g., Nairobi" value={customer.shippingAddress?.city} onChange={handleAddressChange}/>
                     </div>
                     <div className="space-y-2">
                        <Label htmlFor="country">Country</Label>
-                        <Select onValueChange={(v) => handleSelectChange('country', v)}>
+                        <Select value={customer.shippingAddress?.country} onValueChange={(v) => handleSelectChange('country', v)}>
                             <SelectTrigger id="country">
                                 <SelectValue placeholder="Select a country" />
                             </SelectTrigger>

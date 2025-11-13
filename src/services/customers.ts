@@ -1,5 +1,4 @@
 
-
 import type { Customer } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
@@ -76,19 +75,32 @@ export async function getCustomers(): Promise<Customer[]> {
 }
 
 export async function getCustomerById(customerId: string): Promise<Customer | undefined> {
-  // Fetching the customer and orders for the current tenant.
   const [customer, tenantOrders] = await Promise.all([
     customerService.getById(customerId),
-    getOrders() // This service is already tenant-aware.
+    getOrders()
   ]);
 
   if (customer) {
-    // Filter orders for this specific customer from the tenant's orders.
     const customerOrders = tenantOrders.filter(o => o.customerId === customerId);
     customer.orders = customerOrders;
   }
   
   return customer;
+}
+
+export async function addCustomer(customerData: Omit<Customer, 'id' | 'lastOrderDate' | 'totalSpend'>): Promise<Customer> {
+    const newCustomer: Customer = {
+        id: `cust-${Date.now()}`,
+        ...customerData,
+        lastOrderDate: '',
+        totalSpend: 0,
+        createdAt: new Date().toISOString(),
+        communications: [],
+        orders: [],
+        wishlist: [],
+        discounts: [],
+    };
+    return await customerService.create(newCustomer, { prepend: true });
 }
 
 export async function updateCustomer(customer: Customer): Promise<Customer> {

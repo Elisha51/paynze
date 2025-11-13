@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { Order, PaymentDetails, OnboardingFormData, ShippingZone, DeliveryMethod } from '@/lib/types';
+import type { Order, PaymentDetails, OnboardingFormData, ShippingZone, DeliveryMethod, Customer } from '@/lib/types';
 import { addOrder } from '@/services/orders';
 import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
@@ -18,6 +18,8 @@ import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getCountryList } from '@/services/countries';
 import { getShippingZones } from '@/services/shipping';
+import { Checkbox } from '@/components/ui/checkbox';
+import { addCustomer, getCustomerById } from '@/services/customers';
 
 async function simulatePaymentWebhook(orderId: string, status: 'SUCCESS' | 'FAILED') {
     await fetch('/api/payments/webhook', {
@@ -30,8 +32,7 @@ async function simulatePaymentWebhook(orderId: string, status: 'SUCCESS' | 'FAIL
 export default function CheckoutPage() {
   const { cartItems, cartTotal, currency, clearCart } = useCart();
   const router = useRouter();
-  const [customerInfo, setCustomerInfo] = useState({ name: '', email: '', phone: '' });
-  const [shippingInfo, setShippingInfo] = useState({ street: '', city: '', country: 'Uganda' });
+  const [customer, setCustomer] = useState<Partial<Customer> | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentDetails['method']>('Cash on Delivery');
   const [isLoading, setIsLoading] = useState(false);
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
@@ -40,21 +41,23 @@ export default function CheckoutPage() {
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<DeliveryMethod | null>(null);
+  const [createAccount, setCreateAccount] = useState(false);
+  const isLoggedIn = !!customer;
 
   useEffect(() => {
-    // Redirect to login if not authenticated
-    const isLoggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
-    if (!isLoggedIn) {
-      router.push('/store/login?redirect=/checkout');
-      return;
-    }
-
     async function loadInitialData() {
+        const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
+        if (loggedInCustomerId) {
+            const custData = await getCustomerById(loggedInCustomerId);
+            if (custData) {
+                setCustomer(custData);
+            }
+        }
+
         const data = localStorage.getItem('onboardingData');
         if (data) {
             const parsedSettings: OnboardingFormData = JSON.parse(data);
             setSettings(parsedSettings);
-            setShippingInfo(prev => ({...prev, country: parsedSettings.country || 'Uganda'}));
         }
         const [countryList, zones] = await Promise.all([
             getCountryList(),
@@ -67,10 +70,10 @@ export default function CheckoutPage() {
   }, [router]);
   
   const { availableShippingMethods, taxAmount, shippingFee, total } = useMemo(() => {
-    const applicableZone = shippingZones.find(zone => zone.countries.includes(shippingInfo.country));
+    const shippingCountry = customer?.shippingAddress?.country || 'Uganda';
+    const applicableZone = shippingZones.find(zone => zone.countries.includes(shippingCountry));
     const methods = applicableZone?.deliveryMethods || [];
     
-    // Set default shipping method if not already set or invalid
     if (methods.length > 0 && (!selectedShippingMethod || !methods.find(m => m.id === selectedShippingMethod.id))) {
         setSelectedShippingMethod(methods[0]);
     } else if (methods.length === 0 && selectedShippingMethod) {
@@ -90,16 +93,55 @@ export default function CheckoutPage() {
         shippingFee: fee,
         total: finalTotal,
     };
-  }, [shippingZones, shippingInfo.country, cartItems, cartTotal, settings, selectedShippingMethod]);
+  }, [shippingZones, customer, cartItems, cartTotal, settings, selectedShippingMethod]);
+
+  const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setCustomer(p => p ? {...p, [id]: value } : { [id]: value });
+  };
+  
+  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { id, value } = e.target;
+      setCustomer(p => ({ ...p, shippingAddress: { ...p?.shippingAddress, [id]: value } as any }));
+  };
 
   const handlePlaceOrder = async () => {
     setIsLoading(true);
+
+    let currentCustomer = customer;
+    if (!isLoggedIn && createAccount && customer?.email && customer.name) {
+        try {
+            currentCustomer = await addCustomer({
+                name: customer.name,
+                email: customer.email,
+                phone: `${countryCode}${customer.phone}`,
+                customerGroup: 'default',
+                lastOrderDate: '',
+                totalSpend: 0,
+                currency: currency,
+            });
+            localStorage.setItem('isCustomerLoggedIn', 'true');
+            localStorage.setItem('loggedInCustomerId', currentCustomer.id);
+        } catch(e) {
+            toast({ variant: 'destructive', title: 'Could not create account.' });
+            setIsLoading(false);
+            return;
+        }
+    }
+
+    if (!currentCustomer?.name || !currentCustomer.email) {
+        toast({ variant: 'destructive', title: 'Please enter customer information.' });
+        setIsLoading(false);
+        return;
+    }
+
+
     try {
         const orderData: Omit<Order, 'id'> = {
-            customerId: `cust-${Date.now()}`, // Temporary customer ID
-            customerName: customerInfo.name,
-            customerEmail: customerInfo.email,
-            customerPhone: `${countryCode}${customerInfo.phone}`,
+            customerId: currentCustomer.id || `cust-${Date.now()}`,
+            customerName: currentCustomer.name,
+            customerEmail: currentCustomer.email,
+            customerPhone: `${countryCode}${currentCustomer.phone}`,
             date: new Date().toISOString(),
             status: 'Awaiting Payment' as const,
             fulfillmentMethod: selectedShippingMethod?.type === 'Pickup' ? 'Pickup' : 'Delivery',
@@ -107,7 +149,7 @@ export default function CheckoutPage() {
             items: cartItems.map(({ productId, variantId, image, isTaxable, ...rest }) => rest), // Remove client-side fields
             total: total,
             currency: currency,
-            shippingAddress: { ...shippingInfo, postalCode: '00000' },
+            shippingAddress: { ...customer.shippingAddress, postalCode: '00000' } as any,
             payment: {
                 method: paymentMethod,
                 status: 'pending' as const,
@@ -124,10 +166,7 @@ export default function CheckoutPage() {
         });
 
         if (paymentMethod === 'Mobile Money') {
-            // Simulate payment processing after a short delay
             setTimeout(() => {
-                // In a real app, this would be handled by the payment provider's webhook
-                // Here we simulate a successful payment for demonstration
                 simulatePaymentWebhook(newOrder.id, 'SUCCESS');
                  toast({
                     title: 'Payment Successful',
@@ -137,7 +176,7 @@ export default function CheckoutPage() {
         }
 
         clearCart();
-        router.push('/store'); // Redirect to a success page or back to store
+        router.push('/store');
     } catch(error) {
         console.error("Failed to place order:", error);
         toast({
@@ -173,16 +212,21 @@ export default function CheckoutPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Customer Information</CardTitle>
+                         {!isLoggedIn && (
+                            <CardDescription>
+                                Already have an account? <Button asChild variant="link" className="p-0 h-auto"><Link href="/store/login?redirect=/checkout">Log in</Link></Button>
+                            </CardDescription>
+                        )}
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Full Name</Label>
-                            <Input id="name" value={customerInfo.name} onChange={(e) => setCustomerInfo(p => ({...p, name: e.target.value}))} />
+                            <Input id="name" value={customer?.name || ''} onChange={handleCustomerChange} />
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                            <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" type="email" value={customerInfo.email} onChange={(e) => setCustomerInfo(p => ({...p, email: e.target.value}))} />
+                                <Input id="email" type="email" value={customer?.email || ''} onChange={handleCustomerChange} />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="phone">Phone Number</Label>
@@ -195,10 +239,18 @@ export default function CheckoutPage() {
                                         {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                                       </SelectContent>
                                     </Select>
-                                    <Input id="phone" type="tel" value={customerInfo.phone} onChange={(e) => setCustomerInfo(p => ({...p, phone: e.target.value}))} />
+                                    <Input id="phone" type="tel" value={customer?.phone || ''} onChange={handleCustomerChange} />
                                 </div>
                             </div>
                         </div>
+                         {!isLoggedIn && (
+                            <div className="flex items-center space-x-2 pt-2">
+                                <Checkbox id="createAccount" checked={createAccount} onCheckedChange={(checked) => setCreateAccount(checked as boolean)} />
+                                <Label htmlFor="createAccount" className="text-sm font-normal">
+                                Create an account to save your information for next time
+                                </Label>
+                            </div>
+                        )}
                     </CardContent>
                 </Card>
                 <Card>
@@ -208,16 +260,16 @@ export default function CheckoutPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="street">Street Address</Label>
-                            <Input id="street" value={shippingInfo.street} onChange={(e) => setShippingInfo(p => ({...p, street: e.target.value}))} />
+                            <Input id="street" value={customer?.shippingAddress?.street || ''} onChange={handleAddressChange} />
                         </div>
                          <div className="grid sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="city">City</Label>
-                                <Input id="city" value={shippingInfo.city} onChange={(e) => setShippingInfo(p => ({...p, city: e.target.value}))} />
+                                <Input id="city" value={customer?.shippingAddress?.city || ''} onChange={handleAddressChange} />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="country">Country</Label>
-                                 <Select value={shippingInfo.country} onValueChange={(v) => setShippingInfo(p => ({...p, country: v}))}>
+                                 <Select value={customer?.shippingAddress?.country || 'Uganda'} onValueChange={(v) => setCustomer(p => ({...p, shippingAddress: { ...p?.shippingAddress, country: v } as any}))}>
                                     <SelectTrigger><SelectValue/></SelectTrigger>
                                     <SelectContent>
                                         {countries.map(c => <SelectItem key={c.code} value={c.name}>{c.name}</SelectItem>)}
