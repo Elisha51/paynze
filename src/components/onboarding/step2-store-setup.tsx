@@ -59,7 +59,7 @@ export default function Step2StoreSetup() {
                         <Button variant="outline" onClick={checkAvailability} disabled={formData.domainType !== 'subdomain' || !formData.subdomain}>Check</Button>
                     </div>
                     {isAvailable && formData.domainType === 'subdomain' && (
-                        <p className="text-sm text-accent flex items-center gap-1 mt-2 pl-6">
+                        <p className="text-sm text-green-600 flex items-center gap-1 mt-2 pl-6">
                             <CheckCircle className="h-4 w-4" /> Your store will be available at {formData.subdomain}.paynze.app
                         </p>
                     )}
