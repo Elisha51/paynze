@@ -38,6 +38,10 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
     const columns = React.useMemo(() => getCustomerColumns(handleDeleteCustomer, canEdit, canDelete), [canEdit, canDelete]);
     
     const customerGroupOptions = customerGroups.map(g => ({ value: g.name, label: g.name }));
+    const sourceOptions = [
+        { value: 'Manual', label: 'Manual' },
+        { value: 'Online', label: 'Online' },
+    ];
     
     const createdByOptions = React.useMemo(() => {
         if (!user?.permissions.customers.viewAll) return [];
@@ -56,6 +60,11 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
             columnId: 'customerGroup',
             title: 'Group',
             options: customerGroupOptions
+        },
+        {
+            columnId: 'source',
+            title: 'Source',
+            options: sourceOptions
         },
         ...(user?.permissions.customers.viewAll ? [{
             columnId: 'createdByName',

@@ -73,7 +73,13 @@ export const getCustomerColumns = (onDelete: (customerId: string) => void, canEd
     {
       accessorKey: 'createdAt',
       header: 'Date Added',
-      cell: ({row}) => row.original.createdAt ? formatDistanceToNow(new Date(row.original.createdAt), { addSuffix: true }) : 'N/A'
+      cell: ({row}) => row.original.createdAt ? formatDistanceToNow(new Date(row.original.createdAt)) : 'N/A'
+    },
+    {
+      accessorKey: 'source',
+      header: 'Source',
+      cell: ({ row }) => <Badge variant="secondary">{row.getValue('source')}</Badge>,
+      filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
       accessorKey: 'createdByName',
