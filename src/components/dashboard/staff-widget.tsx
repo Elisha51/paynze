@@ -66,12 +66,17 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
                         ))}
                         <Card asChild className="transition-all hover:shadow-md hover:border-primary/50">
                             <Link href="/dashboard/staff">
-                                <CardContent className="p-4 flex flex-col items-center justify-center h-full text-center">
-                                    <div className="p-3 rounded-full bg-muted border mb-2">
-                                        <Users className="h-6 w-6 text-muted-foreground"/>
+                                <CardContent className="p-4 flex items-center gap-4">
+                                     <Avatar className="h-12 w-12 bg-muted">
+                                        <AvatarFallback className="bg-transparent">
+                                            <Users className="h-6 w-6 text-muted-foreground" />
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 overflow-hidden">
+                                         <p className="font-semibold truncate">View All Staff</p>
+                                         <p className="text-sm text-muted-foreground">Manage your team</p>
                                     </div>
-                                    <p className="font-semibold text-sm">View All Staff</p>
-                                    <p className="text-xs text-muted-foreground">Manage roles & permissions</p>
+                                    <ArrowRight className="h-5 w-5 text-muted-foreground" />
                                 </CardContent>
                             </Link>
                         </Card>
