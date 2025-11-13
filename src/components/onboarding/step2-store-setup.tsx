@@ -29,12 +29,12 @@ export default function Step2StoreSetup() {
 
   const checkAvailability = async () => {
     if (!formData.subdomain) {
-        toast({
-            variant: 'destructive',
-            title: "Subdomain is empty",
-            description: "Please enter a subdomain to check.",
-        });
-        return;
+      toast({
+          variant: 'destructive',
+          title: "Subdomain is empty",
+          description: "Please enter a subdomain to check.",
+      });
+      return;
     }
     setIsChecking(true);
     try {
