@@ -248,25 +248,37 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
       throw new Error('Order not found');
   }
 
-  const isNewlyFulfilled = (updates.status === 'Delivered' || updates.status === 'Picked Up') && (originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up');
+  const isNewlyFulfilled = 
+      (updates.status === 'Delivered' || updates.status === 'Picked Up') && 
+      (originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up');
+  
   const isNewlyCancelled = updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled';
   const isNewlyPaid = updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed';
 
   if (isNewlyCancelled) {
-      // Un-reserve stock if order is cancelled
       for (const item of originalOrder.items) {
           await updateProductStock(item.sku, item.quantity, 'Un-reserve', `Order #${orderId} Cancelled`);
       }
   }
-
+  
   if (isNewlyFulfilled) {
-      // Deduct stock from inventory
       for (const item of originalOrder.items) {
           await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${orderId}`);
       }
+      if (originalOrder.payment.method === 'Cash on Delivery') {
+        await addTransaction({
+            date: new Date().toISOString(),
+            description: `Sale from Order #${orderId}`,
+            amount: originalOrder.total,
+            currency: originalOrder.currency,
+            type: 'Income',
+            category: 'Sales',
+            status: 'Cleared',
+            paymentMethod: 'Cash',
+        });
+      }
   }
 
-  // Merge payment details correctly
   const finalUpdates = {
       ...updates,
       ...(updates.payment && {
@@ -279,22 +291,6 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   
   const updatedOrder = await orderService.update(orderId, finalUpdates);
 
-  // Handle revenue logging for COD
-  if (isNewlyFulfilled && originalOrder.payment.method === 'Cash on Delivery') {
-    await addTransaction({
-        date: new Date().toISOString(),
-        description: `Sale from Order #${orderId}`,
-        amount: updatedOrder.total,
-        currency: updatedOrder.currency,
-        type: 'Income',
-        category: 'Sales',
-        status: 'Cleared',
-        paymentMethod: 'Cash',
-    });
-  }
-
-
-  // Handle commissions after the order has been updated
   if (isNewlyFulfilled) {
     await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
   }
@@ -405,7 +401,6 @@ export async function updateProductStock(
 
     switch (type) {
         case 'Sale':
-            // Sale happens from reserved stock if it was reserved first
             if (stock.reserved >= quantityChange) {
                 stock.reserved -= quantityChange;
             } else {
@@ -418,21 +413,19 @@ export async function updateProductStock(
         case 'Reserve':
             stock.available -= quantityChange;
             stock.reserved += quantityChange;
-            // No change to onHand, no stock adjustment record needed for reservation itself
             break;
         case 'Un-reserve':
             if (stock.reserved >= quantityChange) {
                 stock.reserved -= quantityChange;
                 stock.available += quantityChange;
             }
-            // No change to onHand
             break;
-        // ... other cases
+        default: break;
     }
     
     variant.stockByLocation[locIndex].stock = stock;
 
-    if (adjustmentQuantity !== 0) {
+    if (type !== 'Reserve' && type !== 'Un-reserve') {
         const adjustment: StockAdjustment = {
             id: `adj-${Date.now()}`,
             date: new Date().toISOString(),

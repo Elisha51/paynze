@@ -1,7 +1,7 @@
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Truck, Store } from 'lucide-react';
+import { MoreHorizontal, Truck, Store, User } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -31,7 +31,6 @@ import { getInitials, cn } from '@/lib/utils';
 import { updateOrder } from '@/services/orders';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { useAuth } from '@/context/auth-context';
-import { User } from 'lucide-react';
 
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
@@ -223,7 +222,11 @@ const getColumns = (
             </Link>
         )
     },
-    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    filterFn: (row, id, value) => {
+        const staffName = row.original.assignedStaffName;
+        if (!staffName) return (value as string[]).includes('Unassigned');
+        return (value as string[]).includes(staffName);
+    },
   },
   {
     id: 'actions',
@@ -282,11 +285,16 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
-  const staffOptions = React.useMemo(() => 
-    staff
-      .filter(s => s.role === 'Agent')
-      .map(s => ({ value: s.name, label: s.name }))
-  , [staff]);
+  const staffOptions = React.useMemo(() => {
+    const assignedStaff = new Set(deliveryWorklist.map(o => o.assignedStaffName).filter(Boolean));
+    const hasUnassigned = deliveryWorklist.some(o => !o.assignedStaffName);
+
+    const options = Array.from(assignedStaff).map(s => ({ value: s, label: s }));
+    if(hasUnassigned) {
+        options.unshift({ value: 'Unassigned', label: 'Unassigned' });
+    }
+    return options;
+  }, [deliveryWorklist]);
 
 
   return (
