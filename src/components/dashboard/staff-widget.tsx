@@ -64,17 +64,17 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
                         {coreStaff.slice(0, 3).map(member => (
                             <StaffCard key={member.id} member={member} />
                         ))}
-                        <Card asChild className="transition-all hover:shadow-md hover:border-primary/50">
-                            <Link href="/dashboard/staff">
-                                <CardContent className="p-4 flex items-center gap-4">
-                                     <Avatar className="h-12 w-12 bg-muted">
+                         <Card className="transition-all hover:shadow-md hover:border-primary/50">
+                            <Link href="/dashboard/staff" className="h-full">
+                               <CardContent className="p-4 flex items-center gap-4 h-full">
+                                    <Avatar className="h-12 w-12 bg-muted">
                                         <AvatarFallback className="bg-transparent">
                                             <Users className="h-6 w-6 text-muted-foreground" />
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 overflow-hidden">
-                                         <p className="font-semibold truncate">View All Staff</p>
-                                         <p className="text-sm text-muted-foreground">Manage your team</p>
+                                        <p className="font-semibold truncate">View All Staff</p>
+                                        <p className="text-sm text-muted-foreground">Manage your team</p>
                                     </div>
                                     <ArrowRight className="h-5 w-5 text-muted-foreground" />
                                 </CardContent>
@@ -86,5 +86,3 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
       </Card>
   );
 }
-
-    
