@@ -150,26 +150,28 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }, [initialProduct]);
   
   useEffect(() => {
-    if (product.hasVariants) {
-        const newVariants = generateVariants(product.options);
-        // Preserve existing variant data where possible
-        const mergedVariants = newVariants.map(newVariant => {
-            const existingVariant = product.variants.find(oldVariant => {
-                return JSON.stringify(oldVariant.optionValues) === JSON.stringify(newVariant.optionValues);
+    setProduct(prevProduct => {
+        if (prevProduct.hasVariants) {
+            const newVariants = generateVariants(prevProduct.options);
+            // Preserve existing variant data where possible
+            const mergedVariants = newVariants.map(newVariant => {
+                const existingVariant = prevProduct.variants.find(oldVariant => {
+                    return JSON.stringify(oldVariant.optionValues) === JSON.stringify(newVariant.optionValues);
+                });
+                return existingVariant ? { ...newVariant, ...existingVariant, id: newVariant.id } : newVariant;
             });
-            return existingVariant ? { ...newVariant, ...existingVariant, id: newVariant.id } : newVariant;
-        });
-        setProduct(prev => ({ ...prev, variants: mergedVariants }));
-    } else {
-        // If not using variants, ensure there is a single default variant for stock tracking
-        if (product.variants.length === 0) {
-            setProduct(prev => ({
-                ...prev,
-                variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prev.retailPrice }]
-            }));
+            return { ...prevProduct, variants: mergedVariants };
+        } else {
+            // If not using variants, ensure there is a single default variant for stock tracking
+            if (prevProduct.variants.length === 0) {
+                return {
+                    ...prevProduct,
+                    variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prevProduct.retailPrice }]
+                };
+            }
         }
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+        return prevProduct;
+    });
   }, [product.options, product.hasVariants]);
 
 
