@@ -22,7 +22,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Campaign, CampaignBanner, Affiliate } from '@/lib/types';
+import type { Campaign, CampaignBanner, Affiliate, CustomerGroup } from '@/lib/types';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { RichTextEditor } from '../ui/rich-text-editor';
@@ -38,6 +38,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
+import { getCustomerGroups } from '@/services/customer-groups';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -66,6 +67,7 @@ type CampaignFormProps = {
 export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>(initialCampaign || emptyCampaign);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
+    const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>(
         initialCampaign?.startDate ? {
             from: new Date(initialCampaign.startDate),
@@ -83,11 +85,15 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         if (initialCampaign) {
             setCampaign(prev => ({...prev, ...initialCampaign}));
         }
-        async function loadAffiliates() {
-            const data = await getAffiliates();
-            setAffiliates(data.filter(a => a.status === 'Active'));
+        async function loadData() {
+            const [affiliateData, customerGroupData] = await Promise.all([
+                getAffiliates(),
+                getCustomerGroups()
+            ]);
+            setAffiliates(affiliateData.filter(a => a.status === 'Active'));
+            setCustomerGroups(customerGroupData);
         }
-        loadAffiliates();
+        loadData();
     }, [initialCampaign]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,8 +300,9 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                     <SelectContent>
                                         <SelectItem value="All Customers">All Customers</SelectItem>
                                         <SelectItem value="New Customers">New Customers</SelectItem>
-                                        <SelectItem value="Wholesalers">Wholesalers</SelectItem>
-                                        <SelectItem value="Retailers">Retailers</SelectItem>
+                                        {customerGroups.map(group => (
+                                          <SelectItem key={group.id} value={group.name}>{group.name}</SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>

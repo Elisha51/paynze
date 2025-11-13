@@ -240,7 +240,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
             <TabsList>
                 <TabsTrigger value="all">All Activity</TabsTrigger>
                 <TabsTrigger value="order">Orders</TabsTrigger>
-                <TabsTrigger value="communication">Notes &amp; Activity</TabsTrigger>
+                <TabsTrigger value="communication">Notes & Activity</TabsTrigger>
             </TabsList>
         </Tabs>
 
