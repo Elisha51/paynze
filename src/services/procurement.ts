@@ -1,6 +1,7 @@
 
-import type { Supplier, PurchaseOrder } from '@/lib/types';
+import type { Supplier, PurchaseOrder, StockAdjustment } from '@/lib/types';
 import { DataService } from './data-service';
+import { getProducts, updateProduct } from './products';
 
 
 const mockSuppliers: Supplier[] = [
@@ -99,4 +100,61 @@ export async function getPurchaseOrdersBySupplierId(supplierId: string): Promise
 
 export async function getPurchaseOrderById(id: string): Promise<PurchaseOrder | undefined> {
     return await poService.getById(id);
+}
+
+export async function receivePurchaseOrder(poId: string, locationName: string): Promise<PurchaseOrder> {
+    const po = await poService.getById(poId);
+    if (!po) throw new Error("Purchase order not found");
+    if (po.status === 'Received') throw new Error("This purchase order has already been received.");
+
+    const products = await getProducts();
+
+    for (const item of po.items) {
+        let productToUpdate = products.find(p => p.variants.some(v => v.sku === item.productId));
+        if (!productToUpdate) {
+            console.warn(`Product for SKU ${item.productId} not found. Skipping stock update.`);
+            continue;
+        }
+
+        const variantIndex = productToUpdate.variants.findIndex(v => v.sku === item.productId);
+        if (variantIndex === -1) {
+             console.warn(`Variant with SKU ${item.productId} not found in product ${productToUpdate.name}. Skipping stock update.`);
+            continue;
+        }
+        
+        let productCopy = { ...productToUpdate };
+        let variantCopy = { ...productCopy.variants[variantIndex] };
+        let stockByLocationCopy = [...variantCopy.stockByLocation];
+        let locIndex = stockByLocationCopy.findIndex(loc => loc.locationName === locationName);
+        
+        if (locIndex === -1) {
+            stockByLocationCopy.push({ locationName, stock: { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 } });
+            locIndex = stockByLocationCopy.length - 1;
+        }
+        
+        let stockCopy = { ...stockByLocationCopy[locIndex].stock };
+        stockCopy.onHand += item.quantity;
+        stockCopy.available += item.quantity;
+
+        stockByLocationCopy[locIndex] = { ...stockByLocationCopy[locIndex], stock: stockCopy };
+
+        const adjustment: StockAdjustment = {
+            id: `adj-${Date.now()}-${item.productId}`,
+            date: new Date().toISOString(),
+            type: 'Initial Stock',
+            quantity: item.quantity,
+            reason: `PO #${po.id}`,
+            channel: 'Manual',
+            details: `Received at ${locationName}`
+        };
+
+        variantCopy.stockAdjustments = [...(variantCopy.stockAdjustments || []), adjustment];
+        variantCopy.stockByLocation = stockByLocationCopy;
+        productCopy.variants[variantIndex] = variantCopy;
+        
+        await updateProduct(productCopy);
+    }
+    
+    const updatedPO = await poService.update(poId, { status: 'Received' });
+    return updatedPO;
 }

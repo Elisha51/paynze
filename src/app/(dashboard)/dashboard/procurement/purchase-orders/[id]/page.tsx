@@ -4,14 +4,14 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, ChevronLeft, Truck } from 'lucide-react';
+import { ArrowLeft, MoreVertical, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { getPurchaseOrderById } from '@/services/procurement';
-import type { PurchaseOrder, OnboardingFormData } from '@/lib/types';
+import { getPurchaseOrderById, receivePurchaseOrder } from '@/services/procurement';
+import { getLocations } from '@/services/locations';
+import type { PurchaseOrder, OnboardingFormData, Location } from '@/lib/types';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -22,7 +22,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Separator } from "@/components/ui/separator"
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -35,30 +34,111 @@ import {
   TableFooter
 } from "@/components/ui/table"
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+
+function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
+    const [location, setLocation] = useState<string>('');
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline" size="sm" disabled={order.status === 'Received'}>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    {order.status === 'Received' ? 'Already Received' : 'Mark as Received'}
+                </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Receive Stock for PO #{order.id}</DialogTitle>
+                    <DialogDescription>
+                        Select the location where you are receiving this inventory. This will update the stock levels for all items in this purchase order.
+                    </DialogDescription>
+                </DialogHeader>
+                 <div className="py-4 space-y-2">
+                    <Label htmlFor="location">Receiving Location</Label>
+                    <Select onValueChange={setLocation}>
+                        <SelectTrigger id="location">
+                            <SelectValue placeholder="Select a location..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {locations.map(loc => (
+                                <SelectItem key={loc.id} value={loc.name}>{loc.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                    <DialogClose asChild>
+                        <Button onClick={() => onConfirm(location)} disabled={!location}>Confirm & Add to Inventory</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 export default function ViewPurchaseOrderPage() {
   const params = useParams();
   const id = params.id as string;
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
+  const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+  const { toast } = useToast();
+
+  const loadData = async () => {
+      setLoading(true);
+      const [data, settingsData, locs] = await Promise.all([
+          getPurchaseOrderById(id),
+          localStorage.getItem('onboardingData'),
+          getLocations()
+      ]);
+      setOrder(data || null);
+      if (settingsData) {
+          setSettings(JSON.parse(settingsData));
+      }
+      setLocations(locs);
+      setLoading(false);
+  }
 
   useEffect(() => {
-    const data = localStorage.getItem('onboardingData');
-    if (data) {
-        setSettings(JSON.parse(data));
-    }
     if (id) {
-        async function loadOrder() {
-            setLoading(true);
-            const fetchedOrder = await getPurchaseOrderById(id);
-            setOrder(fetchedOrder || null);
-            setLoading(false);
-        }
-        loadOrder();
+        loadData();
     }
   }, [id]);
   
+  const handleReceiveStock = async (locationName: string) => {
+    if (!order) return;
+    try {
+        const updatedOrder = await receivePurchaseOrder(order.id, locationName);
+        setOrder(updatedOrder);
+        toast({
+            title: 'Stock Received!',
+            description: `Inventory levels have been updated at ${locationName}.`
+        });
+    } catch (e) {
+        console.error(e);
+        toast({
+            variant: 'destructive',
+            title: 'Failed to Receive Stock',
+            description: 'There was an error updating your inventory. Please try again.'
+        });
+    }
+  }
+
   if (loading || !settings) {
     return (
      <DashboardPageLayout title="Loading Purchase Order...">
@@ -101,8 +181,8 @@ export default function ViewPurchaseOrderPage() {
 
   const statusVariant = {
       Draft: 'secondary',
-      Sent: 'default',
-      Received: 'outline',
+      Sent: 'outline',
+      Received: 'default',
       Partial: 'outline',
       Cancelled: 'destructive',
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
@@ -111,9 +191,7 @@ export default function ViewPurchaseOrderPage() {
   
   const cta = (
     <div className="flex items-center gap-2">
-        <Button variant="outline" size="sm">
-            Mark as Received
-        </Button>
+        <ReceiveStockDialog order={order} locations={locations} onConfirm={handleReceiveStock} />
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
             <Button variant="outline" size="icon" className="h-9 w-9">
