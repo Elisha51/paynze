@@ -25,7 +25,7 @@ export function StaffCard({ member }: { member: Staff }) {
   };
 
   return (
-      <Card className="h-full transition-all hover:shadow-lg hover:border-primary/50 relative overflow-hidden">
+      <Card className="transition-all hover:shadow-md hover:border-primary/50 relative overflow-hidden">
         {member.status === 'Pending Verification' && (
            <div className="absolute top-0 right-0 h-16 w-16">
             <div className="absolute transform rotate-45 bg-yellow-400 text-center text-white font-semibold py-1 right-[-34px] top-[16px] w-[120px]">
@@ -69,3 +69,5 @@ export function StaffCard({ member }: { member: Staff }) {
       </Card>
   );
 }
+
+    
