@@ -1,7 +1,7 @@
 
 
 import type { Order, Product, Staff, Role, StockAdjustment } from '@/lib/types';
-import { updateProduct } from './products';
+import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
 import { DataService } from './data-service';
@@ -359,13 +359,78 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
 };
 
 export async function updateProductStock(
-    sku: string, 
+    variantSku: string, 
     quantityChange: number, 
     type: StockAdjustment['type'], 
     reason: string
 ) {
-    // This function now interacts with the product service, which is tenant-aware.
-    // However, the logic for finding the product and updating its stock is complex
-    // and best kept within the `updateProduct` function itself.
-    // For now, we will assume `updateProduct` can handle these granular adjustments.
+    const products = await getProducts();
+    let productToUpdate: Product | undefined;
+    let variantIndex = -1;
+
+    for (const p of products) {
+        const vIndex = p.variants.findIndex(v => v.sku === variantSku);
+        if (vIndex !== -1) {
+            productToUpdate = p;
+            variantIndex = vIndex;
+            break;
+        }
+    }
+    
+    if (!productToUpdate || variantIndex === -1) {
+        console.warn(`Stock update failed: Variant with SKU ${variantSku} not found.`);
+        return;
+    }
+    
+    const product = { ...productToUpdate }; // Create a mutable copy
+    const variant = { ...product.variants[variantIndex] };
+    
+    // For simplicity, we assume one stock location. A real app would need to specify which location.
+    const locationName = 'Main Warehouse';
+    let locIndex = variant.stockByLocation.findIndex(l => l.locationName === locationName);
+    
+    if (locIndex === -1) {
+        variant.stockByLocation.push({ locationName, stock: { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 }});
+        locIndex = variant.stockByLocation.length - 1;
+    }
+
+    const stock = { ...variant.stockByLocation[locIndex].stock };
+    
+    let adjustmentQuantity = 0;
+
+    switch (type) {
+        case 'Sale':
+            stock.onHand -= quantityChange;
+            stock.sold += quantityChange;
+            adjustmentQuantity = -quantityChange;
+            break;
+        case 'Reserve':
+            stock.available -= quantityChange;
+            stock.reserved += quantityChange;
+            // No change in onHand for reservation, so no stock adjustment record
+            break;
+        case 'Un-reserve':
+            stock.available += quantityChange;
+            stock.reserved -= quantityChange;
+            // No change in onHand, so no stock adjustment record
+            break;
+        // ... other cases like Damage, Return, etc.
+    }
+    
+    variant.stockByLocation[locIndex] = { ...variant.stockByLocation[locIndex], stock };
+
+    if (adjustmentQuantity !== 0) {
+        const adjustment: StockAdjustment = {
+            id: `adj-${Date.now()}`,
+            date: new Date().toISOString(),
+            type,
+            quantity: adjustmentQuantity,
+            reason,
+            channel: 'Online' // This might need to be more dynamic
+        };
+        variant.stockAdjustments = [...(variant.stockAdjustments || []), adjustment];
+    }
+    
+    product.variants[variantIndex] = variant;
+    await updateProduct(product);
 }

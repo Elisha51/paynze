@@ -47,7 +47,7 @@ import type { Staff } from '@/lib/types';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials } from '@/lib/utils';
-import { updateOrder, updateProductStock } from '@/services/orders';
+import { updateOrder } from '@/services/orders';
 import { useAuth } from '@/context/auth-context';
 
 
@@ -533,11 +533,18 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
   };
   
   const columns = React.useMemo(() => getColumns(handleUpdate, settings?.currency || 'UGX', !!canEdit), [handleUpdate, settings?.currency, canEdit]);
+  
+  const columnVisibility = React.useMemo(() => {
+    // Hide 'Assigned To' column if no orders have an assigned staff member
+    const hasAnyAssignments = data.some(o => !!o.assignedStaffName || !!o.fulfilledByStaffName);
+    return { assignedStaffName: hasAnyAssignments };
+  }, [data]);
 
   return (
     <DataTable
       columns={columns}
       data={data}
+      columnVisibility={columnVisibility}
       isLoading={isLoading}
       filters={[
           { columnId: 'status', title: 'Status', options: orderStatuses },
