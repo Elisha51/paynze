@@ -16,15 +16,20 @@ import { useAuth } from '@/context/auth-context';
 import { addStaff } from '@/services/staff';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useRouter } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
   const { login } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSignup = async () => {
+  const handleSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!name || !email || !password) {
         toast({
             variant: 'destructive',
@@ -33,8 +38,8 @@ export default function SignupPage() {
         return;
     }
     
-    // In a real app, you'd have password validation here.
-
+    setIsSubmitting(true);
+    
     try {
         // Create the user with an 'Admin' role by default for the new tenant.
         const newUser = await addStaff({
@@ -46,6 +51,7 @@ export default function SignupPage() {
         });
         
         // Automatically log the user in after successful registration.
+        // The login function will handle the redirection.
         login(newUser);
 
     } catch (error) {
@@ -55,6 +61,8 @@ export default function SignupPage() {
             title: 'Signup Failed',
             description: 'This email may already be in use. Please try another.',
         });
+    } finally {
+        setIsSubmitting(false);
     }
   };
 
@@ -68,7 +76,7 @@ export default function SignupPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4">
+          <form onSubmit={handleSignup} className="grid gap-4">
              <div className="grid gap-2">
               <Label htmlFor="name">Full Name</Label>
               <Input
@@ -78,6 +86,7 @@ export default function SignupPage() {
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -89,6 +98,7 @@ export default function SignupPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
             <div className="grid gap-2">
@@ -101,15 +111,17 @@ export default function SignupPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
-            <Button onClick={handleSignup} type="submit" className="w-full">
-              Create Account
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isSubmitting ? 'Creating Account...' : 'Create Account'}
             </Button>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" disabled={isSubmitting}>
               Sign up with Google
             </Button>
-          </div>
+          </form>
           <div className="mt-4 text-center text-sm">
             Already have an account?{' '}
             <Link href="/login" className="underline">
