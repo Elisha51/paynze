@@ -15,20 +15,22 @@ import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/custom
 import { useAuth } from '@/context/auth-context';
 import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { CustomerGroupsTab } from '@/components/dashboard/customer-groups-tab';
+import type { ColumnFiltersState } from '@tanstack/react-table';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-customers');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [initialFilter, setInitialFilter] = useState<string | null>(null);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
   const { user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
 
   const canCreate = user?.permissions.customers.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
-  const pathname = usePathname();
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -41,15 +43,15 @@ export default function CustomersPage() {
     if(user) {
         loadData();
     }
-  }, [loadData, user, pathname]);
+  }, [loadData, user]);
   
   useEffect(() => {
     const groupFilter = searchParams.get('group');
     if (groupFilter) {
-        setActiveTab('all-customers');
-        setInitialFilter(groupFilter);
-        // Optional: remove the query param after applying the filter to clean up the URL
-        router.replace(pathname, { scroll: false });
+      setActiveTab('all-customers');
+      setColumnFilters([{ id: 'customerGroup', value: [groupFilter] }]);
+      // Clean up URL
+      router.replace(pathname, { scroll: false });
     }
   }, [searchParams, pathname, router]);
 
@@ -61,6 +63,15 @@ export default function CustomersPage() {
   if (canViewAnalytics) {
     tabs.push({ value: 'analytics', label: 'Analytics' });
   }
+  
+  const handleTabChange = (tab: string) => {
+      // Clear filters when switching away from the main table view
+      // This prevents the group filter from persisting when the user manually clicks back to "All Customers"
+      if (tab === 'all-customers' && columnFilters.length > 0 && !searchParams.get('group')) {
+        setColumnFilters([]);
+      }
+      setActiveTab(tab);
+  };
 
   const ctaContent = activeTab === 'analytics'
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
@@ -75,13 +86,6 @@ export default function CustomersPage() {
       )
     );
     
-    const handleTabChange = (tab: string) => {
-        if (tab !== 'all-customers') {
-            setInitialFilter(null);
-        }
-        setActiveTab(tab);
-    };
-
   return (
     <DashboardPageLayout 
         title="Customers"
@@ -92,7 +96,13 @@ export default function CustomersPage() {
     >
       <DashboardPageLayout.TabContent value="all-customers">
         <DashboardPageLayout.Content>
-            <CustomersTable data={customers} setData={setCustomers} isLoading={isLoading} initialGroupFilter={initialFilter} />
+            <CustomersTable 
+              data={customers} 
+              setData={setCustomers} 
+              isLoading={isLoading} 
+              columnFilters={columnFilters}
+              setColumnFilters={setColumnFilters}
+            />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
        <DashboardPageLayout.TabContent value="groups">

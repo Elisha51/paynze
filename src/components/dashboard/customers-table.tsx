@@ -10,22 +10,24 @@ import { useToast } from '@/hooks/use-toast';
 import { getCustomerColumns } from './customers-columns';
 import { useAuth } from '@/context/auth-context';
 import { getCustomerGroups } from '@/services/customer-groups';
+import type { ColumnFiltersState } from '@tanstack/react-table';
 
 export function CustomersTable({ 
     data, 
     setData, 
     isLoading, 
-    initialGroupFilter 
+    columnFilters,
+    setColumnFilters,
 }: { 
     data: Customer[], 
     setData: React.Dispatch<React.SetStateAction<Customer[]>>, 
     isLoading: boolean,
-    initialGroupFilter?: string | null
+    columnFilters: ColumnFiltersState,
+    setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>
 }) {
     const { toast } = useToast();
     const { user } = useAuth();
     const [customerGroups, setCustomerGroups] = React.useState<CustomerGroup[]>([]);
-    const [columnFilters, setColumnFilters] = React.useState<any[]>([]);
 
     const canCreate = user?.permissions.customers.create;
     const canEdit = user?.permissions.customers.edit ?? false;
@@ -38,12 +40,6 @@ export function CustomersTable({
         }
         loadGroups();
     }, []);
-    
-    React.useEffect(() => {
-        if(initialGroupFilter) {
-            setColumnFilters([{ id: 'customerGroup', value: [initialGroupFilter] }]);
-        }
-    }, [initialGroupFilter]);
 
     const handleDeleteCustomer = (customerId: string) => {
         // In a real app, call a service to delete the customer
