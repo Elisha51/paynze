@@ -5,29 +5,26 @@ import { useRouter } from 'next/navigation';
 import { useOnboarding } from '@/context/onboarding-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
 import { CheckCircle, Store, Globe, Wallet, Truck, Loader2 } from 'lucide-react';
 import { themes } from '@/themes';
 import Image from 'next/image';
 import { addStaff } from '@/services/staff';
 import { useState } from 'react';
+import { Alert, AlertDescription } from '../ui/alert';
 
 export default function Step5Confirmation() {
   const { formData, prevStep } = useOnboarding();
   const router = useRouter();
-  const { toast } = useToast();
   const [isLaunching, setIsLaunching] = useState(false);
   const [launchError, setLaunchError] = useState<string | null>(null);
 
   const selectedTheme = themes.find(t => t.name === formData.theme) || themes[0];
 
   const handleLaunch = async () => {
-    // 1. Initial State Reset
     setLaunchError(null);
     setIsLaunching(true);
 
     try {
-      // 2. Core Asynchronous Logic
       console.log("Starting launch sequence...");
 
       // 1. Save final onboarding data to localStorage for the new tenant
@@ -35,8 +32,8 @@ export default function Step5Confirmation() {
       
       // 2. Create the first user (Account Owner) for this new tenant
       const adminUser = await addStaff({
-          name: formData.businessName, // Or collect a personal name in step 1
-          email: `admin@${formData.subdomain}.com`, // Simulated email
+          name: formData.businessName,
+          email: `admin@${formData.subdomain}.com`,
           role: 'Admin',
           status: 'Active',
       });
@@ -44,38 +41,19 @@ export default function Step5Confirmation() {
       // 3. Set this new user as the logged-in user for the session
       localStorage.setItem('loggedInUserId', adminUser.id);
       
-      // 4. Show success and redirect to login
-      toast({
-          title: "Store Created!",
-          description: "Welcome to Paynze. Please log in to access your new dashboard.",
-          variant: "default",
-          duration: 5000,
-      });
-      
-      // Redirect to login page with a success flag
+      // 4. Redirect to login page with a success flag
       router.push('/login?onboarding=success');
 
     } catch (error) {
-      // 4. Error Isolation and Feedback
       console.error("Launch process failed:", error);
-    
       let errorMessage = "An unknown error prevented the launch.";
-
       if (error instanceof Error) {
         errorMessage = error.message;
       } else if (typeof error === 'string') {
           errorMessage = error;
       } 
-
       setLaunchError(errorMessage);
-      toast({
-          variant: 'destructive',
-          title: 'Launch Failed',
-          description: errorMessage,
-      });
-
     } finally {
-      // 5. Cleanup
       setIsLaunching(false);
     }
   };
@@ -113,9 +91,14 @@ export default function Step5Confirmation() {
                     {formData.delivery.deliveryFee && <p><strong>Delivery Fee:</strong> {formData.delivery.deliveryFee} {formData.currency}</p>}
                     {!formData.delivery.pickup && !formData.delivery.deliveryFee && <p className="text-sm text-muted-foreground">No delivery options configured.</p>}
                 </div>
+                 {launchError && (
+                    <Alert variant="destructive">
+                        <AlertDescription>{launchError}</AlertDescription>
+                    </Alert>
+                )}
             </CardContent>
             <CardFooter className="flex justify-between">
-                <Button variant="outline" onClick={prevStep}>Back</Button>
+                <Button variant="outline" onClick={prevStep} disabled={isLaunching}>Back</Button>
                 <Button onClick={handleLaunch} className="bg-accent hover:bg-accent/90" disabled={isLaunching}>
                     {isLaunching ? (
                         <>

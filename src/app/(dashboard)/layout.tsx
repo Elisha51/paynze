@@ -10,6 +10,7 @@ import { useAuth } from '@/context/auth-context';
 import AppSidebar from '@/components/layout/app-sidebar';
 import AppHeader from '@/components/layout/app-header';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function DashboardLayout({
   children,
@@ -69,6 +70,7 @@ export default function DashboardLayout({
             </div>
           </div>
         )}
+        <Toaster />
       </NotificationProvider>
     </SidebarProvider>
   );

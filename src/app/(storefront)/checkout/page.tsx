@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { Order, PaymentDetails, OnboardingFormData, ShippingZone, DeliveryMethod, Customer } from '@/lib/types';
 import { addOrder } from '@/services/orders';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -32,6 +32,7 @@ async function simulatePaymentWebhook(orderId: string, status: 'SUCCESS' | 'FAIL
 export default function CheckoutPage() {
   const { cartItems, cartTotal, currency, clearCart } = useCart();
   const router = useRouter();
+  const { toast } = useToast();
   const [customer, setCustomer] = useState<Partial<Customer> | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<PaymentDetails['method']>('Cash on Delivery');
   const [isLoading, setIsLoading] = useState(false);

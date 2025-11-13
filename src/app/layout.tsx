@@ -86,7 +86,6 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
             </OnboardingProvider>
           </AuthProvider>
         </div>
-        <Toaster />
       </body>
     </html>
   );
