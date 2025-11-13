@@ -117,6 +117,7 @@ export default function ViewOrderPage() {
       Paid: 'default',
       'Ready for Pickup': 'outline',
       Shipped: 'outline',
+      'Attempted Delivery': 'outline',
       Delivered: 'default',
       'Picked Up': 'default',
       Cancelled: 'destructive',
@@ -150,31 +151,31 @@ export default function ViewOrderPage() {
         <Badge variant={statusVariant} className="hidden sm:inline-flex">
             {order.status}
         </Badge>
-        {canEdit && (
-            <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-2">
+            {canEdit && order.channel === 'Manual' && (
                 <Button variant="outline" asChild>
                     <Link href={`/dashboard/orders/${order.id}/edit`}>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit Order
                     </Link>
                 </Button>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-9 w-9">
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">More</span>
-                    </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
-                        <DropdownMenuItem>Assign for Delivery</DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-        )}
+            )}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9">
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">More</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
+                    <DropdownMenuItem>Assign for Delivery</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -286,3 +287,5 @@ export default function ViewOrderPage() {
     </div>
   );
 }
+
+    

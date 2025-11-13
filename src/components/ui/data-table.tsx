@@ -14,6 +14,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  TableState,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -59,6 +60,7 @@ interface DataTableProps<TData, TValue> {
     description: string;
     cta?: React.ReactNode;
   };
+  initialState?: Partial<TableState>;
 }
 
 export function DataTable<TData, TValue>({
@@ -66,38 +68,41 @@ export function DataTable<TData, TValue>({
   data,
   filters,
   isLoading,
-  emptyState
+  emptyState,
+  initialState
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [globalFilter, setGlobalFilter] = React.useState('');
 
   const table = useReactTable({
-    data: data,
+    data,
     columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    initialState,
     state: {
       sorting,
-      columnFilters,
       columnVisibility,
       rowSelection,
+      columnFilters,
       globalFilter,
     },
-    globalFilterFn: 'auto',
-  });
+    onRowSelectionChange: setRowSelection,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
+    onGlobalFilterChange: setGlobalFilter,
+    getCoreRowModel: getCoreRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFacetedRowModel: getFacetedRowModel(),
+    getFacetedUniqueValues: getFacetedUniqueValues(),
+  })
   
   const isFiltered = table.getState().columnFilters.length > 0;
 
@@ -108,8 +113,8 @@ export function DataTable<TData, TValue>({
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                   placeholder="Search table..."
-                  value={table.getState().globalFilter ?? ''}
-                  onChange={(event) => table.setGlobalFilter(String(event.target.value))}
+                  value={globalFilter ?? ''}
+                  onChange={(event) => setGlobalFilter(String(event.target.value))}
                   className="pl-8 w-full"
               />
           </div>
@@ -196,20 +201,20 @@ export function DataTable<TData, TValue>({
                   colSpan={columns.length}
                   className="h-auto"
                 >
-                  {emptyState && data.length === 0 ? (
+                  {isFiltered ? (
+                    <EmptyState
+                      icon={<Search className="h-12 w-12 text-muted-foreground" />}
+                      title="No Results Found"
+                      description="No records match your current search query or filters. Try adjusting them to find what you're looking for."
+                    />
+                  ) : (emptyState && (
                     <EmptyState 
                       icon={React.createElement(emptyState.icon, { className: "h-12 w-12 text-primary" })}
                       title={emptyState.title}
                       description={emptyState.description}
                       cta={emptyState.cta}
                     />
-                  ) : (
-                    <EmptyState
-                      icon={<Search className="h-12 w-12 text-muted-foreground" />}
-                      title="No Results Found"
-                      description="No records match your current search query or filters. Try adjusting them to find what you're looking for."
-                    />
-                  )}
+                  ))}
                 </TableCell>
               </TableRow>
             )}
@@ -269,3 +274,5 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
+
+    

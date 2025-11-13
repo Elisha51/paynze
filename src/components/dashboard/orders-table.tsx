@@ -196,13 +196,13 @@ function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Orde
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
-  Paid: 'default',
+  'Paid': 'default',
   'Ready for Pickup': 'outline',
-  Shipped: 'outline',
+  'Shipped': 'outline',
   'Attempted Delivery': 'outline',
-  Delivered: 'default',
+  'Delivered': 'default',
   'Picked Up': 'default',
-  Cancelled: 'destructive',
+  'Cancelled': 'destructive',
 };
 
 const orderStatuses = [
@@ -543,8 +543,8 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
   return (
     <DataTable
       columns={columns}
+      initialState={{ columnVisibility }}
       data={data}
-      columnVisibility={columnVisibility}
       isLoading={isLoading}
       filters={[
           { columnId: 'status', title: 'Status', options: orderStatuses },
@@ -568,3 +568,5 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
     />
   );
 }
+
+    
