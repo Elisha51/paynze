@@ -1,5 +1,4 @@
 
-
 import type { Order, Product, Staff, Role, StockAdjustment } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -182,6 +181,16 @@ function initializeMockOrders(): Order[] {
 
 const orderService = new DataService<Order>('orders', initializeMockOrders);
 
+// This is a temporary service to fetch settings from localStorage until a proper backend is in place.
+const affiliateSettingsService = new DataService('affiliateSettings', () => ({
+    programStatus: 'Inactive',
+    commissionType: 'Percentage',
+    commissionRate: 10,
+    payoutThreshold: 50000,
+    cookieDuration: 30,
+}));
+
+
 export async function getOrders(): Promise<Order[]> {
   return await orderService.getAll();
 }
@@ -309,9 +318,9 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
 
     // Handle Affiliate Commissions
     if (staffRole.name === 'Affiliate') {
-        const affiliateSettingsData = localStorage.getItem('affiliateSettings');
-        if (affiliateSettingsData) {
-            const affiliateSettings = JSON.parse(affiliateSettingsData);
+        const affiliateSettingsArray = await affiliateSettingsService.getAll();
+        if (affiliateSettingsArray.length > 0) {
+            const affiliateSettings = affiliateSettingsArray[0] as any; // Cast as any to access properties
             if (affiliateSettings.programStatus === 'Active' && trigger === 'On Order Paid') {
                  if (affiliateSettings.commissionType === 'Percentage') {
                     totalEarnedCommission += order.total * (affiliateSettings.commissionRate / 100);
