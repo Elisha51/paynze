@@ -1,11 +1,10 @@
 
-
 'use client';
 import * as React from 'react';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, User, Truck, Store, PackageCheck, ShoppingCart, PlusCircle } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, User, Truck, Store, PackageCheck, ShoppingCart, PlusCircle, Edit } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -125,6 +124,19 @@ function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Orde
         }
         loadStaff();
     }, []);
+    
+    const suggestedRiders = React.useMemo(() => {
+        return staff
+            .filter(rider => {
+                const isOnline = rider.onlineStatus === 'Online';
+                const deliveryZones = rider.attributes?.deliveryZones as string[] | undefined;
+                if (!deliveryZones || deliveryZones.length === 0) return isOnline; // Available if online and no zones set
+                return isOnline && deliveryZones.includes(order.shippingAddress.city);
+            })
+            .sort((a,b) => (a.assignedOrders?.length || 0) - (b.assignedOrders?.length || 0)); // Prioritize riders with fewer orders
+    }, [staff, order.shippingAddress.city]);
+    
+    const otherRiders = staff.filter(r => !suggestedRiders.find(s => s.id === r.id));
 
     const handleAssign = async () => {
         if (!selectedStaffId) {
@@ -160,8 +172,13 @@ function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Orde
                             <SelectValue placeholder="Select a staff member..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {staff.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.role})</SelectItem>
+                             {suggestedRiders.length > 0 && <SelectValue>Suggested Riders</SelectValue>}
+                             {suggestedRiders.map(s => (
+                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
+                            ))}
+                            {otherRiders.length > 0 && <SelectValue>Other Riders</SelectValue>}
+                            {otherRiders.map(s => (
+                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
@@ -351,6 +368,29 @@ const getColumns = (
         return value.includes(row.getValue(id))
     },
   },
+    {
+    accessorKey: 'assignedStaffName',
+    header: 'Assigned To',
+    cell: ({ row }) => {
+        const order = row.original;
+        const staffName = order.fulfilledByStaffName || order.assignedStaffName;
+        const staffId = order.fulfilledByStaffId || order.assignedStaffId;
+        
+        if (!staffName) {
+            return <Badge variant="destructive">Unassigned</Badge>
+        }
+
+        return (
+            <Link href={`/dashboard/staff/${staffId}`} className="flex items-center gap-2 hover:underline">
+                <Avatar className="h-6 w-6">
+                    <AvatarImage src={`https://picsum.photos/seed/${staffId}/24/24`} />
+                    <AvatarFallback>{getInitials(staffName)}</AvatarFallback>
+                </Avatar>
+                <span className="font-medium text-xs">{staffName}</span>
+            </Link>
+        )
+    }
+  },
   {
     accessorKey: 'total',
     header: ({ column }) => {
@@ -401,6 +441,12 @@ const getColumns = (
                         <DropdownMenuItem asChild>
                             <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                         </DropdownMenuItem>
+                        
+                        {canEdit && order.channel === 'Manual' && (
+                            <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/orders/${order.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Order</Link>
+                            </DropdownMenuItem>
+                        )}
 
                         {canEdit && (
                           <>

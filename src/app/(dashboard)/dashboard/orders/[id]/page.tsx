@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, ChevronLeft, Truck } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { getOrderById, updateOrder } from '@/services/orders';
 import type { Order, OnboardingFormData } from '@/lib/types';
@@ -152,8 +152,11 @@ export default function ViewOrderPage() {
         </Badge>
         {canEdit && (
             <div className="ml-auto flex items-center gap-2">
-                <Button variant="outline" size="sm">
-                    Print
+                <Button variant="outline" asChild>
+                    <Link href={`/dashboard/orders/${order.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit Order
+                    </Link>
                 </Button>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>

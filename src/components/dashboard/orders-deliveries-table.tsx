@@ -12,7 +12,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import type { Order, Staff } from '@/lib/types';
 import { DataTable } from './data-table';
@@ -103,7 +102,7 @@ function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { orde
                     <Select onValueChange={setSelectedStaffId}>
                         <SelectTrigger><SelectValue placeholder="Select a rider..." /></SelectTrigger>
                         <SelectContent>
-                             {suggestedRiders.length > 0 && <SelectValue>Suggested</SelectValue>}
+                             {suggestedRiders.length > 0 && <SelectValue>Suggested Riders</SelectValue>}
                              {suggestedRiders.map(s => (
                                 <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
                             ))}
