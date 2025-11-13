@@ -433,9 +433,9 @@ export default function ViewStaffPage() {
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance & Attributes</TabsTrigger>}
+          {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance &amp; Attributes</TabsTrigger>}
           <TabsTrigger value="activity">Activity Log</TabsTrigger>
-          <TabsTrigger value="details">Documents & Details</TabsTrigger>
+          <TabsTrigger value="details">Documents &amp; Details</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6 space-y-6">
             {showAssignedOrders && (
@@ -482,7 +482,7 @@ export default function ViewStaffPage() {
                                 <Button asChild>
                                     <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
                                         <Edit className="mr-2 h-4 w-4" />
-                                        Edit Profile & Attributes
+                                        Edit Profile &amp; Attributes
                                     </Link>
                                 </Button>
                             )}
