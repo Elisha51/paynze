@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -35,7 +36,7 @@ import { useAuth } from '@/context/auth-context';
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
   'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
-  'Paid': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
+  'Paid': { label: 'Ready to Fulfill', color: 'bg-blue-100 text-blue-800' },
   'Ready for Pickup': { label: 'In Store', color: 'bg-blue-100 text-blue-800' },
   'Shipped': { label: 'In Transit', color: 'bg-yellow-100 text-yellow-800' },
   'Attempted Delivery': { label: 'Attempted', color: 'bg-orange-100 text-orange-800' },
@@ -52,6 +53,13 @@ const paymentMethods = [
 const fulfillmentMethods = [
     { value: 'Delivery', label: 'Delivery' },
     { value: 'Pickup', label: 'Pickup' },
+];
+
+const deliveryStatuses = [
+    { value: 'Paid', label: 'Ready to Fulfill' },
+    { value: 'Ready for Pickup', label: 'In Store' },
+    { value: 'Shipped', label: 'In Transit' },
+    { value: 'Attempted Delivery', label: 'Attempted' },
 ];
 
 
@@ -186,6 +194,7 @@ const getColumns = (
       const statusInfo = deliveryStatusMap[row.original.status];
       return <Badge className={statusInfo.color}>{statusInfo.label}</Badge>;
     },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
     {
     accessorKey: 'assignedStaffName',
@@ -223,8 +232,7 @@ const getColumns = (
         )
     },
     filterFn: (row, id, value) => {
-        const staffName = row.original.assignedStaffName;
-        if (!staffName) return (value as string[]).includes('Unassigned');
+        const staffName = row.original.assignedStaffName || 'Unassigned';
         return (value as string[]).includes(staffName);
     },
   },
@@ -279,9 +287,8 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
 
   const deliveryWorklist = data
     .filter(o => {
-        const isPaid = o.payment?.status === 'completed';
         const isReadyForFulfillment = ['Paid', 'Ready for Pickup', 'Shipped', 'Attempted Delivery'].includes(o.status);
-        return isPaid && isReadyForFulfillment;
+        return isReadyForFulfillment;
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -318,6 +325,16 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                         columnId: 'assignedStaffName',
                         title: 'Assigned To',
                         options: staffOptions
+                    },
+                    {
+                        columnId: 'paymentMethod',
+                        title: 'Payment',
+                        options: paymentMethods,
+                    },
+                    {
+                        columnId: 'status',
+                        title: 'Status',
+                        options: deliveryStatuses,
                     },
                 ]}
             />
