@@ -181,7 +181,6 @@ function initializeMockOrders(): Order[] {
 
 const orderService = new DataService<Order>('orders', initializeMockOrders);
 
-// This is a temporary service to fetch settings from localStorage until a proper backend is in place.
 const affiliateSettingsService = new DataService('affiliateSettings', () => ({
     programStatus: 'Inactive',
     commissionType: 'Percentage',
@@ -248,10 +247,12 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   if (!originalOrder) {
       throw new Error('Order not found');
   }
+
   const isNewlyFulfilled = (updates.status === 'Delivered' || updates.status === 'Picked Up') && (originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up');
+  const isNewlyCancelled = updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled';
+  const isNewlyPaid = updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed';
 
-
-  if (updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled') {
+  if (isNewlyCancelled) {
       // Un-reserve stock if order is cancelled
       for (const item of originalOrder.items) {
           await updateProductStock(item.sku, item.quantity, 'Un-reserve', `Order #${orderId} Cancelled`);
@@ -259,6 +260,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   }
 
   if (isNewlyFulfilled) {
+      // Deduct stock from inventory
       for (const item of originalOrder.items) {
           await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${orderId}`);
       }
@@ -278,7 +280,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   const updatedOrder = await orderService.update(orderId, finalUpdates);
 
   // Handle revenue logging for COD
-  if ( isNewlyFulfilled && originalOrder.payment.method === 'Cash on Delivery') {
+  if (isNewlyFulfilled && originalOrder.payment.method === 'Cash on Delivery') {
     await addTransaction({
         date: new Date().toISOString(),
         description: `Sale from Order #${orderId}`,
@@ -292,11 +294,11 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   }
 
 
-  // Handle commissions after the order has been updated in the main array
+  // Handle commissions after the order has been updated
   if (isNewlyFulfilled) {
     await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
   }
-  if (updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed') {
+  if (isNewlyPaid) {
     await handleCommission(updatedOrder.salesAgentId, updatedOrder, 'On Order Paid');
   }
 
@@ -316,11 +318,10 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
 
     let totalEarnedCommission = 0;
 
-    // Handle Affiliate Commissions
     if (staffRole.name === 'Affiliate') {
         const affiliateSettingsArray = await affiliateSettingsService.getAll();
         if (affiliateSettingsArray.length > 0) {
-            const affiliateSettings = affiliateSettingsArray[0] as any; // Cast as any to access properties
+            const affiliateSettings = affiliateSettingsArray[0] as any;
             if (affiliateSettings.programStatus === 'Active' && trigger === 'On Order Paid') {
                  if (affiliateSettings.commissionType === 'Percentage') {
                     totalEarnedCommission += order.total * (affiliateSettings.commissionRate / 100);
@@ -329,9 +330,7 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
                 }
             }
         }
-    } 
-    // Handle other staff roles
-    else if (staffRole.commissionRules && staffRole.commissionRules.length > 0) {
+    } else if (staffRole.commissionRules && staffRole.commissionRules.length > 0) {
         staffRole.commissionRules.forEach(rule => {
             if (rule.trigger === trigger) {
                 if (rule.type === 'Fixed Amount') {
@@ -343,7 +342,7 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
         });
     }
 
-    if (totalEarnedCommission > 0 || trigger === 'On Order Delivered') { // Update KPIs even if no commission
+    if (totalEarnedCommission > 0 || (staffRole.name === 'Agent' && trigger === 'On Order Delivered')) {
         let shouldUpdateStaff = totalEarnedCommission > 0;
         
         if (staffRole.name === 'Agent' && trigger === 'On Order Delivered') {
@@ -391,11 +390,9 @@ export async function updateProductStock(
         return;
     }
     
-    const product = { ...productToUpdate }; // Create a mutable copy
+    const product = { ...productToUpdate };
     const variant = { ...product.variants[variantIndex] };
-    
-    // For simplicity, we assume one stock location. A real app would need to specify which location.
-    const locationName = 'Main Warehouse';
+    const locationName = 'Main Warehouse'; // Simplification for mock data
     let locIndex = variant.stockByLocation.findIndex(l => l.locationName === locationName);
     
     if (locIndex === -1) {
@@ -404,11 +401,16 @@ export async function updateProductStock(
     }
 
     const stock = { ...variant.stockByLocation[locIndex].stock };
-    
     let adjustmentQuantity = 0;
 
     switch (type) {
         case 'Sale':
+            // Sale happens from reserved stock if it was reserved first
+            if (stock.reserved >= quantityChange) {
+                stock.reserved -= quantityChange;
+            } else {
+                stock.available -= quantityChange;
+            }
             stock.onHand -= quantityChange;
             stock.sold += quantityChange;
             adjustmentQuantity = -quantityChange;
@@ -416,17 +418,19 @@ export async function updateProductStock(
         case 'Reserve':
             stock.available -= quantityChange;
             stock.reserved += quantityChange;
-            // No change in onHand for reservation, so no stock adjustment record
+            // No change to onHand, no stock adjustment record needed for reservation itself
             break;
         case 'Un-reserve':
-            stock.available += quantityChange;
-            stock.reserved -= quantityChange;
-            // No change in onHand, so no stock adjustment record
+            if (stock.reserved >= quantityChange) {
+                stock.reserved -= quantityChange;
+                stock.available += quantityChange;
+            }
+            // No change to onHand
             break;
-        // ... other cases like Damage, Return, etc.
+        // ... other cases
     }
     
-    variant.stockByLocation[locIndex] = { ...variant.stockByLocation[locIndex], stock };
+    variant.stockByLocation[locIndex].stock = stock;
 
     if (adjustmentQuantity !== 0) {
         const adjustment: StockAdjustment = {
