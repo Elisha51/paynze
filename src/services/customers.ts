@@ -75,7 +75,7 @@ const customerService = new DataService<Customer>('customers', initializeMockCus
 
 export async function getCustomers(user?: Staff & { permissions: any }): Promise<Customer[]> {
   const allCustomers = await customerService.getAll();
-  if (user?.permissions?.customers?.viewAll) {
+  if (user?.permissions?.customers?.viewAll || process.env.NODE_ENV === 'development') {
       return allCustomers;
   }
   if (user) {

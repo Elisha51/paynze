@@ -142,6 +142,7 @@ export function CustomerAnalyticsReport({ customers, dateRange }: { customers: C
             <DataTable
                 columns={customersColumns}
                 data={reportData}
+                isLoading={false}
             />
         </CardContent>
       </Card>

@@ -23,7 +23,7 @@ export default function CustomersPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
   const canCreate = user?.permissions.customers.create;
-  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
+  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
   const pathname = usePathname();
 
   const loadData = useCallback(async () => {
