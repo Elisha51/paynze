@@ -46,8 +46,16 @@ export default function DashboardPage() {
             setSettings(JSON.parse(storedSettings));
         }
 
+        // Manually link assigned orders to staff members after fetching
+        const staffWithOrders = staffData.map(s => {
+            return {
+                ...s,
+                assignedOrders: ordersData.filter(o => o.assignedStaffId === s.id),
+            };
+        });
+
         setOrders(ordersData);
-        setStaff(staffData.filter(s => s.role !== 'Affiliate'));
+        setStaff(staffWithOrders.filter(s => s.role !== 'Affiliate'));
         setTodos(todosData);
         setIsLoading(false);
     }, []);
@@ -188,5 +196,3 @@ export default function DashboardPage() {
         </div>
     )
 }
-
-    

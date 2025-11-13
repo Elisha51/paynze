@@ -140,7 +140,7 @@ function initializeMockOrders(): Order[] {
                 transactionId: isPaid ? `txn_${order.id}` : undefined,
             },
         }
-        if (index === 0) { // Assign the first order for delivery
+        if (order.id === 'ORD-001') { // Assign the first order for delivery
             return {
                 ...fullOrder,
                 assignedStaffId: 'staff-003',
@@ -149,7 +149,7 @@ function initializeMockOrders(): Order[] {
                 fulfilledByStaffName: 'Peter Jones',
             };
         }
-        if (index === 1) { // Mark second order as a pickup
+        if (order.id === 'ORD-002') { // Mark second order as a pickup
             return {
                 ...fullOrder,
                 status: 'Picked Up' as const,
@@ -267,7 +267,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
             await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${orderId} Fulfilled`);
         }
          // Handle Cash on Delivery payment by creating a transaction upon fulfillment
-        if (originalOrder.payment.method === 'Cash on Delivery') {
+        if (originalOrder.payment.method === 'Cash on Delivery' && originalOrder.payment.status !== 'completed') {
             await addTransaction({
                 date: new Date().toISOString(),
                 description: `Sale from Order #${orderId}`,
@@ -408,11 +408,6 @@ export async function updateProductStock(
 
     switch (type) {
         case 'Sale':
-            if (stock.reserved >= quantityChange) {
-                stock.reserved -= quantityChange;
-            } else {
-                stock.available -= quantityChange;
-            }
             stock.onHand -= quantityChange;
             stock.sold += quantityChange;
             adjustmentQuantity = -quantityChange;
@@ -453,4 +448,3 @@ export async function updateProductStock(
     product.variants[variantIndex] = variant;
     await updateProduct(product);
 }
-

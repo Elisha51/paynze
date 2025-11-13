@@ -1,14 +1,9 @@
 
-
-
 import type { Staff, Order, StaffActivity, Bonus, Affiliate } from '@/lib/types';
 import { format, subDays, subHours } from 'date-fns';
-import { getOrders } from './orders';
 import { DataService } from './data-service';
 
-
-async function initializeMockStaff(): Promise<(Staff)[]> {
-    const allOrders = await getOrders();
+function initializeMockStaff(): Staff[] {
     return [
       { 
         id: 'staff-001', 
@@ -69,7 +64,7 @@ async function initializeMockStaff(): Promise<(Staff)[]> {
         status: 'Active', 
         lastLogin: format(subDays(new Date(), 2), 'yyyy-MM-dd HH:mm'),
         onlineStatus: 'Offline',
-        assignedOrders: allOrders.filter(o => o.assignedStaffId === 'staff-003'),
+        assignedOrders: [],
         completionRate: 95.2,
         totalCommission: 4500,
         currency: 'UGX',
@@ -151,7 +146,11 @@ export async function getStaff(): Promise<Staff[]> {
 }
 
 export async function getStaffOrders(staffId: string): Promise<Order[]> {
-    const allOrders = await getOrders();
+    // This function is now less critical as data linking happens in components
+    // but can be kept for direct queries if needed.
+    const DataService = (await import('./data-service')).DataService;
+    const orderService = new DataService<Order>('orders', () => []);
+    const allOrders = await orderService.getAll();
     return allOrders.filter(o => o.assignedStaffId === staffId);
 }
 
@@ -184,5 +183,3 @@ export async function updateStaff(updatedMember: Partial<Staff>): Promise<Staff>
 export async function deleteStaff(staffId: string): Promise<void> {
   await staffService.delete(staffId);
 }
-
-    

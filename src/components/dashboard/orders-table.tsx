@@ -109,7 +109,7 @@ function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { or
     )
 }
 
-function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { order: Order, staff: Staff[], onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
+export function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { order: Order, staff: Staff[], onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
     const { toast } = useToast();
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
 
@@ -559,4 +559,3 @@ export function OrdersTable({ orders, staff, isLoading }: OrdersTableProps) {
     />
   );
 }
-

@@ -35,8 +35,17 @@ export default function OrdersPage() {
         getOrders(),
         getStaff(),
     ]);
+
+    // Manually link assigned orders to staff members after fetching
+    const staffWithOrders = fetchedStaff.map(s => {
+        return {
+            ...s,
+            assignedOrders: fetchedOrders.filter(o => o.assignedStaffId === s.id),
+        };
+    });
+
     setOrders(fetchedOrders);
-    setStaff(fetchedStaff);
+    setStaff(staffWithOrders);
     setIsLoading(false);
   }, []);
 
