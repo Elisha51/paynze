@@ -6,9 +6,8 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Store, Globe, Wallet, Truck, Paintbrush, Loader2 } from 'lucide-react';
+import { CheckCircle, Store, Globe, Wallet, Truck, Loader2 } from 'lucide-react';
 import { themes } from '@/themes';
-import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { addStaff } from '@/services/staff';
 import { useState } from 'react';
@@ -18,12 +17,19 @@ export default function Step5Confirmation() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLaunching, setIsLaunching] = useState(false);
+  const [launchError, setLaunchError] = useState<string | null>(null);
 
   const selectedTheme = themes.find(t => t.name === formData.theme) || themes[0];
 
   const handleLaunch = async () => {
+    // 1. Initial State Reset
+    setLaunchError(null);
     setIsLaunching(true);
+
     try {
+      // 2. Core Asynchronous Logic
+      console.log("Starting launch sequence...");
+
       // 1. Save final onboarding data to localStorage for the new tenant
       localStorage.setItem('onboardingData', JSON.stringify(formData));
       
@@ -37,7 +43,7 @@ export default function Step5Confirmation() {
 
       // 3. Set this new user as the logged-in user for the session
       localStorage.setItem('loggedInUserId', adminUser.id);
-
+      
       // 4. Show success and redirect to login
       toast({
           title: "Store Created!",
@@ -48,19 +54,29 @@ export default function Step5Confirmation() {
       
       // Redirect to login page with a success flag
       router.push('/login?onboarding=success');
+
     } catch (error) {
-      console.error("Launch failed:", error);
-      let errorMessage = "There was an unexpected error creating your store. Please try again.";
+      // 4. Error Isolation and Feedback
+      console.error("Launch process failed:", error);
+    
+      let errorMessage = "An unknown error prevented the launch.";
+
       if (error instanceof Error) {
         errorMessage = error.message;
-      }
+      } else if (typeof error === 'string') {
+          errorMessage = error;
+      } 
+
+      setLaunchError(errorMessage);
       toast({
           variant: 'destructive',
           title: 'Launch Failed',
           description: errorMessage,
       });
+
     } finally {
-        setIsLaunching(false);
+      // 5. Cleanup
+      setIsLaunching(false);
     }
   };
 
