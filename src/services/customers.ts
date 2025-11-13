@@ -1,6 +1,6 @@
 
 'use client';
-import type { Customer, Staff } from '@/lib/types';
+import type { Customer, Staff, Discount } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
@@ -57,14 +57,16 @@ function initializeMockCustomers(): Customer[] {
             });
         }
 
+        const mockDiscounts: Discount[] = [
+            { code: 'WELCOME15', type: 'Percentage', value: 15, status: 'Active', redemptions: 0, minPurchase: 0, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true },
+            { code: 'FREESHIP', type: 'Fixed Amount', value: 10000, status: 'Active', redemptions: 0, minPurchase: 50000, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true, description: 'Free shipping on your next order' },
+        ];
+
         return {
             ...customer,
             communications: baseComms,
             wishlist: index === 1 ? ['COFF-01', 'JEWEL-01'] : [],
-            discounts: index === 1 ? [
-                { code: 'WELCOME15', type: 'Percentage', value: 15, status: 'Active', redemptions: 0, minPurchase: 0, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true },
-                { code: 'FREESHIP', type: 'Fixed Amount', value: 10000, status: 'Active', redemptions: 0, minPurchase: 50000, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true, description: 'Free shipping on your next order' },
-            ] : []
+            discounts: index === 1 ? mockDiscounts : []
         };
     });
 }
