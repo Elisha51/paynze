@@ -79,10 +79,10 @@ export function DataTable<TData, TValue>({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [internalColumnFilters, setInternalColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    initialState?.columnFilters || []
   )
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = React.useState('');
+  const [sorting, setSorting] = React.useState<SortingState>(initialState?.sorting || [])
+  const [globalFilter, setGlobalFilter] = React.useState(initialState?.globalFilter || '');
   
   const columnFilters = externalColumnFilters ?? internalColumnFilters;
   const setColumnFilters = setExternalColumnFilters ?? setInternalColumnFilters;
