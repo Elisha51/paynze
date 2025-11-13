@@ -50,8 +50,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
     applyTheme();
 
     const loggedInUser = localStorage.getItem('loggedInUserId');
-    const publicPaths = ['/', '/login', '/signup', '/store', '/affiliate-signup', '/affiliate/login'];
-
+    
     if (!loggedInUser && pathname === '/get-started') {
         router.push('/signup');
     }

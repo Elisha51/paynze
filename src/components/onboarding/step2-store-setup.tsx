@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { CheckCircle, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { useToast } from '@/hooks/use-toast';
 
 interface AvailabilityResponse {
   isAvailable: boolean;
@@ -19,6 +20,7 @@ interface AvailabilityResponse {
 
 export default function Step2StoreSetup() {
   const { formData, setFormData, nextStep, prevStep } = useOnboarding();
+  const { toast } = useToast();
   
   // State management for the availability check
   const [isLoading, setIsLoading] = useState(false);
