@@ -1,5 +1,4 @@
 
-
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -255,6 +254,9 @@ export type Customer = {
     communications?: Communication[];
     wishlist?: string[]; // Array of product SKUs
     discounts?: Discount[];
+    source: 'Manual' | 'Online';
+    createdById?: string;
+    createdByName?: string;
 };
 
 export type RecentSale = {
@@ -344,6 +346,7 @@ export type CrudPermissions = {
   create: boolean;
   edit: boolean;
   delete: boolean;
+  viewAll?: boolean; // New optional permission
 };
 
 export type Permissions = {

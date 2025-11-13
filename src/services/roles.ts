@@ -1,5 +1,4 @@
 
-
 import type { Role, Permissions, CommissionRule } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -7,7 +6,7 @@ const defaultPermissions: Permissions = {
   dashboard: { view: true },
   products: { view: false, create: false, edit: false, delete: false },
   orders: { view: false, create: false, edit: false, delete: false },
-  customers: { view: false, create: false, edit: false, delete: false },
+  customers: { view: false, create: false, edit: false, delete: false, viewAll: false },
   procurement: { view: false, create: false, edit: false, delete: false },
   marketing: { view: false, create: false, edit: false, delete: false },
   templates: { view: false, create: false, edit: false, delete: false },
@@ -25,7 +24,7 @@ const mockRoles: Role[] = [
       dashboard: { view: true },
       products: { view: true, create: true, edit: true, delete: true },
       orders: { view: true, create: true, edit: true, delete: true },
-      customers: { view: true, create: true, edit: true, delete: true },
+      customers: { view: true, create: true, edit: true, delete: true, viewAll: true },
       procurement: { view: true, create: true, edit: true, delete: true },
       marketing: { view: true, create: true, edit: true, delete: true },
       templates: { view: true, create: true, edit: true, delete: true },
@@ -45,7 +44,7 @@ const mockRoles: Role[] = [
       dashboard: { view: true },
       products: { view: true, create: true, edit: true, delete: false },
       orders: { view: true, create: true, edit: true, delete: false },
-      customers: { view: true, create: true, edit: true, delete: false },
+      customers: { view: true, create: true, edit: true, delete: false, viewAll: true },
       marketing: { view: true, create: true, edit: true, delete: false },
       staff: { view: true, create: true, edit: true, delete: false },
       tasks: { view: true, create: true, edit: true, delete: false },
@@ -60,8 +59,8 @@ const mockRoles: Role[] = [
     permissions: {
       ...defaultPermissions,
       dashboard: { view: true },
-      products: { view: true, create: true, edit: true, delete: false },
-      customers: { view: true, create: true, edit: true, delete: false },
+      products: { view: true, create: false, edit: false, delete: false },
+      customers: { view: true, create: true, edit: true, delete: false, viewAll: false },
       tasks: { view: true, create: true, edit: false, delete: false },
     },
     commissionRules: [

@@ -1,17 +1,17 @@
 
-import type { Customer } from '@/lib/types';
+import type { Customer, Staff } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
 
 function initializeMockCustomers(): Customer[] {
     const mockCustomers: Omit<Customer, 'communications' | 'orders' | 'discounts' | 'wishlist'>[] = [
-        { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'Wholesaler', lastOrderDate: '2023-01-23', totalSpend: 250000, currency: 'KES', createdAt: '2022-11-15' },
-        { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', customerGroup: 'Retailer', lastOrderDate: '2023-02-10', totalSpend: 75000, currency: 'UGX', createdAt: '2023-01-20' },
-        { id: 'cust-03', name: 'Noah Williams', email: 'noah@example.com', phone: '+254734567890', customerGroup: 'default', lastOrderDate: '2023-03-05', totalSpend: 15000, currency: 'KES', createdAt: '2023-03-01' },
-        { id: 'cust-04', name: 'Emma Brown', email: 'emma@example.com', phone: '+254745678901', customerGroup: 'Retailer', lastOrderDate: '2023-03-15', totalSpend: 43000, currency: 'UGX', createdAt: '2023-03-10' },
-        { id: 'cust-05', name: 'James Jones', email: 'james@example.com', phone: '+254756789012', customerGroup: 'default', lastOrderDate: '2023-03-20', totalSpend: 36000, currency: 'UGX', createdAt: '2023-03-18' },
-        { id: 'cust-06', name: 'Sophia Miller', email: 'sophia@example.com', phone: '+254765432109', customerGroup: 'Retailer', lastOrderDate: '2024-07-22', totalSpend: 50000, currency: 'KES', createdAt: '2024-07-22' },
+        { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'Wholesaler', lastOrderDate: '2023-01-23', totalSpend: 250000, currency: 'KES', createdAt: '2022-11-15', source: 'Manual', createdById: 'staff-001', createdByName: 'John Doe' },
+        { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', customerGroup: 'Retailer', lastOrderDate: '2023-02-10', totalSpend: 75000, currency: 'UGX', createdAt: '2023-01-20', source: 'Online' },
+        { id: 'cust-03', name: 'Noah Williams', email: 'noah@example.com', phone: '+254734567890', customerGroup: 'default', lastOrderDate: '2023-03-05', totalSpend: 15000, currency: 'KES', createdAt: '2023-03-01', source: 'Online' },
+        { id: 'cust-04', name: 'Emma Brown', email: 'emma@example.com', phone: '+254745678901', customerGroup: 'Retailer', lastOrderDate: '2023-03-15', totalSpend: 43000, currency: 'UGX', createdAt: '2023-03-10', source: 'Manual', createdById: 'staff-002', createdByName: 'Jane Smith' },
+        { id: 'cust-05', name: 'James Jones', email: 'james@example.com', phone: '+254756789012', customerGroup: 'default', lastOrderDate: '2023-03-20', totalSpend: 36000, currency: 'UGX', createdAt: '2023-03-18', source: 'Manual', createdById: 'staff-002', createdByName: 'Jane Smith' },
+        { id: 'cust-06', name: 'Sophia Miller', email: 'sophia@example.com', phone: '+254765432109', customerGroup: 'Retailer', lastOrderDate: '2024-07-22', totalSpend: 50000, currency: 'KES', createdAt: '2024-07-22', source: 'Online' },
     ];
 
     return [...mockCustomers].map((customer, index) => {
@@ -70,8 +70,15 @@ function initializeMockCustomers(): Customer[] {
 
 const customerService = new DataService<Customer>('customers', initializeMockCustomers);
 
-export async function getCustomers(): Promise<Customer[]> {
-  return await customerService.getAll();
+export async function getCustomers(user?: Staff & { permissions: any }): Promise<Customer[]> {
+  const allCustomers = await customerService.getAll();
+  if (user?.permissions?.customers?.viewAll) {
+      return allCustomers;
+  }
+  if (user) {
+      return allCustomers.filter(c => c.createdById === user.id);
+  }
+  return [];
 }
 
 export async function getCustomerById(customerId: string): Promise<Customer | undefined> {

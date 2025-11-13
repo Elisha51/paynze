@@ -32,6 +32,12 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
         { value: 'Wholesaler', label: 'Wholesaler' },
         { value: 'Retailer', label: 'Retailer' },
     ];
+    
+    const createdByOptions = React.useMemo(() => {
+        if (!user?.permissions.customers.viewAll) return [];
+        const creators = new Set(data.filter(c => c.createdByName).map(c => c.createdByName));
+        return Array.from(creators).map(name => ({ value: name!, label: name!}));
+    }, [data, user]);
 
 
   return (
@@ -39,15 +45,22 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
       columns={columns}
       data={data}
       isLoading={isLoading}
-      filters={[{
-        columnId: 'customerGroup',
-        title: 'Group',
-        options: customerGroups
-      }]}
+      filters={[
+        {
+            columnId: 'customerGroup',
+            title: 'Group',
+            options: customerGroups
+        },
+        ...(user?.permissions.customers.viewAll ? [{
+            columnId: 'createdByName',
+            title: 'Created By',
+            options: createdByOptions,
+        }] : [])
+      ]}
       emptyState={{
         icon: Users,
-        title: "No Customers Yet",
-        description: "You haven't added any customers. Add your first customer to get started.",
+        title: "No Customers Found",
+        description: "You do not have any customers matching the current filters, or you have not created any customers yet.",
         cta: (canCreate &&
             <Button asChild>
                 <Link href="/dashboard/customers/add">

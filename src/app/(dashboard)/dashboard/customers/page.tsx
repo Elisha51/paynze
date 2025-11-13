@@ -27,14 +27,16 @@ export default function CustomersPage() {
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
-    const data = await getCustomers();
+    const data = await getCustomers(user || undefined);
     setCustomers(data);
     setIsLoading(false);
-  }, []);
+  }, [user]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData, pathname]);
+    if(user) {
+        loadData();
+    }
+  }, [loadData, user, pathname]);
   
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },

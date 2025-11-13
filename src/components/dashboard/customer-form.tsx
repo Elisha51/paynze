@@ -35,7 +35,8 @@ const emptyCustomer: Partial<Customer> = {
         city: '',
         country: 'Uganda',
         postalCode: '',
-    }
+    },
+    source: 'Manual'
 };
 
 export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer | null }) {
@@ -98,7 +99,14 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
         if (isEditing && customer.id) {
             await updateCustomer(customer as Customer);
         } else {
-            await addCustomer(customer as Omit<Customer, 'id'>);
+            if (!user) throw new Error("User not found");
+            const newCustomerData = {
+                ...customer,
+                source: 'Manual' as const,
+                createdById: user.id,
+                createdByName: user.name,
+            };
+            await addCustomer(newCustomerData as Omit<Customer, 'id'>);
         }
         toast({
             title: initialCustomer ? "Customer Updated" : "Customer Created",

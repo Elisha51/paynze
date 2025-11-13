@@ -17,6 +17,7 @@ import {
 import type { Customer } from '@/lib/types';
 import Link from 'next/link';
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '../ui/alert-dialog';
+import { formatDistanceToNow } from 'date-fns';
 
 export const getCustomerColumns = (onDelete: (customerId: string) => void, canEdit: boolean, canDelete: boolean): ColumnDef<Customer>[] => {
 
@@ -70,12 +71,14 @@ export const getCustomerColumns = (onDelete: (customerId: string) => void, canEd
       filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
-      accessorKey: 'lastOrderDate',
-      header: ({ column }) => (
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-          Last Order <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
+      accessorKey: 'createdAt',
+      header: 'Date Added',
+      cell: ({row}) => row.original.createdAt ? formatDistanceToNow(new Date(row.original.createdAt), { addSuffix: true }) : 'N/A'
+    },
+    {
+      accessorKey: 'createdByName',
+      header: 'Added By',
+       filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
       accessorKey: 'totalSpend',
