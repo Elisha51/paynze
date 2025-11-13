@@ -23,14 +23,18 @@ export default function Step5Confirmation() {
     localStorage.setItem('onboardingData', JSON.stringify(formData));
     
     // 2. Create the first user (Account Owner) for this new tenant
-    await addStaff({
+    const adminUser = await addStaff({
         name: formData.businessName, // Or collect a personal name in step 1
-        email: 'admin@' + formData.subdomain + '.com', // Simulated email
+        email: `admin@${formData.subdomain}.com`, // Simulated email
         role: 'Admin',
         status: 'Active',
     });
 
-    // 3. Show success and redirect to login
+    // 3. Set this new user as the logged-in user for the session
+    localStorage.setItem('loggedInUserId', adminUser.id);
+
+
+    // 4. Show success and redirect to login
     toast({
         title: "Store Created!",
         description: "Welcome to Paynze. Please log in to access your new dashboard.",

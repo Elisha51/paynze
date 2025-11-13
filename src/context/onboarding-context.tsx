@@ -1,4 +1,3 @@
-
 // src/context/onboarding-context.tsx
 'use client';
 
@@ -7,7 +6,7 @@ import { toast } from '@/hooks/use-toast';
 import { themes } from '@/themes';
 
 export type OnboardingFormData = {
-  plan: 'Free' | 'Premium';
+  plan: 'Growth' | 'Pro' | 'Enterprise';
   businessName: string;
   businessType: string;
   contactPhone: string;
@@ -49,7 +48,7 @@ type OnboardingContextType = {
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
 
 const initialFormData: OnboardingFormData = {
-  plan: 'Premium',
+  plan: 'Pro',
   businessName: '',
   businessType: 'Retailer',
   contactPhone: '',
