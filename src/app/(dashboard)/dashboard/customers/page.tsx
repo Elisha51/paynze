@@ -13,7 +13,7 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/customer-analytics-report';
 import { useAuth } from '@/context/auth-context';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams, useRouter } from 'next/navigation';
 import { CustomerGroupsTab } from '@/components/dashboard/customer-groups-tab';
 
 export default function CustomersPage() {
@@ -21,7 +21,11 @@ export default function CustomersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-customers');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [initialFilter, setInitialFilter] = useState<string | null>(null);
   const { user } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
   const canCreate = user?.permissions.customers.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
   const pathname = usePathname();
@@ -39,6 +43,16 @@ export default function CustomersPage() {
     }
   }, [loadData, user, pathname]);
   
+  useEffect(() => {
+    const groupFilter = searchParams.get('group');
+    if (groupFilter) {
+        setActiveTab('all-customers');
+        setInitialFilter(groupFilter);
+        // Optional: remove the query param after applying the filter to clean up the URL
+        router.replace(pathname, { scroll: false });
+    }
+  }, [searchParams, pathname, router]);
+
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },
     { value: 'groups', label: 'Groups' },
@@ -60,23 +74,30 @@ export default function CustomersPage() {
         </div>
       )
     );
+    
+    const handleTabChange = (tab: string) => {
+        if (tab !== 'all-customers') {
+            setInitialFilter(null);
+        }
+        setActiveTab(tab);
+    };
 
   return (
     <DashboardPageLayout 
         title="Customers"
         tabs={tabs}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         cta={ctaContent}
     >
       <DashboardPageLayout.TabContent value="all-customers">
         <DashboardPageLayout.Content>
-            <CustomersTable data={customers} setData={setCustomers} isLoading={isLoading} />
+            <CustomersTable data={customers} setData={setCustomers} isLoading={isLoading} initialGroupFilter={initialFilter} />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
        <DashboardPageLayout.TabContent value="groups">
         <DashboardPageLayout.Content>
-            <CustomerGroupsTab />
+            <CustomerGroupsTab customers={customers} isLoading={isLoading} />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
       {canViewAnalytics && (

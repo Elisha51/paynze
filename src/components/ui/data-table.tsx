@@ -61,6 +61,8 @@ interface DataTableProps<TData, TValue> {
     cta?: React.ReactNode;
   };
   initialState?: Partial<TableState>;
+  columnFilters?: ColumnFiltersState;
+  setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
 }
 
 export function DataTable<TData, TValue>({
@@ -69,16 +71,21 @@ export function DataTable<TData, TValue>({
   filters,
   isLoading,
   emptyState,
-  initialState
+  initialState,
+  columnFilters: externalColumnFilters,
+  setColumnFilters: setExternalColumnFilters,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+  const [internalColumnFilters, setInternalColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = React.useState('');
+  
+  const columnFilters = externalColumnFilters ?? internalColumnFilters;
+  const setColumnFilters = setExternalColumnFilters ?? setInternalColumnFilters;
 
   const table = useReactTable({
     data,
@@ -274,5 +281,3 @@ export function DataTable<TData, TValue>({
     </div>
   );
 }
-
-    

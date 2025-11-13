@@ -11,11 +11,22 @@ import { getCustomerColumns } from './customers-columns';
 import { useAuth } from '@/context/auth-context';
 import { getCustomerGroups } from '@/services/customer-groups';
 
-export function CustomersTable({ data, setData, isLoading }: { data: Customer[], setData: React.Dispatch<React.SetStateAction<Customer[]>>, isLoading: boolean }) {
+export function CustomersTable({ 
+    data, 
+    setData, 
+    isLoading, 
+    initialGroupFilter 
+}: { 
+    data: Customer[], 
+    setData: React.Dispatch<React.SetStateAction<Customer[]>>, 
+    isLoading: boolean,
+    initialGroupFilter?: string | null
+}) {
     const { toast } = useToast();
     const { user } = useAuth();
     const [customerGroups, setCustomerGroups] = React.useState<CustomerGroup[]>([]);
-    
+    const [columnFilters, setColumnFilters] = React.useState<any[]>([]);
+
     const canCreate = user?.permissions.customers.create;
     const canEdit = user?.permissions.customers.edit ?? false;
     const canDelete = user?.permissions.customers.delete ?? false;
@@ -27,6 +38,12 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
         }
         loadGroups();
     }, []);
+    
+    React.useEffect(() => {
+        if(initialGroupFilter) {
+            setColumnFilters([{ id: 'customerGroup', value: [initialGroupFilter] }]);
+        }
+    }, [initialGroupFilter]);
 
     const handleDeleteCustomer = (customerId: string) => {
         // In a real app, call a service to delete the customer
@@ -55,6 +72,8 @@ export function CustomersTable({ data, setData, isLoading }: { data: Customer[],
       columns={columns}
       data={data}
       isLoading={isLoading}
+      columnFilters={columnFilters}
+      setColumnFilters={setColumnFilters}
       filters={[
         {
             columnId: 'customerGroup',
