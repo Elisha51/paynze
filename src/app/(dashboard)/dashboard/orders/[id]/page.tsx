@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Edit } from 'lucide-react';
 import Link from 'next/link';
 import { getOrderById, updateOrder } from '@/services/orders';
-import type { Order, OnboardingFormData } from '@/lib/types';
+import { getStaff } from '@/services/staff';
+import type { Order, OnboardingFormData, Staff } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -38,12 +39,14 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
+import { AssignOrderDialog } from '@/components/dashboard/orders-table';
 
 
 export default function ViewOrderPage() {
   const params = useParams();
   const id = params.id as string;
   const [order, setOrder] = useState<Order | null>(null);
+  const [staff, setStaff] = useState<Staff[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const { user } = useAuth();
@@ -56,15 +59,23 @@ export default function ViewOrderPage() {
         setSettings(JSON.parse(data));
     }
     if (id) {
-        async function loadOrder() {
+        async function loadData() {
             setLoading(true);
-            const fetchedOrder = await getOrderById(id);
+            const [fetchedOrder, fetchedStaff] = await Promise.all([
+              getOrderById(id),
+              getStaff()
+            ]);
             setOrder(fetchedOrder || null);
+            setStaff(fetchedStaff);
             setLoading(false);
         }
-        loadOrder();
+        loadData();
     }
   }, [id]);
+
+  const handleOrderUpdate = (updatedOrder: Order) => {
+    setOrder(updatedOrder);
+  };
 
   if (loading || !settings) {
     return (
@@ -170,7 +181,11 @@ export default function ViewOrderPage() {
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
-                    <DropdownMenuItem>Assign for Delivery</DropdownMenuItem>
+                     {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
+                        <AssignOrderDialog order={order} staff={staff} onUpdate={handleOrderUpdate}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
+                        </AssignOrderDialog>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
                 </DropdownMenuContent>
@@ -287,5 +302,7 @@ export default function ViewOrderPage() {
     </div>
   );
 }
+
+    
 
     

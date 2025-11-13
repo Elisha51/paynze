@@ -32,6 +32,7 @@ import { getInitials, cn } from '@/lib/utils';
 import { updateOrder } from '@/services/orders';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { useAuth } from '@/context/auth-context';
+import { AssignOrderDialog } from './orders-table';
 
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
@@ -62,84 +63,25 @@ const deliveryStatuses = [
     { value: 'Attempted Delivery', label: 'Attempted' },
 ];
 
+type OrdersDeliveriesTableProps = {
+  orders: Order[];
+  staff: Staff[];
+};
 
-function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { order: Order, staff: Staff[], onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
-    const { toast } = useToast();
-    const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
+export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTableProps) {
+  const [data, setData] = React.useState<Order[]>(orders);
+  const { user } = useAuth();
+  const canEdit = user?.permissions.orders.edit;
 
-    const deliveryRiders = staff.filter(s => s.role === 'Agent');
-    
-    const suggestedRiders = React.useMemo(() => {
-        return deliveryRiders
-            .filter(rider => {
-                const isOnline = rider.onlineStatus === 'Online';
-                const deliveryZones = rider.attributes?.deliveryZones as string[] | undefined;
-                if (!deliveryZones || deliveryZones.length === 0) return isOnline; // Available if online and no zones set
-                return isOnline && deliveryZones.includes(order.shippingAddress.city);
-            })
-            .sort((a,b) => (a.assignedOrders?.length || 0) - (b.assignedOrders?.length || 0)); // Prioritize riders with fewer orders
-    }, [deliveryRiders, order.shippingAddress.city]);
-    
-    const otherRiders = deliveryRiders.filter(r => !suggestedRiders.find(s => s.id === r.id));
+  React.useEffect(() => {
+    setData(orders);
+  }, [orders]);
 
-
-    const handleAssign = async () => {
-        if (!selectedStaffId) {
-            toast({ variant: 'destructive', title: 'Please select a rider.' });
-            return;
-        }
-        const selectedStaffMember = staff.find(s => s.id === selectedStaffId);
-        if (!selectedStaffMember) return;
-        
-        const updatedOrder = await updateOrder(order.id, { 
-            assignedStaffId: selectedStaffId, 
-            assignedStaffName: selectedStaffMember.name,
-            status: 'Shipped',
-        });
-
-        onUpdate(updatedOrder);
-        toast({ title: 'Order Assigned', description: `Order ${order.id} has been assigned to ${selectedStaffMember.name}.` });
-    }
-
-    return (
-         <Dialog>
-            <DialogTrigger asChild={asChild}>
-                {children}
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Assign Order #{order.id} for Delivery</DialogTitle>
-                    <DialogDescription>To: {order.customerName} at {order.shippingAddress.street}, {order.shippingAddress.city}</DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                    <Select onValueChange={setSelectedStaffId}>
-                        <SelectTrigger><SelectValue placeholder="Select a rider..." /></SelectTrigger>
-                        <SelectContent>
-                             {suggestedRiders.length > 0 && <SelectValue>Suggested Riders</SelectValue>}
-                             {suggestedRiders.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
-                            ))}
-                            {otherRiders.length > 0 && <SelectValue>Other Riders</SelectValue>}
-                            {otherRiders.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                    <DialogClose asChild><Button onClick={handleAssign}>Assign Rider</Button></DialogClose>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-const getColumns = (
-  onUpdate: (updatedOrder: Order) => void,
-  staff: Staff[],
-  canEdit: boolean
-): ColumnDef<Order>[] => [
+  const handleUpdate = (updatedOrder: Order) => {
+    setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+  };
+  
+  const columns: ColumnDef<Order>[] = [
   {
     accessorKey: 'id',
     header: 'Order #',
@@ -173,7 +115,7 @@ const getColumns = (
     filterFn: (row, id, value) => {
       const method = row.original.payment?.method;
       if (!method) return false;
-      return value.includes(method);
+      return (value as string[]).includes(method);
     },
   },
   {
@@ -185,7 +127,7 @@ const getColumns = (
         {row.original.fulfillmentMethod}
       </div>
     ),
-     filterFn: (row, id, value) => value.includes(row.getValue(id)),
+     filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
   },
   {
     accessorKey: 'status',
@@ -194,7 +136,7 @@ const getColumns = (
       const statusInfo = deliveryStatusMap[row.original.status];
       return <Badge className={statusInfo.color}>{statusInfo.label}</Badge>;
     },
-    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
   },
     {
     accessorKey: 'assignedStaffName',
@@ -211,7 +153,7 @@ const getColumns = (
         if (!staffId || !staffName) {
             if (canEdit && order.fulfillmentMethod === 'Delivery' && (order.status === 'Paid' || order.status === 'Awaiting Payment')) {
                 return (
-                    <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate} asChild>
+                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate}>
                         <Button variant="outline" size="sm">
                             <User className="mr-2 h-4 w-4" />
                             Assign
@@ -253,7 +195,7 @@ const getColumns = (
                     <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
                     {canEdit && 
-                    <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate} asChild>
+                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate}>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Re-assign Agent</DropdownMenuItem>
                     </AssignOrderDialog>
                     }
@@ -265,25 +207,6 @@ const getColumns = (
   },
 ];
 
-type OrdersDeliveriesTableProps = {
-  orders: Order[];
-  staff: Staff[];
-};
-
-export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTableProps) {
-  const [data, setData] = React.useState<Order[]>(orders);
-  const { user } = useAuth();
-  const canEdit = user?.permissions.orders.edit;
-
-  React.useEffect(() => {
-    setData(orders);
-  }, [orders]);
-
-  const handleUpdate = (updatedOrder: Order) => {
-    setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-  };
-  
-  const columns = React.useMemo(() => getColumns(handleUpdate, staff, !!canEdit), [handleUpdate, staff, canEdit]);
 
   const deliveryWorklist = data
     .filter(o => {
@@ -342,3 +265,5 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     </Card>
   );
 }
+
+    
