@@ -121,6 +121,9 @@ const emptyStaff: Partial<Staff> = {
     email: '',
     role: 'Agent',
     status: 'Pending Verification',
+    schedule: [],
+    attributes: {},
+    verificationDocuments: [],
 };
 
 
@@ -441,4 +444,3 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
         </div>
     );
 }
-

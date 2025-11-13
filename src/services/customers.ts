@@ -65,6 +65,7 @@ function initializeMockCustomers(): Customer[] {
         return {
             ...customer,
             communications: baseComms,
+            orders: [],
             wishlist: index === 1 ? ['COFF-01', 'JEWEL-01'] : [],
             discounts: index === 1 ? mockDiscounts : []
         };

@@ -73,7 +73,9 @@ const emptyProduct: Product = {
   isTaxable: false,
   hasVariants: false,
   options: [{ name: '', values: [] }],
-  variants: [],
+  variants: [
+    { id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: 0 }
+  ],
   wholesalePricing: [],
   productVisibility: ['Online Store'],
   supplierIds: [],
@@ -1121,8 +1123,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                             onSelect={() => handleSupplierSelect(supplier.id)}
                                         >
                                             <Check
-                                            className={cn(
-                                                "mr-2 h-4 w-4",
+                                            className={cn("mr-2 h-4 w-4",
                                                 (product.supplierIds || []).includes(supplier.id) ? "opacity-100" : "opacity-0"
                                             )}
                                             />

@@ -22,14 +22,16 @@ export class DataService<T extends { [key: string]: any }> {
 
   private getTenantId(): string {
     if (typeof window === 'undefined') {
-        return 'default';
+        return 'default_tenant';
     }
     const onboardingDataRaw = localStorage.getItem('onboardingData');
     if (onboardingDataRaw) {
         const data = JSON.parse(onboardingDataRaw) as OnboardingFormData;
-        return data.subdomain || 'default';
+        // Use a more robust identifier like subdomain
+        return data.subdomain || 'default_tenant';
     }
-    return 'default';
+    // A fallback for when onboarding data is not set, though this should be rare in a real app
+    return 'default_tenant';
   }
 
   private getStorageKey(): string {
@@ -39,6 +41,7 @@ export class DataService<T extends { [key: string]: any }> {
   private async getData(): Promise<T[]> {
     await new Promise(resolve => setTimeout(resolve, 50)); // Simulate micro-delay
     if (typeof window === 'undefined') {
+        // For server-side rendering, return initial data without touching localStorage
         return await this.initialize();
     }
     const storageKey = this.getStorageKey();
@@ -56,16 +59,13 @@ export class DataService<T extends { [key: string]: any }> {
         console.error(`Failed to parse data for key ${storageKey}`, e);
     }
     
-    if (data === null || data.length === 0) {
+    if (data === null) {
         const initialData = await this.initialize();
-        // Check if the initial data is also empty before overwriting a potentially intentionally empty array
-        if (initialData.length > 0 || data === null) {
-            localStorage.setItem(storageKey, JSON.stringify(initialData));
-            return initialData;
-        }
+        localStorage.setItem(storageKey, JSON.stringify(initialData));
+        return initialData;
     }
 
-    return data || [];
+    return data;
   }
 
   private async setData(data: T[]): Promise<void> {
