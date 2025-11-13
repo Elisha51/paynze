@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step5-confirmation.tsx
 'use client';
 import { useRouter } from 'next/navigation';
