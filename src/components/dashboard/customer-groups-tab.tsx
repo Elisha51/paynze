@@ -30,6 +30,7 @@ export function CustomerGroupsTab() {
   const [editingGroup, setEditingGroup] = useState<CustomerGroup | null>(null);
   const { toast } = useToast();
   const { user } = useAuth();
+  
   const canEdit = user?.permissions.customers.edit;
 
   const loadData = useCallback(async () => {
@@ -74,6 +75,10 @@ export function CustomerGroupsTab() {
   const openEditDialog = (group: CustomerGroup) => {
     setEditingGroup(group);
     setIsEditOpen(true);
+  }
+  
+  if (!user) {
+      return <div>Loading...</div>;
   }
 
   return (
