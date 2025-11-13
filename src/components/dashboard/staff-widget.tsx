@@ -64,13 +64,17 @@ export function StaffWidget({ staff, isLoading }: { staff: Staff[], isLoading: b
                         {coreStaff.slice(0, 3).map(member => (
                             <StaffCard key={member.id} member={member} />
                         ))}
-                        <Link href="/dashboard/staff" className="block border-2 border-dashed rounded-lg hover:bg-muted/50 transition-colors">
-                            <div className="flex flex-col items-center justify-center h-full text-center p-4">
-                                <Users className="h-8 w-8 text-muted-foreground mb-2"/>
-                                <p className="font-semibold text-sm">View All Staff</p>
-                                <p className="text-xs text-muted-foreground">Manage roles & permissions</p>
-                            </div>
-                        </Link>
+                        <Card asChild className="transition-all hover:shadow-md hover:border-primary/50">
+                            <Link href="/dashboard/staff">
+                                <CardContent className="p-4 flex flex-col items-center justify-center h-full text-center">
+                                    <div className="p-3 rounded-full bg-muted border mb-2">
+                                        <Users className="h-6 w-6 text-muted-foreground"/>
+                                    </div>
+                                    <p className="font-semibold text-sm">View All Staff</p>
+                                    <p className="text-xs text-muted-foreground">Manage roles & permissions</p>
+                                </CardContent>
+                            </Link>
+                        </Card>
                     </div>
                 )}
           </CardContent>
