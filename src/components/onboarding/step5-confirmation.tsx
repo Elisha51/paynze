@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step5-confirmation.tsx
 'use client';
 import { useRouter } from 'next/navigation';
@@ -5,7 +6,7 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle, Store, Globe, Wallet, Truck, Paintbrush } from 'lucide-react';
+import { CheckCircle, Store, Globe, Wallet, Truck, Paintbrush, Loader2 } from 'lucide-react';
 import { themes } from '@/themes';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -23,38 +24,41 @@ export default function Step5Confirmation() {
   const handleLaunch = async () => {
     setIsLaunching(true);
     try {
-        // 1. Save final onboarding data to localStorage for the new tenant
-        localStorage.setItem('onboardingData', JSON.stringify(formData));
-        
-        // 2. Create the first user (Account Owner) for this new tenant
-        const adminUser = await addStaff({
-            name: formData.businessName, // Or collect a personal name in step 1
-            email: `admin@${formData.subdomain}.com`, // Simulated email
-            role: 'Admin',
-            status: 'Active',
-        });
+      // 1. Save final onboarding data to localStorage for the new tenant
+      localStorage.setItem('onboardingData', JSON.stringify(formData));
+      
+      // 2. Create the first user (Account Owner) for this new tenant
+      const adminUser = await addStaff({
+          name: formData.businessName, // Or collect a personal name in step 1
+          email: `admin@${formData.subdomain}.com`, // Simulated email
+          role: 'Admin',
+          status: 'Active',
+      });
 
-        // 3. Set this new user as the logged-in user for the session
-        localStorage.setItem('loggedInUserId', adminUser.id);
+      // 3. Set this new user as the logged-in user for the session
+      localStorage.setItem('loggedInUserId', adminUser.id);
 
-
-        // 4. Show success and redirect to login
-        toast({
-            title: "Store Created!",
-            description: "Welcome to Paynze. Please log in to access your new dashboard.",
-            variant: "default",
-            duration: 5000,
-        });
-        
-        // Redirect to login page with a success flag
-        router.push('/login?onboarding=success');
+      // 4. Show success and redirect to login
+      toast({
+          title: "Store Created!",
+          description: "Welcome to Paynze. Please log in to access your new dashboard.",
+          variant: "default",
+          duration: 5000,
+      });
+      
+      // Redirect to login page with a success flag
+      router.push('/login?onboarding=success');
     } catch (error) {
-        console.error("Launch failed:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Launch Failed',
-            description: 'There was an unexpected error creating your store. Please try again.'
-        });
+      console.error("Launch failed:", error);
+      let errorMessage = "There was an unexpected error creating your store. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast({
+          variant: 'destructive',
+          title: 'Launch Failed',
+          description: errorMessage,
+      });
     } finally {
         setIsLaunching(false);
     }
@@ -97,8 +101,17 @@ export default function Step5Confirmation() {
             <CardFooter className="flex justify-between">
                 <Button variant="outline" onClick={prevStep}>Back</Button>
                 <Button onClick={handleLaunch} className="bg-accent hover:bg-accent/90" disabled={isLaunching}>
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    {isLaunching ? 'Launching...' : 'Launch My Store'}
+                    {isLaunching ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Launching...
+                        </>
+                    ) : (
+                        <>
+                            <CheckCircle className="mr-2 h-4 w-4" />
+                            Launch My Store
+                        </>
+                    )}
                 </Button>
             </CardFooter>
         </Card>
