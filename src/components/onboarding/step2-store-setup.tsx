@@ -1,4 +1,3 @@
-
 // src/components/onboarding/step2-store-setup.tsx
 'use client';
 import { useState } from 'react';
