@@ -243,63 +243,72 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
 }
 
 export async function updateOrder(orderId: string, updates: Partial<Order>): Promise<Order> {
-  const originalOrder = await orderService.getById(orderId);
-  if (!originalOrder) {
-      throw new Error('Order not found');
-  }
+    const originalOrder = await orderService.getById(orderId);
+    if (!originalOrder) {
+        throw new Error('Order not found');
+    }
 
-  const isNewlyFulfilled = 
-      (updates.status === 'Delivered' || updates.status === 'Picked Up') && 
-      (originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up');
+    const isNewlyFulfilled = (updates.status === 'Delivered' || updates.status === 'Picked Up') &&
+                             (originalOrder.status !== 'Delivered' && originalOrder.status !== 'Picked Up');
+
+    const isNewlyCancelled = updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled';
+    const isNewlyPaid = updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed';
+
+    // Un-reserve stock if cancelled
+    if (isNewlyCancelled) {
+        for (const item of originalOrder.items) {
+            await updateProductStock(item.sku, item.quantity, 'Un-reserve', `Order #${orderId} Cancelled`);
+        }
+    }
+    
+    // Deduct stock on fulfillment
+    if (isNewlyFulfilled) {
+        for (const item of originalOrder.items) {
+            await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${orderId} Fulfilled`);
+        }
+         // Handle Cash on Delivery payment by creating a transaction upon fulfillment
+        if (originalOrder.payment.method === 'Cash on Delivery') {
+            await addTransaction({
+                date: new Date().toISOString(),
+                description: `Sale from Order #${orderId}`,
+                amount: originalOrder.total,
+                currency: originalOrder.currency,
+                type: 'Income',
+                category: 'Sales',
+                status: 'Cleared',
+                paymentMethod: 'Cash',
+            });
+             // Update payment status as well
+            if (!updates.payment) {
+                updates.payment = { ...originalOrder.payment };
+            }
+            updates.payment.status = 'completed';
+        }
+    }
+
+    const finalUpdates = {
+        ...updates,
+        ...(updates.payment && {
+            payment: {
+                ...originalOrder.payment,
+                ...updates.payment,
+            }
+        })
+    };
   
-  const isNewlyCancelled = updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled';
-  const isNewlyPaid = updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed';
+    const updatedOrder = await orderService.update(orderId, finalUpdates);
 
-  if (isNewlyCancelled) {
-      for (const item of originalOrder.items) {
-          await updateProductStock(item.sku, item.quantity, 'Un-reserve', `Order #${orderId} Cancelled`);
-      }
-  }
-  
-  if (isNewlyFulfilled) {
-      for (const item of originalOrder.items) {
-          await updateProductStock(item.sku, item.quantity, 'Sale', `Order #${orderId}`);
-      }
-      if (originalOrder.payment.method === 'Cash on Delivery') {
-        await addTransaction({
-            date: new Date().toISOString(),
-            description: `Sale from Order #${orderId}`,
-            amount: originalOrder.total,
-            currency: originalOrder.currency,
-            type: 'Income',
-            category: 'Sales',
-            status: 'Cleared',
-            paymentMethod: 'Cash',
-        });
-      }
-  }
+    // Handle commissions after the order is updated
+    if (isNewlyFulfilled) {
+        await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
+    }
+    if (isNewlyPaid) {
+        await handleCommission(updatedOrder.salesAgentId, updatedOrder, 'On Order Paid');
+    }
 
-  const finalUpdates = {
-      ...updates,
-      ...(updates.payment && {
-          payment: {
-              ...originalOrder.payment,
-              ...updates.payment,
-          }
-      })
-  };
-  
-  const updatedOrder = await orderService.update(orderId, finalUpdates);
-
-  if (isNewlyFulfilled) {
-    await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
-  }
-  if (isNewlyPaid) {
-    await handleCommission(updatedOrder.salesAgentId, updatedOrder, 'On Order Paid');
-  }
-
-  return updatedOrder;
+    return updatedOrder;
 }
+
 
 const handleCommission = async (staffId: string | undefined, order: Order, trigger: 'On Order Paid' | 'On Order Delivered') => {
     if (!staffId) return;
@@ -338,27 +347,25 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
         });
     }
 
-    if (totalEarnedCommission > 0 || (staffRole.name === 'Agent' && trigger === 'On Order Delivered')) {
-        let shouldUpdateStaff = totalEarnedCommission > 0;
-        
-        if (staffRole.name === 'Agent' && trigger === 'On Order Delivered') {
-            const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number, goal: number } | undefined;
-            if (deliveryTarget) {
-                staffMember.attributes = {
-                    ...staffMember.attributes,
-                    deliveryTarget: { ...deliveryTarget, current: deliveryTarget.current + 1 }
-                };
-                shouldUpdateStaff = true;
-            }
+    let shouldUpdateStaff = false;
+    if (totalEarnedCommission > 0) {
+        staffMember.totalCommission = (staffMember.totalCommission || 0) + totalEarnedCommission;
+        shouldUpdateStaff = true;
+    }
+    
+    if (staffRole.name === 'Agent' && trigger === 'On Order Delivered') {
+        const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number, goal: number } | undefined;
+        if (deliveryTarget) {
+            staffMember.attributes = {
+                ...staffMember.attributes,
+                deliveryTarget: { ...deliveryTarget, current: (deliveryTarget.current || 0) + 1 }
+            };
+            shouldUpdateStaff = true;
         }
-        
-        if (totalEarnedCommission > 0) {
-            staffMember.totalCommission = (staffMember.totalCommission || 0) + totalEarnedCommission;
-        }
+    }
 
-        if (shouldUpdateStaff) {
-            await updateStaff(staffMember);
-        }
+    if (shouldUpdateStaff) {
+        await updateStaff(staffMember);
     }
 };
 
@@ -411,8 +418,10 @@ export async function updateProductStock(
             adjustmentQuantity = -quantityChange;
             break;
         case 'Reserve':
-            stock.available -= quantityChange;
-            stock.reserved += quantityChange;
+            if (stock.available >= quantityChange) {
+                stock.available -= quantityChange;
+                stock.reserved += quantityChange;
+            }
             break;
         case 'Un-reserve':
             if (stock.reserved >= quantityChange) {
@@ -420,19 +429,23 @@ export async function updateProductStock(
                 stock.available += quantityChange;
             }
             break;
-        default: break;
+        default: 
+            // For other types like 'Damage', 'Initial Stock', etc.
+            // This logic might need expansion based on requirements.
+            break;
     }
     
     variant.stockByLocation[locIndex].stock = stock;
 
-    if (type !== 'Reserve' && type !== 'Un-reserve') {
+    // We only log "terminal" events like Sale, not temporary holds like Reserve/Un-reserve
+    if (type === 'Sale' || type === 'Initial Stock' || type === 'Damage') {
         const adjustment: StockAdjustment = {
             id: `adj-${Date.now()}`,
             date: new Date().toISOString(),
             type,
             quantity: adjustmentQuantity,
             reason,
-            channel: 'Online' // This might need to be more dynamic
+            channel: 'Online'
         };
         variant.stockAdjustments = [...(variant.stockAdjustments || []), adjustment];
     }
@@ -440,3 +453,4 @@ export async function updateProductStock(
     product.variants[variantIndex] = variant;
     await updateProduct(product);
 }
+
