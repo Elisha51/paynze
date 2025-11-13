@@ -1,4 +1,3 @@
-
 // src/components/onboarding/step2-store-setup.tsx
 'use client';
 import { useState } from 'react';
@@ -9,19 +8,34 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+
+interface AvailabilityResponse {
+  isAvailable: boolean;
+  message: string;
+}
 
 export default function Step2StoreSetup() {
   const { formData, setFormData, nextStep, prevStep } = useOnboarding();
+  
+  // State management for the availability check
+  const [isLoading, setIsLoading] = useState(false);
   const [isAvailable, setIsAvailable] = useState<boolean | null>(null);
-  const [isChecking, setIsChecking] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
+
   const { toast } = useToast();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setFormData(prev => ({ ...prev, [id]: value }));
+    const sanitizedValue = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    setFormData(prev => ({ ...prev, [id]: sanitizedValue }));
+    // Reset validation state on input change
     setIsAvailable(null);
+    setError(null);
+    setValidationMessage(null);
   };
   
   const handleRadioChange = (id: 'currency' | 'language' | 'domainType', value: string) => {
@@ -29,34 +43,54 @@ export default function Step2StoreSetup() {
   };
 
   const checkAvailability = async () => {
+    // 1. Initial State Reset
+    setError(null);
+    setValidationMessage(null);
+    setIsAvailable(null);
+    setIsLoading(true);
+
     if (!formData.subdomain) {
-      toast({
-          variant: 'destructive',
-          title: "Subdomain is empty",
-          description: "Please enter a subdomain to check.",
-      });
+      setError("Subdomain cannot be empty.");
+      setIsLoading(false);
       return;
     }
-    setIsChecking(true);
+
     try {
-      // Mock availability check with a delay
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // 2. Mock API Call
+      await new Promise(resolve => setTimeout(resolve, 750));
+
+      // 3. Mock HTTP Error Check
+      if (formData.subdomain === 'admin' || formData.subdomain === 'error') {
+        throw new Error(`The subdomain '${formData.subdomain}' is reserved or invalid.`);
+      }
       
-      setIsAvailable(true);
-      toast({
-          title: "Subdomain available!",
-          description: `${formData.subdomain}.paynze.app is yours.`,
-      });
+      // 4. Mock Success Handling
+      const isTaken = ['store', 'shop', 'test'].includes(formData.subdomain);
+      const data: AvailabilityResponse = {
+        isAvailable: !isTaken,
+        message: isTaken 
+          ? `Sorry, '${formData.subdomain}' is already taken.`
+          : `Success! '${formData.subdomain}' is available.`
+      };
+      
+      setIsAvailable(data.isAvailable);
+      setValidationMessage(data.message);
+
     } catch (error) {
-        console.error("Availability check failed:", error);
-        setIsAvailable(false);
-        toast({
-            variant: 'destructive',
-            title: "Error",
-            description: "Could not check subdomain availability. Please try again.",
-        });
+      // 5. Catch Errors
+      console.error("Availability check failed:", error);
+      
+      let errorMessage = "An unexpected error occurred. Please try again.";
+      if (error instanceof Error) {
+          errorMessage = error.message;
+      }
+      
+      setError(errorMessage);
+      setIsAvailable(false); // Assume unavailable on error
+
     } finally {
-        setIsChecking(false);
+      // 6. Cleanup
+      setIsLoading(false);
     }
   };
 
@@ -79,14 +113,28 @@ export default function Step2StoreSetup() {
                      <div className="flex items-center space-x-2 pl-6">
                         <Input id="subdomain" placeholder="e.g. katos" value={formData.subdomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'subdomain'}/>
                          <span className="text-muted-foreground">.paynze.app</span>
-                        <Button variant="outline" onClick={checkAvailability} disabled={formData.domainType !== 'subdomain' || !formData.subdomain || isChecking}>
-                            {isChecking ? 'Checking...' : 'Check'}
+                        <Button variant="outline" onClick={checkAvailability} disabled={formData.domainType !== 'subdomain' || !formData.subdomain || isLoading}>
+                            {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Check'}
                         </Button>
                     </div>
-                    {isAvailable && formData.domainType === 'subdomain' && (
-                        <p className="text-sm text-green-600 flex items-center gap-1 mt-2 pl-6">
-                            <CheckCircle className="h-4 w-4" /> Your store will be available at {formData.subdomain}.paynze.app
-                        </p>
+                     {formData.domainType === 'subdomain' && (
+                        <div className="pl-6 pt-2 text-sm">
+                            {isAvailable === true && validationMessage && (
+                                <p className="text-green-600 flex items-center gap-1">
+                                    <CheckCircle className="h-4 w-4" /> {validationMessage}
+                                </p>
+                            )}
+                            {isAvailable === false && validationMessage && !error && (
+                                <p className="text-destructive flex items-center gap-1">
+                                    <XCircle className="h-4 w-4" /> {validationMessage}
+                                </p>
+                            )}
+                             {error && (
+                                <p className="text-destructive flex items-center gap-1">
+                                    <AlertTriangle className="h-4 w-4" /> {error}
+                                </p>
+                            )}
+                        </div>
                     )}
                 </div>
 
@@ -124,7 +172,7 @@ export default function Step2StoreSetup() {
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={prevStep}>Back</Button>
-        <Button onClick={nextStep}>Continue</Button>
+        <Button onClick={nextStep} disabled={formData.domainType === 'subdomain' && isAvailable !== true}>Continue</Button>
       </CardFooter>
     </Card>
   );
