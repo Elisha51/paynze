@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step2-store-setup.tsx
 'use client';
 import { useState } from 'react';
@@ -28,6 +29,14 @@ export default function Step2StoreSetup() {
   };
 
   const checkAvailability = async () => {
+    if (!formData.subdomain) {
+        toast({
+            variant: 'destructive',
+            title: "Subdomain is empty",
+            description: "Please enter a subdomain to check.",
+        });
+        return;
+    }
     setIsChecking(true);
     try {
       // Mock availability check with a delay
