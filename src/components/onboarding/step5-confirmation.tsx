@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step5-confirmation.tsx
 'use client';
 import { useRouter } from 'next/navigation';
@@ -10,40 +11,54 @@ import { themes } from '@/themes';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { addStaff } from '@/services/staff';
+import { useState } from 'react';
 
 export default function Step5Confirmation() {
   const { formData, prevStep } = useOnboarding();
   const router = useRouter();
   const { toast } = useToast();
+  const [isLaunching, setIsLaunching] = useState(false);
 
   const selectedTheme = themes.find(t => t.name === formData.theme) || themes[0];
 
   const handleLaunch = async () => {
-    // 1. Save final onboarding data to localStorage for the new tenant
-    localStorage.setItem('onboardingData', JSON.stringify(formData));
-    
-    // 2. Create the first user (Account Owner) for this new tenant
-    const adminUser = await addStaff({
-        name: formData.businessName, // Or collect a personal name in step 1
-        email: `admin@${formData.subdomain}.com`, // Simulated email
-        role: 'Admin',
-        status: 'Active',
-    });
+    setIsLaunching(true);
+    try {
+        // 1. Save final onboarding data to localStorage for the new tenant
+        localStorage.setItem('onboardingData', JSON.stringify(formData));
+        
+        // 2. Create the first user (Account Owner) for this new tenant
+        const adminUser = await addStaff({
+            name: formData.businessName, // Or collect a personal name in step 1
+            email: `admin@${formData.subdomain}.com`, // Simulated email
+            role: 'Admin',
+            status: 'Active',
+        });
 
-    // 3. Set this new user as the logged-in user for the session
-    localStorage.setItem('loggedInUserId', adminUser.id);
+        // 3. Set this new user as the logged-in user for the session
+        localStorage.setItem('loggedInUserId', adminUser.id);
 
 
-    // 4. Show success and redirect to login
-    toast({
-        title: "Store Created!",
-        description: "Welcome to Paynze. Please log in to access your new dashboard.",
-        variant: "default",
-        duration: 5000,
-    });
-    
-    // Redirect to login page with a success flag
-    router.push('/login?onboarding=success');
+        // 4. Show success and redirect to login
+        toast({
+            title: "Store Created!",
+            description: "Welcome to Paynze. Please log in to access your new dashboard.",
+            variant: "default",
+            duration: 5000,
+        });
+        
+        // Redirect to login page with a success flag
+        router.push('/login?onboarding=success');
+    } catch (error) {
+        console.error("Launch failed:", error);
+        toast({
+            variant: 'destructive',
+            title: 'Launch Failed',
+            description: 'There was an unexpected error creating your store. Please try again.'
+        });
+    } finally {
+        setIsLaunching(false);
+    }
   };
 
   return (
@@ -82,9 +97,9 @@ export default function Step5Confirmation() {
             </CardContent>
             <CardFooter className="flex justify-between">
                 <Button variant="outline" onClick={prevStep}>Back</Button>
-                <Button onClick={handleLaunch} className="bg-accent hover:bg-accent/90">
+                <Button onClick={handleLaunch} className="bg-accent hover:bg-accent/90" disabled={isLaunching}>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    Launch My Store
+                    {isLaunching ? 'Launching...' : 'Launch My Store'}
                 </Button>
             </CardFooter>
         </Card>

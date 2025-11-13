@@ -171,6 +171,7 @@ export function DiscountsTab() {
         <DataTable 
             columns={columns} 
             data={discounts} 
+            isLoading={false}
             filters={[
                 { columnId: 'status', title: 'Status', options: discountStatuses },
                 { columnId: 'type', title: 'Type', options: discountTypes }
@@ -180,5 +181,3 @@ export function DiscountsTab() {
     </Card>
   );
 }
-
-    
