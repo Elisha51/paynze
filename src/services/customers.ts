@@ -1,6 +1,6 @@
 
 'use client';
-import type { Customer, Staff, Discount } from '@/lib/types';
+import type { Customer, Staff, Discount, Communication } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
@@ -16,7 +16,7 @@ function initializeMockCustomers(): Customer[] {
     ];
 
     return [...mockCustomers].map((customer, index) => {
-        const baseComms = [
+        const baseComms: Communication[] = [
             {
                 id: `comm-1-${index}`,
                 type: 'Note' as const,
