@@ -1,4 +1,3 @@
-
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
-  const { login } = useAuth();
+  const { setUser } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [name, setName] = useState('');
@@ -41,18 +40,27 @@ export default function SignupPage() {
     setIsSubmitting(true);
     
     try {
-        // Create the user with an 'Admin' role by default for the new tenant.
         const newUser = await addStaff({
             name,
             email,
             role: 'Admin',
             status: 'Active',
-            // In a real app, password would be hashed on the server.
         });
         
-        // Automatically log the user in after successful registration.
-        // The login function will handle the redirection.
-        login(newUser);
+        // This is the new, corrected flow.
+        // 1. Set the user session directly.
+        localStorage.setItem('loggedInUserId', newUser.id);
+        
+        // 2. Set the user in the auth context, but without triggering the login function's redirect logic.
+        // We will manually redirect to onboarding.
+        const roles = await (await import('@/services/roles')).getRoles();
+        const userRole = roles.find(r => r.name === newUser.role);
+        if (userRole) {
+            setUser({ ...newUser, permissions: userRole.permissions, plan: 'Growth' });
+        }
+
+        // 3. Force redirect to onboarding for every new sign-up.
+        router.push('/get-started');
 
     } catch (error) {
         console.error("Signup failed:", error);

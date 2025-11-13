@@ -1,4 +1,3 @@
-
 'use client';
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Staff, Role, OnboardingFormData } from '@/lib/types';
@@ -36,8 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (userRole) {
       setUser({ ...staffMember, permissions: userRole.permissions, plan });
     } else {
-      // Fallback for roles not explicitly defined (e.g., dynamic roles)
-      // This is a sensible default for a production environment.
       const defaultRole = roles.find(r => r.name === 'Sales Agent');
       setUser({ ...staffMember, permissions: defaultRole!.permissions, plan });
     }
