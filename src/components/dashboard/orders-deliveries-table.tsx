@@ -168,7 +168,7 @@ const getColumns = (
     header: 'Payment Method',
     cell: ({ row }) => {
       const payment = row.original.payment;
-      return <span>{payment.method}</span>;
+      return <span>{payment?.method || 'N/A'}</span>;
     },
     filterFn: (row, id, value) => {
       const method = row.original.payment?.method;
