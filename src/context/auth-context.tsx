@@ -64,6 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(async (userToLogin: Staff) => {
     localStorage.setItem('loggedInUserId', userToLogin.id);
     await fetchUserPermissions(userToLogin);
+    
+    // THIS IS THE CORRECTED LOGIC
+    // Check for onboarding data *after* setting the user, then redirect.
     const onboardingDataRaw = localStorage.getItem('onboardingData');
     if (onboardingDataRaw) {
         router.push('/dashboard');
