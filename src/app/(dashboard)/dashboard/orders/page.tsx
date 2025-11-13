@@ -75,7 +75,7 @@ export default function OrdersPage() {
     >
         <DashboardPageLayout.TabContent value="all-orders">
             <DashboardPageLayout.Content>
-                <OrdersTable orders={orders} isLoading={isLoading} />
+                <OrdersTable orders={orders} staff={staff} isLoading={isLoading} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="deliveries">

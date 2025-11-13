@@ -18,7 +18,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import type { Order, OnboardingFormData } from '@/lib/types';
+import type { Order, OnboardingFormData, Staff } from '@/lib/types';
 import { DataTable } from './data-table';
 import {
   Dialog,
@@ -42,13 +42,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
-import { getStaff } from '@/services/staff';
-import type { Staff } from '@/lib/types';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { updateOrder } from '@/services/orders';
 import { useAuth } from '@/context/auth-context';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 
 function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
@@ -111,22 +109,14 @@ function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { or
     )
 }
 
-function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Order, onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
+function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { order: Order, staff: Staff[], onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
     const { toast } = useToast();
-    const [staff, setStaff] = React.useState<Staff[]>([]);
     const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
 
-    React.useEffect(() => {
-        async function loadStaff() {
-            const allStaff = await getStaff();
-            const assignableStaff = allStaff.filter(s => s.role === 'Agent');
-            setStaff(assignableStaff);
-        }
-        loadStaff();
-    }, []);
-    
+    const deliveryRiders = staff.filter(s => s.role === 'Agent');
+
     const suggestedRiders = React.useMemo(() => {
-        return staff
+        return deliveryRiders
             .filter(rider => {
                 const isOnline = rider.onlineStatus === 'Online';
                 const deliveryZones = rider.attributes?.deliveryZones as string[] | undefined;
@@ -134,9 +124,9 @@ function AssignOrderDialog({ order, onUpdate, children, asChild }: { order: Orde
                 return isOnline && deliveryZones.includes(order.shippingAddress.city);
             })
             .sort((a,b) => (a.assignedOrders?.length || 0) - (b.assignedOrders?.length || 0)); // Prioritize riders with fewer orders
-    }, [staff, order.shippingAddress.city]);
+    }, [deliveryRiders, order.shippingAddress.city]);
     
-    const otherRiders = staff.filter(r => !suggestedRiders.find(s => s.id === r.id));
+    const otherRiders = deliveryRiders.filter(r => !suggestedRiders.find(s => s.id === r.id));
 
     const handleAssign = async () => {
         if (!selectedStaffId) {
@@ -236,6 +226,7 @@ const channels = [
 const getColumns = (
   onUpdate: (updatedOrder: Order) => void,
   currency: string,
+  staff: Staff[],
   canEdit: boolean
 ): ColumnDef<Order>[] => [
   {
@@ -451,7 +442,7 @@ const getColumns = (
                         {canEdit && (
                           <>
                             {isPaid && order.fulfillmentMethod === 'Delivery' && (
-                                <AssignOrderDialog order={order} onUpdate={onUpdate} asChild>
+                                <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate} asChild>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
                                 </AssignOrderDialog>
                             )}
@@ -511,10 +502,11 @@ const getColumns = (
 
 type OrdersTableProps = {
   orders: Order[];
+  staff: Staff[];
   isLoading: boolean;
 };
 
-export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
+export function OrdersTable({ orders, staff, isLoading }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>(orders);
   const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
   const { user } = useAuth();
@@ -532,10 +524,9 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
     setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
   };
   
-  const columns = React.useMemo(() => getColumns(handleUpdate, settings?.currency || 'UGX', !!canEdit), [handleUpdate, settings?.currency, canEdit]);
+  const columns = React.useMemo(() => getColumns(handleUpdate, settings?.currency || 'UGX', staff, !!canEdit), [handleUpdate, settings?.currency, staff, canEdit]);
   
   const columnVisibility = React.useMemo(() => {
-    // Hide 'Assigned To' column if no orders have an assigned staff member
     const hasAnyAssignments = data.some(o => !!o.assignedStaffName || !!o.fulfilledByStaffName);
     return { assignedStaffName: hasAnyAssignments };
   }, [data]);
@@ -568,3 +559,4 @@ export function OrdersTable({ orders, isLoading }: OrdersTableProps) {
     />
   );
 }
+
