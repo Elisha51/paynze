@@ -133,8 +133,8 @@ export function ProcurementAnalyticsReport({ purchaseOrders, dateRange }: { purc
         <CardHeader>
           <CardTitle>Procurement Spend</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] w-full">
-          <ChartContainer config={chartConfig}>
+        <CardContent>
+          <ChartContainer config={chartConfig} className="aspect-video">
             <BarChart data={chartData}>
                 <XAxis
                     dataKey="date"

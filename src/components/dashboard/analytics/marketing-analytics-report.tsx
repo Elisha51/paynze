@@ -132,8 +132,8 @@ export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRan
         <CardHeader>
           <CardTitle>Campaign Reach by Channel</CardTitle>
         </CardHeader>
-        <CardContent className="w-full aspect-video">
-            <ChartContainer config={chartConfig}>
+        <CardContent>
+            <ChartContainer config={chartConfig} className="aspect-video">
               <RechartsBarChart data={campaignChannelData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                   <XAxis
                       dataKey="name"
@@ -166,8 +166,8 @@ export function MarketingAnalyticsReport({ campaigns, discounts, orders, dateRan
         <CardHeader>
           <CardTitle>Discount Redemptions (All Time)</CardTitle>
         </CardHeader>
-        <CardContent className="w-full aspect-video">
-            <ChartContainer config={chartConfig}>
+        <CardContent>
+            <ChartContainer config={chartConfig} className="aspect-video">
               <RechartsBarChart data={discountChartData} margin={{ top: 5, right: 20, left: -10, bottom: 5 }}>
                   <XAxis
                       dataKey="name"

@@ -174,8 +174,8 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
             <CardHeader>
             <CardTitle>Sales Trend</CardTitle>
             </CardHeader>
-            <CardContent className="h-[300px] w-full">
-                <ChartContainer config={chartConfig}>
+            <CardContent>
+                <ChartContainer config={chartConfig} className="aspect-video">
                 <BarChart data={chartData}>
                     <XAxis
                         dataKey="date"
@@ -208,8 +208,8 @@ export function OrderAnalyticsReport({ orders, dateRange }: { orders: Order[], d
                 <CardHeader>
                     <CardTitle>Sales by Channel</CardTitle>
                 </CardHeader>
-                <CardContent className="h-[300px] w-full flex items-center justify-center">
-                    <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full">
+                <CardContent>
+                    <ChartContainer config={chartConfig} className="mx-auto aspect-square">
                         <PieChart>
                             <Tooltip
                                 cursor={false}

@@ -11,9 +11,6 @@ import { getProducts } from '@/services/products';
 import { getProductTemplates } from '@/services/templates';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { useAuth } from '@/context/auth-context';
-import { DateRangePicker } from '@/components/ui/date-range-picker';
-import { DateRange } from 'react-day-picker';
-import { ProductPerformanceReport } from '@/components/dashboard/analytics/product-performance-report';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { CategoriesTab } from '@/components/dashboard/categories-tab';
 import { usePathname } from 'next/navigation';
@@ -23,12 +20,10 @@ export default function ProductsPage() {
   const [myTemplates, setMyTemplates] = useState<ProductTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-products');
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user, isLoading: isUserLoading } = useAuth();
   const pathname = usePathname();
   
   const canCreate = user?.permissions.products.create;
-  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -54,13 +49,8 @@ export default function ProductsPage() {
     { value: 'all-products', label: 'All Products' },
     { value: 'categories', label: 'Categories' },
   ];
-  if (canViewAnalytics) {
-    tabs.push({ value: 'analytics', label: 'Analytics' });
-  }
 
-  const ctaContent = activeTab === 'analytics'
-    ? <DateRangePicker date={dateRange} setDate={setDateRange} />
-    : (
+  const ctaContent = (
         <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setActiveTab('categories')}>
                 <Settings className="mr-2 h-4 w-4" /> Manage Categories
@@ -123,13 +113,6 @@ export default function ProductsPage() {
             <CategoriesTab />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
-      {canViewAnalytics && (
-        <DashboardPageLayout.TabContent value="analytics">
-          <DashboardPageLayout.Content>
-              <ProductPerformanceReport products={products} dateRange={dateRange} />
-          </DashboardPageLayout.Content>
-        </DashboardPageLayout.TabContent>
-      )}
     </DashboardPageLayout>
   );
 }

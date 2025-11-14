@@ -147,8 +147,8 @@ export function FinanceAnalyticsReport({ transactions, dateRange }: { transactio
         <CardHeader>
           <CardTitle>Income vs. Expenses</CardTitle>
         </CardHeader>
-        <CardContent className="h-[300px] w-full">
-            <ChartContainer config={chartConfig}>
+        <CardContent>
+            <ChartContainer config={chartConfig} className="aspect-video">
               <BarChart data={chartData} barGap={4}>
                   <XAxis
                       dataKey="date"
@@ -183,8 +183,8 @@ export function FinanceAnalyticsReport({ transactions, dateRange }: { transactio
             <CardHeader>
                 <CardTitle>Income by Category</CardTitle>
             </CardHeader>
-            <CardContent className="h-[300px] w-full flex items-center justify-center">
-                 <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full">
+            <CardContent>
+                 <ChartContainer config={chartConfig} className="mx-auto aspect-square">
                     <PieChart>
                         <Tooltip
                             cursor={false}
@@ -212,8 +212,8 @@ export function FinanceAnalyticsReport({ transactions, dateRange }: { transactio
             <CardHeader>
                 <CardTitle>Expenses by Category</CardTitle>
             </CardHeader>
-            <CardContent className="h-[300px] w-full flex items-center justify-center">
-                 <ChartContainer config={chartConfig} className="mx-auto aspect-square h-full">
+            <CardContent>
+                 <ChartContainer config={chartConfig} className="mx-auto aspect-square">
                     <PieChart>
                         <Tooltip
                             cursor={false}
