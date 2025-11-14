@@ -2,7 +2,7 @@
 
 'use client';
 
-import { PlusCircle, MoreHorizontal, Edit, Trash2, ChevronDown } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import * as React from 'react';
 import type { Category } from '@/lib/types';
@@ -31,9 +31,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
-  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
  import {
   AlertDialog,
@@ -45,14 +43,14 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
   AlertDialogDescription,
-} from "@/components/ui/alert-dialog"
+} from "@/components/ui/alert-dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 
 export function CategoriesTab() {
   const [categories, setCategories] = React.useState<Category[]>([]);
-  const [isAddOpen, setIsAddOpen] = React.useState(false);
-  const [isEditOpen, setIsEditOpen] = React.useState(false);
-  const [newCategory, setNewCategory] = React.useState<Omit<Category, 'id'>>({ name: '', description: ''});
-  const [editingCategory, setEditingCategory] = React.useState<Category | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [dialogMode, setDialogMode] = React.useState<'add' | 'edit'>('add');
+  const [currentCategory, setCurrentCategory] = React.useState<Partial<Category>>({ name: '', parentId: null });
   const { toast } = useToast();
 
   const loadData = React.useCallback(async () => {
@@ -64,47 +62,60 @@ export function CategoriesTab() {
     loadData();
   }, [loadData]);
   
-  const groupedCategories = React.useMemo(() => {
-    return categories.reduce((acc, category) => {
-        const mainCategory = category.description || 'Uncategorized';
-        if (!acc[mainCategory]) {
-            acc[mainCategory] = [];
+  const { mainCategories, subCategoriesByParent } = React.useMemo(() => {
+    const main: Category[] = [];
+    const sub: Record<string, Category[]> = {};
+
+    for (const category of categories) {
+        if (category.parentId) {
+            if (!sub[category.parentId]) {
+                sub[category.parentId] = [];
+            }
+            sub[category.parentId].push(category);
+        } else {
+            main.push(category);
         }
-        acc[mainCategory].push(category);
-        return acc;
-    }, {} as Record<string, Category[]>);
+    }
+    return { mainCategories: main, subCategoriesByParent: sub };
   }, [categories]);
 
-  const handleAddCategory = async () => {
-    if (!newCategory.name || !newCategory.description) {
-        toast({ variant: 'destructive', title: 'Main category and sub-category name are required.' });
-        return;
-    }
-    await addCategory(newCategory);
-    toast({ title: 'Category added' });
-    setIsAddOpen(false);
-    setNewCategory({ name: '', description: '' });
-    loadData();
+  const openDialog = (mode: 'add' | 'edit', category?: Partial<Category>) => {
+    setDialogMode(mode);
+    setCurrentCategory(category || { name: '', parentId: null });
+    setIsDialogOpen(true);
   }
 
-  const handleUpdateCategory = async () => {
-    if (!editingCategory) return;
-    await updateCategory(editingCategory);
-    toast({ title: 'Category updated' });
-    setIsEditOpen(false);
-    setEditingCategory(null);
+  const handleSave = async () => {
+    if (!currentCategory.name) {
+        toast({ variant: 'destructive', title: 'Category name is required.' });
+        return;
+    }
+    
+    if (dialogMode === 'add') {
+        await addCategory({ name: currentCategory.name, parentId: currentCategory.parentId || null });
+        toast({ title: 'Category added' });
+    } else if (currentCategory.id) {
+        await updateCategory(currentCategory as Category);
+        toast({ title: 'Category updated' });
+    }
+    
+    setIsDialogOpen(false);
     loadData();
   }
 
   const handleDeleteCategory = async (id: string) => {
+    // Check if it's a parent category with children
+    if (subCategoriesByParent[id] && subCategoriesByParent[id].length > 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Cannot Delete Parent Category',
+            description: 'Please delete or re-assign its sub-categories first.'
+        });
+        return;
+    }
     await deleteCategory(id);
-    toast({ title: 'Sub-category deleted' });
+    toast({ title: 'Category deleted' });
     loadData();
-  }
-
-  const openEditDialog = (category: Category) => {
-    setEditingCategory(category);
-    setIsEditOpen(true);
   }
 
   return (
@@ -115,47 +126,24 @@ export function CategoriesTab() {
                 <CardTitle>Manage Categories</CardTitle>
                 <CardDescription>Group products into categories and sub-categories.</CardDescription>
               </div>
-               <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogTrigger asChild>
-                    <Button>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add Category
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Add New Category</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 py-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="description">Main Category</Label>
-                            <Input id="description" value={newCategory.description || ''} onChange={(e) => setNewCategory({...newCategory, description: e.target.value})} placeholder="e.g., Apparel" />
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="name">Sub-category Name</Label>
-                            <Input id="name" value={newCategory.name} onChange={(e) => setNewCategory({...newCategory, name: e.target.value})} placeholder="e.g., T-Shirts" />
-                        </div>
-                    </div>
-                    <DialogFooter>
-                        <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                        <Button onClick={handleAddCategory}>Add Category</Button>
-                    </DialogFooter>
-                </DialogContent>
-                </Dialog>
+               <Button onClick={() => openDialog('add')}>
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Category
+                </Button>
           </CardHeader>
           <CardContent>
             <Accordion type="multiple" className="w-full">
-              {Object.entries(groupedCategories).map(([mainCategory, subCategories]) => (
-                <AccordionItem value={mainCategory} key={mainCategory}>
+              {mainCategories.map(mainCategory => (
+                <AccordionItem value={mainCategory.id} key={mainCategory.id}>
                   <AccordionTrigger className="hover:no-underline">
                     <div className="flex items-center justify-between w-full pr-4">
-                       <h3 className="font-semibold text-md">{mainCategory}</h3>
-                       <span className="text-sm text-muted-foreground">{subCategories.length} sub-categories</span>
+                       <h3 className="font-semibold text-md">{mainCategory.name}</h3>
+                       <span className="text-sm text-muted-foreground">{(subCategoriesByParent[mainCategory.id] || []).length} sub-categories</span>
                     </div>
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="space-y-2 pl-4">
-                      {subCategories.map(subCategory => (
+                      {(subCategoriesByParent[mainCategory.id] || []).map(subCategory => (
                         <div key={subCategory.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
                            <span>{subCategory.name}</span>
                             <DropdownMenu>
@@ -163,7 +151,7 @@ export function CategoriesTab() {
                                     <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => openEditDialog(subCategory)}>
+                                    <DropdownMenuItem onClick={() => openDialog('edit', subCategory)}>
                                         <Edit className="mr-2 h-4 w-4" /> Edit
                                     </DropdownMenuItem>
                                      <AlertDialog>
@@ -187,6 +175,9 @@ export function CategoriesTab() {
                             </DropdownMenu>
                         </div>
                       ))}
+                      <Button variant="link" size="sm" className="p-1 h-auto" onClick={() => openDialog('add', { parentId: mainCategory.id })}>
+                          <PlusCircle className="h-4 w-4 mr-1"/> Add sub-category
+                      </Button>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -195,26 +186,32 @@ export function CategoriesTab() {
           </CardContent>
       </Card>
       
-       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent>
             <DialogHeader>
-                <DialogTitle>Edit Category</DialogTitle>
+                <DialogTitle>{dialogMode === 'add' ? 'Add' : 'Edit'} Category</DialogTitle>
             </DialogHeader>
-             {editingCategory && (
-                <div className="space-y-4 py-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="description-edit">Main Category</Label>
-                        <Input id="description-edit" value={editingCategory.description} onChange={(e) => setEditingCategory({...editingCategory, description: e.target.value || ''})} />
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="name-edit">Sub-category Name</Label>
-                        <Input id="name-edit" value={editingCategory.name} onChange={(e) => setEditingCategory({...editingCategory, name: e.target.value})} />
-                    </div>
+            <div className="space-y-4 py-4">
+                 <div className="space-y-2">
+                    <Label htmlFor="parentId">Parent Category (Optional)</Label>
+                    <Select value={currentCategory.parentId || 'none'} onValueChange={(v) => setCurrentCategory({...currentCategory, parentId: v === 'none' ? null : v })}>
+                        <SelectTrigger><SelectValue placeholder="Select parent..."/></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="none">None (This is a main category)</SelectItem>
+                            {mainCategories.map(cat => (
+                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
-             )}
+                <div className="space-y-2">
+                    <Label htmlFor="name">Category Name</Label>
+                    <Input id="name" value={currentCategory.name || ''} onChange={(e) => setCurrentCategory({...currentCategory, name: e.target.value})} placeholder={currentCategory.parentId ? "e.g., T-Shirts" : "e.g., Apparel"}/>
+                </div>
+            </div>
             <DialogFooter>
                 <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <Button onClick={handleUpdateCategory}>Save Changes</Button>
+                <Button onClick={handleSave}>Save Changes</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

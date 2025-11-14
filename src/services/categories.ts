@@ -1,12 +1,17 @@
 
+
 import type { Category } from '@/lib/types';
 import { DataService } from './data-service';
 
 const mockCategories: Category[] = [
-    { id: 'cat-1', name: 'Fabrics', description: 'Woven or knit materials.' },
-    { id: 'cat-2', name: 'Apparel', description: 'Ready-made clothing items.' },
-    { id: 'cat-3', name: 'Footwear', description: 'Shoes, sandals, and boots.' },
-    { id: 'cat-4', name: 'Accessories', description: 'Bags, jewelry, and more.' },
+    { id: 'cat-main-1', name: 'Apparel', parentId: null },
+    { id: 'cat-sub-1a', name: 'T-Shirts', parentId: 'cat-main-1' },
+    { id: 'cat-sub-1b', name: 'Dresses', parentId: 'cat-main-1' },
+    { id: 'cat-main-2', name: 'Fabrics', parentId: null },
+    { id: 'cat-sub-2a', name: 'Kitenge', parentId: 'cat-main-2' },
+    { id: 'cat-sub-2b', name: 'Linen', parentId: 'cat-main-2' },
+    { id: 'cat-main-3', name: 'Footwear', parentId: null },
+    { id: 'cat-main-4', name: 'Accessories', parentId: null },
 ];
 
 const categoryService = new DataService<Category>('categories', () => mockCategories);

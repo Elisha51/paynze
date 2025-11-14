@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
@@ -24,6 +25,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  SelectGroup,
+  SelectLabel,
 } from '../ui/select';
 import Link from 'next/link';
 import {
@@ -130,7 +133,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
   useEffect(() => {
     // When initialProduct changes, reset the form state
-    setProduct({ ...emptyProduct, ...initialProduct });
+    setProduct(prev => ({ ...emptyProduct, ...prev, ...initialProduct }));
     setShowComparePrice(!!initialProduct?.compareAtPrice);
 
     const data = localStorage.getItem('onboardingData');
@@ -150,28 +153,30 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }, [initialProduct]);
   
   useEffect(() => {
-    setProduct(prevProduct => {
-        if (prevProduct.hasVariants) {
-            const newVariants = generateVariants(prevProduct.options);
-            // Preserve existing variant data where possible
-            const mergedVariants = newVariants.map(newVariant => {
+    if (product.hasVariants) {
+        const newVariants = generateVariants(product.options);
+        // Preserve existing variant data where possible
+        setProduct(prevProduct => {
+             const mergedVariants = newVariants.map(newVariant => {
                 const existingVariant = prevProduct.variants.find(oldVariant => {
                     return JSON.stringify(oldVariant.optionValues) === JSON.stringify(newVariant.optionValues);
                 });
                 return existingVariant ? { ...newVariant, ...existingVariant, id: newVariant.id } : newVariant;
             });
             return { ...prevProduct, variants: mergedVariants };
-        } else {
-            // If not using variants, ensure there is a single default variant for stock tracking
+        });
+    } else {
+        // If not using variants, ensure there is a single default variant for stock tracking
+        setProduct(prevProduct => {
             if (prevProduct.variants.length === 0) {
                 return {
                     ...prevProduct,
                     variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prevProduct.retailPrice }]
                 };
             }
-        }
-        return prevProduct;
-    });
+            return prevProduct;
+        });
+    }
   }, [product.options, product.hasVariants]);
 
 
@@ -485,6 +490,23 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         setIsSaving(false);
     }
   }
+
+  const { mainCategories, subCategoriesByParent } = React.useMemo(() => {
+    const main: Category[] = [];
+    const sub: Record<string, Category[]> = {};
+
+    for (const category of categories) {
+        if (category.parentId) {
+            if (!sub[category.parentId]) {
+                sub[category.parentId] = [];
+            }
+            sub[category.parentId].push(category);
+        } else {
+            main.push(category);
+        }
+    }
+    return { mainCategories: main, subCategoriesByParent: sub };
+  }, [categories]);
 
   return (
     <div className="space-y-6">
@@ -1086,8 +1108,13 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                 <SelectValue placeholder="Select a category" />
                             </SelectTrigger>
                             <SelectContent>
-                                {categories.map(cat => (
-                                    <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
+                                {mainCategories.map(mainCat => (
+                                    <SelectGroup key={mainCat.id}>
+                                        <SelectLabel>{mainCat.name}</SelectLabel>
+                                        {(subCategoriesByParent[mainCat.id] || []).map(subCat => (
+                                            <SelectItem key={subCat.id} value={subCat.name}>{subCat.name}</SelectItem>
+                                        ))}
+                                    </SelectGroup>
                                 ))}
                             </SelectContent>
                         </Select>
