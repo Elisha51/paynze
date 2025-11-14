@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Edit, MoreVertical, Phone, Mail, User, MapPin } from 'lucide-react';
+import { ArrowLeft, Edit, MoreVertical, Phone, Mail, User, MapPin, Gift, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import type { Customer, Order } from '@/lib/types';
 import { getCustomerById } from '@/services/customers';
@@ -21,6 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
@@ -181,7 +182,20 @@ export default function ViewCustomerPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>Send Message</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                        <ShoppingBag className="mr-2 h-4 w-4" />
+                        Send Offer
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                         <Gift className="mr-2 h-4 w-4" />
+                        Reward Loyalty
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                         <RefreshCw className="mr-2 h-4 w-4" />
+                        Recover Cart
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem>Add to Campaign</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
