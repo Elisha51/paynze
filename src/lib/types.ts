@@ -1,6 +1,7 @@
 
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -496,6 +497,7 @@ export type Todo = {
 export type CampaignBanner = {
   enabled: boolean;
   type: 'Product Highlight' | 'Discount Offer' | 'Announcement';
+  size: 'standard' | 'large' | 'square';
   title: string;
   description: string;
   ctaText: string;

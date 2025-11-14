@@ -52,6 +52,7 @@ const emptyCampaign: Partial<Campaign> = {
   banner: {
     enabled: false,
     type: 'Announcement',
+    size: 'standard',
     title: '',
     description: '',
     ctaText: 'Shop Now',
@@ -109,7 +110,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         setCampaign(prev => ({...prev, [id]: value as any}));
     }
     
-    const handleBannerChange = (field: keyof CampaignBanner, value: string | boolean) => {
+    const handleBannerChange = (field: keyof CampaignBanner, value: string | boolean | CampaignBanner['size']) => {
         setCampaign(prev => ({
             ...prev,
             banner: {
@@ -220,6 +221,17 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                             <Input id="banner-title" value={campaign.banner.title} onChange={(e) => handleBannerChange('title', e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
+                                            <Label htmlFor="banner-size">Banner Size</Label>
+                                            <Select value={campaign.banner.size} onValueChange={(v) => handleBannerChange('size', v as CampaignBanner['size'])}>
+                                                <SelectTrigger><SelectValue/></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="standard">Standard (3:1)</SelectItem>
+                                                    <SelectItem value="large">Large (2:1)</SelectItem>
+                                                    <SelectItem value="square">Square (1:1)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
                                             <Label htmlFor="banner-description">Banner Description</Label>
                                             <Input id="banner-description" value={campaign.banner.description} onChange={(e) => handleBannerChange('description', e.target.value)} />
                                         </div>
@@ -240,7 +252,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                                 onFilesChange={handleBannerImageUpload}
                                                 maxFiles={1}
                                             />
-                                            <p className="text-xs text-muted-foreground">Recommended dimensions: 1200x400 pixels. Max file size: 2MB.</p>
+                                            <p className="text-xs text-muted-foreground">Recommended dimensions: 1200x400 for standard, 1200x600 for large, 800x800 for square.</p>
                                         </div>
                                     </div>
                                 )}
