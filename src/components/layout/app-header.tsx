@@ -13,7 +13,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
-import { ClipboardCheck, Search } from 'lucide-react';
+import { ClipboardCheck } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import React, { useEffect, useState } from 'react';
 import { getStaffOrders } from '@/services/staff';
@@ -21,7 +21,7 @@ import type { Order } from '@/lib/types';
 import { getTodos } from '@/services/todos';
 import { useAuth } from '@/context/auth-context';
 import { getInitials } from '@/lib/utils';
-import { Input } from '../ui/input';
+import { GlobalSearch } from '../dashboard/global-search';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
@@ -60,16 +60,7 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
       <SidebarTrigger className="md:hidden" />
       
       <div className="w-full flex-1">
-        <form>
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Search anything..."
-              className="w-full appearance-none bg-background pl-8 shadow-none md:w-2/3 lg:w-1/3"
-            />
-          </div>
-        </form>
+        <GlobalSearch />
       </div>
 
       <div className="flex items-center gap-2">
