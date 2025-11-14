@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
@@ -154,22 +153,30 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   
   useEffect(() => {
     setProduct(prevProduct => {
+        let newVariants: ProductVariant[];
+
         if (prevProduct.hasVariants) {
-            const newVariants = generateVariants(prevProduct.options);
-            const mergedVariants = newVariants.map(newVariant => {
+            const generated = generateVariants(prevProduct.options);
+            // Merge existing variant data into newly generated variants
+            newVariants = generated.map(newVariant => {
                 const existingVariant = prevProduct.variants.find(oldVariant => 
                     JSON.stringify(oldVariant.optionValues) === JSON.stringify(newVariant.optionValues)
                 );
                 return existingVariant ? { ...newVariant, ...existingVariant, id: newVariant.id } : newVariant;
             });
-            return { ...prevProduct, variants: mergedVariants };
         } else {
-            // If not using variants, ensure there is a single, clean default variant.
-            return {
-                ...prevProduct,
-                variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prevProduct.retailPrice }]
-            };
+            newVariants = [];
         }
+
+        // If there are no variants (either because hasVariants is false or options are empty),
+        // ensure there is at least one default variant.
+        if (newVariants.length === 0) {
+            // Try to find an existing default variant to preserve its data (e.g., stock)
+            const existingDefault = prevProduct.variants.find(v => Object.keys(v.optionValues).length === 0);
+            newVariants = [existingDefault || { id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prevProduct.retailPrice }];
+        }
+
+        return { ...prevProduct, variants: newVariants };
     });
 }, [product.options, product.hasVariants]);
 
