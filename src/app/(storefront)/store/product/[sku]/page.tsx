@@ -113,7 +113,7 @@ export default function ProductDetailPage() {
 
   const handleToggleWishlist = async () => {
       handleProtectedAction(async () => {
-        if (!customer || !product) return;
+        if (!customer || !product || !product.sku) return;
         
         const currentWishlist = customer.wishlist || [];
         const newWishlist = isWishlisted 

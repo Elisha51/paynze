@@ -30,7 +30,7 @@ export default function WishlistPage() {
       
       if (cust?.wishlist && cust.wishlist.length > 0) {
         const allProducts = await getProducts();
-        const wishlistItems = allProducts.filter(p => cust.wishlist.includes(p.sku));
+        const wishlistItems = allProducts.filter(p => cust.wishlist.includes(p.sku || ''));
         setWishlistProducts(wishlistItems);
       }
       setLoading(false);
