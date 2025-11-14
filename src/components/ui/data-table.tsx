@@ -15,6 +15,7 @@ import {
   getSortedRowModel,
   useReactTable,
   TableState,
+  RowSelectionState,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -63,6 +64,8 @@ interface DataTableProps<TData, TValue> {
   initialState?: Partial<TableState>;
   columnFilters?: ColumnFiltersState;
   setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
+  rowSelection?: RowSelectionState;
+  setRowSelection?: React.Dispatch<React.SetStateAction<RowSelectionState>>;
 }
 
 export function DataTable<TData, TValue>({
@@ -74,8 +77,10 @@ export function DataTable<TData, TValue>({
   initialState,
   columnFilters: externalColumnFilters,
   setColumnFilters: setExternalColumnFilters,
+  rowSelection: externalRowSelection,
+  setRowSelection: setExternalRowSelection,
 }: DataTableProps<TData, TValue>) {
-  const [rowSelection, setRowSelection] = React.useState({});
+  const [internalRowSelection, setInternalRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [internalColumnFilters, setInternalColumnFilters] = React.useState<ColumnFiltersState>(
@@ -86,6 +91,8 @@ export function DataTable<TData, TValue>({
   
   const columnFilters = externalColumnFilters ?? internalColumnFilters;
   const setColumnFilters = setExternalColumnFilters ?? setInternalColumnFilters;
+  const rowSelection = externalRowSelection ?? internalRowSelection;
+  const setRowSelection = setExternalRowSelection ?? setInternalRowSelection;
 
   const table = useReactTable({
     data,

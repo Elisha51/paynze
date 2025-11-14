@@ -24,9 +24,11 @@ import { useToast } from '@/hooks/use-toast';
 import type { Order, Product, Customer, OnboardingFormData, ProductVariant } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { getCustomers } from '@/services/customers';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../ui/dialog';
 import { DataTable } from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
+import { Checkbox } from '../ui/checkbox';
+import { ScrollArea } from '../ui/scroll-area';
 
 type OrderItemForm = {
     productId: string;
@@ -48,20 +50,40 @@ const emptyOrder: Partial<Order> = {
     }
 }
 
-const ProductSelectionDialog = ({ products, onSelect }: { products: Product[], onSelect: (product: Product, variant?: ProductVariant) => void }) => {
+const ProductSelectionDialog = ({ products, onAddProducts }: { products: Product[], onAddProducts: (items: (Product & { variant?: ProductVariant })[]) => void }) => {
     
     type ProductRow = Product & { variant?: ProductVariant };
+    const [rowSelection, setRowSelection] = useState({});
 
     const productRows = useMemo(() => {
         return products.flatMap(p => {
             if (p.hasVariants && p.variants.length > 1) {
                 return p.variants.map(v => ({ ...p, variant: v }));
             }
-            return [{ ...p }];
+            return [{ ...p, variant: p.variants[0] }];
         });
     }, [products]);
 
     const columns: ColumnDef<ProductRow>[] = [
+        {
+            id: 'select',
+            header: ({ table }) => (
+                <Checkbox
+                    checked={table.getIsAllPageRowsSelected()}
+                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                    aria-label="Select all"
+                />
+            ),
+            cell: ({ row }) => (
+                <Checkbox
+                    checked={row.getIsSelected()}
+                    onCheckedChange={(value) => row.toggleSelected(!!value)}
+                    aria-label="Select row"
+                />
+            ),
+            enableSorting: false,
+            enableHiding: false,
+        },
         {
             accessorKey: 'name',
             header: 'Product',
@@ -84,13 +106,13 @@ const ProductSelectionDialog = ({ products, onSelect }: { products: Product[], o
                 return new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(price);
             }
         },
-        {
-            id: 'actions',
-            cell: ({ row }) => (
-                <Button size="sm" onClick={() => onSelect(row.original, row.original.variant)}>Select</Button>
-            ),
-        }
     ];
+
+    const handleAdd = () => {
+        const selectedIds = Object.keys(rowSelection);
+        const selectedItems = productRows.filter((_, index) => selectedIds.includes(String(index)));
+        onAddProducts(selectedItems);
+    };
 
     return (
         <Dialog>
@@ -99,20 +121,32 @@ const ProductSelectionDialog = ({ products, onSelect }: { products: Product[], o
             </DialogTrigger>
             <DialogContent className="max-w-3xl">
                 <DialogHeader>
-                    <DialogTitle>Select a Product</DialogTitle>
+                    <DialogTitle>Select Products</DialogTitle>
                 </DialogHeader>
-                <div className="py-4">
-                    <DataTable 
-                        columns={columns}
-                        data={productRows}
-                        isLoading={products.length === 0}
-                        emptyState={{
-                            icon: PackageSearch,
-                            title: "No Products Found",
-                            description: "There are no products available to add."
-                        }}
-                    />
+                <div className="h-[60vh]">
+                    <ScrollArea className="h-full">
+                        <DataTable 
+                            columns={columns}
+                            data={productRows}
+                            isLoading={products.length === 0}
+                            rowSelection={rowSelection}
+                            setRowSelection={setRowSelection}
+                            emptyState={{
+                                icon: PackageSearch,
+                                title: "No Products Found",
+                                description: "There are no products available to add."
+                            }}
+                        />
+                    </ScrollArea>
                 </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                         <Button variant="outline">Cancel</Button>
+                    </DialogClose>
+                     <DialogClose asChild>
+                        <Button onClick={handleAdd}>Add Selected Products</Button>
+                    </DialogClose>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     )
@@ -166,17 +200,20 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
         setItems(newItems);
     }
 
-    const handleProductSelect = (product: Product, variant?: ProductVariant) => {
-        const newItem: OrderItemForm = {
-            productId: product.sku || '',
-            name: product.name,
-            quantity: 1,
-            price: variant?.price || product.retailPrice,
-            sku: variant?.sku || product.sku || '',
-            variantId: variant?.id,
-            variantName: variant ? Object.values(variant.optionValues).join(' / ') : undefined,
-        };
-        setItems(prev => [...prev, newItem]);
+    const handleAddProducts = (selectedItems: (Product & { variant?: ProductVariant })[]) => {
+        const newItems: OrderItemForm[] = selectedItems.map(item => {
+            const variant = item.variant;
+            return {
+                productId: item.sku || '',
+                name: item.name,
+                quantity: 1,
+                price: variant?.price || item.retailPrice,
+                sku: variant?.sku || item.sku || '',
+                variantId: variant?.id,
+                variantName: variant ? Object.values(variant.optionValues).join(' / ') : undefined,
+            }
+        });
+        setItems(prev => [...prev, ...newItems]);
     };
     
     const removeItem = (index: number) => setItems(items.filter((_, i) => i !== index));
@@ -221,7 +258,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
                                     </Button>
                                 </div>
                             ))}
-                             <ProductSelectionDialog products={products} onSelect={handleProductSelect} />
+                             <ProductSelectionDialog products={products} onAddProducts={handleAddProducts} />
                         </CardContent>
                         <CardFooter className="flex justify-end font-bold text-lg">
                             Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(total)}
