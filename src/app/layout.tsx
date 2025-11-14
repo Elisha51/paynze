@@ -25,6 +25,12 @@ const ptSans = PT_Sans({
 function RootLayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [themeClassName, setThemeClassName] = useState('light');
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     const applyTheme = () => {
@@ -34,35 +40,36 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
           const onboardingData = JSON.parse(onboardingDataRaw);
           if (onboardingData.theme) {
             const themeName = onboardingData.theme.toLowerCase().replace(/\s+/g, '-');
-            document.documentElement.className = `light theme-${themeName}`;
+            setThemeClassName(`light theme-${themeName}`);
           } else {
-            document.documentElement.className = 'light';
+            setThemeClassName('light');
           }
         } catch (error) {
           console.error("Failed to parse onboarding data:", error);
-          document.documentElement.className = 'light';
+          setThemeClassName('light');
         }
       } else {
-          document.documentElement.className = 'light';
+          setThemeClassName('light');
       }
     };
 
-    applyTheme();
+    if (isClient) {
+      applyTheme();
 
-    const loggedInUser = localStorage.getItem('loggedInUserId');
-    
-    if (!loggedInUser && pathname === '/get-started') {
-        router.push('/signup');
+      const loggedInUser = localStorage.getItem('loggedInUserId');
+      if (!loggedInUser && pathname === '/get-started') {
+          router.push('/signup');
+      }
+
+      window.addEventListener('theme-changed', applyTheme);
+      return () => {
+        window.removeEventListener('theme-changed', applyTheme);
+      };
     }
-
-    window.addEventListener('theme-changed', applyTheme);
-    return () => {
-      window.removeEventListener('theme-changed', applyTheme);
-    };
-  }, [pathname, router]);
+  }, [isClient, pathname, router]);
 
   return (
-    <html lang="en" suppressHydrationWarning={true}>
+    <html lang="en" className={isClient ? themeClassName : 'light'}>
       <head>
         <title>Paynze</title>
         <meta name="description" content="Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants." />
@@ -70,7 +77,7 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={cn("font-sans antialiased", inter.variable, ptSans.variable)} suppressHydrationWarning={true}>
+      <body className={cn("font-sans antialiased", inter.variable, ptSans.variable)}>
         <div className="max-w-screen-2xl mx-auto">
           <AuthProvider>
             <OnboardingProvider>
