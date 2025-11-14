@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { EmptyState } from '../ui/empty-state';
 import { Skeleton } from '../ui/skeleton';
+import { sanitizeObject } from '@/lib/utils';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
@@ -128,13 +129,13 @@ export function ProductTemplatesTab() {
     };
     
     try {
-        const { images, digitalFile, ...restOfProduct } = templateToCopy.product || {};
+        const sanitizedProduct = sanitizeObject(templateToCopy.product || {});
         
         const cleanTemplateData: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'> = {
             name: templateToCopy.name,
             description: templateToCopy.description,
             icon: templateToCopy.icon,
-            product: restOfProduct,
+            product: sanitizedProduct,
         };
         
         const newTemplate = await addProductTemplate(cleanTemplateData, user.name);

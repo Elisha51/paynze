@@ -14,3 +14,29 @@ export function getInitials(name: string) {
     }
     return name.substring(0, 2).toUpperCase();
 }
+
+/**
+ * Recursively removes properties with `undefined` values from an object.
+ * This is crucial for ensuring data consistency when using JSON.stringify,
+ * which omits keys with `undefined` values.
+ * @param obj The object to sanitize.
+ * @returns A new object with all `undefined` values removed.
+ */
+export function sanitizeObject<T extends object>(obj: T): T {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  const newObj = { ...obj };
+
+  for (const key in newObj) {
+    if (newObj[key] === undefined) {
+      delete newObj[key];
+    } else if (typeof newObj[key] === 'object' && newObj[key] !== null) {
+      // @ts-ignore
+      newObj[key] = sanitizeObject(newObj[key]);
+    }
+  }
+
+  return newObj;
+}
