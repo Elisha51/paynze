@@ -22,17 +22,22 @@ const ptSans = PT_Sans({
   variable: '--font-headline',
 });
 
-function RootLayoutContent({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   const pathname = usePathname();
   const router = useRouter();
-  const [themeClassName, setThemeClassName] = useState('light');
+  const [themeClassName, setThemeClassName] = useState('');
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    // This effect runs only on the client, after the initial render.
+    // This is the safe place to access localStorage and set state that
+    // affects rendering, as it avoids hydration mismatches.
     setIsClient(true);
-  }, []);
-
-  useEffect(() => {
+    
     const applyTheme = () => {
       const onboardingDataRaw = localStorage.getItem('onboardingData');
       if (onboardingDataRaw) {
@@ -52,24 +57,22 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
           setThemeClassName('light');
       }
     };
+    
+    applyTheme();
 
-    if (isClient) {
-      applyTheme();
-
-      const loggedInUser = localStorage.getItem('loggedInUserId');
-      if (!loggedInUser && pathname === '/get-started') {
-          router.push('/signup');
-      }
-
-      window.addEventListener('theme-changed', applyTheme);
-      return () => {
-        window.removeEventListener('theme-changed', applyTheme);
-      };
+    const loggedInUser = localStorage.getItem('loggedInUserId');
+    if (!loggedInUser && pathname === '/get-started') {
+        router.push('/signup');
     }
-  }, [isClient, pathname, router]);
+
+    window.addEventListener('theme-changed', applyTheme);
+    return () => {
+      window.removeEventListener('theme-changed', applyTheme);
+    };
+  }, [pathname, router]);
 
   return (
-    <html lang="en" className={isClient ? themeClassName : 'light'}>
+    <html lang="en" className={isClient ? themeClassName : ''}>
       <head>
         <title>Paynze</title>
         <meta name="description" content="Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants." />
@@ -89,13 +92,4 @@ function RootLayoutContent({ children }: { children: React.ReactNode }) {
       </body>
     </html>
   );
-}
-
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-    return <RootLayoutContent>{children}</RootLayoutContent>;
 }
