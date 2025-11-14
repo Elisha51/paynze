@@ -122,9 +122,6 @@ function initializeMockStaff(): Staff[] {
         totalCommission: 0,
         currency: 'KES',
       },
-      { id: 'aff-001', name: 'Fatuma Asha', role: 'Affiliate', status: 'Active', email: 'fatuma@email.com', totalCommission: 17000, currency: 'UGX' } as Staff,
-      { id: 'aff-002', name: 'David Odhiambo', role: 'Affiliate', status: 'Active', email: 'david@email.com', totalCommission: 140000, currency: 'UGX' } as Staff,
-      { id: 'aff-003', name: 'Brenda Wanjiku', role: 'Affiliate', status: 'Pending Verification', email: 'brenda@email.com', totalCommission: 7500, currency: 'UGX' } as Staff,
     ];
 }
 
@@ -137,12 +134,13 @@ const mockActivities: StaffActivity[] = [
     { id: 'act-6', staffId: 'staff-002', staffName: 'Jane Smith', activity: 'Product Edited', details: { text: 'Handmade Leather Shoes', link: '/dashboard/products/SHOE-002' }, timestamp: subDays(new Date(), 4).toISOString() },
 ];
 
-const staffService = new DataService<(Staff)>('staff', initializeMockStaff);
+const staffService = new DataService<(Staff | Affiliate)>('staff', initializeMockStaff);
 const activityService = new DataService<StaffActivity>('staffActivity', () => mockActivities);
 
 export async function getStaff(): Promise<Staff[]> {
   const staffOrAffiliates = await staffService.getAll();
-  return staffOrAffiliates as Staff[];
+  // Simple check to filter out affiliates from the main staff list
+  return staffOrAffiliates.filter(s => s.role !== 'Affiliate') as Staff[];
 }
 
 export async function getStaffOrders(staffId: string): Promise<Order[]> {
@@ -175,9 +173,8 @@ export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {
   return newMember;
 }
 
-export async function updateStaff(updatedMember: Partial<Staff>): Promise<Staff> {
-  if (!updatedMember.id) throw new Error("Staff ID is required for update.");
-  return await staffService.update(updatedMember.id, updatedMember);
+export async function updateStaff(id: string, updatedMemberData: Partial<Staff>): Promise<Staff> {
+  return await staffService.update(id, updatedMemberData);
 }
 
 export async function deleteStaff(staffId: string): Promise<void> {

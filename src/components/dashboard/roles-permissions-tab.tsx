@@ -1,17 +1,17 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
-import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule } from '@/lib/types';
+import { getStaff, updateStaff } from '@/services/staff';
+import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule, Staff } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
-import { PlusCircle, Trash2, DollarSign } from 'lucide-react';
+import { PlusCircle, Trash2, DollarSign, Edit, MoreHorizontal } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -22,6 +22,12 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -107,7 +113,7 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         dashboard: { view: true },
         products: { view: false, create: false, edit: false, delete: false },
         orders: { view: false, create: false, edit: false, delete: false },
-        customers: { view: false, create: false, edit: false, delete: false },
+        customers: { view: false, create: false, edit: false, delete: false, viewAll: false },
         procurement: { view: false, create: false, edit: false, delete: false },
         marketing: { view: false, create: false, edit: false, delete: false },
         templates: { view: false, create: false, edit: false, delete: false },
@@ -122,12 +128,20 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
 
 export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRoles }: { roles: Role[], setRoles: React.Dispatch<React.SetStateAction<Role[]>>}) {
   const [roles, setRoles] = useState<Role[]>(initialRoles);
+  const [allStaff, setAllStaff] = useState<Staff[]>([]);
   const { toast } = useToast();
   const [isAddOpen, setIsAddOpen] = useState(false);
+  const [isEditOpen, setIsEditOpen] = useState(false);
   const [newRole, setNewRole] = useState(emptyRole);
+  const [editingRole, setEditingRole] = useState<Role | null>(null);
   
   useEffect(() => {
     setRoles(initialRoles);
+    async function loadStaff() {
+        const staffData = await getStaff();
+        setAllStaff(staffData);
+    }
+    loadStaff();
   }, [initialRoles]);
 
   const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: string, value: boolean) => {
@@ -159,7 +173,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
   }
   
   const handleSaveChanges = async (role: Role) => {
-      await updateRole(role);
+      await updateRole(role.name, role);
       setParentRoles(roles); // Sync state back up to the parent
       toast({
           title: 'Permissions Updated',
@@ -183,6 +197,34 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
       toast({ title: 'Role Added' });
       setIsAddOpen(false);
       setNewRole(emptyRole);
+  }
+  
+  const handleUpdateRole = async () => {
+    if (!editingRole || !editingRole.name.trim()) {
+        toast({ variant: 'destructive', title: 'Role name is required' });
+        return;
+    }
+    const originalRole = roles.find(r => r.name === editingRole.name);
+    
+    // The service needs the *current* name to find the record to update
+    const updatedRole = await updateRole(editingRole.name, editingRole);
+
+    // Update staff members if the role name changed
+    if (originalRole && originalRole.name !== updatedRole.name) {
+        for (const staffMember of allStaff) {
+            if (staffMember.role === originalRole.name) {
+                await updateStaff(staffMember.id, { role: updatedRole.name });
+            }
+        }
+    }
+    
+    const newRoles = roles.map(r => r.name === originalRole?.name ? updatedRole : r);
+    setRoles(newRoles);
+    setParentRoles(newRoles);
+
+    toast({ title: 'Role Updated' });
+    setIsEditOpen(false);
+    setEditingRole(null);
   }
 
   const handleAttributeChange = (roleName: string, index: number, field: keyof AssignableAttribute, value: string) => {
@@ -264,6 +306,11 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
         })
     );
   }
+  
+  const openEditDialog = (role: Role) => {
+      setEditingRole(role);
+      setIsEditOpen(true);
+  }
 
 
   if (roles.length === 0) {
@@ -290,28 +337,40 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                 <Accordion type="multiple" className="w-full">
                     {roles.map(role => (
                         <AccordionItem value={role.name} key={role.name}>
-                            <AccordionTrigger>
-                                <div className="flex-1 flex justify-between items-center pr-4">
-                                    <div className="text-left">
-                                        <h3 className="font-semibold text-lg">{role.name}</h3>
-                                        <p className="text-sm text-muted-foreground">{role.description}</p>
+                            <div className="flex justify-between items-center w-full hover:bg-muted/50 rounded-md">
+                                <AccordionTrigger className="flex-1 py-4 px-4 hover:no-underline">
+                                    <div className="flex-1 flex justify-between items-center pr-4">
+                                        <div className="text-left">
+                                            <h3 className="font-semibold text-lg">{role.name}</h3>
+                                            <p className="text-sm text-muted-foreground">{role.description}</p>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            {role.commissionRules && role.commissionRules.length > 0 && <Badge variant="outline"><DollarSign className="h-3 w-3 mr-1"/>Commission</Badge>}
+                                            {role.assignableAttributes && role.assignableAttributes.length > 0 && (
+                                                <Badge variant="secondary">
+                                                    {role.assignableAttributes.length} Attribute{role.assignableAttributes.length > 1 ? 's' : ''}
+                                                </Badge>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        {role.commissionRules && role.commissionRules.length > 0 && <Badge variant="outline"><DollarSign className="h-3 w-3 mr-1"/>Commission</Badge>}
-                                        {role.assignableAttributes && role.assignableAttributes.length > 0 && (
-                                            <Badge variant="secondary">
-                                                {role.assignableAttributes.length} Attribute{role.assignableAttributes.length > 1 ? 's' : ''}
-                                            </Badge>
-                                        )}
-                                    </div>
+                                </AccordionTrigger>
+                                 <div className="pr-4">
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                                <MoreHorizontal className="h-4 w-4" />
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent>
+                                            <DropdownMenuItem onClick={() => openEditDialog(role)}>
+                                                <Edit className="mr-2 h-4 w-4" /> Edit Role
+                                            </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
-                            </AccordionTrigger>
+                            </div>
                              <AccordionContent>
                                 <div className="space-y-6 pt-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor={`description-${role.name}`}>Role Description</Label>
-                                        <Input id={`description-${role.name}`} value={role.description} onChange={(e) => handleDescriptionChange(role.name, e.target.value)} />
-                                    </div>
                                     <Separator />
                                     <h4 className="font-bold text-base">Module Permissions</h4>
                                      <div className="space-y-4">
@@ -447,6 +506,31 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                   <Button onClick={handleAddNewRole}>Create Role</Button>
               </DialogFooter>
           </DialogContent>
+      </Dialog>
+      
+      {/* Edit Role Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Edit Role</DialogTitle>
+            </DialogHeader>
+            {editingRole && (
+                <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-name">Role Name</Label>
+                        <Input id="edit-name" value={editingRole.name} onChange={(e) => setEditingRole({...editingRole, name: e.target.value})} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="edit-description">Description</Label>
+                        <Input id="edit-description" value={editingRole.description} onChange={(e) => setEditingRole({...editingRole, description: e.target.value})} />
+                    </div>
+                </div>
+            )}
+            <DialogFooter>
+                <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
+                <Button onClick={handleUpdateRole}>Save Changes</Button>
+            </DialogFooter>
+        </DialogContent>
       </Dialog>
     </>
   );

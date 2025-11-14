@@ -123,6 +123,6 @@ export async function addRole(role: Role): Promise<Role> {
   return await roleService.create(role);
 }
 
-export async function updateRole(updatedRole: Role): Promise<Role> {
-  return await roleService.update(updatedRole.name, updatedRole);
+export async function updateRole(currentName: string, updatedRoleData: Partial<Role>): Promise<Role> {
+  return await roleService.update(currentName, updatedRoleData);
 }
