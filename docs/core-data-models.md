@@ -64,3 +64,92 @@ The `Staff` object represents an internal team member who uses the business dash
 | `role` | `string` | The assigned role, which dictates their permissions (e.g., "Admin", "Manager", "Agent"). |
 | `status` | `string` | The current status of the staff member's account (e.g., "Active", "Pending"). |
 | `totalCommission`| `number` | The amount of unpaid commission the staff member has earned. |
+
+---
+
+## Transaction (Finances)
+
+The `Transaction` object is a single entry in the financial ledger, representing either income or an expense.
+
+| Key Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | A unique identifier for the transaction. |
+| `date` | `string` | The date the transaction occurred. |
+| `description` | `string` | A description of the financial event (e.g., "Sale from Order #123"). |
+| `amount` | `number` | The value of the transaction. Positive for income, negative for expenses. |
+| `type` | `string` | Either "Income" or "Expense". |
+| `category` | `string` | The financial category (e.g., "Sales", "Inventory", "Salaries"). |
+
+---
+
+## Campaign (Marketing)
+
+The `Campaign` object represents a marketing initiative, such as an SMS blast or email newsletter.
+
+| Key Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | A unique identifier for the campaign. |
+| `name` | `string` | The name of the marketing campaign. |
+| `status` | `string` | The current state (e.g., "Active", "Draft", "Completed"). |
+| `channel` | `string` | The communication channel used (e.g., "Email", "SMS"). |
+| `audience` | `string` | The target customer group for the campaign. |
+| `startDate` | `string` | The date the campaign begins. |
+
+---
+
+## Discount (Marketing)
+
+The `Discount` object represents a promotional code that customers can use at checkout.
+
+| Key Field | Type | Description |
+| --- | --- | --- |
+| `code` | `string` | The unique code customers enter (e.g., "EID20"). |
+| `type` | `string` | The type of discount ("Percentage", "Fixed Amount", "Buy X Get Y"). |
+| `value` | `number` | The numeric value of the discount. |
+| `status` | `string` | The current state ("Active", "Expired", "Scheduled"). |
+| `minPurchase` | `number` | The minimum order total required to use the discount. |
+| `customerGroup`| `string` | The customer group eligible for this discount. |
+
+---
+
+## Affiliate (Marketing)
+
+The `Affiliate` object represents an external marketing partner who earns commissions on referred sales.
+
+| Key Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | A unique identifier for the affiliate. |
+| `name` | `string` | The affiliate's name. |
+| `uniqueId` | `string` | The unique code used in their referral link (e.g., `?ref=UNIQUEID`). |
+| `status` | `string` | The affiliate's account status ("Active", "Pending", "Suspended"). |
+| `pendingCommission` | `number` | The total unpaid commission earned. |
+| `conversions`| `number` | The total number of successful sales referred. |
+
+---
+
+## Supplier (Procurement)
+
+The `Supplier` object represents a vendor from whom products are purchased.
+
+| Key Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | A unique identifier for the supplier. |
+| `name` | `string` | The supplier's business name. |
+| `contactName` | `string` | The name of the primary contact person. |
+| `email` | `string` | The supplier's contact email. |
+| `productsSupplied` | `string[]` | An array of product SKUs that this supplier provides. |
+
+---
+
+## Purchase Order (Procurement)
+
+The `PurchaseOrder` is the primary record for an inventory procurement transaction.
+
+| Key Field | Type | Description |
+| --- | --- | --- |
+| `id` | `string` | A unique identifier for the purchase order (e.g., "PO-001"). |
+| `supplierId` | `string` | The ID of the supplier being ordered from. |
+| `items` | `PurchaseOrderItem[]` | An array of products being ordered. |
+| `totalCost` | `number` | The total cost of the purchase order. |
+| `status` | `string` | The current state of the order (e.g., "Draft", "Sent", "Received"). |
+| `orderDate` | `string` | The date the purchase order was created. |
