@@ -29,14 +29,10 @@ export default function RootLayout({
 }>) {
   const pathname = usePathname();
   const router = useRouter();
-  const [themeClassName, setThemeClassName] = useState('');
-  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     // This effect runs only on the client, after the initial render.
-    // This is the safe place to access localStorage and set state that
-    // affects rendering, as it avoids hydration mismatches.
-    setIsClient(true);
+    // This is the safe place to access localStorage and manipulate the DOM directly.
     
     const applyTheme = () => {
       const onboardingDataRaw = localStorage.getItem('onboardingData');
@@ -45,16 +41,16 @@ export default function RootLayout({
           const onboardingData = JSON.parse(onboardingDataRaw);
           if (onboardingData.theme) {
             const themeName = onboardingData.theme.toLowerCase().replace(/\s+/g, '-');
-            setThemeClassName(`light theme-${themeName}`);
+            document.documentElement.className = `light theme-${themeName}`;
           } else {
-            setThemeClassName('light');
+            document.documentElement.className = 'light';
           }
         } catch (error) {
           console.error("Failed to parse onboarding data:", error);
-          setThemeClassName('light');
+          document.documentElement.className = 'light';
         }
       } else {
-          setThemeClassName('light');
+          document.documentElement.className = 'light';
       }
     };
     
@@ -65,6 +61,7 @@ export default function RootLayout({
         router.push('/signup');
     }
 
+    // Set up an event listener to re-apply the theme if it changes during the session
     window.addEventListener('theme-changed', applyTheme);
     return () => {
       window.removeEventListener('theme-changed', applyTheme);
@@ -72,7 +69,7 @@ export default function RootLayout({
   }, [pathname, router]);
 
   return (
-    <html lang="en" className={isClient ? themeClassName : ''}>
+    <html lang="en" className="">
       <head>
         <title>Paynze</title>
         <meta name="description" content="Your Business, Online in Minutes. The all-in-one e-commerce platform for merchants." />
