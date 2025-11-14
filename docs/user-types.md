@@ -39,8 +39,8 @@ An **Affiliate** is an external partner who promotes the store in exchange for a
 -   **Interaction:** Their primary connection to the system is through referral links (`?ref=UNIQUEID`). When a customer makes a purchase using this link, the resulting `Order` is attributed to the affiliate, and commission is calculated.
 
 ### Key Routes & Access:
--   **Public Sign Up:** `/store/affiliate-signup`
--   **Affiliate Login:** `/affiliate/login`
+-   **Public Sign Up:** `/affiliate-signup`
+-   **Affiliate Login:** `/affiliate-login`
 -   **Affiliate Dashboard:** `/affiliate/dashboard`
 
 ## 4. Customer
