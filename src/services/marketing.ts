@@ -35,6 +35,7 @@ const mockCampaigns: Campaign[] = [
         banner: {
             enabled: true,
             type: 'Product Highlight',
+            size: 'standard',
             title: 'New Kitenge Collection!',
             description: 'Vibrant new patterns have just arrived. Shop the collection now.',
             ctaText: 'Shop Now',
