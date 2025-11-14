@@ -153,31 +153,25 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }, [initialProduct]);
   
   useEffect(() => {
-    if (product.hasVariants) {
-        const newVariants = generateVariants(product.options);
-        // Preserve existing variant data where possible
-        setProduct(prevProduct => {
-             const mergedVariants = newVariants.map(newVariant => {
-                const existingVariant = prevProduct.variants.find(oldVariant => {
-                    return JSON.stringify(oldVariant.optionValues) === JSON.stringify(newVariant.optionValues);
-                });
+    setProduct(prevProduct => {
+        if (prevProduct.hasVariants) {
+            const newVariants = generateVariants(prevProduct.options);
+            const mergedVariants = newVariants.map(newVariant => {
+                const existingVariant = prevProduct.variants.find(oldVariant => 
+                    JSON.stringify(oldVariant.optionValues) === JSON.stringify(newVariant.optionValues)
+                );
                 return existingVariant ? { ...newVariant, ...existingVariant, id: newVariant.id } : newVariant;
             });
             return { ...prevProduct, variants: mergedVariants };
-        });
-    } else {
-        // If not using variants, ensure there is a single default variant for stock tracking
-        setProduct(prevProduct => {
-            if (prevProduct.variants.length === 0) {
-                return {
-                    ...prevProduct,
-                    variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prevProduct.retailPrice }]
-                };
-            }
-            return prevProduct;
-        });
-    }
-  }, [product.options, product.hasVariants]);
+        } else {
+            // If not using variants, ensure there is a single, clean default variant.
+            return {
+                ...prevProduct,
+                variants: [{ id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prevProduct.retailPrice }]
+            };
+        }
+    });
+}, [product.options, product.hasVariants]);
 
 
   const handleInputChange = (
