@@ -27,18 +27,16 @@ export function sanitizeObject<T extends object>(obj: T): T {
     return obj;
   }
 
-  // Create a shallow copy to avoid modifying the original object directly in this level
   const newObj = { ...obj };
 
   for (const key in newObj) {
-    // We check hasOwnProperty to ensure we don't process properties from the prototype chain
     if (Object.prototype.hasOwnProperty.call(newObj, key)) {
-      if (newObj[key] === undefined) {
-        delete newObj[key];
-      } else if (typeof newObj[key] === 'object' && newObj[key] !== null && !Array.isArray(newObj[key])) {
-        // @ts-ignore
-        newObj[key] = sanitizeObject(newObj[key]);
-      }
+        if (newObj[key] === undefined) {
+          delete newObj[key];
+        } else if (typeof newObj[key] === 'object' && newObj[key] !== null && !Array.isArray(newObj[key])) {
+          // @ts-ignore
+          newObj[key] = sanitizeObject(newObj[key]);
+        }
     }
   }
 
