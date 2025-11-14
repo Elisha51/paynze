@@ -7,6 +7,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription,
 } from '@/components/ui/card';
 import { TrendingUp, Package, AlertTriangle, DollarSign } from 'lucide-react';
 import { DateRange } from 'react-day-picker';
@@ -45,14 +46,6 @@ const getAvailableStock = (product: Product) => {
 export function ProductAnalyticsReport({ products, dateRange }: { products: Product[], dateRange?: DateRange }) {
 
   const { summaryMetrics, chartData } = useMemo(() => {
-    if (!products) {
-      return {
-        summaryMetrics: { topSelling: undefined, mostProfitable: undefined, lowStockItems: 0, totalInventoryValue: 0 },
-        chartData: []
-      };
-    }
-
-    // Calculate metrics that do not depend on sales first
     const lowStockItems = products.filter(p => {
         if (p.inventoryTracking === "Don't Track") return false;
         const stock = getAvailableStock(p);
@@ -65,7 +58,6 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
         return sum + (stock * (p.costPerItem || 0));
     }, 0);
     
-    // Now, calculate sales-dependent metrics
     const productsWithSales = products
       .map(p => ({
         ...p,
@@ -77,7 +69,7 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
     let topSelling: (Product & { unitsSold: number; profit: number }) | undefined = undefined;
     let mostProfitable: (Product & { unitsSold: number; profit: number }) | undefined = undefined;
     let top5SoldForChart: { name: string; unitsSold: number }[] = [];
-
+    
     if (productsWithSales.length > 0) {
         topSelling = [...productsWithSales].sort((a, b) => b.unitsSold - a.unitsSold)[0];
         mostProfitable = [...productsWithSales].sort((a, b) => b.profit - a.profit)[0];
