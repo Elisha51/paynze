@@ -1,22 +1,27 @@
-
 'use client';
 import { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '../ui/separator';
 import { Checkbox } from '../ui/checkbox';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../ui/select';
 import { Button } from '../ui/button';
-import { Mail, MessageSquare, Smartphone } from 'lucide-react';
+import { Mail, MessageSquare, Smartphone, Clock } from 'lucide-react';
 import type { EmailTemplate, SmsTemplate, WhatsAppTemplate } from '@/lib/types';
+import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
+import { Input } from '../ui/input';
 
 
 const triggers = [
   { event: 'New order placed', purpose: 'Confirm order', channels: ['Email', 'SMS', 'WhatsApp'] },
   { event: 'Payment completed', purpose: 'Send receipt', channels: ['Email', 'WhatsApp'] },
   { event: 'Order shipped', purpose: 'Tracking link', channels: ['SMS', 'WhatsApp'] },
-  { event: 'Abandoned cart', purpose: 'Recover sales', channels: ['Email', 'WhatsApp'] },
+  { event: 'Delivery day', purpose: 'Reminder', channels: ['SMS'] },
+  { event: 'Abandoned cart', purpose: 'Recover sales', channels: ['Email', 'WhatsApp'], defaultDelay: { value: 1, unit: 'hours' } },
+  { event: 'Supplier low stock', purpose: 'Request restock', channels: ['Email', 'WhatsApp'] },
+  { event: 'New discount campaign', purpose: 'Marketing', channels: ['Email', 'WhatsApp'] },
+  { event: 'New visitor subscribed', purpose: 'Welcome flow', channels: ['Email'] },
 ];
 
 const mockTemplates = {
@@ -26,10 +31,13 @@ const mockTemplates = {
 };
 
 
-function AutomationRow({ trigger, purpose, availableChannels }: { trigger: string, purpose: string, availableChannels: string[] }) {
+function AutomationRow({ trigger, purpose, availableChannels, defaultDelay }: { trigger: string, purpose: string, availableChannels: string[], defaultDelay?: {value: number, unit: string} }) {
     const [enabled, setEnabled] = useState(true);
     const [selectedChannels, setSelectedChannels] = useState<string[]>(availableChannels);
     const [selectedTemplate, setSelectedTemplate] = useState<string | undefined>(undefined);
+    const [schedule, setSchedule] = useState<'immediately' | 'delayed'>(defaultDelay ? 'delayed' : 'immediately');
+    const [delayValue, setDelayValue] = useState(defaultDelay?.value || 1);
+    const [delayUnit, setDelayUnit] = useState(defaultDelay?.unit || 'hours');
 
     const handleChannelChange = (channel: string, checked: boolean) => {
         if (checked) {
@@ -57,7 +65,7 @@ function AutomationRow({ trigger, purpose, availableChannels }: { trigger: strin
                 <Switch id={`switch-${trigger}`} checked={enabled} onCheckedChange={setEnabled} />
             </div>
             {enabled && (
-                <div className="space-y-4 pt-2 border-t">
+                <div className="space-y-4 pt-4 border-t">
                     <div className="space-y-2">
                         <Label className="text-xs">Channels</Label>
                         <div className="flex items-center gap-4">
@@ -95,6 +103,39 @@ function AutomationRow({ trigger, purpose, availableChannels }: { trigger: strin
                                 })}
                             </SelectContent>
                         </Select>
+                    </div>
+                     <div className="space-y-3">
+                        <Label className="text-xs flex items-center gap-1.5"><Clock className="h-4 w-4"/> Timing</Label>
+                        <RadioGroup value={schedule} onValueChange={(v) => setSchedule(v as 'immediately' | 'delayed')} className="flex items-center gap-4">
+                             <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="immediately" id={`sched-imm-${trigger}`} />
+                                <Label htmlFor={`sched-imm-${trigger}`} className="font-normal">Immediately</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="delayed" id={`sched-del-${trigger}`} />
+                                <Label htmlFor={`sched-del-${trigger}`} className="font-normal">After a delay</Label>
+                            </div>
+                        </RadioGroup>
+                        {schedule === 'delayed' && (
+                            <div className="flex items-center gap-2 pl-6">
+                                <Input 
+                                    type="number" 
+                                    value={delayValue}
+                                    onChange={(e) => setDelayValue(Number(e.target.value))}
+                                    className="w-20 h-8"
+                                />
+                                <Select value={delayUnit} onValueChange={setDelayUnit}>
+                                    <SelectTrigger className="w-28 h-8">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="minutes">minutes</SelectItem>
+                                        <SelectItem value="hours">hours</SelectItem>
+                                        <SelectItem value="days">days</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -149,6 +190,7 @@ export function NotificationsSettings() {
                         trigger={trigger.event}
                         purpose={trigger.purpose}
                         availableChannels={trigger.channels}
+                        defaultDelay={trigger.defaultDelay}
                     />
                 ))}
             </CardContent>
