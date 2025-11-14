@@ -128,12 +128,13 @@ export function ProductTemplatesTab() {
     };
     
     try {
-        // Create a clean, new object to avoid reference issues
+        const { images, digitalFile, ...restOfProduct } = templateToCopy.product || {};
+        
         const cleanTemplateData: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'> = {
             name: templateToCopy.name,
             description: templateToCopy.description,
             icon: templateToCopy.icon,
-            product: JSON.parse(JSON.stringify(templateToCopy.product)), // Deep copy
+            product: restOfProduct,
         };
         
         const newTemplate = await addProductTemplate(cleanTemplateData, user.name);

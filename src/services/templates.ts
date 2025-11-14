@@ -187,7 +187,7 @@ export async function getProductTemplates(): Promise<ProductTemplate[]> {
 export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'>, author: string): Promise<ProductTemplate> {
     const newTemplate: ProductTemplate = { 
         ...template,
-        product: JSON.parse(JSON.stringify(template.product || {})),
+        product: template.product || {},
         author,
         published: false,
         id: `tpl-${Date.now()}`,
