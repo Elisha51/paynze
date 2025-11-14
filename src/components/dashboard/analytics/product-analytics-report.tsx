@@ -26,6 +26,7 @@ const getUnitsSold = (product: Product, dateRange?: DateRange) => {
     return product.variants.reduce((sum, v) => 
         sum + (v.stockAdjustments
             ?.filter(adj => {
+                if (!adj.date) return false;
                 const adjDate = new Date(adj.date);
                 const isInRange = (!dateRange?.from || adjDate >= dateRange.from) && (!dateRange?.to || adjDate <= dateRange.to);
                 return adj.type === 'Sale' && isInRange;
@@ -35,6 +36,7 @@ const getUnitsSold = (product: Product, dateRange?: DateRange) => {
 }
 
 const getAvailableStock = (product: Product) => {
+    if (product.inventoryTracking === "Don't Track") return Infinity;
     return product.variants.reduce((sum, v) => 
         sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.available, 0) || 0), 0);
 }
@@ -48,18 +50,23 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
         ...p,
         unitsSold: getUnitsSold(p, dateRange),
         netSales: getUnitsSold(p, dateRange) * p.retailPrice,
-        profit: getUnitsSold(p, dateRange) * (p.retailPrice - (p.costPerItem || p.retailPrice))
+        profit: getUnitsSold(p, dateRange) * (p.retailPrice - (p.costPerItem || 0))
       }))
       .filter(p => p.unitsSold > 0);
 
-    const topSelling = [...productsWithSales].sort((a,b) => b.unitsSold - a.unitsSold)[0];
-    const mostProfitable = [...productsWithSales].sort((a,b) => b.profit - a.profit)[0];
+    const topSelling = productsWithSales.length > 0 ? [...productsWithSales].sort((a,b) => b.unitsSold - a.unitsSold)[0] : undefined;
+    const mostProfitable = productsWithSales.length > 0 ? [...productsWithSales].sort((a,b) => b.profit - a.profit)[0] : undefined;
     
-    const lowStockItems = products.filter(p => p.inventoryTracking !== "Don't Track" && getAvailableStock(p) <= (p.lowStockThreshold || 5)).length;
+    const lowStockItems = products.filter(p => {
+        if (p.inventoryTracking === "Don't Track") return false;
+        const stock = getAvailableStock(p);
+        const threshold = p.lowStockThreshold || 5; // Default to 5 if not set
+        return stock > 0 && stock <= threshold;
+    }).length;
 
     const totalInventoryValue = products.reduce((sum, p) => {
         const stock = getAvailableStock(p);
-        return sum + (stock * (p.costPerItem || p.retailPrice));
+        return sum + (stock * (p.costPerItem || 0));
     }, 0);
     
     const top5Sold = [...productsWithSales].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 5);
@@ -98,7 +105,7 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
                     <p className="text-xs text-muted-foreground">{summaryMetrics.topSelling.unitsSold} units sold</p>
                 </>
             ) : (
-                <p className="text-sm text-muted-foreground">No sales in this period.</p>
+                <p className="text-sm text-muted-foreground pt-2">No sales in this period.</p>
             )}
           </CardContent>
         </Card>
@@ -116,7 +123,7 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
                     <p className="text-xs text-muted-foreground">{formatCurrency(summaryMetrics.mostProfitable.profit)} profit</p>
                 </>
             ) : (
-                <p className="text-sm text-muted-foreground">No sales in this period.</p>
+                <p className="text-sm text-muted-foreground pt-2">No sales in this period.</p>
             )}
           </CardContent>
         </Card>
@@ -150,7 +157,7 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
         <CardContent>
             <ChartContainer config={chartConfig} className="aspect-video h-[300px] w-full">
               <BarChart layout="vertical" data={chartData} margin={{ left: 10, right: 30 }}>
-                  <XAxis type="number" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
+                  <XAxis type="number" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
                   <YAxis
                     type="category"
                     dataKey="name"
