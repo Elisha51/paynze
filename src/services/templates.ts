@@ -184,17 +184,15 @@ export async function getProductTemplates(): Promise<ProductTemplate[]> {
   return await productTemplateService.getAll();
 }
 
-export async function addProductTemplate(template: ProductTemplate, author: string): Promise<ProductTemplate> {
+export async function addProductTemplate(template: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'>, author: string): Promise<ProductTemplate> {
     const newTemplate: ProductTemplate = { 
         ...template,
-        product: { ...(template.product || {}) },
+        product: JSON.parse(JSON.stringify(template.product || {})),
         author,
         published: false,
         id: `tpl-${Date.now()}`,
         usageCount: 0,
     };
-    // Ensure product object is fully cloned to prevent shared state issues
-    newTemplate.product = JSON.parse(JSON.stringify(template.product));
     return await productTemplateService.create(newTemplate);
 }
 

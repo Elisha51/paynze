@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -127,13 +128,24 @@ export function ProductTemplatesTab() {
     };
     
     try {
-        const newTemplate = await addProductTemplate(templateToCopy, user.name);
+        // Create a clean, new object to avoid reference issues
+        const cleanTemplateData: Omit<ProductTemplate, 'id' | 'author' | 'published' | 'usageCount'> = {
+            name: templateToCopy.name,
+            description: templateToCopy.description,
+            icon: templateToCopy.icon,
+            product: JSON.parse(JSON.stringify(templateToCopy.product)), // Deep copy
+        };
+        
+        const newTemplate = await addProductTemplate(cleanTemplateData, user.name);
+        
         setAllTemplates(prev => [...prev, newTemplate]);
+        
         toast({
             title: "Template Copied!",
             description: `"${templateToCopy.name}" has been added to "My Templates".`
         });
     } catch (e) {
+        console.error("Template copy failed:", e);
         toast({
             variant: 'destructive',
             title: 'Copy Failed',
