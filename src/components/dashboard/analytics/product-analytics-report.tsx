@@ -45,29 +45,18 @@ const getAvailableStock = (product: Product) => {
 export function ProductAnalyticsReport({ products, dateRange }: { products: Product[], dateRange?: DateRange }) {
 
   const { summaryMetrics, chartData } = useMemo(() => {
-    if (!products || products.length === 0) {
-      return { 
+    if (!products) {
+      return {
         summaryMetrics: { topSelling: undefined, mostProfitable: undefined, lowStockItems: 0, totalInventoryValue: 0 },
         chartData: []
       };
     }
-    
-    const productsWithSales = products
-      .map(p => ({
-        ...p,
-        unitsSold: getUnitsSold(p, dateRange),
-        netSales: getUnitsSold(p, dateRange) * p.retailPrice,
-        profit: getUnitsSold(p, dateRange) * (p.costPerItem || 0)
-      }))
-      .filter(p => p.unitsSold > 0);
 
-    const topSelling = productsWithSales.length > 0 ? [...productsWithSales].sort((a,b) => b.unitsSold - a.unitsSold)[0] : undefined;
-    const mostProfitable = productsWithSales.length > 0 ? [...productsWithSales].sort((a,b) => b.profit - a.profit)[0] : undefined;
-    
+    // Calculate metrics that do not depend on sales first
     const lowStockItems = products.filter(p => {
         if (p.inventoryTracking === "Don't Track") return false;
         const stock = getAvailableStock(p);
-        const threshold = p.lowStockThreshold || 5; // Default to 5 if not set
+        const threshold = p.lowStockThreshold || 5;
         return stock > 0 && stock <= threshold;
     }).length;
 
@@ -76,8 +65,29 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
         return sum + (stock * (p.costPerItem || 0));
     }, 0);
     
-    const top5Sold = [...productsWithSales].sort((a, b) => b.unitsSold - a.unitsSold).slice(0, 5);
+    // Now, calculate sales-dependent metrics
+    const productsWithSales = products
+      .map(p => ({
+        ...p,
+        unitsSold: getUnitsSold(p, dateRange),
+        profit: getUnitsSold(p, dateRange) * ((p.retailPrice || 0) - (p.costPerItem || 0))
+      }))
+      .filter(p => p.unitsSold > 0);
 
+    let topSelling: (Product & { unitsSold: number; profit: number }) | undefined = undefined;
+    let mostProfitable: (Product & { unitsSold: number; profit: number }) | undefined = undefined;
+    let top5SoldForChart: { name: string; unitsSold: number }[] = [];
+
+    if (productsWithSales.length > 0) {
+        topSelling = [...productsWithSales].sort((a, b) => b.unitsSold - a.unitsSold)[0];
+        mostProfitable = [...productsWithSales].sort((a, b) => b.profit - a.profit)[0];
+        top5SoldForChart = [...productsWithSales]
+            .sort((a, b) => b.unitsSold - a.unitsSold)
+            .slice(0, 5)
+            .map(p => ({ name: p.name, unitsSold: p.unitsSold }))
+            .reverse();
+    }
+    
     return {
       summaryMetrics: {
         topSelling,
@@ -85,7 +95,7 @@ export function ProductAnalyticsReport({ products, dateRange }: { products: Prod
         lowStockItems,
         totalInventoryValue
       },
-      chartData: top5Sold.map(p => ({ name: p.name, unitsSold: p.unitsSold })).reverse()
+      chartData: top5SoldForChart
     };
   }, [products, dateRange]);
   
