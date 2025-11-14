@@ -2,7 +2,7 @@
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Truck, Store, User } from 'lucide-react';
+import { MoreHorizontal, Truck, Store, User, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,7 @@ import { getInitials } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from './assign-order-dialog';
+import { Checkbox } from '../ui/checkbox';
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
   'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
@@ -69,8 +70,35 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
   
   const columns: ColumnDef<Order>[] = [
   {
+    id: 'select',
+    header: ({ table }) => (
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && 'indeterminate')
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
+  {
     accessorKey: 'id',
-    header: 'Order #',
+    header: ({ column }) => (
+      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+        Order #
+        <ArrowUpDown className="ml-2 h-4 w-4" />
+      </Button>
+    ),
     cell: ({ row }) => (
         <Link href={`/dashboard/orders/${row.original.id}`} className="font-mono text-xs hover:underline">
             {row.getValue('id')}
@@ -79,11 +107,23 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
   },
   {
     accessorKey: 'customerName',
-    header: 'Customer',
+    header: ({ column }) => (
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Customer
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+    ),
   },
   {
     accessorKey: 'total',
-    header: () => <div className="text-right">Total</div>,
+    header: ({ column }) => (
+      <div className="text-right">
+        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+            Total
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      </div>
+    ),
     cell: ({ row }) => {
       const order = row.original;
       const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total);
