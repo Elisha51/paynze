@@ -45,12 +45,19 @@ const getAvailableStock = (product: Product) => {
 export function ProductAnalyticsReport({ products, dateRange }: { products: Product[], dateRange?: DateRange }) {
 
   const { summaryMetrics, chartData } = useMemo(() => {
+    if (!products || products.length === 0) {
+      return { 
+        summaryMetrics: { topSelling: undefined, mostProfitable: undefined, lowStockItems: 0, totalInventoryValue: 0 },
+        chartData: []
+      };
+    }
+    
     const productsWithSales = products
       .map(p => ({
         ...p,
         unitsSold: getUnitsSold(p, dateRange),
         netSales: getUnitsSold(p, dateRange) * p.retailPrice,
-        profit: getUnitsSold(p, dateRange) * (p.retailPrice - (p.costPerItem || 0))
+        profit: getUnitsSold(p, dateRange) * (p.costPerItem || 0)
       }))
       .filter(p => p.unitsSold > 0);
 
