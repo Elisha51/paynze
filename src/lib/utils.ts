@@ -30,11 +30,13 @@ export function sanitizeObject<T extends object>(obj: T): T {
   const newObj = { ...obj };
 
   for (const key in newObj) {
-    if (newObj[key] === undefined) {
-      delete newObj[key];
-    } else if (typeof newObj[key] === 'object' && newObj[key] !== null) {
-      // @ts-ignore
-      newObj[key] = sanitizeObject(newObj[key]);
+    if (Object.prototype.hasOwnProperty.call(newObj, key)) {
+        if (newObj[key] === undefined) {
+          delete newObj[key];
+        } else if (typeof newObj[key] === 'object' && newObj[key] !== null && !Array.isArray(newObj[key])) {
+          // @ts-ignore
+          newObj[key] = sanitizeObject(newObj[key]);
+        }
     }
   }
 

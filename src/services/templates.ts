@@ -1,6 +1,5 @@
 
-
-import type { ProductTemplate } from '@/lib/types';
+import type { ProductTemplate, EmailTemplate, SmsTemplate, WhatsAppTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
 export const mockProductTemplates: ProductTemplate[] = [
@@ -142,7 +141,7 @@ export const mockEmailTemplates: EmailTemplate[] = [
         subject: 'Your order #{{orderId}} is confirmed!',
         body: 'Thanks for your order, {{customerName}}. We will notify you once it ships.',
     }
-]
+];
 
 export const mockSmsTemplates: SmsTemplate[] = [
     {
@@ -195,34 +194,37 @@ export async function getEmailTemplates(): Promise<EmailTemplate[]> {
   return await emailTemplateService.getAll();
 }
 
+export async function addEmailTemplate(template: Omit<EmailTemplate, 'id'>): Promise<EmailTemplate> {
+    const newTemplate: EmailTemplate = { ...template, id: `email-${Date.now()}` };
+    return await emailTemplateService.create(newTemplate);
+}
+
+export async function updateEmailTemplate(updatedTemplate: EmailTemplate): Promise<EmailTemplate> {
+  return await emailTemplateService.update(updatedTemplate.id, updatedTemplate);
+}
+
 export async function getSmsTemplates(): Promise<SmsTemplate[]> {
   return await smsTemplateService.getAll();
+}
+
+export async function addSmsTemplate(template: Omit<SmsTemplate, 'id'>): Promise<SmsTemplate> {
+    const newTemplate: SmsTemplate = { ...template, id: `sms-${Date.now()}` };
+    return await smsTemplateService.create(newTemplate);
+}
+
+export async function updateSmsTemplate(updatedTemplate: SmsTemplate): Promise<SmsTemplate> {
+    return await smsTemplateService.update(updatedTemplate.id, updatedTemplate);
 }
 
 export async function getWhatsAppTemplates(): Promise<WhatsAppTemplate[]> {
   return await whatsAppTemplateService.getAll();
 }
 
-// Defining EmailTemplate type because it might not be globally available
-// in all contexts this file is used.
-type EmailTemplate = {
-  id: string;
-  name: string;
-  description: string;
-  subject: string;
-  body: string; // Can contain variables like {{customerName}}
-};
+export async function addWhatsAppTemplate(template: Omit<WhatsAppTemplate, 'id'>): Promise<WhatsAppTemplate> {
+    const newTemplate: WhatsAppTemplate = { ...template, id: `wa-${Date.now()}` };
+    return await whatsAppTemplateService.create(newTemplate);
+}
 
-type SmsTemplate = {
-  id: string;
-  name:string;
-  description: string;
-  message: string; // Can contain variables like {{orderId}}
-};
-
-type WhatsAppTemplate = {
-  id: string;
-  name: string;
-  description: string;
-  message: string;
-};
+export async function updateWhatsAppTemplate(updatedTemplate: WhatsAppTemplate): Promise<WhatsAppTemplate> {
+    return await whatsAppTemplateService.update(updatedTemplate.id, updatedTemplate);
+}
