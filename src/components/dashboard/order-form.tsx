@@ -1,6 +1,6 @@
 
 'use client';
-import { Save, PlusCircle, Trash2, ArrowLeft } from 'lucide-react';
+import { Save, PlusCircle, Trash2, ArrowLeft, PackageSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,9 +21,12 @@ import {
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Order, Product, Customer, OnboardingFormData } from '@/lib/types';
+import type { Order, Product, Customer, OnboardingFormData, ProductVariant } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { getCustomers } from '@/services/customers';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { DataTable } from './data-table';
+import { ColumnDef } from '@tanstack/react-table';
 
 type OrderItemForm = {
     productId: string;
@@ -31,6 +34,8 @@ type OrderItemForm = {
     quantity: number;
     price: number;
     sku: string;
+    variantId?: string;
+    variantName?: string;
 };
 
 const emptyOrder: Partial<Order> = {
@@ -42,6 +47,77 @@ const emptyOrder: Partial<Order> = {
         status: 'pending'
     }
 }
+
+const ProductSelectionDialog = ({ products, onSelect }: { products: Product[], onSelect: (product: Product, variant?: ProductVariant) => void }) => {
+    
+    type ProductRow = Product & { variant?: ProductVariant };
+
+    const productRows = useMemo(() => {
+        return products.flatMap(p => {
+            if (p.hasVariants && p.variants.length > 1) {
+                return p.variants.map(v => ({ ...p, variant: v }));
+            }
+            return [{ ...p }];
+        });
+    }, [products]);
+
+    const columns: ColumnDef<ProductRow>[] = [
+        {
+            accessorKey: 'name',
+            header: 'Product',
+            cell: ({ row }) => {
+                const product = row.original;
+                const variantName = product.variant ? Object.values(product.variant.optionValues).join(' / ') : '';
+                return (
+                    <div>
+                        <p className="font-medium">{product.name}</p>
+                        {variantName && <p className="text-xs text-muted-foreground">{variantName}</p>}
+                    </div>
+                )
+            }
+        },
+        {
+            accessorKey: 'retailPrice',
+            header: 'Price',
+            cell: ({ row }) => {
+                const price = row.original.variant?.price || row.original.retailPrice;
+                return new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(price);
+            }
+        },
+        {
+            id: 'actions',
+            cell: ({ row }) => (
+                <Button size="sm" onClick={() => onSelect(row.original, row.original.variant)}>Select</Button>
+            ),
+        }
+    ];
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button variant="outline"><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                    <DialogTitle>Select a Product</DialogTitle>
+                </DialogHeader>
+                <div className="py-4">
+                    <DataTable 
+                        columns={columns}
+                        data={productRows}
+                        isLoading={products.length === 0}
+                        emptyState={{
+                            icon: PackageSearch,
+                            title: "No Products Found",
+                            description: "There are no products available to add."
+                        }}
+                    />
+                </div>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
 
 export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
     const [order, setOrder] = useState<Partial<Order>>(initialOrder || emptyOrder);
@@ -60,7 +136,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
               getCustomers(),
               localStorage.getItem('onboardingData')
             ]);
-            setProducts(productsData);
+            setProducts(productsData.filter(p => p.status === 'published'));
             setCustomers(customersData);
             if (settingsData) {
                 setSettings(JSON.parse(settingsData));
@@ -71,37 +147,38 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
         if (initialOrder) {
             setOrder(initialOrder);
             setItems(initialOrder.items.map(item => ({
-                productId: item.sku,
+                productId: item.sku, // This might need adjustment if SKU is not the primary ID
                 name: item.name,
                 quantity: item.quantity,
                 price: item.price,
                 sku: item.sku
             })));
         } else {
-            setItems([{ productId: '', name: '', quantity: 1, price: 0, sku: '' }]);
+            setItems([]);
         }
     }, [initialOrder]);
     
     const currency = order.currency || settings?.currency || 'UGX';
     
-    const handleItemChange = (index: number, field: keyof OrderItemForm, value: string | number) => {
+    const handleItemChange = (index: number, field: 'quantity' | 'price', value: string | number) => {
         const newItems = [...items];
-        const currentItem = { ...newItems[index] };
-
-        if (field === 'productId') {
-            const product = products.find(p => p.sku === value);
-            currentItem.price = product?.retailPrice || 0;
-            currentItem.name = product?.name || '';
-            currentItem.productId = value as string;
-            currentItem.sku = product?.sku || '';
-        } else {
-            (currentItem as any)[field] = value;
-        }
-        newItems[index] = currentItem;
+        (newItems[index] as any)[field] = value;
         setItems(newItems);
     }
+
+    const handleProductSelect = (product: Product, variant?: ProductVariant) => {
+        const newItem: OrderItemForm = {
+            productId: product.sku || '',
+            name: product.name,
+            quantity: 1,
+            price: variant?.price || product.retailPrice,
+            sku: variant?.sku || product.sku || '',
+            variantId: variant?.id,
+            variantName: variant ? Object.values(variant.optionValues).join(' / ') : undefined,
+        };
+        setItems(prev => [...prev, newItem]);
+    };
     
-    const addItem = () => setItems([...items, { productId: '', name: '', quantity: 1, price: 0, sku: '' }]);
     const removeItem = (index: number) => setItems(items.filter((_, i) => i !== index));
 
     const total = useMemo(() => items.reduce((sum, item) => sum + (item.price * item.quantity), 0), [items]);
@@ -126,12 +203,10 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
                                 <div key={index} className="flex items-end gap-2 p-2 border rounded-md">
                                     <div className="flex-1 space-y-2">
                                         <Label>Product</Label>
-                                         <Select value={item.productId} onValueChange={(v) => handleItemChange(index, 'productId', v)}>
-                                            <SelectTrigger><SelectValue placeholder="Select product..."/></SelectTrigger>
-                                            <SelectContent>
-                                                {products.map(p => <SelectItem key={p.sku} value={p.sku || ''}>{p.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
+                                        <div className="p-2 bg-muted rounded-md text-sm">
+                                            <p className="font-medium">{item.name}</p>
+                                            {item.variantName && <p className="text-xs text-muted-foreground">{item.variantName}</p>}
+                                        </div>
                                     </div>
                                     <div className="space-y-2 w-24">
                                         <Label>Quantity</Label>
@@ -146,7 +221,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
                                     </Button>
                                 </div>
                             ))}
-                             <Button variant="outline" onClick={addItem}><PlusCircle className="mr-2 h-4 w-4" /> Add Item</Button>
+                             <ProductSelectionDialog products={products} onSelect={handleProductSelect} />
                         </CardContent>
                         <CardFooter className="flex justify-end font-bold text-lg">
                             Total: {new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(total)}
