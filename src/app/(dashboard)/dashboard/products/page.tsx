@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Settings, ChevronDown, BarChart } from 'lucide-react';
+import { PlusCircle, Settings, ChevronDown, BarChart, File, FilePlus, Copy, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ProductsTable } from '@/components/dashboard/products-table';
@@ -17,6 +17,80 @@ import { usePathname } from 'next/navigation';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { ProductAnalyticsReport } from '@/components/dashboard/analytics/product-analytics-report';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import * as Lucide from 'lucide-react';
+
+
+const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
+    const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
+    return LucideIcon ? <LucideIcon {...props} /> : <Lucide.Package {...props} />;
+};
+
+function AddProductDialog({ myTemplates }: { myTemplates: ProductTemplate[] }) {
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Add Product
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Add a New Product</DialogTitle>
+                    <DialogDescription>
+                        Create a new product listing from scratch or use one of your templates to get started quickly.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
+                    <Link href="/dashboard/products/add">
+                        <Card className="hover:border-primary hover:bg-muted/50 transition-colors h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <File className="h-5 w-5" /> From Scratch
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">Start with a blank product form.</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                    <Link href="/dashboard/templates/add">
+                         <Card className="hover:border-primary hover:bg-muted/50 transition-colors h-full">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <FilePlus className="h-5 w-5" /> Create New Template
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <p className="text-sm text-muted-foreground">Build a new reusable product template.</p>
+                            </CardContent>
+                        </Card>
+                    </Link>
+                </div>
+                {myTemplates.length > 0 && (
+                    <div>
+                        <h3 className="mb-4 font-semibold">Or use a template</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {myTemplates.map(template => (
+                             <Link key={template.id} href={`/dashboard/products/add?template=${template.id}`}>
+                                <Card className="hover:border-primary hover:bg-muted/50 transition-colors h-full">
+                                    <CardHeader>
+                                        <CardTitle className="flex items-center gap-2 text-base">
+                                             <Icon name={template.icon} className="h-5 w-5" />
+                                            {template.name}
+                                        </CardTitle>
+                                    </CardHeader>
+                                </Card>
+                            </Link>
+                        ))}
+                        </div>
+                    </div>
+                )}
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 
 export default function ProductsPage() {
@@ -72,41 +146,7 @@ export default function ProductsPage() {
                 <Settings className="mr-2 h-4 w-4" /> Manage Categories
             </Button>
             {canCreate && (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button>
-                            <PlusCircle className="mr-2 h-4 w-4" /> Add Product <ChevronDown className="ml-2 h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Create a new product</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                            <Link href="/dashboard/products/add">
-                                From Scratch
-                            </Link>
-                        </DropdownMenuItem>
-                        {myTemplates.length > 0 && (
-                             <>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuLabel>From My Templates</DropdownMenuLabel>
-                                {myTemplates.map(template => (
-                                    <DropdownMenuItem key={template.id} asChild>
-                                        <Link href={`/dashboard/products/add?template=${template.id}`}>
-                                            {template.name}
-                                        </Link>
-                                    </DropdownMenuItem>
-                                ))}
-                             </>
-                        )}
-                        <DropdownMenuSeparator />
-                         <DropdownMenuItem asChild>
-                            <Link href="/dashboard/templates/add">
-                                Create New Template
-                            </Link>
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <AddProductDialog myTemplates={myTemplates} />
             )}
         </div>
       );
