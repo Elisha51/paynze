@@ -9,6 +9,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandTitle,
 } from '@/components/ui/command';
 import { Button } from '../ui/button';
 import { getProducts } from '@/services/products';
@@ -27,7 +28,8 @@ type SearchResult = {
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
-  const [results, setResults] = useState<SearchResult[]>([]);
+  const [data, setData] = useState<{ products: Product[], customers: Customer[], orders: Order[] }>({ products: [], customers: [], orders: [] });
+  const [query, setQuery] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -41,6 +43,20 @@ export function GlobalSearch() {
     return () => document.removeEventListener('keydown', down);
   }, []);
 
+  useEffect(() => {
+    async function loadAllData() {
+      if (open) {
+        const [products, customers, orders] = await Promise.all([
+          getProducts(),
+          getCustomers(),
+          getOrders(),
+        ]);
+        setData({ products, customers, orders });
+      }
+    }
+    loadAllData();
+  }, [open]);
+
   const runCommand = useCallback((command: () => unknown) => {
     setOpen(false);
     command();
@@ -50,19 +66,13 @@ export function GlobalSearch() {
     runCommand(() => router.push(href));
   }
 
-  const loadData = async (query: string) => {
-    if (query.length < 2) {
-      setResults([]);
-      return;
-    }
-    const [products, customers, orders] = await Promise.all([
-      getProducts(),
-      getCustomers(),
-      getOrders(),
-    ]);
+  const filteredResults = useCallback(() => {
+    if (query.length < 2) return [];
+    
+    const lowercasedQuery = query.toLowerCase();
 
-    const productResults: SearchResult[] = products
-      .filter(p => p.name.toLowerCase().includes(query.toLowerCase()))
+    const productResults: SearchResult[] = data.products
+      .filter(p => p.name.toLowerCase().includes(lowercasedQuery) || p.sku?.toLowerCase().includes(lowercasedQuery))
       .map(p => ({
         type: 'product',
         id: p.sku || p.name,
@@ -71,8 +81,8 @@ export function GlobalSearch() {
         href: `/dashboard/products/${p.sku}`
       }));
       
-    const customerResults: SearchResult[] = customers
-      .filter(c => c.name.toLowerCase().includes(query.toLowerCase()) || c.email.toLowerCase().includes(query.toLowerCase()))
+    const customerResults: SearchResult[] = data.customers
+      .filter(c => c.name.toLowerCase().includes(lowercasedQuery) || c.email.toLowerCase().includes(lowercasedQuery))
       .map(c => ({
         type: 'customer',
         id: c.id,
@@ -81,8 +91,8 @@ export function GlobalSearch() {
         href: `/dashboard/customers/${c.id}`
       }));
 
-    const orderResults: SearchResult[] = orders
-      .filter(o => o.id.toLowerCase().includes(query.toLowerCase()) || o.customerName.toLowerCase().includes(query.toLowerCase()))
+    const orderResults: SearchResult[] = data.orders
+      .filter(o => o.id.toLowerCase().includes(lowercasedQuery) || o.customerName.toLowerCase().includes(lowercasedQuery))
       .map(o => ({
         type: 'order',
         id: o.id,
@@ -91,8 +101,8 @@ export function GlobalSearch() {
         href: `/dashboard/orders/${o.id}`
       }));
 
-    setResults([...productResults, ...customerResults, ...orderResults]);
-  };
+    return [...productResults, ...customerResults, ...orderResults];
+  }, [query, data]);
   
   const iconMap = {
     product: <Package className="mr-2 h-4 w-4" />,
@@ -115,15 +125,17 @@ export function GlobalSearch() {
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
+         <DialogTitle className="sr-only">Global Search</DialogTitle>
         <CommandInput 
           placeholder="Search for products, customers, orders..."
-          onValueChange={loadData}
+          value={query}
+          onValueChange={setQuery}
         />
         <CommandList>
-          <CommandEmpty>No results found.</CommandEmpty>
-          {(results.length > 0) && (
+          <CommandEmpty>{query.length > 1 ? 'No results found.' : 'Type at least 2 characters to search.'}</CommandEmpty>
+          {query.length > 1 && (
             <CommandGroup heading="Results">
-              {results.map(result => (
+              {filteredResults().map(result => (
                 <CommandItem key={result.id} onSelect={() => handleSelect(result.href)}>
                   {iconMap[result.type]}
                   <span>{result.label}</span>
