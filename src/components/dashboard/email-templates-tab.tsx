@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -6,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { getEmailTemplates, addEmailTemplate } from '@/services/templates';
 import type { EmailTemplate } from '@/lib/types';
 import Link from 'next/link';
-import { PlusCircle, Edit, Download, Copy, Search, Mail } from 'lucide-react';
+import { PlusCircle, Edit, Download, Copy, Search, Mail, Settings } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import { useAuth } from '@/context/auth-context';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
@@ -15,6 +16,7 @@ import { Input } from '../ui/input';
 import { EmptyState } from '../ui/empty-state';
 import { Skeleton } from '../ui/skeleton';
 import { sanitizeObject } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 const TemplateCard = ({ template, onCopy, isCopied }: { template: EmailTemplate, onCopy: (template: EmailTemplate) => void, isCopied: boolean }) => (
     <Card className="flex flex-col">
@@ -164,7 +166,7 @@ export function EmailTemplatesTab() {
   };
 
   return (
-    <Tabs defaultValue="hub">
+    <Tabs defaultValue="my-templates">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="my-templates">My Templates</TabsTrigger>
             <TabsTrigger value="hub">Template Hub</TabsTrigger>
@@ -176,6 +178,14 @@ export function EmailTemplatesTab() {
                     <CardDescription>Manage your custom email templates.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                     <Alert className="mb-6">
+                        <Settings className="h-4 w-4" />
+                        <AlertTitle>Automate Your Communications</AlertTitle>
+                        <AlertDescription>
+                            Your email templates can be sent automatically based on triggers like new orders or abandoned carts. 
+                            <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold"><Link href="/dashboard/settings?tab=notifications">Configure Automations</Link></Button>
+                        </AlertDescription>
+                    </Alert>
                      {renderGrid(myTemplates, true)}
                 </CardContent>
             </Card>

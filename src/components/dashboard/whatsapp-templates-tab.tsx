@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -6,12 +7,13 @@ import { Button } from '@/components/ui/button';
 import { getWhatsAppTemplates, addWhatsAppTemplate } from '@/services/templates';
 import type { WhatsAppTemplate } from '@/lib/types';
 import Link from 'next/link';
-import { PlusCircle, Edit, Copy, Search } from 'lucide-react';
+import { PlusCircle, Edit, Copy, Search, Settings } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { EmptyState } from '../ui/empty-state';
 import { Skeleton } from '../ui/skeleton';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 const TemplateCard = ({ template, onCopy, isCopied }: { template: WhatsAppTemplate, onCopy: (template: WhatsAppTemplate) => void, isCopied: boolean }) => (
     <Card className="flex flex-col">
@@ -160,7 +162,7 @@ export function WhatsAppTemplatesTab() {
   };
 
   return (
-    <Tabs defaultValue="hub">
+    <Tabs defaultValue="my-templates">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="my-templates">My Templates</TabsTrigger>
             <TabsTrigger value="hub">Template Hub</TabsTrigger>
@@ -172,6 +174,14 @@ export function WhatsAppTemplatesTab() {
                     <CardDescription>Manage your custom WhatsApp templates.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                     <Alert className="mb-6">
+                        <Settings className="h-4 w-4" />
+                        <AlertTitle>Automate Your Communications</AlertTitle>
+                        <AlertDescription>
+                            Your WhatsApp templates can be sent automatically based on triggers like new orders or abandoned carts. 
+                            <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold"><Link href="/dashboard/settings?tab=notifications">Configure Automations</Link></Button>
+                        </AlertDescription>
+                    </Alert>
                      {renderGrid(myTemplates, true)}
                 </CardContent>
             </Card>
