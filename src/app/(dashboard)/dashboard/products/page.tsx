@@ -1,7 +1,7 @@
 
 'use client';
 
-import { PlusCircle, Settings, ChevronDown } from 'lucide-react';
+import { PlusCircle, Settings, ChevronDown, BarChart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { ProductsTable } from '@/components/dashboard/products-table';
@@ -14,16 +14,22 @@ import { useAuth } from '@/context/auth-context';
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel } from '@/components/ui/dropdown-menu';
 import { CategoriesTab } from '@/components/dashboard/categories-tab';
 import { usePathname } from 'next/navigation';
+import { DateRangePicker } from '@/components/ui/date-range-picker';
+import { DateRange } from 'react-day-picker';
+import { ProductAnalyticsReport } from '@/components/dashboard/analytics/product-analytics-report';
+
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [myTemplates, setMyTemplates] = useState<ProductTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-products');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user, isLoading: isUserLoading } = useAuth();
   const pathname = usePathname();
   
   const canCreate = user?.permissions.products.create;
+  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -49,8 +55,18 @@ export default function ProductsPage() {
     { value: 'all-products', label: 'All Products' },
     { value: 'categories', label: 'Categories' },
   ];
+  
+  if (canViewAnalytics) {
+    tabs.push({ value: 'analytics', label: 'Analytics' });
+  }
 
-  const ctaContent = (
+  const ctaContent = () => {
+    if (activeTab === 'analytics') {
+      return <DateRangePicker date={dateRange} setDate={setDateRange} />;
+    }
+    
+    if (activeTab === 'all-products') {
+      return (
         <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => setActiveTab('categories')}>
                 <Settings className="mr-2 h-4 w-4" /> Manage Categories
@@ -94,6 +110,9 @@ export default function ProductsPage() {
             )}
         </div>
       );
+    }
+    return null;
+  }
 
   return (
     <DashboardPageLayout 
@@ -101,7 +120,7 @@ export default function ProductsPage() {
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={setActiveTab}
-        cta={ctaContent}
+        cta={ctaContent()}
     >
       <DashboardPageLayout.TabContent value="all-products">
         <DashboardPageLayout.Content>
@@ -113,6 +132,13 @@ export default function ProductsPage() {
             <CategoriesTab />
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
+      {canViewAnalytics && (
+        <DashboardPageLayout.TabContent value="analytics">
+          <DashboardPageLayout.Content>
+              <ProductAnalyticsReport products={products} dateRange={dateRange} />
+          </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+      )}
     </DashboardPageLayout>
   );
 }
