@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
@@ -135,44 +134,79 @@ export function CategoriesTab() {
             <Accordion type="multiple" className="w-full">
               {mainCategories.map(mainCategory => (
                 <AccordionItem value={mainCategory.id} key={mainCategory.id}>
-                  <AccordionTrigger className="hover:no-underline">
-                    <div className="flex items-center justify-between w-full pr-4">
-                       <h3 className="font-semibold text-md">{mainCategory.name}</h3>
-                       <span className="text-sm text-muted-foreground">{(subCategoriesByParent[mainCategory.id] || []).length} sub-categories</span>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <div className="space-y-2 pl-4">
-                      {(subCategoriesByParent[mainCategory.id] || []).map(subCategory => (
-                        <div key={subCategory.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
-                           <span>{subCategory.name}</span>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent>
-                                    <DropdownMenuItem onClick={() => openDialog('edit', subCategory)}>
-                                        <Edit className="mr-2 h-4 w-4" /> Edit
-                                    </DropdownMenuItem>
-                                     <AlertDialog>
+                    <div className="flex justify-between items-center w-full hover:bg-muted/50 rounded-md">
+                        <AccordionTrigger className="flex-1 py-4 px-4 hover:no-underline">
+                            <div className="text-left">
+                                <h3 className="font-semibold text-md">{mainCategory.name}</h3>
+                                <span className="text-sm text-muted-foreground">{(subCategoriesByParent[mainCategory.id] || []).length} sub-categories</span>
+                            </div>
+                        </AccordionTrigger>
+                        <div className="pr-4">
+                             <AlertDialog>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
+                                            <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem onClick={() => openDialog('edit', mainCategory)}>
+                                            <Edit className="mr-2 h-4 w-4" /> Edit
+                                        </DropdownMenuItem>
                                         <AlertDialogTrigger asChild>
                                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
                                                 <Trash2 className="mr-2 h-4 w-4" /> Delete
                                             </DropdownMenuItem>
                                         </AlertDialogTrigger>
-                                        <AlertDialogContent>
-                                            <AlertDialogHeader>
-                                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                                <AlertDialogDescription>This will delete the "{subCategory.name}" sub-category.</AlertDialogDescription>
-                                            </AlertDialogHeader>
-                                            <AlertDialogFooter>
-                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction onClick={() => handleDeleteCategory(subCategory.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
-                                            </AlertDialogFooter>
-                                        </AlertDialogContent>
-                                    </AlertDialog>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete "{mainCategory.name}"?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            This will permanently delete the category. This action cannot be undone.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteCategory(mainCategory.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
+                    </div>
+                  <AccordionContent>
+                    <div className="space-y-2 pl-4">
+                      {(subCategoriesByParent[mainCategory.id] || []).map(subCategory => (
+                        <div key={subCategory.id} className="flex items-center justify-between p-2 rounded-md hover:bg-muted">
+                           <span>{subCategory.name}</span>
+                           <AlertDialog>
+                                <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="h-4 w-4" /></Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent>
+                                        <DropdownMenuItem onClick={() => openDialog('edit', subCategory)}>
+                                            <Edit className="mr-2 h-4 w-4" /> Edit
+                                        </DropdownMenuItem>
+                                        <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                                <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                            </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                    </DropdownMenuContent>
+                                </DropdownMenu>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Delete "{subCategory.name}"?</AlertDialogTitle>
+                                        <AlertDialogDescription>This will delete the sub-category.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={() => handleDeleteCategory(subCategory.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
                         </div>
                       ))}
                       <Button variant="link" size="sm" className="p-1 h-auto" onClick={() => openDialog('add', { parentId: mainCategory.id })}>
@@ -199,7 +233,7 @@ export function CategoriesTab() {
                         <SelectContent>
                             <SelectItem value="none">None (This is a main category)</SelectItem>
                             {mainCategories.map(cat => (
-                                <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                                <SelectItem key={cat.id} value={cat.id} disabled={cat.id === currentCategory.id}>{cat.name}</SelectItem>
                             ))}
                         </SelectContent>
                     </Select>
