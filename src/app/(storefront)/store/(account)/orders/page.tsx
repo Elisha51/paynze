@@ -15,6 +15,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/dashboard/data-table';
+import { Checkbox } from '@/components/ui/checkbox';
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -51,6 +52,25 @@ export default function MyOrdersPage() {
   };
 
   const columns: ColumnDef<Order>[] = [
+    {
+        id: 'select',
+        header: ({ table }) => (
+        <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+        />
+        ),
+        cell: ({ row }) => (
+        <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+        />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+    },
     {
         accessorKey: 'id',
         header: 'Order',
