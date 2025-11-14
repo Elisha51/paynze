@@ -39,7 +39,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
-import { AssignOrderDialog } from '@/components/dashboard/orders-table';
+import { AssignOrderDialog } from '@/components/dashboard/assign-order-dialog';
 
 
 export default function ViewOrderPage() {
@@ -302,7 +302,3 @@ export default function ViewOrderPage() {
     </div>
   );
 }
-
-    
-
-    

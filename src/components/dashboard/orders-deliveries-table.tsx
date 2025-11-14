@@ -15,14 +15,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Order, Staff } from '@/lib/types';
 import { DataTable } from './data-table';
-import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { getInitials, cn } from '@/lib/utils';
-import { updateOrder } from '@/services/orders';
+import { getInitials } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { useAuth } from '@/context/auth-context';
-import { AssignOrderDialog } from './orders-table';
-
+import { AssignOrderDialog } from './assign-order-dialog';
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
   'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
@@ -142,7 +139,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
         if (!staffId || !staffName) {
             if (canEdit && order.fulfillmentMethod === 'Delivery' && (order.status === 'Paid' || order.status === 'Awaiting Payment')) {
                 return (
-                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate} asChild>
+                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate}>
                         <Button variant="outline" size="sm">
                             <User className="mr-2 h-4 w-4" />
                             Assign
@@ -184,7 +181,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                     <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
                     {canEdit && 
-                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate} asChild>
+                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate}>
                         <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Re-assign Agent</DropdownMenuItem>
                     </AssignOrderDialog>
                     }
@@ -254,5 +251,3 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     </Card>
   );
 }
-
-    

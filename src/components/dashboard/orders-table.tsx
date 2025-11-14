@@ -21,16 +21,6 @@ import {
 import type { Order, OnboardingFormData, Staff } from '@/lib/types';
 import { DataTable } from './data-table';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-  DialogTrigger,
-  DialogClose,
-} from '@/components/ui/dialog';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -46,143 +36,8 @@ import { getInitials } from '@/lib/utils';
 import { updateOrder } from '@/services/orders';
 import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-
-
-function FulfillOrderDialog({ order, action, onUpdate, children, asChild }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
-    const { user } = useAuth();
-    const { toast } = useToast();
-
-    const titles = {
-        deliver: 'Mark as Delivered',
-        pickup: 'Mark as Picked Up',
-        ship: 'Mark as Shipped',
-        ready: 'Mark as Ready for Pickup'
-    };
-
-    const descriptions = {
-        deliver: `This will mark order #${order.id} as 'Delivered' and update inventory. This action cannot be undone.`,
-        pickup: `This will mark order #${order.id} as 'Picked Up' and update inventory. This action cannot be undone.`,
-        ship: `This will mark order #${order.id} as 'Shipped'. Inventory will not be adjusted until the order is delivered.`,
-        ready: `This will mark order #${order.id} as 'Ready for Pickup'.`
-    };
-    
-    const newStatusMap = {
-        deliver: 'Delivered',
-        pickup: 'Picked Up',
-        ship: 'Shipped',
-        ready: 'Ready for Pickup',
-    } as const;
-
-    const handleFulfill = async () => {
-        if (!user) return;
-        const newStatus = newStatusMap[action];
-        const updates: Partial<Order> = { status: newStatus };
-
-        if (action === 'deliver' || action === 'pickup') {
-            updates.fulfilledByStaffId = user.id;
-            updates.fulfilledByStaffName = user.name;
-        }
-        
-        const updatedOrder = await updateOrder(order.id, updates);
-
-        onUpdate(updatedOrder);
-        toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${newStatus}.`});
-    }
-
-    return (
-        <Dialog>
-            <DialogTrigger asChild={asChild}>
-                {children}
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{titles[action]}</DialogTitle>
-                    <DialogDescription>{descriptions[action]}</DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                    <DialogClose asChild><Button onClick={handleFulfill}>Confirm</Button></DialogClose>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
-
-export function AssignOrderDialog({ order, staff, onUpdate, children, asChild }: { order: Order, staff: Staff[], onUpdate: (updatedOrder: Order) => void, children: React.ReactNode, asChild?: boolean }) {
-    const { toast } = useToast();
-    const [selectedStaffId, setSelectedStaffId] = React.useState<string | null>(null);
-
-    const deliveryRiders = staff.filter(s => s.role === 'Agent');
-
-    const suggestedRiders = React.useMemo(() => {
-        return deliveryRiders
-            .filter(rider => {
-                const isOnline = rider.onlineStatus === 'Online';
-                const deliveryZones = rider.attributes?.deliveryZones as string[] | undefined;
-                if (!deliveryZones || deliveryZones.length === 0) return isOnline; // Available if online and no zones set
-                return isOnline && deliveryZones.includes(order.shippingAddress.city);
-            })
-            .sort((a,b) => (a.assignedOrders?.length || 0) - (b.assignedOrders?.length || 0)); // Prioritize riders with fewer orders
-    }, [deliveryRiders, order.shippingAddress.city]);
-    
-    const otherRiders = deliveryRiders.filter(r => !suggestedRiders.find(s => s.id === r.id));
-
-    const handleAssign = async () => {
-        if (!selectedStaffId) {
-            toast({ variant: 'destructive', title: 'Please select a staff member.' });
-            return;
-        }
-        const selectedStaffMember = staff.find(s => s.id === selectedStaffId);
-        if (!selectedStaffMember) return;
-        
-        const updatedOrder = await updateOrder(order.id, { 
-            assignedStaffId: selectedStaffId, 
-            assignedStaffName: selectedStaffMember.name,
-            status: 'Shipped',
-        });
-
-        onUpdate(updatedOrder);
-        toast({ title: 'Order Assigned', description: `Order ${order.id} has been assigned to ${selectedStaffMember.name}.` });
-    }
-
-    return (
-         <Dialog>
-            <DialogTrigger asChild={asChild}>
-                {children}
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Assign Order #{order.id}</DialogTitle>
-                    <DialogDescription>Select a staff member to assign this order to for delivery.</DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                    <Select onValueChange={setSelectedStaffId}>
-                        <SelectTrigger>
-                            <SelectValue placeholder="Select a staff member..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                             {suggestedRiders.length > 0 && <SelectValue>Suggested Riders</SelectValue>}
-                             {suggestedRiders.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
-                            ))}
-                            {otherRiders.length > 0 && <SelectValue>Other Riders</SelectValue>}
-                            {otherRiders.map(s => (
-                                <SelectItem key={s.id} value={s.id}>{s.name} ({s.assignedOrders?.length || 0} orders)</SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
-                <DialogFooter>
-                    <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                    <DialogClose asChild>
-                        <Button onClick={handleAssign}>Assign Order</Button>
-                    </DialogClose>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    )
-}
+import { AssignOrderDialog } from './assign-order-dialog';
+import { FulfillOrderDialog } from './fulfill-order-dialog';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
@@ -442,22 +297,22 @@ const getColumns = (
                         {canEdit && (
                           <>
                             {isPaid && order.fulfillmentMethod === 'Delivery' && (
-                                <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate} asChild>
+                                <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
                                 </AssignOrderDialog>
                             )}
                             {isPaid && order.fulfillmentMethod === 'Pickup' && (
-                                <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate} asChild>
+                                <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Ready for Pickup</DropdownMenuItem>
                                 </FulfillOrderDialog>
                             )}
                             {order.status === 'Ready for Pickup' && (
-                                <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate} asChild>
+                                <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate}>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
                                 </FulfillOrderDialog>
                             )}
                             {order.status === 'Shipped' && (
-                                <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate} asChild>
+                                <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate}>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Delivered</DropdownMenuItem>
                                 </FulfillOrderDialog>
                             )}
