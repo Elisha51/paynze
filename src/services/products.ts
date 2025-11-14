@@ -52,14 +52,11 @@ const initializeMockProducts: () => Product[] = () => [
         sku: 'KIT-001-RF',
         status: 'In Stock',
         stockByLocation: [
-          { locationName: 'Main Warehouse', stock: { onHand: 30, available: 28, reserved: 2, damaged: 0, sold: 17 } },
+          { locationName: 'Main Warehouse', stock: { onHand: 50, available: 48, reserved: 2, damaged: 0, sold: 0 } },
           { locationName: 'Downtown Store', stock: { onHand: 20, available: 20, reserved: 0, damaged: 0, sold: 0 } }
         ],
         stockAdjustments: [
-            { id: 'adj-001', date: '2023-01-15T12:00:00Z', type: 'Initial Stock', quantity: 50, reason: 'Initial import', channel: 'Manual' },
-            { id: 'adj-002', date: '2023-02-20T12:00:00Z', type: 'Sale', quantity: -2, reason: 'Order #ORD-009', channel: 'Online' },
-            { id: 'adj-005', date: '2023-03-01T12:00:00Z', type: 'Sale', quantity: -5, reason: 'Order #ORD-012', channel: 'Online' },
-            { id: 'adj-006', date: '2023-03-10T12:00:00Z', type: 'Sale', quantity: -10, reason: 'Order #ORD-014', channel: 'In-Store' },
+            { id: 'adj-001', date: '2023-01-15T12:00:00Z', type: 'Initial Stock', quantity: 70, reason: 'Initial import', channel: 'Manual' },
         ]
       },
       {
@@ -69,12 +66,11 @@ const initializeMockProducts: () => Product[] = () => [
         sku: 'KIT-001-BG',
         status: 'In Stock',
         stockByLocation: [
-            { locationName: 'Main Warehouse', stock: { onHand: 20, available: 15, reserved: 5, damaged: 0, sold: 5 } },
+            { locationName: 'Main Warehouse', stock: { onHand: 30, available: 25, reserved: 5, damaged: 0, sold: 0 } },
             { locationName: 'Downtown Store', stock: { onHand: 10, available: 10, reserved: 0, damaged: 0, sold: 0 } }
         ],
         stockAdjustments: [
-            { id: 'adj-003', date: '2023-01-15T12:00:00Z', type: 'Initial Stock', quantity: 30, reason: 'Initial import', channel: 'Manual' },
-            { id: 'adj-004', date: '2023-02-22T12:00:00Z', type: 'Sale', quantity: -5, reason: 'Order #ORD-011', channel: 'In-Store' }
+            { id: 'adj-003', date: '2023-01-15T12:00:00Z', type: 'Initial Stock', quantity: 40, reason: 'Initial import', channel: 'Manual' },
         ]
       },
     ],
@@ -87,7 +83,7 @@ const initializeMockProducts: () => Product[] = () => [
     longDescription: '<p>This e-book covers everything from setting up your store to marketing and logistics.</p>',
     status: 'published',
     images: [{ id: 'img2', url: `https://picsum.photos/seed/EBOOK-001/400/400` }],
-    digitalFile: undefined, // This would be a File object in the real app
+    digitalFile: undefined,
     downloadLimit: 5,
     retailPrice: 10000,
     currency: 'KES',
