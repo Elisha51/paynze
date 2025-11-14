@@ -9,7 +9,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandTitle,
 } from '@/components/ui/command';
 import { Button } from '../ui/button';
 import { getProducts } from '@/services/products';
@@ -17,6 +16,7 @@ import { getCustomers } from '@/services/customers';
 import { getOrders } from '@/services/orders';
 import type { Product, Customer, Order } from '@/lib/types';
 import { useRouter } from 'next/navigation';
+import { DialogTitle } from '../ui/dialog';
 
 type SearchResult = {
   type: 'product' | 'customer' | 'order';
@@ -28,7 +28,7 @@ type SearchResult = {
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
-  const [data, setData] = useState<{ products: Product[], customers: Customer[], orders: Order[] }>({ products: [], customers: [], orders: [] });
+  const [data, setData] = useState<{ products: Product[], customers: Customer[], orders: Order[] } | null>(null);
   const [query, setQuery] = useState('');
   const router = useRouter();
 
@@ -45,7 +45,7 @@ export function GlobalSearch() {
 
   useEffect(() => {
     async function loadAllData() {
-      if (open) {
+      if (open && !data) { // Only load data if it hasn't been loaded yet
         const [products, customers, orders] = await Promise.all([
           getProducts(),
           getCustomers(),
@@ -55,7 +55,7 @@ export function GlobalSearch() {
       }
     }
     loadAllData();
-  }, [open]);
+  }, [open, data]);
 
   const runCommand = useCallback((command: () => unknown) => {
     setOpen(false);
@@ -67,7 +67,7 @@ export function GlobalSearch() {
   }
 
   const filteredResults = useCallback(() => {
-    if (query.length < 2) return [];
+    if (!data || query.length < 2) return [];
     
     const lowercasedQuery = query.toLowerCase();
 
