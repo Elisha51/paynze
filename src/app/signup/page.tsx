@@ -19,7 +19,7 @@ import { useRouter } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 
 export default function SignupPage() {
-  const { setUser } = useAuth();
+  const { login } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [name, setName] = useState('');
@@ -47,20 +47,9 @@ export default function SignupPage() {
             status: 'Active',
         });
         
-        // This is the new, corrected flow.
-        // 1. Set the user session directly.
-        localStorage.setItem('loggedInUserId', newUser.id);
-        
-        // 2. Set the user in the auth context, but without triggering the login function's redirect logic.
-        // We will manually redirect to onboarding.
-        const roles = await (await import('@/services/roles')).getRoles();
-        const userRole = roles.find(r => r.name === newUser.role);
-        if (userRole) {
-            setUser({ ...newUser, permissions: userRole.permissions, plan: 'Growth' });
-        }
-
-        // 3. Force redirect to onboarding for every new sign-up.
-        router.push('/get-started');
+        // After creating the user, call the robust login function
+        // which will handle redirection to onboarding.
+        login(newUser);
 
     } catch (error) {
         console.error("Signup failed:", error);

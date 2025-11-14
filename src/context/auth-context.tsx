@@ -29,33 +29,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const roles = await getRoles();
     const userRole = roles.find(r => r.name === staffMember.role);
     
+    // Fallback to default tenant if no onboarding data is found
     const onboardingDataRaw = localStorage.getItem('onboardingData');
     const plan = onboardingDataRaw ? (JSON.parse(onboardingDataRaw) as OnboardingFormData).plan || 'Growth' : 'Growth';
 
     if (userRole) {
       setUser({ ...staffMember, permissions: userRole.permissions, plan });
     } else {
+      // This is a fallback and should ideally not be hit if data is clean
       const defaultRole = roles.find(r => r.name === 'Sales Agent');
       setUser({ ...staffMember, permissions: defaultRole!.permissions, plan });
     }
   }, []);
 
   useEffect(() => {
-    const checkUser = async () => {
+    // This effect runs only once on the client to check for a logged-in user
+    const checkUserOnMount = async () => {
       setIsLoading(true);
-      const storedUserId = localStorage.getItem('loggedInUserId');
-      if (storedUserId) {
-        const allStaff = await getStaff();
-        const loggedInUser = allStaff.find(s => s.id === storedUserId);
-        if (loggedInUser) {
-          await fetchUserPermissions(loggedInUser);
-        } else {
-          localStorage.removeItem('loggedInUserId');
+      if (typeof window !== 'undefined') {
+        const storedUserId = localStorage.getItem('loggedInUserId');
+        if (storedUserId) {
+          const allStaff = await getStaff();
+          const loggedInUser = allStaff.find(s => s.id === storedUserId);
+          if (loggedInUser) {
+            await fetchUserPermissions(loggedInUser);
+          } else {
+            // Clear invalid user ID from storage
+            localStorage.removeItem('loggedInUserId');
+          }
         }
       }
       setIsLoading(false);
     };
-    checkUser();
+    checkUserOnMount();
   }, [fetchUserPermissions]);
 
   const login = useCallback(async (userToLogin: Staff) => {
@@ -72,6 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('loggedInUserId');
+    localStorage.removeItem('onboardingComplete');
     setUser(null);
     router.push('/login');
   }, [router]);

@@ -11,8 +11,6 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { Alert, AlertDescription } from '../ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { useAuth } from '@/context/auth-context';
-import { addStaff } from '@/services/staff';
 
 export default function Step5Confirmation() {
   const { formData, prevStep } = useOnboarding();
@@ -34,18 +32,11 @@ export default function Step5Confirmation() {
       // 2. Set onboarding complete flag
       localStorage.setItem('onboardingComplete', 'true');
       
-      // 3. Show a toast on success. Since we are about to redirect,
-      // this toast might not be visible for long, but it's good practice.
-      toast({
-        title: "Store Setup Complete!",
-        description: "Redirecting you to your new dashboard.",
-      });
+      // 3. Remove the draft so it doesn't load on next login
+      localStorage.removeItem('onboardingDraft');
 
-      // 4. Redirect to dashboard. The user is already logged in.
-      // A slight delay can help ensure the user sees the toast.
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 500);
+      // 4. Redirect to the login page with a success flag
+      router.push('/login?onboarding=success');
 
     } catch (error) {
       console.error("Launch process failed:", error);
@@ -56,12 +47,7 @@ export default function Step5Confirmation() {
           errorMessage = error;
       } 
       setLaunchError(errorMessage);
-    } finally {
-      // No need to set isLaunching to false if we are redirecting on success.
-      // It will only be set to false on error.
-      if (launchError) {
-        setIsLaunching(false);
-      }
+      setIsLaunching(false);
     }
   };
 
