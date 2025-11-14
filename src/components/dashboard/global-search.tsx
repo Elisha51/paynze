@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { Search, Package, Users, ShoppingCart } from 'lucide-react';
@@ -107,8 +108,8 @@ export function GlobalSearch() {
         onClick={() => setOpen(true)}
       >
         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-        <span className="hidden lg:inline-flex">Search...</span>
-        <span className="inline-flex lg:hidden">Search...</span>
+        <span className="hidden pl-6 lg:inline-flex">Search...</span>
+        <span className="inline-flex pl-6 lg:hidden">Search...</span>
         <kbd className="pointer-events-none absolute right-1.5 top-2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K
         </kbd>
