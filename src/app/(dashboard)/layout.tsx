@@ -68,7 +68,6 @@ export default function DashboardLayout({
             </div>
           </div>
         )}
-        <Toaster />
       </NotificationProvider>
     </SidebarProvider>
   );
