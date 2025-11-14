@@ -1,7 +1,6 @@
 
 'use client';
 
-import type { Metadata } from 'next';
 import { Inter, PT_Sans } from 'next/font/google';
 import './globals.css';
 import { cn } from '@/lib/utils';
@@ -36,7 +35,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192x192.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={cn("font-sans antialiased", inter.variable, ptSans.variable)}>
+      <body suppressHydrationWarning={true} className={cn("font-sans antialiased", inter.variable, ptSans.variable)}>
         <ThemeHandler />
         <div className="max-w-screen-2xl mx-auto">
           <AuthProvider>
