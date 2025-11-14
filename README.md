@@ -67,7 +67,7 @@ The project follows a standard Next.js App Router structure:
 -   **/src/context/**: Global React context providers (e.g., `AuthContext`, `CartContext`).
 -   **/src/ai/**: Contains all Genkit-related code for generative AI features.
     -   **/src/ai/flows/**: Defines the AI flows that orchestrate calls to language models.
--   **/src/firebase/**: Firebase configuration and helper files.
+-   **/src/firebase/**: Firebase configuration and helper files for the current implementation.
 -   **/src/lib/**: Utility functions, type definitions, and mock data.
 -   **/src/services/**: Mock data services that simulate database interactions.
 -   **/docs/**: Markdown documentation for the project's architecture and modules.
@@ -82,11 +82,11 @@ This project uses **Genkit** to integrate generative AI features.
 -   **Zod Schemas:** Inputs and outputs for AI flows are strongly typed using Zod, ensuring data consistency.
 -   **Developer UI:** You can inspect, run, and trace your AI flows using the Genkit developer UI, typically available at `http://localhost:4000` when running `genkit:watch`.
 
-### Firebase Integration
+### Backend Integration
 
--   **Configuration:** All Firebase settings are centralized in `src/firebase/config.ts`.
+-   **Configuration:** The current backend implementation uses Firebase. Configuration settings are centralized in `src/firebase/config.ts`.
 -   **Authentication:** User authentication is managed via `src/context/auth-context.tsx`, which handles both merchant (Staff) and customer logins.
--   **Data Model:** The `backend.json` file in the `/docs` directory serves as a blueprint for the Firestore database structure. **It is not a live representation** but is used as a reference for code generation and understanding the intended data schema.
+-   **Data Model:** The `backend.json` file in the `/docs` directory serves as a blueprint for the application's data structure, independent of the database used. **It is not a live representation** but is used as a reference for code generation and understanding the intended data schema.
 
 ### Styling
 

@@ -24,11 +24,11 @@ A critical file in this project is `docs/backend.json`. It is essential to under
 
 ## Authentication
 
--   **Providers:** User identity is managed through Firebase Authentication, supporting providers like Email/Password and Google Sign-In.
+-   **Providers:** User identity is managed through an authentication service (currently Firebase Authentication), supporting providers like Email/Password and social logins.
 -   **Roles & Permissions:** Once authenticated, a user's capabilities are determined by the `Role` assigned to them (e.g., "Admin", "Manager", "Agent"). Permissions for each role are defined in the **Settings** module of the dashboard. The backend security rules enforce these permissions, ensuring users can only access the data and perform the actions allowed by their role.
 
-## Database (Firestore)
+## Database
 
--   **Data Model:** Firestore is used as the primary database. It's a NoSQL, document-based database. The structure is defined by the collections mapped in `backend.json`.
--   **Client-Side SDK:** All data fetching and mutations happen on the client-side using the Firebase SDK. There is no traditional backend server with API endpoints for CRUD operations.
--   **Security Rules:** Data access is not controlled by API endpoints but by **Firestore Security Rules**. These rules are a critical part of the backend. They live in `firestore.rules` and define who can read, write, or delete data in any given path. For example, a rule might state that a user can only read their own `Order` document.
+-   **Data Model:** The current implementation uses Firestore, a NoSQL, document-based database. The structure is defined by the collections mapped in `backend.json`.
+-   **Client-Side SDK:** All data fetching and mutations happen on the client-side using a client-side SDK. There is no traditional backend server with API endpoints for CRUD operations.
+-   **Security Rules:** Data access is not controlled by API endpoints but by **backend security rules**. These rules are a critical part of the backend (e.g., `firestore.rules`) and define who can read, write, or delete data in any given path. For example, a rule might state that a user can only read their own `Order` document.
