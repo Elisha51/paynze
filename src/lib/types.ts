@@ -2,6 +2,7 @@
 
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -303,7 +304,7 @@ export type PurchaseOrder = {
   id: string; // e.g., 'PO-001'
   supplierId: string;
   supplierName: string;
-  status: 'Draft' | 'Sent' | 'Partial' | 'Received' | 'Cancelled';
+  status: 'Draft' | 'Sent' | 'Received' | 'Partial' | 'Cancelled' | 'Accepted' | 'Rejected';
   items: PurchaseOrderItem[];
   orderDate: string;
   expectedDelivery: string;

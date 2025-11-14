@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, CheckCircle } from 'lucide-react';
+import { ArrowLeft, MoreVertical, CheckCircle, Send } from 'lucide-react';
 import Link from 'next/link';
 import { getPurchaseOrderById, receivePurchaseOrder } from '@/services/procurement';
 import { getLocations } from '@/services/locations';
@@ -99,10 +99,10 @@ export default function ViewPurchaseOrderPage() {
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const { toast } = useToast();
 
-  const loadData = async () => {
+  const loadData = async (orderId: string) => {
       setLoading(true);
       const [data, settingsData, locs] = await Promise.all([
-          getPurchaseOrderById(id),
+          getPurchaseOrderById(orderId),
           localStorage.getItem('onboardingData'),
           getLocations()
       ]);
@@ -116,7 +116,7 @@ export default function ViewPurchaseOrderPage() {
 
   useEffect(() => {
     if (id) {
-        loadData();
+        loadData(id);
     }
   }, [id]);
   
@@ -182,6 +182,8 @@ export default function ViewPurchaseOrderPage() {
   const statusVariant = {
       Draft: 'secondary',
       Sent: 'outline',
+      Accepted: 'default',
+      Rejected: 'destructive',
       Received: 'default',
       Partial: 'outline',
       Cancelled: 'destructive',
@@ -191,6 +193,14 @@ export default function ViewPurchaseOrderPage() {
   
   const cta = (
     <div className="flex items-center gap-2">
+        {order.status === 'Draft' && (
+            <Button asChild>
+                <Link href={`/supplier/po-response/${order.id}`} target="_blank">
+                    <Send className="mr-2 h-4 w-4" />
+                    Send to Supplier
+                </Link>
+            </Button>
+        )}
         <ReceiveStockDialog order={order} locations={locations} onConfirm={handleReceiveStock} />
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

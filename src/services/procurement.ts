@@ -102,6 +102,10 @@ export async function getPurchaseOrderById(id: string): Promise<PurchaseOrder | 
     return await poService.getById(id);
 }
 
+export async function updatePurchaseOrder(id: string, updates: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
+    return await poService.update(id, updates);
+}
+
 export async function receivePurchaseOrder(poId: string, locationName: string): Promise<PurchaseOrder> {
     const po = await poService.getById(poId);
     if (!po) throw new Error("Purchase order not found");
