@@ -1,42 +1,82 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { getPurchaseOrderById, updatePurchaseOrder } from '@/services/procurement';
-import type { PurchaseOrder } from '@/lib/types';
+import type { PurchaseOrder, PurchaseOrderItem } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Check, X, Send } from 'lucide-react';
+import { Check, X, Send, Edit, Calendar as CalendarIcon, MessageSquare } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 export default function PurchaseOrderResponsePage() {
     const params = useParams();
     const id = params.id as string;
     const [order, setOrder] = useState<PurchaseOrder | null>(null);
+    const [editedItems, setEditedItems] = useState<PurchaseOrderItem[]>([]);
+    const [supplierETA, setSupplierETA] = useState<Date>();
+    const [supplierNotes, setSupplierNotes] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitted, setIsSubmitted] = useState(false);
-    const [actionTaken, setActionTaken] = useState<'Accepted' | 'Rejected' | null>(null);
+    const [actionTaken, setActionTaken] = useState<'Accepted' | 'Rejected' | 'Changes Proposed' | null>(null);
+    const { toast } = useToast();
 
     useEffect(() => {
         async function loadOrder() {
             if (!id) return;
             const fetchedOrder = await getPurchaseOrderById(id);
             setOrder(fetchedOrder || null);
+            if (fetchedOrder) {
+                setEditedItems(fetchedOrder.items);
+                if (fetchedOrder.supplierETA) {
+                    setSupplierETA(new Date(fetchedOrder.supplierETA));
+                }
+                 if (fetchedOrder.supplierNotes) {
+                    setSupplierNotes(fetchedOrder.supplierNotes);
+                }
+            }
             setIsLoading(false);
         }
         loadOrder();
     }, [id]);
 
-    const handleAction = async (status: 'Accepted' | 'Rejected') => {
+    const handleItemChange = (index: number, field: 'quantity' | 'cost', value: string) => {
+        const newItems = [...editedItems];
+        newItems[index] = { ...newItems[index], [field]: Number(value) };
+        setEditedItems(newItems);
+    }
+    
+    const totalCost = editedItems.reduce((sum, item) => sum + item.cost * item.quantity, 0);
+
+    const handleAction = async (status: 'Accepted' | 'Rejected' | 'Changes Proposed') => {
         if (!order) return;
         setIsLoading(true);
-        await updatePurchaseOrder(order.id, { status });
+        
+        let updates: Partial<PurchaseOrder> = { status: status === 'Changes Proposed' ? 'Awaiting Approval' : status };
+
+        if (status === 'Changes Proposed') {
+            updates.supplierProposedChanges = { items: editedItems };
+            updates.supplierETA = supplierETA?.toISOString();
+            updates.supplierNotes = supplierNotes;
+        }
+
+        await updatePurchaseOrder(order.id, updates);
         setActionTaken(status);
         setIsSubmitted(true);
         setIsLoading(false);
+        toast({ title: 'Response Submitted', description: 'Your response has been sent to the merchant.' });
     };
     
     const formatCurrency = (amount: number, currency: string) => {
@@ -98,12 +138,12 @@ export default function PurchaseOrderResponsePage() {
                         From: {order.supplierName} | Dated: {order.orderDate}
                     </CardDescription>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
                     <Alert>
-                        <Send className="h-4 w-4" />
+                        <Edit className="h-4 w-4" />
                         <AlertTitle>Action Required</AlertTitle>
                         <AlertDescription>
-                            Please review the purchase order below and either accept or reject it.
+                           Please review the purchase order. You can edit quantities and costs, then propose changes or accept as is.
                         </AlertDescription>
                     </Alert>
                     
@@ -111,18 +151,32 @@ export default function PurchaseOrderResponsePage() {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead className="w-[50%]">Product</TableHead>
+                                    <TableHead className="w-[40%]">Product</TableHead>
                                     <TableHead>Quantity</TableHead>
                                     <TableHead>Unit Cost</TableHead>
                                     <TableHead className="text-right">Total</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {order.items.map((item, index) => (
+                                {editedItems.map((item, index) => (
                                     <TableRow key={index}>
                                         <TableCell className="font-medium">{item.productName}</TableCell>
-                                        <TableCell>{item.quantity}</TableCell>
-                                        <TableCell>{formatCurrency(item.cost, order.currency)}</TableCell>
+                                        <TableCell>
+                                            <Input 
+                                                type="number" 
+                                                value={item.quantity} 
+                                                onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                                                className="w-20"
+                                            />
+                                        </TableCell>
+                                        <TableCell>
+                                            <Input 
+                                                type="number"
+                                                value={item.cost}
+                                                onChange={(e) => handleItemChange(index, 'cost', e.target.value)}
+                                                className="w-28"
+                                            />
+                                        </TableCell>
                                         <TableCell className="text-right">{formatCurrency(item.cost * item.quantity, order.currency)}</TableCell>
                                     </TableRow>
                                 ))}
@@ -131,21 +185,49 @@ export default function PurchaseOrderResponsePage() {
                     </div>
 
                     <div className="flex justify-end mt-4 font-bold text-lg">
-                        Grand Total: {formatCurrency(order.totalCost, order.currency)}
+                        Grand Total: {formatCurrency(totalCost, order.currency)}
+                    </div>
+                    
+                    <div className="grid md:grid-cols-2 gap-6 pt-6 border-t">
+                        <div className="space-y-2">
+                             <Label htmlFor="eta" className="flex items-center gap-2">
+                                <CalendarIcon className="h-4 w-4"/>
+                                Estimated Delivery Date (ETA)
+                            </Label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !supplierETA && "text-muted-foreground")}>
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {supplierETA ? format(supplierETA, 'PPP') : <span>Pick a date</span>}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={supplierETA} onSelect={setSupplierETA} /></PopoverContent>
+                            </Popover>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="notes" className="flex items-center gap-2">
+                                <MessageSquare className="h-4 w-4"/>
+                                Comments or Notes
+                            </Label>
+                            <Textarea id="notes" value={supplierNotes} onChange={(e) => setSupplierNotes(e.target.value)} placeholder="Add any comments about stock availability, delivery, etc." />
+                        </div>
                     </div>
                 </CardContent>
                 <CardFooter className="flex flex-col sm:flex-row justify-end gap-2">
-                    <Button variant="destructive" size="lg" onClick={() => handleAction('Rejected')}>
+                     <Button variant="destructive" size="lg" onClick={() => handleAction('Rejected')}>
                         <X className="mr-2 h-4 w-4" />
                         Reject Order
                     </Button>
+                     <Button variant="outline" size="lg" onClick={() => handleAction('Changes Proposed')}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Propose Changes
+                    </Button>
                     <Button size="lg" onClick={() => handleAction('Accepted')}>
                         <Check className="mr-2 h-4 w-4" />
-                        Accept Order
+                        Accept As Is
                     </Button>
                 </CardFooter>
             </Card>
         </div>
     );
 }
-

@@ -1,4 +1,5 @@
 
+
 import type { Supplier, PurchaseOrder, StockAdjustment } from '@/lib/types';
 import { DataService } from './data-service';
 import { getProducts, updateProduct } from './products';
@@ -73,7 +74,27 @@ const mockPurchaseOrders: PurchaseOrder[] = [
     items: [
       { productId: 'COFF-01', productName: 'Rwenzori Coffee Beans', quantity: 100, cost: 20000 },
     ]
-  }
+  },
+   {
+    id: 'PO-004',
+    supplierId: 'SUP-001',
+    supplierName: 'Kitenge Kings',
+    status: 'Awaiting Approval',
+    orderDate: '2024-07-20',
+    expectedDelivery: '2024-08-05',
+    totalCost: 640000,
+    currency: 'UGX',
+    items: [
+      { productId: 'KIT-001-BG', productName: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 20, cost: 32000 },
+    ],
+    supplierProposedChanges: {
+        items: [
+            { productId: 'KIT-001-BG', productName: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 15, cost: 33000 },
+        ]
+    },
+    supplierETA: '2024-08-10',
+    supplierNotes: 'We can only supply 15m at the moment due to high demand. Price has increased slightly due to raw material costs.'
+  },
 ];
 
 const supplierService = new DataService<Supplier>('suppliers', () => mockSuppliers);

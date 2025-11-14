@@ -3,6 +3,7 @@
 
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -304,12 +305,17 @@ export type PurchaseOrder = {
   id: string; // e.g., 'PO-001'
   supplierId: string;
   supplierName: string;
-  status: 'Draft' | 'Sent' | 'Received' | 'Partial' | 'Cancelled' | 'Accepted' | 'Rejected';
+  status: 'Draft' | 'Sent' | 'Received' | 'Partial' | 'Cancelled' | 'Accepted' | 'Rejected' | 'Awaiting Approval';
   items: PurchaseOrderItem[];
   orderDate: string;
   expectedDelivery: string;
   totalCost: number;
   currency: string;
+  supplierProposedChanges?: {
+    items: PurchaseOrderItem[];
+  };
+  supplierNotes?: string;
+  supplierETA?: string;
 };
 
 

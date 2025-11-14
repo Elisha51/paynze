@@ -1,12 +1,13 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, CheckCircle, Send } from 'lucide-react';
+import { ArrowLeft, MoreVertical, CheckCircle, Send, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
-import { getPurchaseOrderById, receivePurchaseOrder } from '@/services/procurement';
+import { getPurchaseOrderById, receivePurchaseOrder, updatePurchaseOrder } from '@/services/procurement';
 import { getLocations } from '@/services/locations';
 import type { PurchaseOrder, OnboardingFormData, Location } from '@/lib/types';
 import {
@@ -14,6 +15,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -47,6 +49,9 @@ import {
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { Textarea } from '@/components/ui/textarea';
 
 function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
     const [location, setLocation] = useState<string>('');
@@ -87,6 +92,74 @@ function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOr
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+    )
+}
+
+function SupplierChangesCard({ order, onApprove }: { order: PurchaseOrder; onApprove: () => void }) {
+    const changes = order.supplierProposedChanges;
+    if (!changes) return null;
+
+    const originalTotal = order.items.reduce((sum, item) => sum + item.cost * item.quantity, 0);
+    const proposedTotal = changes.items.reduce((sum, item) => sum + item.cost * item.quantity, 0);
+
+    const formatCurrency = (amount: number, currency: string) => {
+        return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    }
+    
+    return (
+        <Card className="border-amber-400 bg-amber-50">
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg">
+                    <AlertTriangle className="text-amber-600" />
+                    Supplier Proposed Changes
+                </CardTitle>
+                <CardDescription>The supplier has proposed changes to this order. Review them below and approve or reject.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {order.supplierNotes && (
+                    <blockquote className="border-l-2 pl-4 italic text-sm">"{order.supplierNotes}"</blockquote>
+                )}
+                {order.supplierETA && (
+                    <p className="text-sm"><strong>New ETA:</strong> {format(new Date(order.supplierETA), 'PPP')}</p>
+                )}
+                <Table>
+                     <TableHeader>
+                        <TableRow>
+                            <TableHead>Product</TableHead>
+                            <TableHead>Original</TableHead>
+                            <TableHead>Proposed</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {changes.items.map(proposedItem => {
+                            const originalItem = order.items.find(i => i.productId === proposedItem.productId);
+                            return (
+                                <TableRow key={proposedItem.productId}>
+                                    <TableCell className="font-medium">{proposedItem.productName}</TableCell>
+                                    <TableCell>
+                                        <p>{originalItem?.quantity || 'N/A'} @ {formatCurrency(originalItem?.cost || 0, order.currency)}</p>
+                                    </TableCell>
+                                     <TableCell>
+                                        <p className="font-semibold text-amber-700">{proposedItem.quantity} @ {formatCurrency(proposedItem.cost, order.currency)}</p>
+                                    </TableCell>
+                                </TableRow>
+                            )
+                        })}
+                    </TableBody>
+                     <TableFooter>
+                        <TableRow>
+                            <TableCell>Total</TableCell>
+                            <TableCell>{formatCurrency(originalTotal, order.currency)}</TableCell>
+                            <TableCell className="font-bold text-amber-700">{formatCurrency(proposedTotal, order.currency)}</TableCell>
+                        </TableRow>
+                    </TableFooter>
+                </Table>
+            </CardContent>
+            <CardFooter className="flex justify-end gap-2">
+                <Button variant="ghost">Reject Changes</Button>
+                <Button onClick={onApprove}>Approve & Update PO</Button>
+            </CardFooter>
+        </Card>
     )
 }
 
@@ -139,6 +212,19 @@ export default function ViewPurchaseOrderPage() {
     }
   }
 
+  const handleApproveChanges = async () => {
+    if (!order || !order.supplierProposedChanges) return;
+    const updatedOrder = await updatePurchaseOrder(order.id, {
+        items: order.supplierProposedChanges.items,
+        totalCost: order.supplierProposedChanges.items.reduce((sum, item) => sum + item.cost * item.quantity, 0),
+        expectedDelivery: order.supplierETA || order.expectedDelivery,
+        status: 'Accepted',
+        supplierProposedChanges: undefined, // Clear the proposed changes
+    });
+    setOrder(updatedOrder);
+    toast({ title: 'Changes Approved', description: 'The purchase order has been updated.' });
+  }
+
   if (loading || !settings) {
     return (
      <DashboardPageLayout title="Loading Purchase Order...">
@@ -187,6 +273,7 @@ export default function ViewPurchaseOrderPage() {
       Received: 'default',
       Partial: 'outline',
       Cancelled: 'destructive',
+      'Awaiting Approval': 'outline'
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
   
   const currency = order.currency || settings.currency;
@@ -221,7 +308,8 @@ export default function ViewPurchaseOrderPage() {
 
   return (
     <DashboardPageLayout title={`Purchase Order #${order.id}`} cta={cta} backHref="/dashboard/procurement?tab=purchase-orders">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {order.status === 'Awaiting Approval' && <SupplierChangesCard order={order} onApprove={handleApproveChanges} />}
+      <div className={cn("grid grid-cols-1 lg:grid-cols-3 gap-6", order.status === 'Awaiting Approval' && 'mt-6')}>
         <div className="lg:col-span-2 space-y-6">
             <Card>
                 <CardHeader>
