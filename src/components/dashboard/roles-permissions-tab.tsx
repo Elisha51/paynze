@@ -33,6 +33,17 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '..
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
 import { cn } from '@/lib/utils';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -134,6 +145,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [newRole, setNewRole] = useState(emptyRole);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
+  const [originalRoleName, setOriginalRoleName] = useState<string | null>(null);
   
   useEffect(() => {
     setRoles(initialRoles);
@@ -200,31 +212,29 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
   }
   
   const handleUpdateRole = async () => {
-    if (!editingRole || !editingRole.name.trim()) {
+    if (!editingRole || !editingRole.name.trim() || !originalRoleName) {
         toast({ variant: 'destructive', title: 'Role name is required' });
         return;
     }
-    const originalRole = roles.find(r => r.name === editingRole.name);
     
-    // The service needs the *current* name to find the record to update
-    const updatedRole = await updateRole(editingRole.name, editingRole);
+    const updatedRole = await updateRole(originalRoleName, editingRole);
 
-    // Update staff members if the role name changed
-    if (originalRole && originalRole.name !== updatedRole.name) {
+    if (originalRoleName !== updatedRole.name) {
         for (const staffMember of allStaff) {
-            if (staffMember.role === originalRole.name) {
+            if (staffMember.role === originalRoleName) {
                 await updateStaff(staffMember.id, { role: updatedRole.name });
             }
         }
     }
     
-    const newRoles = roles.map(r => r.name === originalRole?.name ? updatedRole : r);
+    const newRoles = roles.map(r => r.name === originalRoleName ? updatedRole : r);
     setRoles(newRoles);
     setParentRoles(newRoles);
 
     toast({ title: 'Role Updated' });
     setIsEditOpen(false);
     setEditingRole(null);
+    setOriginalRoleName(null);
   }
 
   const handleAttributeChange = (roleName: string, index: number, field: keyof AssignableAttribute, value: string) => {
@@ -309,6 +319,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
   
   const openEditDialog = (role: Role) => {
       setEditingRole(role);
+      setOriginalRoleName(role.name); // Store the original name
       setIsEditOpen(true);
   }
 
@@ -518,7 +529,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                 <div className="space-y-4 py-4">
                     <div className="space-y-2">
                         <Label htmlFor="edit-name">Role Name</Label>
-                        <Input id="edit-name" value={editingRole.name} onChange={(e) => setEditingRole({...editingRole, name: e.target.value})} />
+                        <Input id="edit-name" value={editingRole.name} onChange={(e) => setEditingRole({...editingRole, name: e.target.value as StaffRoleName})} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="edit-description">Description</Label>
