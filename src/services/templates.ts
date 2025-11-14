@@ -1,4 +1,5 @@
 
+
 import type { ProductTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -164,12 +165,6 @@ export const mockWhatsAppTemplates: WhatsAppTemplate[] = [
         name: 'Abandoned Cart Reminder',
         description: 'Sent to customers who have items in their cart but have not checked out.',
         message: 'Hi {{customerName}}! You left some items in your cart at {{storeName}}. Complete your order now before they run out!',
-    },
-    {
-        id: 'wa-delivery-update',
-        name: 'Delivery Update',
-        description: 'Notifies customers about the status of their delivery.',
-        message: 'Great news! Your order #{{orderId}} from {{storeName}} is now out for delivery and should arrive today.',
     }
 ];
 
