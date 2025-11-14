@@ -1,3 +1,4 @@
+
 import type { ProductTemplate } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -192,7 +193,7 @@ export async function addProductTemplate(template: ProductTemplate, author: stri
         id: `tpl-${Date.now()}`,
         usageCount: 0,
     };
-    // Ensure product object is fully cloned
+    // Ensure product object is fully cloned to prevent shared state issues
     newTemplate.product = JSON.parse(JSON.stringify(template.product));
     return await productTemplateService.create(newTemplate);
 }
