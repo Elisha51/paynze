@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -17,6 +16,8 @@ import { Input } from '../ui/input';
 import { EmptyState } from '../ui/empty-state';
 import { Skeleton } from '../ui/skeleton';
 import { sanitizeObject } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Settings } from 'lucide-react';
 
 const Icon = ({ name, ...props }: { name: string } & Lucide.LucideProps) => {
     const LucideIcon = Lucide[name as keyof typeof Lucide] as Lucide.LucideIcon;
@@ -215,7 +216,7 @@ export function ProductTemplatesTab() {
   };
 
   return (
-    <Tabs defaultValue="hub">
+    <Tabs defaultValue="my-templates">
         <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="my-templates">My Templates</TabsTrigger>
             <TabsTrigger value="hub">Template Hub</TabsTrigger>
@@ -227,6 +228,14 @@ export function ProductTemplatesTab() {
                     <CardDescription>Manage your private templates or publish them to the community.</CardDescription>
                 </CardHeader>
                 <CardContent>
+                      <Alert className="mb-6">
+                        <Settings className="h-4 w-4" />
+                        <AlertTitle>How to Use Product Templates</AlertTitle>
+                        <AlertDescription>
+                            Product templates streamline the creation of new products by pre-filling information.
+                             <Button variant="link" asChild className="p-0 h-auto ml-1 font-semibold"><Link href="/dashboard/products">Go to Products</Link></Button> to use a template.
+                        </AlertDescription>
+                    </Alert>
                      {renderGrid(myTemplates, true)}
                 </CardContent>
             </Card>
