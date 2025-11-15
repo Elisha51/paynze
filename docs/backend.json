@@ -20,27 +20,48 @@
       },
       "required": ["id", "name", "productType", "retailPrice", "currency", "status"]
     },
+    "OrderItem": {
+      "title": "Order Item",
+      "description": "Represents a single line item within an order.",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "description": "The unique SKU of the product variant." },
+        "name": { "type": "string", "description": "The name of the product at the time of purchase." },
+        "quantity": { "type": "number" },
+        "price": { "type": "number", "description": "The price per unit at the time of purchase." }
+      },
+      "required": ["sku", "name", "quantity", "price"]
+    },
     "Order": {
       "title": "Order",
       "description": "Represents a customer's order for one or more products.",
       "type": "object",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the order." },
-        "customerId": { "type": "string" },
+        "customerId": { "type": "string", "description": "The ID of the customer profile. Links to UserProfile." },
         "customerName": { "type": "string" },
         "customerEmail": { "type": "string" },
-        "items": { "type": "array", "items": { "type": "object" } },
+        "customerPhone": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "items": { 
+          "type": "array", 
+          "items": { "$ref": "#/entities/OrderItem" },
+          "description": "An array of items included in the order."
+        },
         "total": { "type": "number" },
         "currency": { "type": "string" },
-        "status": { "type": "string", "enum": ["Awaiting Payment", "Paid", "Shipped", "Delivered", "Cancelled"] },
+        "status": { "type": "string", "enum": ["Awaiting Payment", "Paid", "Shipped", "Delivered", "Cancelled", "Ready for Pickup", "Picked Up", "Attempted Delivery"] },
         "fulfillmentMethod": { "type": "string", "enum": ["Delivery", "Pickup"] },
         "shippingAddress": { "type": "object" },
         "payment": { "type": "object" },
         "shippingCost": { "type": "number" },
         "taxes": { "type": "number" },
-        "channel": { "type": "string", "enum": ["Online", "Manual", "POS"] }
+        "channel": { "type": "string", "enum": ["Online", "Manual", "POS"] },
+        "salesAgentId": { "type": "string", "description": "The ID of the staff member or affiliate who gets sales credit. Links to StaffProfile." },
+        "assignedStaffId": { "type": "string", "description": "The ID of the staff member assigned to fulfill the order. Links to StaffProfile." },
+        "fulfilledByStaffId": { "type": "string", "description": "The ID of the staff member who completed the fulfillment. Links to StaffProfile." }
       },
-      "required": ["id", "customerId", "customerName", "items", "total", "currency", "status"]
+      "required": ["id", "customerId", "customerName", "date", "items", "total", "currency", "status"]
     },
     "UserProfile": {
       "title": "User Profile",
