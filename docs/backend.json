@@ -164,7 +164,10 @@
         "type": { "type": "string", "enum": ["Income", "Expense"] },
         "category": { "type": "string", "enum": ["Sales", "Inventory", "Salaries", "Utilities", "Marketing", "Other"] },
         "status": { "type": "string", "enum": ["Cleared", "Pending"] },
-        "paymentMethod": { "type": "string", "enum": ["Cash", "Mobile Money", "Bank Transfer", "Card", "Other"] }
+        "paymentMethod": { "type": "string", "enum": ["Cash", "Mobile Money", "Bank Transfer", "Card", "Other"] },
+        "orderId": { "type": "string", "description": "Link to the Order if it's a sales transaction." },
+        "purchaseOrderId": { "type": "string", "description": "Link to the Purchase Order if it's an inventory expense." },
+        "payoutForStaffId": { "type": "string", "description": "Link to the Staff member if it's a commission or salary payout." }
       },
       "required": ["id", "date", "description", "amount", "type", "category"]
     },
