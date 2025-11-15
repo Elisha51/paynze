@@ -297,15 +297,7 @@
           "format": "uri"
         },
         "role": {
-          "type": "string",
-          "enum": [
-            "Admin",
-            "Manager",
-            "Sales Agent",
-            "Agent",
-            "Finance Manager",
-            "Affiliate"
-          ]
+          "type": "string"
         },
         "status": {
           "type": "string",
@@ -946,4 +938,3 @@
     }
   }
 }
-  
