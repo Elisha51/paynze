@@ -266,81 +266,6 @@
       },
       "required": ["id", "name", "uniqueId", "status"]
     },
-    "ProductTemplate": {
-      "title": "Product Template",
-      "description": "A reusable blueprint for creating new products.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
-        "icon": { "type": "string", "description": "Lucide icon name" },
-        "author": { "type": "string" },
-        "published": { "type": "boolean" },
-        "usageCount": { "type": "number" },
-        "product": { "$ref": "#/entities/Product" }
-      },
-      "required": ["id", "name", "product"]
-    },
-    "EmailTemplate": {
-      "title": "Email Template",
-      "description": "A reusable template for email communications.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "subject": { "type": "string" },
-        "body": { "type": "string" }
-      },
-      "required": ["id", "name", "subject", "body"]
-    },
-    "SmsTemplate": {
-      "title": "SMS Template",
-      "description": "A reusable template for SMS communications.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "message": { "type": "string" }
-      },
-      "required": ["id", "name", "message"]
-    },
-    "WhatsAppTemplate": {
-      "title": "WhatsApp Template",
-      "description": "A reusable template for WhatsApp communications.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "message": { "type": "string" }
-      },
-      "required": ["id", "name", "message"]
-    },
-    "Todo": {
-      "title": "To-Do Item",
-      "description": "A single task for a staff member.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "title": { "type": "string" },
-        "status": { "type": "string", "enum": ["To Do", "Completed"] },
-        "createdAt": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "title", "status", "createdAt"]
-    },
-    "SupportTicket": {
-      "title": "Support Ticket",
-      "description": "A support request from a merchant.",
-      "type": "object",
-      "properties": {
-        "id": { "type": "string" },
-        "subject": { "type": "string" },
-        "category": { "type": "string", "enum": ["Billing", "Technical", "General"] },
-        "status": { "type": "string", "enum": ["Open", "In Progress", "Resolved"] },
-        "lastUpdated": { "type": "string", "format": "date-time" }
-      },
-      "required": ["id", "subject", "status"]
-    },
     "Location": {
       "title": "Location",
       "description": "Represents a physical location like a warehouse or store.",
@@ -409,30 +334,6 @@
     "/affiliates/{affiliateId}": {
       "schema": { "$ref": "#/entities/Affiliate" },
       "description": "Stores affiliate partner profiles."
-    },
-    "/productTemplates/{templateId}": {
-      "schema": { "$ref": "#/entities/ProductTemplate" },
-      "description": "Stores reusable product templates."
-    },
-    "/emailTemplates/{templateId}": {
-      "schema": { "$ref": "#/entities/EmailTemplate" },
-      "description": "Stores reusable email templates."
-    },
-    "/smsTemplates/{templateId}": {
-      "schema": { "$ref": "#/entities/SmsTemplate" },
-      "description": "Stores reusable SMS templates."
-    },
-    "/whatsAppTemplates/{templateId}": {
-      "schema": { "$ref": "#/entities/WhatsAppTemplate" },
-      "description": "Stores reusable WhatsApp templates."
-    },
-    "/todos/{todoId}": {
-      "schema": { "$ref": "#/entities/Todo" },
-      "description": "Stores personal to-do items for staff."
-    },
-    "/supportTickets/{ticketId}": {
-      "schema": { "$ref": "#/entities/SupportTicket" },
-      "description": "Stores support tickets from merchants."
     },
     "/locations/{locationId}": {
       "schema": { "$ref": "#/entities/Location" },
