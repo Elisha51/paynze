@@ -243,6 +243,30 @@
         "lastUpdated": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "subject", "status"]
+    },
+    "Location": {
+      "title": "Location",
+      "description": "Represents a physical location like a warehouse or store.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "address": { "type": "string" },
+        "isPickupLocation": { "type": "boolean" }
+      },
+      "required": ["id", "name", "address"]
+    },
+    "ShippingZone": {
+      "title": "Shipping Zone",
+      "description": "Defines a geographical area for specific shipping rates.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "countries": { "type": "array", "items": { "type": "string" } },
+        "deliveryMethods": { "type": "array", "items": { "type": "object" } }
+      },
+      "required": ["id", "name", "countries"]
     }
   },
   "auth": {
@@ -312,6 +336,14 @@
     "/supportTickets/{ticketId}": {
       "schema": { "$ref": "#/entities/SupportTicket" },
       "description": "Stores support tickets from merchants."
+    },
+    "/locations/{locationId}": {
+      "schema": { "$ref": "#/entities/Location" },
+      "description": "Stores inventory and fulfillment locations."
+    },
+    "/shippingZones/{zoneId}": {
+      "schema": { "$ref": "#/entities/ShippingZone" },
+      "description": "Stores shipping zone configurations and rates."
     }
   }
 }
