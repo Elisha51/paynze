@@ -1,5 +1,61 @@
 {
   "entities": {
+    "ProductTemplate": {
+      "title": "Product Template",
+      "description": "A reusable blueprint for creating new products with pre-defined attributes.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "icon": { "type": "string" },
+        "product": {
+          "type": "object",
+          "description": "An object containing default product fields."
+        },
+        "author": { "type": "string" },
+        "published": { "type": "boolean" },
+        "usageCount": { "type": "number" }
+      },
+      "required": ["id", "name", "product"]
+    },
+    "EmailTemplate": {
+      "title": "Email Template",
+      "description": "A reusable template for email communications.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "subject": { "type": "string" },
+        "body": { "type": "string" }
+      },
+      "required": ["id", "name", "subject", "body"]
+    },
+    "SmsTemplate": {
+      "title": "SMS Template",
+      "description": "A reusable template for SMS communications.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "required": ["id", "name", "message"]
+    },
+    "WhatsAppTemplate": {
+      "title": "WhatsApp Template",
+      "description": "A reusable template for WhatsApp messages.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "required": ["id", "name", "message"]
+    },
     "Product": {
       "title": "Product",
       "description": "Represents an item for sale in the store catalog.",
@@ -686,6 +742,9 @@
         "code": {
           "type": "string"
         },
+        "description": {
+          "type": "string"
+        },
         "type": {
           "type": "string",
           "enum": [
@@ -696,9 +755,6 @@
         },
         "value": {
           "type": "number"
-        },
-        "description": {
-          "type": "string"
         },
         "status": {
           "type": "string",
@@ -938,3 +994,4 @@
     }
   }
 }
+    
