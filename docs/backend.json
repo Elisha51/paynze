@@ -182,8 +182,21 @@
         "channel": { "type": "string", "enum": ["Email", "SMS", "WhatsApp", "Push"] },
         "audience": { "type": "string", "description": "The target customer group for the campaign, e.g. 'Wholesalers'."},
         "sent": { "type": "number" },
-        "ctr": { "type": "string" },
-        "startDate": { "type": "string", "format": "date" }
+        "openRate": { "type": "string", "description": "The percentage of recipients who opened the message." },
+        "ctr": { "type": "string", "description": "Click-through rate." },
+        "startDate": { "type": "string", "format": "date" },
+        "banner": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "title": { "type": "string" },
+            "description": { "type": "string" },
+            "imageUrl": { "type": "string", "format": "uri" },
+            "ctaLink": { "type": "string", "format": "uri" },
+            "ctaText": { "type": "string" }
+          },
+          "description": "Configuration for a promotional banner on the storefront."
+        }
       },
       "required": ["id", "name", "status", "channel"]
     },
