@@ -87,7 +87,12 @@
         "lastOrderDate": { "type": "string", "format": "date-time" },
         "totalSpend": { "type": "number" },
         "createdAt": { "type": "string", "format": "date-time" },
-        "source": { "type": "string", "enum": ["Manual", "Online"] }
+        "source": { "type": "string", "enum": ["Manual", "Online"] },
+        "wishlist": { 
+          "type": "array", 
+          "items": { "type": "string" },
+          "description": "An array of product SKUs the customer is interested in."
+        }
       },
       "required": ["id", "name", "email"]
     },
