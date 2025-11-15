@@ -11,7 +11,7 @@
         "retailPrice": { "type": "number" },
         "status": { "type": "string", "enum": ["draft", "published", "archived"] },
         "category": { "type": "string" },
-        "inventoryTracking": { "type": "string", "enum": ["Track Quantity", "Don't Track"] }
+        "inventoryTracking": { "type": "string", "enum": ["Track Quantity", "Don't Track", "Track with Serial Numbers"] }
       },
       "required": ["id", "name", "retailPrice", "status"]
     },
@@ -51,7 +51,7 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
-        "role": { "type": "string", "enum": ["Admin", "Manager", "Sales Agent", "Agent", "Finance Manager"] },
+        "role": { "type": "string", "enum": ["Admin", "Manager", "Sales Agent", "Agent", "Finance Manager", "Affiliate"] },
         "status": { "type": "string", "enum": ["Active", "Pending", "Deactivated"] }
       },
       "required": ["id", "name", "email", "role", "status"]
@@ -80,6 +80,57 @@
             "status": { "type": "string", "enum": ["Draft", "Sent", "Received", "Cancelled"] }
         },
         "required": ["id", "supplierId", "items", "totalCost", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "A single financial event in the ledger, representing income or expense.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "type": { "type": "string", "enum": ["Income", "Expense"] },
+        "category": { "type": "string", "enum": ["Sales", "Inventory", "Salaries", "Utilities", "Marketing", "Other"] }
+      },
+      "required": ["id", "date", "description", "amount", "type", "category"]
+    },
+    "Campaign": {
+      "title": "Campaign",
+      "description": "A marketing initiative, such as an SMS blast or email newsletter.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Draft", "Completed"] },
+        "channel": { "type": "string", "enum": ["Email", "SMS", "WhatsApp"] }
+      },
+      "required": ["id", "name", "status", "channel"]
+    },
+    "Discount": {
+      "title": "Discount",
+      "description": "A promotional code for customers.",
+      "type": "object",
+      "properties": {
+        "code": { "type": "string" },
+        "type": { "type": "string", "enum": ["Percentage", "Fixed Amount", "Buy X Get Y"] },
+        "value": { "type": "number" },
+        "status": { "type": "string", "enum": ["Active", "Expired", "Scheduled"] }
+      },
+      "required": ["code", "type", "value", "status"]
+    },
+    "Affiliate": {
+      "title": "Affiliate",
+      "description": "An external marketing partner who earns commissions.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "uniqueId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Active", "Pending", "Suspended"] },
+        "pendingCommission": { "type": "number" }
+      },
+      "required": ["id", "name", "uniqueId", "status"]
     }
   },
   "auth": {
@@ -109,6 +160,22 @@
     "/purchaseOrders/{poId}": {
         "schema": { "$ref": "#/entities/PurchaseOrder" },
         "description": "Stores purchase order records for procurement."
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/Transaction" },
+      "description": "Stores all financial transactions for the ledger."
+    },
+    "/campaigns/{campaignId}": {
+      "schema": { "$ref": "#/entities/Campaign" },
+      "description": "Stores marketing campaign details."
+    },
+    "/discounts/{discountCode}": {
+      "schema": { "$ref": "#/entities/Discount" },
+      "description": "Stores all promotional discount codes."
+    },
+    "/affiliates/{affiliateId}": {
+      "schema": { "$ref": "#/entities/Affiliate" },
+      "description": "Stores affiliate partner profiles."
     }
   }
 }
