@@ -38,6 +38,7 @@ import { useAuth } from '@/context/auth-context';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import type { Permissions } from '@/lib/types';
+import { ScrollArea } from '../ui/scroll-area';
 
 const menuItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: Permissions) => p && p.dashboard && p.dashboard.view },
@@ -90,22 +91,24 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
             </Link>
         </SidebarHeader>
 
-        <SidebarContent>
-            <SidebarMenu>
-            {allowedMenuItems.map((item) => (
-                <SidebarMenuItem key={item.href}>
-                <Link href={item.href} passHref>
-                    <SidebarMenuButton
-                    isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
-                    tooltip={item.label}
-                    >
-                    <item.icon className="h-5 w-5 shrink-0" />
-                    <span className="flex-1">{item.label}</span>
-                    </SidebarMenuButton>
-                </Link>
-                </SidebarMenuItem>
-            ))}
-            </SidebarMenu>
+        <SidebarContent className="flex-1">
+            <ScrollArea className="h-full">
+                <SidebarMenu>
+                {allowedMenuItems.map((item) => (
+                    <SidebarMenuItem key={item.href}>
+                    <Link href={item.href} passHref>
+                        <SidebarMenuButton
+                        isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                        tooltip={item.label}
+                        >
+                        <item.icon className="h-5 w-5 shrink-0" />
+                        <span className="flex-1">{item.label}</span>
+                        </SidebarMenuButton>
+                    </Link>
+                    </SidebarMenuItem>
+                ))}
+                </SidebarMenu>
+            </ScrollArea>
         </SidebarContent>
 
         <SidebarFooter>

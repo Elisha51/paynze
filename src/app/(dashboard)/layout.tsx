@@ -58,11 +58,11 @@ export default function DashboardLayout({
         {isLoading || !user ? (
            <SkeletonLoader />
         ) : (
-          <div className="flex min-h-screen w-full">
+          <div className="flex h-screen w-full overflow-hidden">
             <AppSidebar onboardingData={onboardingData} />
-            <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col overflow-hidden">
               <AppHeader onboardingData={onboardingData} isDevMode={isDevMode} />
-              <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40">
+              <main className="flex flex-1 flex-col gap-4 p-4 lg:gap-6 lg:p-6 bg-muted/40 overflow-auto">
                 {children}
               </main>
             </div>
