@@ -10,11 +10,15 @@
         "name": { "type": "string" },
         "description": { "type": "string" },
         "retailPrice": { "type": "number" },
+        "currency": { "type": "string" },
         "status": { "type": "string", "enum": ["draft", "published", "archived"] },
         "category": { "type": "string" },
-        "inventoryTracking": { "type": "string", "enum": ["Track Quantity", "Don't Track", "Track with Serial Numbers"] }
+        "inventoryTracking": { "type": "string", "enum": ["Track Quantity", "Don't Track", "Track with Serial Numbers"] },
+        "costPerItem": { "type": "number", "description": "The cost of the product for profit tracking." },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "hasVariants": { "type": "boolean" }
       },
-      "required": ["id", "name", "retailPrice", "status", "productType"]
+      "required": ["id", "name", "productType", "retailPrice", "currency", "status"]
     },
     "Order": {
       "title": "Order",
@@ -23,13 +27,20 @@
       "properties": {
         "id": { "type": "string", "description": "Unique identifier for the order." },
         "customerId": { "type": "string" },
+        "customerName": { "type": "string" },
+        "customerEmail": { "type": "string" },
         "items": { "type": "array", "items": { "type": "object" } },
         "total": { "type": "number" },
+        "currency": { "type": "string" },
         "status": { "type": "string", "enum": ["Awaiting Payment", "Paid", "Shipped", "Delivered", "Cancelled"] },
         "fulfillmentMethod": { "type": "string", "enum": ["Delivery", "Pickup"] },
-        "payment": { "type": "object" }
+        "shippingAddress": { "type": "object" },
+        "payment": { "type": "object" },
+        "shippingCost": { "type": "number" },
+        "taxes": { "type": "number" },
+        "channel": { "type": "string", "enum": ["Online", "Manual", "POS"] }
       },
-      "required": ["id", "customerId", "items", "total", "status"]
+      "required": ["id", "customerId", "customerName", "items", "total", "currency", "status"]
     },
     "UserProfile": {
       "title": "User Profile",
@@ -42,7 +53,9 @@
         "phone": { "type": "string" },
         "customerGroup": { "type": "string" },
         "lastOrderDate": { "type": "string", "format": "date-time" },
-        "totalSpend": { "type": "number" }
+        "totalSpend": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "source": { "type": "string", "enum": ["Manual", "Online"] }
       },
       "required": ["id", "name", "email"]
     },
@@ -54,8 +67,10 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "avatarUrl": { "type": "string", "format": "uri" },
         "role": { "type": "string", "enum": ["Admin", "Manager", "Sales Agent", "Agent", "Finance Manager", "Affiliate"] },
-        "status": { "type": "string", "enum": ["Active", "Pending", "Deactivated"] },
+        "status": { "type": "string", "enum": ["Active", "Pending", "Deactivated", "Pending Verification", "Suspended"] },
         "onlineStatus": { "type": "string", "enum": ["Online", "Offline"] }
       },
       "required": ["id", "name", "email", "role", "status"]
@@ -68,7 +83,10 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "contactName": { "type": "string" },
-        "email": { "type": "string", "format": "email" }
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" },
+        "productsSupplied": { "type": "array", "items": { "type": "string" } }
       },
       "required": ["id", "name", "email"]
     },
@@ -79,11 +97,15 @@
         "properties": {
             "id": { "type": "string" },
             "supplierId": { "type": "string" },
-            "items": { "type": "array" },
+            "supplierName": { "type": "string" },
+            "items": { "type": "array", "items": { "type": "object" } },
             "totalCost": { "type": "number" },
-            "status": { "type": "string", "enum": ["Draft", "Sent", "Received", "Cancelled"] }
+            "currency": { "type": "string" },
+            "status": { "type": "string", "enum": ["Draft", "Sent", "Received", "Cancelled", "Awaiting Approval"] },
+            "orderDate": { "type": "string", "format": "date" },
+            "expectedDelivery": { "type": "string", "format": "date" }
         },
-        "required": ["id", "supplierId", "items", "totalCost", "status"]
+        "required": ["id", "supplierId", "items", "totalCost", "status", "orderDate"]
     },
     "Transaction": {
       "title": "Transaction",
@@ -94,8 +116,11 @@
         "date": { "type": "string", "format": "date-time" },
         "description": { "type": "string" },
         "amount": { "type": "number" },
+        "currency": { "type": "string" },
         "type": { "type": "string", "enum": ["Income", "Expense"] },
-        "category": { "type": "string", "enum": ["Sales", "Inventory", "Salaries", "Utilities", "Marketing", "Other"] }
+        "category": { "type": "string", "enum": ["Sales", "Inventory", "Salaries", "Utilities", "Marketing", "Other"] },
+        "status": { "type": "string", "enum": ["Cleared", "Pending"] },
+        "paymentMethod": { "type": "string", "enum": ["Cash", "Mobile Money", "Bank Transfer", "Card", "Other"] }
       },
       "required": ["id", "date", "description", "amount", "type", "category"]
     },
@@ -106,8 +131,11 @@
       "properties": {
         "id": { "type": "string" },
         "name": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Draft", "Completed"] },
-        "channel": { "type": "string", "enum": ["Email", "SMS", "WhatsApp"] }
+        "status": { "type": "string", "enum": ["Active", "Draft", "Completed", "Scheduled"] },
+        "channel": { "type": "string", "enum": ["Email", "SMS", "WhatsApp", "Push"] },
+        "sent": { "type": "number" },
+        "ctr": { "type": "string" },
+        "startDate": { "type": "string", "format": "date" }
       },
       "required": ["id", "name", "status", "channel"]
     },
@@ -119,7 +147,10 @@
         "code": { "type": "string" },
         "type": { "type": "string", "enum": ["Percentage", "Fixed Amount", "Buy X Get Y"] },
         "value": { "type": "number" },
-        "status": { "type": "string", "enum": ["Active", "Expired", "Scheduled"] }
+        "status": { "type": "string", "enum": ["Active", "Expired", "Scheduled"] },
+        "redemptions": { "type": "number" },
+        "minPurchase": { "type": "number" },
+        "onePerCustomer": { "type": "boolean" }
       },
       "required": ["code", "type", "value", "status"]
     },
@@ -131,8 +162,10 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "uniqueId": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Pending", "Suspended"] },
-        "pendingCommission": { "type": "number" }
+        "status": { "type": "string", "enum": ["Active", "Pending", "Suspended", "Rejected", "Deactivated"] },
+        "pendingCommission": { "type": "number" },
+        "linkClicks": { "type": "number" },
+        "conversions": { "type": "number" }
       },
       "required": ["id", "name", "uniqueId", "status"]
     },
@@ -144,6 +177,10 @@
         "id": { "type": "string" },
         "name": { "type": "string" },
         "description": { "type": "string" },
+        "icon": { "type": "string", "description": "Lucide icon name" },
+        "author": { "type": "string" },
+        "published": { "type": "boolean" },
+        "usageCount": { "type": "number" },
         "product": { "$ref": "#/entities/Product" }
       },
       "required": ["id", "name", "product"]
@@ -190,9 +227,9 @@
         "id": { "type": "string" },
         "title": { "type": "string" },
         "status": { "type": "string", "enum": ["To Do", "Completed"] },
-        "staffId": { "type": "string" }
+        "createdAt": { "type": "string", "format": "date-time" }
       },
-      "required": ["id", "title", "status", "staffId"]
+      "required": ["id", "title", "status", "createdAt"]
     },
     "SupportTicket": {
       "title": "Support Ticket",
@@ -202,7 +239,8 @@
         "id": { "type": "string" },
         "subject": { "type": "string" },
         "category": { "type": "string", "enum": ["Billing", "Technical", "General"] },
-        "status": { "type": "string", "enum": ["Open", "In Progress", "Resolved"] }
+        "status": { "type": "string", "enum": ["Open", "In Progress", "Resolved"] },
+        "lastUpdated": { "type": "string", "format": "date-time" }
       },
       "required": ["id", "subject", "status"]
     }
