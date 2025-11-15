@@ -1,5 +1,26 @@
 {
   "entities": {
+    "SupportTicket": {
+      "title": "Support Ticket",
+      "description": "Represents a single support request from a merchant.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "merchantId": { "type": "string", "description": "The ID of the merchant or user who submitted the ticket." },
+        "subject": { "type": "string" },
+        "category": { 
+          "type": "string",
+          "enum": ["Billing", "Technical", "Design", "Integration", "General"]
+        },
+        "description": { "type": "string" },
+        "status": {
+          "type": "string",
+          "enum": ["Open", "In Progress", "Resolved", "Closed"]
+        },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id", "merchantId", "subject", "category", "description", "status", "createdAt"]
+    },
     "ProductTemplate": {
       "title": "Product Template",
       "description": "A reusable blueprint for creating new products with pre-defined attributes.",
@@ -997,6 +1018,12 @@
             "$ref": "#/entities/Role"
         },
         "description": "Stores custom role definitions and their permissions."
+    },
+    "/supportTickets/{ticketId}": {
+        "schema": {
+            "$ref": "#/entities/SupportTicket"
+        },
+        "description": "Stores merchant support tickets."
     }
   }
 }
