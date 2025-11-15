@@ -109,6 +109,10 @@ export async function getSupplierById(id: string): Promise<Supplier | undefined>
     return await supplierService.getById(id);
 }
 
+export async function deleteSupplier(id: string): Promise<void> {
+    await supplierService.delete(id);
+}
+
 export async function getPurchaseOrders(): Promise<PurchaseOrder[]> {
   return await poService.getAll();
 }

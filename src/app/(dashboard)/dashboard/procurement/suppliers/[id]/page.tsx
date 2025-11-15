@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -73,6 +74,16 @@ const getPoColumns = (): ColumnDef<PurchaseOrder>[] => [
             const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.totalCost);
             return <div className="text-right font-medium">{formatted}</div>;
         },
+    },
+    {
+        id: 'actions',
+        cell: ({ row }) => (
+             <div className="text-right">
+                <Button variant="ghost" asChild size="sm">
+                    <Link href={`/dashboard/procurement/purchase-orders/${row.original.id}`}>View</Link>
+                </Button>
+            </div>
+        )
     }
 ];
 
@@ -83,6 +94,8 @@ export default function ViewSupplierPage() {
   const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const poColumns = getPoColumns();
 
   useEffect(() => {
     if (id) {
@@ -172,7 +185,7 @@ export default function ViewSupplierPage() {
                     <CardTitle>Purchase Order History</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <DataTable columns={getPoColumns()} data={purchaseOrders} isLoading={loading} />
+                    <DataTable columns={poColumns} data={purchaseOrders} isLoading={loading} />
                 </CardContent>
              </Card>
         </div>

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect } from 'react';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -8,13 +9,16 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PlusCircle, Send, LifeBuoy, ArrowUpDown } from 'lucide-react';
+import { PlusCircle, Send, LifeBuoy, ArrowUpDown, MoreHorizontal, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+
 
 type SupportTicket = {
     id: string;
@@ -87,6 +91,31 @@ const getColumns = (): ColumnDef<SupportTicket>[] => [
         accessorKey: 'lastUpdated',
         header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Last Updated<ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
         cell: ({ row }) => format(new Date(row.original.lastUpdated), 'PPP')
+    },
+     {
+        id: 'actions',
+        cell: ({ row }) => {
+            const ticket = row.original;
+            return (
+                <div className="text-right">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem>View Details</DropdownMenuItem>
+                            <DropdownMenuItem>Mark as Resolved</DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <DropdownMenuItem className="text-destructive focus:text-destructive">Delete Ticket</DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+            )
+        }
     }
 ];
 

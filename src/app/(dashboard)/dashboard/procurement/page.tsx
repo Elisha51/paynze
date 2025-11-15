@@ -3,11 +3,11 @@
 'use client';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useState, useEffect, useMemo } from 'react';
 import type { Supplier, PurchaseOrder } from '@/lib/types';
-import { getSuppliers, getPurchaseOrders } from '@/services/procurement';
+import { getSuppliers, getPurchaseOrders, deleteSupplier } from '@/services/procurement';
 import { DataTable } from '@/components/dashboard/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '@/components/ui/badge';
@@ -17,8 +17,11 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { ProcurementAnalyticsReport } from '@/components/dashboard/analytics/procurement-analytics-report';
 import { Checkbox } from '@/components/ui/checkbox';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from '@/hooks/use-toast';
 
-const getSupplierColumns = (): ColumnDef<Supplier>[] => [
+const getSupplierColumns = (onDelete: (id: string) => void): ColumnDef<Supplier>[] => [
     {
     id: 'select',
     header: ({ table }) => (
@@ -64,6 +67,47 @@ const getSupplierColumns = (): ColumnDef<Supplier>[] => [
         cell: ({ row }) => {
             const num = (row.original.productsSupplied || []).length;
             return <Badge variant="secondary">{num} product{num !== 1 && 's'}</Badge>
+        }
+    },
+    {
+        id: 'actions',
+        cell: ({ row }) => {
+            const supplier = row.original;
+            return (
+                 <AlertDialog>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild><Link href={`/dashboard/procurement/suppliers/${supplier.id}`}><Edit className="mr-2 h-4 w-4"/>View Details</Link></DropdownMenuItem>
+                            <DropdownMenuItem asChild><Link href={`/dashboard/procurement/suppliers/${supplier.id}/edit`}><Edit className="mr-2 h-4 w-4"/>Edit</Link></DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will permanently delete the supplier "{supplier.name}". This cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(supplier.id)} className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            )
         }
     }
 ];
@@ -121,6 +165,47 @@ const getPurchaseOrderColumns = (): ColumnDef<PurchaseOrder>[] => [
             return <div className="text-right font-medium">{formatted}</div>
         }
     },
+     {
+        id: 'actions',
+        cell: ({ row }) => {
+            const po = row.original;
+            return (
+                 <AlertDialog>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem asChild><Link href={`/dashboard/procurement/purchase-orders/${po.id}`}><Edit className="mr-2 h-4 w-4"/>View Details</Link></DropdownMenuItem>
+                            <DropdownMenuItem asChild><Link href={`/dashboard/procurement/purchase-orders/${po.id}/edit`}><Edit className="mr-2 h-4 w-4"/>Edit</Link></DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                             <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" /> Cancel PO
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This will cancel Purchase Order "{po.id}". This cannot be undone.
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive hover:bg-destructive/90">Confirm</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            )
+        }
+    }
 ];
 
 
@@ -131,6 +216,7 @@ export default function ProcurementPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const { user } = useAuth();
+    const { toast } = useToast();
     
     const canCreate = user?.permissions.procurement.create;
     const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
@@ -146,7 +232,13 @@ export default function ProcurementPage() {
         loadData();
     }, []);
     
-    const supplierColumns = useMemo(() => getSupplierColumns(), []);
+    const handleDeleteSupplier = async (id: string) => {
+        await deleteSupplier(id);
+        setSuppliers(prev => prev.filter(s => s.id !== id));
+        toast({ title: 'Supplier Deleted' });
+    }
+    
+    const supplierColumns = useMemo(() => getSupplierColumns(handleDeleteSupplier), []);
     const poColumns = useMemo(() => getPurchaseOrderColumns(), []);
     
     const getCta = () => {

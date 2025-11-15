@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -33,7 +34,7 @@ import { CustomerActivityLog } from '@/components/dashboard/customer-activity-lo
 import { ShoppingBag } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
-const orderColumns: ColumnDef<Order>[] = [
+const getOrderColumns = (): ColumnDef<Order>[] => [
     {
         id: 'select',
         header: ({ table }) => (
@@ -79,6 +80,16 @@ const orderColumns: ColumnDef<Order>[] = [
             const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total);
             return <div className="text-right font-medium">{formatted}</div>;
         },
+    },
+    {
+        id: 'actions',
+        cell: ({ row }) => (
+            <div className="text-right">
+                <Button variant="ghost" asChild size="sm">
+                    <Link href={`/dashboard/orders/${row.original.id}`}>View</Link>
+                </Button>
+            </div>
+        )
     }
 ];
 
@@ -89,6 +100,8 @@ export default function ViewCustomerPage() {
   const router = useRouter();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const orderColumns = getOrderColumns();
 
   useEffect(() => {
     if (id) {
