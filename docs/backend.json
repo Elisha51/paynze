@@ -180,6 +180,7 @@
         "name": { "type": "string" },
         "status": { "type": "string", "enum": ["Active", "Draft", "Completed", "Scheduled"] },
         "channel": { "type": "string", "enum": ["Email", "SMS", "WhatsApp", "Push"] },
+        "audience": { "type": "string", "description": "The target customer group for the campaign, e.g. 'Wholesalers'."},
         "sent": { "type": "number" },
         "ctr": { "type": "string" },
         "startDate": { "type": "string", "format": "date" }
@@ -197,7 +198,9 @@
         "status": { "type": "string", "enum": ["Active", "Expired", "Scheduled"] },
         "redemptions": { "type": "number" },
         "minPurchase": { "type": "number" },
-        "onePerCustomer": { "type": "boolean" }
+        "onePerCustomer": { "type": "boolean" },
+        "customerGroup": { "type": "string", "description": "The customer group eligible for this discount." },
+        "applicableProductIds": { "type": "array", "items": { "type": "string" }, "description": "An array of product SKUs this discount applies to." }
       },
       "required": ["code", "type", "value", "status"]
     },
@@ -211,8 +214,21 @@
         "uniqueId": { "type": "string" },
         "status": { "type": "string", "enum": ["Active", "Pending", "Suspended", "Rejected", "Deactivated"] },
         "pendingCommission": { "type": "number" },
+        "paidCommission": { "type": "number" },
+        "totalSales": { "type": "number" },
         "linkClicks": { "type": "number" },
-        "conversions": { "type": "number" }
+        "conversions": { "type": "number" },
+        "payoutHistory": { 
+          "type": "array", 
+          "items": { 
+            "type": "object",
+            "properties": {
+              "date": { "type": "string", "format": "date-time" },
+              "amount": { "type": "number" }
+            }
+          },
+          "description": "A history of past payouts."
+        }
       },
       "required": ["id", "name", "uniqueId", "status"]
     },
