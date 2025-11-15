@@ -9,6 +9,17 @@
         "productType": { "type": "string", "enum": ["Physical", "Digital", "Service"] },
         "name": { "type": "string" },
         "description": { "type": "string" },
+        "images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": { "type": "string" },
+              "url": { "type": "string", "format": "uri" }
+            }
+          }
+        },
+        "videoUrl": { "type": "string", "format": "uri" },
         "retailPrice": { "type": "number" },
         "currency": { "type": "string" },
         "status": { "type": "string", "enum": ["draft", "published", "archived"] },
