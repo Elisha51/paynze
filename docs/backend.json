@@ -6,6 +6,7 @@
       "type": "object",
       "properties": {
         "id": { "type": "string", "description": "Unique identifier (SKU)" },
+        "productType": { "type": "string", "enum": ["Physical", "Digital", "Service"] },
         "name": { "type": "string" },
         "description": { "type": "string" },
         "retailPrice": { "type": "number" },
@@ -13,7 +14,7 @@
         "category": { "type": "string" },
         "inventoryTracking": { "type": "string", "enum": ["Track Quantity", "Don't Track", "Track with Serial Numbers"] }
       },
-      "required": ["id", "name", "retailPrice", "status"]
+      "required": ["id", "name", "retailPrice", "status", "productType"]
     },
     "Order": {
       "title": "Order",
@@ -39,7 +40,9 @@
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "phone": { "type": "string" },
-        "customerGroup": { "type": "string" }
+        "customerGroup": { "type": "string" },
+        "lastOrderDate": { "type": "string", "format": "date-time" },
+        "totalSpend": { "type": "number" }
       },
       "required": ["id", "name", "email"]
     },
@@ -52,7 +55,8 @@
         "name": { "type": "string" },
         "email": { "type": "string", "format": "email" },
         "role": { "type": "string", "enum": ["Admin", "Manager", "Sales Agent", "Agent", "Finance Manager", "Affiliate"] },
-        "status": { "type": "string", "enum": ["Active", "Pending", "Deactivated"] }
+        "status": { "type": "string", "enum": ["Active", "Pending", "Deactivated"] },
+        "onlineStatus": { "type": "string", "enum": ["Online", "Offline"] }
       },
       "required": ["id", "name", "email", "role", "status"]
     },
