@@ -1,0 +1,114 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Represents an item for sale in the store catalog.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier (SKU)" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "retailPrice": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "published", "archived"] },
+        "category": { "type": "string" },
+        "inventoryTracking": { "type": "string", "enum": ["Track Quantity", "Don't Track"] }
+      },
+      "required": ["id", "name", "retailPrice", "status"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Represents a customer's order for one or more products.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the order." },
+        "customerId": { "type": "string" },
+        "items": { "type": "array", "items": { "type": "object" } },
+        "total": { "type": "number" },
+        "status": { "type": "string", "enum": ["Awaiting Payment", "Paid", "Shipped", "Delivered", "Cancelled"] },
+        "fulfillmentMethod": { "type": "string", "enum": ["Delivery", "Pickup"] },
+        "payment": { "type": "object" }
+      },
+      "required": ["id", "customerId", "items", "total", "status"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a customer's profile information.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "phone": { "type": "string" },
+        "customerGroup": { "type": "string" }
+      },
+      "required": ["id", "name", "email"]
+    },
+    "StaffProfile": {
+      "title": "Staff Profile",
+      "description": "Represents a staff member's profile.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["Admin", "Manager", "Sales Agent", "Agent", "Finance Manager"] },
+        "status": { "type": "string", "enum": ["Active", "Pending", "Deactivated"] }
+      },
+      "required": ["id", "name", "email", "role", "status"]
+    },
+    "Supplier": {
+      "title": "Supplier",
+      "description": "Represents a vendor from whom products are procured.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "contactName": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      },
+      "required": ["id", "name", "email"]
+    },
+    "PurchaseOrder": {
+        "title": "Purchase Order",
+        "description": "A record for an inventory procurement transaction.",
+        "type": "object",
+        "properties": {
+            "id": { "type": "string" },
+            "supplierId": { "type": "string" },
+            "items": { "type": "array" },
+            "totalCost": { "type": "number" },
+            "status": { "type": "string", "enum": ["Draft", "Sent", "Received", "Cancelled"] }
+        },
+        "required": ["id", "supplierId", "items", "totalCost", "status"]
+    }
+  },
+  "auth": {
+    "providers": ["email", "google.com"]
+  },
+  "firestore": {
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Stores individual product details."
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Stores customer order information."
+    },
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores public-facing customer profile data."
+    },
+    "/staff/{staffId}": {
+      "schema": { "$ref": "#/entities/StaffProfile" },
+      "description": "Stores internal staff member profiles."
+    },
+    "/suppliers/{supplierId}": {
+        "schema": { "$ref": "#/entities/Supplier" },
+        "description": "Stores supplier and vendor information."
+    },
+    "/purchaseOrders/{poId}": {
+        "schema": { "$ref": "#/entities/PurchaseOrder" },
+        "description": "Stores purchase order records for procurement."
+    }
+  }
+}
