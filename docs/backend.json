@@ -185,6 +185,7 @@
         "openRate": { "type": "string", "description": "The percentage of recipients who opened the message." },
         "ctr": { "type": "string", "description": "Click-through rate." },
         "startDate": { "type": "string", "format": "date" },
+        "applicableProductIds": { "type": "array", "items": { "type": "string" }, "description": "An array of product SKUs this campaign promotes." },
         "banner": {
           "type": "object",
           "properties": {
@@ -200,6 +201,19 @@
       },
       "required": ["id", "name", "status", "channel"]
     },
+    "BogoDetails": {
+      "title": "BOGO Details",
+      "description": "Defines the rules for a 'Buy X, Get Y' discount.",
+      "type": "object",
+      "properties": {
+        "buyQuantity": { "type": "number" },
+        "buyProductIds": { "type": "array", "items": { "type": "string" } },
+        "getQuantity": { "type": "number" },
+        "getProductIds": { "type": "array", "items": { "type": "string" } },
+        "getDiscountPercentage": { "type": "number", "description": "The percentage discount applied to the 'get' items." }
+      },
+      "required": ["buyQuantity", "getQuantity", "getDiscountPercentage"]
+    },
     "Discount": {
       "title": "Discount",
       "description": "A promotional code for customers.",
@@ -208,12 +222,14 @@
         "code": { "type": "string" },
         "type": { "type": "string", "enum": ["Percentage", "Fixed Amount", "Buy X Get Y"] },
         "value": { "type": "number" },
+        "description": { "type": "string" },
         "status": { "type": "string", "enum": ["Active", "Expired", "Scheduled"] },
         "redemptions": { "type": "number" },
         "minPurchase": { "type": "number" },
         "onePerCustomer": { "type": "boolean" },
         "customerGroup": { "type": "string", "description": "The customer group eligible for this discount." },
-        "applicableProductIds": { "type": "array", "items": { "type": "string" }, "description": "An array of product SKUs this discount applies to." }
+        "applicableProductIds": { "type": "array", "items": { "type": "string" }, "description": "An array of product SKUs this discount applies to." },
+        "bogoDetails": { "$ref": "#/entities/BogoDetails" }
       },
       "required": ["code", "type", "value", "status"]
     },
