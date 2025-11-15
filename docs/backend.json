@@ -5,343 +5,945 @@
       "description": "Represents an item for sale in the store catalog.",
       "type": "object",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier (SKU)" },
-        "productType": { "type": "string", "enum": ["Physical", "Digital", "Service"] },
-        "name": { "type": "string" },
-        "description": { "type": "string" },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier (SKU)"
+        },
+        "productType": {
+          "type": "string",
+          "enum": [
+            "Physical",
+            "Digital",
+            "Service"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
         "images": {
           "type": "array",
           "items": {
             "type": "object",
             "properties": {
-              "id": { "type": "string" },
-              "url": { "type": "string", "format": "uri" }
+              "id": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
             }
           }
         },
-        "videoUrl": { "type": "string", "format": "uri" },
-        "retailPrice": { "type": "number" },
-        "currency": { "type": "string" },
-        "status": { "type": "string", "enum": ["draft", "published", "archived"] },
-        "category": { "type": "string" },
-        "inventoryTracking": { "type": "string", "enum": ["Track Quantity", "Don't Track", "Track with Serial Numbers"] },
-        "costPerItem": { "type": "number", "description": "The cost of the product for profit tracking." },
-        "tags": { "type": "array", "items": { "type": "string" } },
-        "hasVariants": { "type": "boolean" }
+        "videoUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "retailPrice": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "draft",
+            "published",
+            "archived"
+          ]
+        },
+        "category": {
+          "type": "string"
+        },
+        "inventoryTracking": {
+          "type": "string",
+          "enum": [
+            "Track Quantity",
+            "Don't Track",
+            "Track with Serial Numbers"
+          ]
+        },
+        "costPerItem": {
+          "type": "number",
+          "description": "The cost of the product for profit tracking."
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "hasVariants": {
+          "type": "boolean"
+        }
       },
-      "required": ["id", "name", "productType", "retailPrice", "currency", "status"]
+      "required": [
+        "id",
+        "name",
+        "productType",
+        "retailPrice",
+        "currency",
+        "status"
+      ]
     },
     "OrderItem": {
       "title": "Order Item",
       "description": "Represents a single line item within an order.",
       "type": "object",
       "properties": {
-        "sku": { "type": "string", "description": "The unique SKU of the product variant." },
-        "name": { "type": "string", "description": "The name of the product at the time of purchase." },
-        "quantity": { "type": "number" },
-        "price": { "type": "number", "description": "The price per unit at the time of purchase." }
+        "sku": {
+          "type": "string",
+          "description": "The unique SKU of the product variant."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the product at the time of purchase."
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "price": {
+          "type": "number",
+          "description": "The price per unit at the time of purchase."
+        }
       },
-      "required": ["sku", "name", "quantity", "price"]
+      "required": [
+        "sku",
+        "name",
+        "quantity",
+        "price"
+      ]
     },
     "Order": {
       "title": "Order",
       "description": "Represents a customer's order for one or more products.",
       "type": "object",
       "properties": {
-        "id": { "type": "string", "description": "Unique identifier for the order." },
-        "customerId": { "type": "string", "description": "The ID of the customer profile. Links to UserProfile." },
-        "customerName": { "type": "string" },
-        "customerEmail": { "type": "string" },
-        "customerPhone": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "items": { 
-          "type": "array", 
-          "items": { "$ref": "#/entities/OrderItem" },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the order."
+        },
+        "customerId": {
+          "type": "string",
+          "description": "The ID of the customer profile. Links to UserProfile."
+        },
+        "customerName": {
+          "type": "string"
+        },
+        "customerEmail": {
+          "type": "string"
+        },
+        "customerPhone": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/OrderItem"
+          },
           "description": "An array of items included in the order."
         },
-        "total": { "type": "number" },
-        "currency": { "type": "string" },
-        "status": { "type": "string", "enum": ["Awaiting Payment", "Paid", "Shipped", "Delivered", "Cancelled", "Ready for Pickup", "Picked Up", "Attempted Delivery"] },
-        "fulfillmentMethod": { "type": "string", "enum": ["Delivery", "Pickup"] },
-        "shippingAddress": { "type": "object" },
-        "payment": { "type": "object" },
-        "shippingCost": { "type": "number" },
-        "taxes": { "type": "number" },
-        "channel": { "type": "string", "enum": ["Online", "Manual", "POS"] },
-        "salesAgentId": { "type": "string", "description": "The ID of the staff member or affiliate who gets sales credit. Links to StaffProfile." },
-        "assignedStaffId": { "type": "string", "description": "The ID of the staff member assigned to fulfill the order. Links to StaffProfile." },
-        "fulfilledByStaffId": { "type": "string", "description": "The ID of the staff member who completed the fulfillment. Links to StaffProfile." }
+        "total": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Awaiting Payment",
+            "Paid",
+            "Shipped",
+            "Delivered",
+            "Cancelled",
+            "Ready for Pickup",
+            "Picked Up",
+            "Attempted Delivery"
+          ]
+        },
+        "fulfillmentMethod": {
+          "type": "string",
+          "enum": [
+            "Delivery",
+            "Pickup"
+          ]
+        },
+        "shippingAddress": {
+          "type": "object"
+        },
+        "payment": {
+          "type": "object"
+        },
+        "shippingCost": {
+          "type": "number"
+        },
+        "taxes": {
+          "type": "number"
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "Online",
+            "Manual",
+            "POS"
+          ]
+        },
+        "salesAgentId": {
+          "type": "string",
+          "description": "The ID of the staff member or affiliate who gets sales credit. Links to StaffProfile."
+        },
+        "assignedStaffId": {
+          "type": "string",
+          "description": "The ID of the staff member assigned to fulfill the order. Links to StaffProfile."
+        },
+        "fulfilledByStaffId": {
+          "type": "string",
+          "description": "The ID of the staff member who completed the fulfillment. Links to StaffProfile."
+        }
       },
-      "required": ["id", "customerId", "customerName", "date", "items", "total", "currency", "status"]
+      "required": [
+        "id",
+        "customerId",
+        "customerName",
+        "date",
+        "items",
+        "total",
+        "currency",
+        "status"
+      ]
     },
     "UserProfile": {
       "title": "User Profile",
       "description": "Represents a customer's profile information.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "phone": { "type": "string" },
-        "customerGroup": { "type": "string" },
-        "lastOrderDate": { "type": "string", "format": "date-time" },
-        "totalSpend": { "type": "number" },
-        "createdAt": { "type": "string", "format": "date-time" },
-        "source": { "type": "string", "enum": ["Manual", "Online"] },
-        "wishlist": { 
-          "type": "array", 
-          "items": { "type": "string" },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "customerGroup": {
+          "type": "string"
+        },
+        "lastOrderDate": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "totalSpend": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "Manual",
+            "Online"
+          ]
+        },
+        "wishlist": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
           "description": "An array of product SKUs the customer is interested in."
         }
       },
-      "required": ["id", "name", "email"]
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
     },
     "StaffProfile": {
       "title": "Staff Profile",
       "description": "Represents a staff member's profile.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "phone": { "type": "string" },
-        "avatarUrl": { "type": "string", "format": "uri" },
-        "role": { "type": "string", "enum": ["Admin", "Manager", "Sales Agent", "Agent", "Finance Manager", "Affiliate"] },
-        "status": { "type": "string", "enum": ["Active", "Pending", "Deactivated", "Pending Verification", "Suspended"] },
-        "onlineStatus": { "type": "string", "enum": ["Online", "Offline"] }
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "role": {
+          "type": "string",
+          "enum": [
+            "Admin",
+            "Manager",
+            "Sales Agent",
+            "Agent",
+            "Finance Manager",
+            "Affiliate"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Active",
+            "Pending",
+            "Deactivated",
+            "Pending Verification",
+            "Suspended"
+          ]
+        },
+        "onlineStatus": {
+          "type": "string",
+          "enum": [
+            "Online",
+            "Offline"
+          ]
+        }
       },
-      "required": ["id", "name", "email", "role", "status"]
+      "required": [
+        "id",
+        "name",
+        "email",
+        "role",
+        "status"
+      ]
+    },
+    "Role": {
+      "title": "Role",
+      "description": "Defines permissions and attributes for a staff role.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "permissions": {
+          "type": "object"
+        },
+        "assignableAttributes": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "commissionRules": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "permissions"
+      ]
     },
     "Supplier": {
       "title": "Supplier",
       "description": "Represents a vendor from whom products are procured.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "contactName": { "type": "string" },
-        "email": { "type": "string", "format": "email" },
-        "phone": { "type": "string" },
-        "address": { "type": "string" },
-        "productsSupplied": { "type": "array", "items": { "type": "string" }, "description": "An array of product SKUs." }
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "contactName": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "phone": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "productsSupplied": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of product SKUs."
+        }
       },
-      "required": ["id", "name", "email"]
+      "required": [
+        "id",
+        "name",
+        "email"
+      ]
     },
     "PurchaseOrderItem": {
       "title": "Purchase Order Item",
       "description": "Represents a single line item within a purchase order.",
       "type": "object",
       "properties": {
-        "productId": { "type": "string", "description": "The SKU of the product being ordered." },
-        "productName": { "type": "string" },
-        "quantity": { "type": "number" },
-        "cost": { "type": "number", "description": "The cost per unit for this purchase." }
+        "productId": {
+          "type": "string",
+          "description": "The SKU of the product being ordered."
+        },
+        "productName": {
+          "type": "string"
+        },
+        "quantity": {
+          "type": "number"
+        },
+        "cost": {
+          "type": "number",
+          "description": "The cost per unit for this purchase."
+        }
       },
-      "required": ["productId", "productName", "quantity", "cost"]
+      "required": [
+        "productId",
+        "productName",
+        "quantity",
+        "cost"
+      ]
     },
     "PurchaseOrder": {
-        "title": "Purchase Order",
-        "description": "A record for an inventory procurement transaction.",
-        "type": "object",
-        "properties": {
-            "id": { "type": "string" },
-            "supplierId": { "type": "string", "description": "The ID of the supplier. Links to Supplier." },
-            "supplierName": { "type": "string" },
-            "items": { "type": "array", "items": { "$ref": "#/entities/PurchaseOrderItem" } },
-            "totalCost": { "type": "number" },
-            "currency": { "type": "string" },
-            "status": { "type": "string", "enum": ["Draft", "Sent", "Received", "Cancelled", "Awaiting Approval"] },
-            "orderDate": { "type": "string", "format": "date" },
-            "expectedDelivery": { "type": "string", "format": "date" }
+      "title": "Purchase Order",
+      "description": "A record for an inventory procurement transaction.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
         },
-        "required": ["id", "supplierId", "items", "totalCost", "status", "orderDate"]
+        "supplierId": {
+          "type": "string",
+          "description": "The ID of the supplier. Links to Supplier."
+        },
+        "supplierName": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "#/entities/PurchaseOrderItem"
+          }
+        },
+        "totalCost": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Draft",
+            "Sent",
+            "Received",
+            "Cancelled",
+            "Awaiting Approval"
+          ]
+        },
+        "orderDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "expectedDelivery": {
+          "type": "string",
+          "format": "date"
+        }
+      },
+      "required": [
+        "id",
+        "supplierId",
+        "items",
+        "totalCost",
+        "status",
+        "orderDate"
+      ]
     },
     "Transaction": {
       "title": "Transaction",
       "description": "A single financial event in the ledger, representing income or expense.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "date": { "type": "string", "format": "date-time" },
-        "description": { "type": "string" },
-        "amount": { "type": "number" },
-        "currency": { "type": "string" },
-        "type": { "type": "string", "enum": ["Income", "Expense"] },
-        "category": { "type": "string", "enum": ["Sales", "Inventory", "Salaries", "Utilities", "Marketing", "Other"] },
-        "status": { "type": "string", "enum": ["Cleared", "Pending"] },
-        "paymentMethod": { "type": "string", "enum": ["Cash", "Mobile Money", "Bank Transfer", "Card", "Other"] },
-        "orderId": { "type": "string", "description": "Link to the Order if it's a sales transaction." },
-        "purchaseOrderId": { "type": "string", "description": "Link to the Purchase Order if it's an inventory expense." },
-        "payoutForStaffId": { "type": "string", "description": "Link to the Staff member if it's a commission or salary payout." }
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "description": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "number"
+        },
+        "currency": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Income",
+            "Expense"
+          ]
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "Sales",
+            "Inventory",
+            "Salaries",
+            "Utilities",
+            "Marketing",
+            "Other"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Cleared",
+            "Pending"
+          ]
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": [
+            "Cash",
+            "Mobile Money",
+            "Bank Transfer",
+            "Card",
+            "Other"
+          ]
+        },
+        "orderId": {
+          "type": "string",
+          "description": "Link to the Order if it's a sales transaction."
+        },
+        "purchaseOrderId": {
+          "type": "string",
+          "description": "Link to the Purchase Order if it's an inventory expense."
+        },
+        "payoutForStaffId": {
+          "type": "string",
+          "description": "Link to the Staff member if it's a commission or salary payout."
+        }
       },
-      "required": ["id", "date", "description", "amount", "type", "category"]
+      "required": [
+        "id",
+        "date",
+        "description",
+        "amount",
+        "type",
+        "category"
+      ]
     },
     "Campaign": {
       "title": "Campaign",
       "description": "A marketing initiative, such as an SMS blast or email newsletter.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Draft", "Completed", "Scheduled"] },
-        "channel": { "type": "string", "enum": ["Email", "SMS", "WhatsApp", "Push"] },
-        "audience": { "type": "string", "description": "The target customer group for the campaign, e.g. 'Wholesalers'."},
-        "sent": { "type": "number" },
-        "openRate": { "type": "string", "description": "The percentage of recipients who opened the message." },
-        "ctr": { "type": "string", "description": "Click-through rate." },
-        "startDate": { "type": "string", "format": "date" },
-        "applicableProductIds": { "type": "array", "items": { "type": "string" }, "description": "An array of product SKUs this campaign promotes." },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Active",
+            "Draft",
+            "Completed",
+            "Scheduled"
+          ]
+        },
+        "channel": {
+          "type": "string",
+          "enum": [
+            "Email",
+            "SMS",
+            "WhatsApp",
+            "Push"
+          ]
+        },
+        "audience": {
+          "type": "string",
+          "description": "The target customer group for the campaign, e.g. 'Wholesalers'."
+        },
+        "sent": {
+          "type": "number"
+        },
+        "openRate": {
+          "type": "string",
+          "description": "The percentage of recipients who opened the message."
+        },
+        "ctr": {
+          "type": "string",
+          "description": "Click-through rate."
+        },
+        "startDate": {
+          "type": "string",
+          "format": "date"
+        },
+        "applicableProductIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of product SKUs this campaign promotes."
+        },
         "banner": {
           "type": "object",
           "properties": {
-            "enabled": { "type": "boolean" },
-            "title": { "type": "string" },
-            "description": { "type": "string" },
-            "imageUrl": { "type": "string", "format": "uri" },
-            "ctaLink": { "type": "string", "format": "uri" },
-            "ctaText": { "type": "string" }
+            "enabled": {
+              "type": "boolean"
+            },
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "imageUrl": {
+              "type": "string",
+              "format": "uri"
+            },
+            "ctaLink": {
+              "type": "string",
+              "format": "uri"
+            },
+            "ctaText": {
+              "type": "string"
+            }
           },
           "description": "Configuration for a promotional banner on the storefront."
         }
       },
-      "required": ["id", "name", "status", "channel"]
+      "required": [
+        "id",
+        "name",
+        "status",
+        "channel"
+      ]
     },
     "BogoDetails": {
       "title": "BOGO Details",
       "description": "Defines the rules for a 'Buy X, Get Y' discount.",
       "type": "object",
       "properties": {
-        "buyQuantity": { "type": "number" },
-        "buyProductIds": { "type": "array", "items": { "type": "string" } },
-        "getQuantity": { "type": "number" },
-        "getProductIds": { "type": "array", "items": { "type": "string" } },
-        "getDiscountPercentage": { "type": "number", "description": "The percentage discount applied to the 'get' items." }
+        "buyQuantity": {
+          "type": "number"
+        },
+        "buyProductIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "getQuantity": {
+          "type": "number"
+        },
+        "getProductIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "getDiscountPercentage": {
+          "type": "number",
+          "description": "The percentage discount applied to the 'get' items."
+        }
       },
-      "required": ["buyQuantity", "getQuantity", "getDiscountPercentage"]
+      "required": [
+        "buyQuantity",
+        "getQuantity",
+        "getDiscountPercentage"
+      ]
     },
     "Discount": {
       "title": "Discount",
       "description": "A promotional code for customers.",
       "type": "object",
       "properties": {
-        "code": { "type": "string" },
-        "type": { "type": "string", "enum": ["Percentage", "Fixed Amount", "Buy X Get Y"] },
-        "value": { "type": "number" },
-        "description": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Expired", "Scheduled"] },
-        "redemptions": { "type": "number" },
-        "minPurchase": { "type": "number" },
-        "onePerCustomer": { "type": "boolean" },
-        "customerGroup": { "type": "string", "description": "The customer group eligible for this discount." },
-        "applicableProductIds": { "type": "array", "items": { "type": "string" }, "description": "An array of product SKUs this discount applies to." },
-        "bogoDetails": { "$ref": "#/entities/BogoDetails" }
+        "code": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "Percentage",
+            "Fixed Amount",
+            "Buy X Get Y"
+          ]
+        },
+        "value": {
+          "type": "number"
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Active",
+            "Expired",
+            "Scheduled"
+          ]
+        },
+        "redemptions": {
+          "type": "number"
+        },
+        "minPurchase": {
+          "type": "number"
+        },
+        "onePerCustomer": {
+          "type": "boolean"
+        },
+        "customerGroup": {
+          "type": "string",
+          "description": "The customer group eligible for this discount."
+        },
+        "applicableProductIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of product SKUs this discount applies to."
+        },
+        "bogoDetails": {
+          "$ref": "#/entities/BogoDetails"
+        }
       },
-      "required": ["code", "type", "value", "status"]
+      "required": [
+        "code",
+        "type",
+        "value",
+        "status"
+      ]
     },
     "Affiliate": {
       "title": "Affiliate",
       "description": "An external marketing partner who earns commissions.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "uniqueId": { "type": "string" },
-        "status": { "type": "string", "enum": ["Active", "Pending", "Suspended", "Rejected", "Deactivated"] },
-        "pendingCommission": { "type": "number" },
-        "paidCommission": { "type": "number" },
-        "totalSales": { "type": "number" },
-        "linkClicks": { "type": "number" },
-        "conversions": { "type": "number" },
-        "payoutHistory": { 
-          "type": "array", 
-          "items": { 
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "uniqueId": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "Active",
+            "Pending",
+            "Suspended",
+            "Rejected",
+            "Deactivated"
+          ]
+        },
+        "pendingCommission": {
+          "type": "number"
+        },
+        "paidCommission": {
+          "type": "number"
+        },
+        "totalSales": {
+          "type": "number"
+        },
+        "linkClicks": {
+          "type": "number"
+        },
+        "conversions": {
+          "type": "number"
+        },
+        "payoutHistory": {
+          "type": "array",
+          "items": {
             "type": "object",
             "properties": {
-              "date": { "type": "string", "format": "date-time" },
-              "amount": { "type": "number" }
+              "date": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "amount": {
+                "type": "number"
+              }
             }
           },
           "description": "A history of past payouts."
         }
       },
-      "required": ["id", "name", "uniqueId", "status"]
+      "required": [
+        "id",
+        "name",
+        "uniqueId",
+        "status"
+      ]
     },
     "Location": {
       "title": "Location",
       "description": "Represents a physical location like a warehouse or store.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "address": { "type": "string" },
-        "isPickupLocation": { "type": "boolean" }
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "isPickupLocation": {
+          "type": "boolean"
+        }
       },
-      "required": ["id", "name", "address"]
+      "required": [
+        "id",
+        "name",
+        "address"
+      ]
     },
     "ShippingZone": {
       "title": "Shipping Zone",
       "description": "Defines a geographical area for specific shipping rates.",
       "type": "object",
       "properties": {
-        "id": { "type": "string" },
-        "name": { "type": "string" },
-        "countries": { "type": "array", "items": { "type": "string" } },
-        "deliveryMethods": { "type": "array", "items": { "type": "object" } }
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "countries": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "deliveryMethods": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        }
       },
-      "required": ["id", "name", "countries"]
+      "required": [
+        "id",
+        "name",
+        "countries"
+      ]
     }
   },
   "auth": {
-    "providers": ["email", "google.com"]
+    "providers": [
+      "email",
+      "google.com"
+    ]
   },
   "firestore": {
     "/products/{productId}": {
-      "schema": { "$ref": "#/entities/Product" },
+      "schema": {
+        "$ref": "#/entities/Product"
+      },
       "description": "Stores individual product details."
     },
     "/orders/{orderId}": {
-      "schema": { "$ref": "#/entities/Order" },
+      "schema": {
+        "$ref": "#/entities/Order"
+      },
       "description": "Stores customer order information."
     },
     "/users/{userId}": {
-      "schema": { "$ref": "#/entities/UserProfile" },
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
       "description": "Stores public-facing customer profile data."
     },
     "/staff/{staffId}": {
-      "schema": { "$ref": "#/entities/StaffProfile" },
+      "schema": {
+        "$ref": "#/entities/StaffProfile"
+      },
       "description": "Stores internal staff member profiles."
     },
     "/suppliers/{supplierId}": {
-        "schema": { "$ref": "#/entities/Supplier" },
-        "description": "Stores supplier and vendor information."
+      "schema": {
+        "$ref": "#/entities/Supplier"
+      },
+      "description": "Stores supplier and vendor information."
     },
     "/purchaseOrders/{poId}": {
-        "schema": { "$ref": "#/entities/PurchaseOrder" },
-        "description": "Stores purchase order records for procurement."
+      "schema": {
+        "$ref": "#/entities/PurchaseOrder"
+      },
+      "description": "Stores purchase order records for procurement."
     },
     "/transactions/{transactionId}": {
-      "schema": { "$ref": "#/entities/Transaction" },
+      "schema": {
+        "$ref": "#/entities/Transaction"
+      },
       "description": "Stores all financial transactions for the ledger."
     },
     "/campaigns/{campaignId}": {
-      "schema": { "$ref": "#/entities/Campaign" },
+      "schema": {
+        "$ref": "#/entities/Campaign"
+      },
       "description": "Stores marketing campaign details."
     },
     "/discounts/{discountCode}": {
-      "schema": { "$ref": "#/entities/Discount" },
+      "schema": {
+        "$ref": "#/entities/Discount"
+      },
       "description": "Stores all promotional discount codes."
     },
     "/affiliates/{affiliateId}": {
-      "schema": { "$ref": "#/entities/Affiliate" },
+      "schema": {
+        "$ref": "#/entities/Affiliate"
+      },
       "description": "Stores affiliate partner profiles."
     },
     "/locations/{locationId}": {
-      "schema": { "$ref": "#/entities/Location" },
+      "schema": {
+        "$ref": "#/entities/Location"
+      },
       "description": "Stores inventory and fulfillment locations."
     },
     "/shippingZones/{zoneId}": {
-      "schema": { "$ref": "#/entities/ShippingZone" },
+      "schema": {
+        "$ref": "#/entities/ShippingZone"
+      },
       "description": "Stores shipping zone configurations and rates."
     }
   }
 }
+  
