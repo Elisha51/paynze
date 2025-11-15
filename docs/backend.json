@@ -991,6 +991,12 @@
         "$ref": "#/entities/ShippingZone"
       },
       "description": "Stores shipping zone configurations and rates."
+    },
+    "/roles/{roleId}": {
+        "schema": {
+            "$ref": "#/entities/Role"
+        },
+        "description": "Stores custom role definitions and their permissions."
     }
   }
 }
