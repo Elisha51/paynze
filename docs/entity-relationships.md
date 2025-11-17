@@ -29,7 +29,7 @@ This document outlines the conceptual relationships between the core data entiti
 
 -   **`StaffProfile` to `UserProfile` (1-to-M, for manual creation)**
     -   A `StaffProfile` can manually create many `UserProfile` (customer) records.
-    -   _Implementation_: `UserProfile.source` is 'Manual' and `createdById` (a custom property not in the schema) would link to `StaffProfile.id`.
+    -   _Implementation_: `UserProfile.source` is 'Manual' and a custom property `createdById` would link to `StaffProfile.id`.
 
 ### Customers (UserProfiles) & Orders
 
@@ -41,6 +41,11 @@ This document outlines the conceptual relationships between the core data entiti
     -   A `UserProfile` can have many `Product` records in their wishlist.
     -   A `Product` can be in many wishlists.
     -   _Implementation_: `UserProfile.wishlist` is an array of `Product.id` (SKUs).
+
+-   **`UserProfile` to `CustomerGroup` (M-to-1, Conceptual)**
+    -   Each `UserProfile` belongs to a `CustomerGroup` (e.g., "Retailer", "Wholesaler").
+    -   This is used for targeted marketing and pricing.
+    -   _Implementation_: `UserProfile.customerGroup` (string) stores the name of the group.
 
 ### Support Tickets
 
@@ -56,6 +61,10 @@ This document outlines the conceptual relationships between the core data entiti
     -   A `Product` can be part of many `OrderItem` records across different orders.
     -   _Implementation_: `Order.items` is an array of `OrderItem` objects. `OrderItem.sku` links to `Product.id` or `ProductVariant.sku`.
 
+-   **`Product` to `Category` (M-to-1, Conceptual)**
+    -   Each `Product` belongs to a `Category` for organization.
+    -   _Implementation_: `Product.category` (string) stores the name of the category.
+
 ### Procurement (Suppliers & Purchase Orders)
 
 -   **`Supplier` to `PurchaseOrder` (1-to-M)**
@@ -70,7 +79,7 @@ This document outlines the conceptual relationships between the core data entiti
 -   **`Supplier` to `Product` (M-to-M)**
     -   A `Supplier` can supply many `Product` records.
     -   A `Product` can be supplied by many `Supplier` records.
-    -   _Implementation_: `Supplier.productsSupplied` is an array of `Product.id`s. An equivalent `product.supplierIds` array would complete this link.
+    -   _Implementation_: `Supplier.productsSupplied` is an array of `Product.id`s, and `Product.supplierIds` is an array of `Supplier.id`s.
 
 ### Marketing (Campaigns, Discounts, Affiliates)
 
