@@ -27,6 +27,10 @@ This document outlines the conceptual relationships between the core data entiti
         -   `Order.assignedStaffId` -> `StaffProfile.id` (for fulfillment assignment)
         -   `Order.fulfilledByStaffId` -> `StaffProfile.id` (for fulfillment completion)
 
+-   **`StaffProfile` to `UserProfile` (1-to-M, for manual creation)**
+    -   A `StaffProfile` can manually create many `UserProfile` (customer) records.
+    -   _Implementation_: `UserProfile.createdById` -> `StaffProfile.id`.
+
 ### Customers (UserProfiles) & Orders
 
 -   **`UserProfile` to `Order` (1-to-M)**
@@ -66,7 +70,7 @@ This document outlines the conceptual relationships between the core data entiti
 -   **`Supplier` to `Product` (M-to-M)**
     -   A `Supplier` can supply many `Product` records.
     -   A `Product` can be supplied by many `Supplier` records.
-    -   _Implementation_: `Supplier.productsSupplied` is an array of `Product.id`s. `Product.supplierIds` is an array of `Supplier.id`s.
+    -   _Implementation_: `Supplier.productsSupplied` is an array of `Product.id`s. An equivalent `product.supplierIds` array would complete this link.
 
 ### Marketing (Campaigns, Discounts, Affiliates)
 
