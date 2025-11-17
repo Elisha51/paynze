@@ -53,6 +53,16 @@ This document outlines the conceptual relationships between the core data entiti
     -   A `SupportTicket` is submitted by one `UserProfile` (merchant/user).
     -   _Implementation_: `SupportTicket.merchantId` -> `UserProfile.id`.
 
+### Product Organization
+
+-   **`Product` to `Category` (M-to-1, Conceptual)**
+    -   Each `Product` belongs to a `Category` for organization.
+    -   _Implementation_: `Product.category` (string) stores the name of the category.
+
+-   **`Category` to `Category` (1-to-M, Self-Referencing)**
+    -   A `Category` can be a parent to many other `Category` records (subcategories).
+    -   _Implementation_: `Category.parentId` stores the `id` of the parent `Category`. If `parentId` is `null`, it is a top-level category.
+
 ### Orders & Products
 
 -   **`Order` to `Product` (M-to-M, through `OrderItem`)**
@@ -60,10 +70,6 @@ This document outlines the conceptual relationships between the core data entiti
     -   Each `OrderItem` links to a specific `Product` (or variant).
     -   A `Product` can be part of many `OrderItem` records across different orders.
     -   _Implementation_: `Order.items` is an array of `OrderItem` objects. `OrderItem.sku` links to `Product.id` or `ProductVariant.sku`.
-
--   **`Product` to `Category` (M-to-1, Conceptual)**
-    -   Each `Product` belongs to a `Category` for organization.
-    -   _Implementation_: `Product.category` (string) stores the name of the category.
 
 ### Procurement (Suppliers & Purchase Orders)
 
@@ -79,7 +85,7 @@ This document outlines the conceptual relationships between the core data entiti
 -   **`Supplier` to `Product` (M-to-M)**
     -   A `Supplier` can supply many `Product` records.
     -   A `Product` can be supplied by many `Supplier` records.
-    -   _Implementation_: `Supplier.productsSupplied` is an array of `Product.id`s, and `Product.supplierIds` is an array of `Supplier.id`s.
+    -   _Implementation_: `Supplier.productsSupplied` is an array of `Product.id`s, and a `Product`'s `supplierIds` property is an array of `Supplier.id`s.
 
 ### Marketing (Campaigns, Discounts, Affiliates)
 
