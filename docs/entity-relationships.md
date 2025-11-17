@@ -38,6 +38,12 @@ This document outlines the conceptual relationships between the core data entiti
     -   A `Product` can be in many wishlists.
     -   _Implementation_: `UserProfile.wishlist` is an array of `Product.id` (SKUs).
 
+### Support Tickets
+
+-   **`SupportTicket` to `UserProfile` (M-to-1)**
+    -   A `SupportTicket` is submitted by one `UserProfile` (merchant/user).
+    -   _Implementation_: `SupportTicket.merchantId` -> `UserProfile.id`.
+
 ### Orders & Products
 
 -   **`Order` to `Product` (M-to-M, through `OrderItem`)**
@@ -92,7 +98,7 @@ This document outlines the conceptual relationships between the core data entiti
     -   A `Transaction` for a salary or commission payout is linked to one `StaffProfile`.
     -   _Implementation_: `Transaction.payoutForStaffId` -> `StaffProfile.id`.
 
-### Store Configuration
+### Store Configuration (Conceptual Relationships)
 
 -   **`ShippingZone` to `Location`**
     -   These are related through application logic (e.g., a Location's country determines which ShippingZone applies) but not through a direct ID link in the database schema.
