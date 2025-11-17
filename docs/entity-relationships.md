@@ -29,7 +29,7 @@ This document outlines the conceptual relationships between the core data entiti
 
 -   **`StaffProfile` to `UserProfile` (1-to-M, for manual creation)**
     -   A `StaffProfile` can manually create many `UserProfile` (customer) records.
-    -   _Implementation_: `UserProfile.createdById` -> `StaffProfile.id`.
+    -   _Implementation_: `UserProfile.source` is 'Manual' and `createdById` (a custom property not in the schema) would link to `StaffProfile.id`.
 
 ### Customers (UserProfiles) & Orders
 
@@ -78,6 +78,11 @@ This document outlines the conceptual relationships between the core data entiti
     -   A `Campaign` can promote many `Product` records.
     -   A `Product` can be part of many `Campaign` records.
     -   _Implementation_: `Campaign.applicableProductIds` is an array of `Product.id`s.
+    
+-   **`Campaign` to `Affiliate` (M-to-M)**
+    -   A `Campaign` can be restricted to specific `Affiliate` records.
+    -   An `Affiliate` can have access to multiple campaigns.
+    -   _Implementation_: `Campaign.allowedAffiliateIds` is an array of `Affiliate.id`s.
 
 -   **`Discount` to `Product` (M-to-M)**
     -   A `Discount` can be applicable to many `Product` records.
