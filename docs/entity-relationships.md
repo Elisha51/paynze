@@ -1,135 +1,182 @@
 # Entity Relationship Diagram (ERD) - Conceptual Model
 
-This document outlines the conceptual relationships between the core data entities in the system. While the current implementation uses a NoSQL database (Firestore), this model describes the relational logic that the application code enforces.
+This document outlines the conceptual relationships between the core data entities in the system. It is designed to serve as a blueprint for database schema design and backend development. While the current implementation may use a NoSQL database (Firestore), this model describes the relational logic that the application code must enforce.
 
-## Key to Relationships
+## Key Components
 
--   **`1-to-1`**: One-to-One (e.g., A User has one Profile).
--   **`1-to-M`**: One-to-Many (e.g., A Customer can have many Orders).
--   **`M-to-1`**: Many-to-One (e.g., Many Orders belong to one Customer).
--   **`M-to-M`**: Many-to-Many (e.g., A Product can be in many Orders, and an Order can have many Products).
+*   **Entities:** The real-world objects or concepts about which data is stored, such as "Customer" or "Product".
+*   **Attributes:** The properties or characteristics of an entity, such as a "Customer" having a "name" or "email". The key attributes for establishing relationships are the ID fields (e.g., `customerId`).
+*   **Relationships:** The associations between two or more entities, such as a "Customer" placing an "Order".
+*   **Cardinality:** A measure of the number of instances of one entity that can be associated with an instance of another entity. This can be one-to-one, one-to-many, or many-to-many.
 
 ---
 
-## Core Entities & Relationships
+## Core Business Relationships
 
-### Staff & Roles
+### Customers & Orders
 
--   **`StaffProfile` to `Role` (M-to-1)**
-    -   Each `StaffProfile` is assigned exactly one `Role`.
-    -   A `Role` can be assigned to many `StaffProfile` records.
-    -   _Implementation_: `StaffProfile.role` (string) stores the `name` of the `Role`.
-
--   **`StaffProfile` to `Order` (1-to-M)**
-    -   A `StaffProfile` can be linked to many `Order` records in different capacities.
-    -   _Implementation_:
-        -   `Order.salesAgentId` -> `StaffProfile.id` (for sales credit)
-        -   `Order.assignedStaffId` -> `StaffProfile.id` (for fulfillment assignment)
-        -   `Order.fulfilledByStaffId` -> `StaffProfile.id` (for fulfillment completion)
-
--   **`StaffProfile` to `UserProfile` (1-to-M, for manual creation)**
-    -   A `StaffProfile` can manually create many `UserProfile` (customer) records.
-    -   _Implementation_: `UserProfile.source` is 'Manual' and a custom property `createdById` would link to `StaffProfile.id`.
-
-### Customers (UserProfiles) & Orders
-
--   **`UserProfile` to `Order` (1-to-M)**
-    -   A `UserProfile` (customer) can have many `Order` records.
-    -   _Implementation_: `Order.customerId` -> `UserProfile.id`.
-
--   **`UserProfile` to `Product` (M-to-M, through Wishlist)**
-    -   A `UserProfile` can have many `Product` records in their wishlist.
-    -   A `Product` can be in many wishlists.
-    -   _Implementation_: `UserProfile.wishlist` is an array of `Product.id` (SKUs).
-
--   **`UserProfile` to `CustomerGroup` (M-to-1, Conceptual)**
-    -   Each `UserProfile` belongs to a `CustomerGroup` (e.g., "Retailer", "Wholesaler").
-    -   This is used for targeted marketing and pricing.
-    -   _Implementation_: `UserProfile.customerGroup` (string) stores the name of the group.
-
-### Support Tickets
-
--   **`SupportTicket` to `UserProfile` (M-to-1)**
-    -   A `SupportTicket` is submitted by one `UserProfile` (merchant/user).
-    -   _Implementation_: `SupportTicket.merchantId` -> `UserProfile.id`.
-
-### Product Organization
-
--   **`Product` to `Category` (M-to-1, Conceptual)**
-    -   Each `Product` belongs to a `Category` for organization.
-    -   _Implementation_: `Product.category` (string) stores the name of the category.
-
--   **`Category` to `Category` (1-to-M, Self-Referencing)**
-    -   A `Category` can be a parent to many other `Category` records (subcategories).
-    -   _Implementation_: `Category.parentId` stores the `id` of the parent `Category`. If `parentId` is `null`, it is a top-level category.
+*   **Entities**: `Customer`, `Order`
+*   **Attributes**: `Order.customerId` links to `Customer.id`.
+*   **Relationship**: A `Customer` places an `Order`.
+*   **Cardinality**: **One-to-Many** (A `Customer` can have many `Order` records; an `Order` belongs to exactly one `Customer`).
 
 ### Orders & Products
 
--   **`Order` to `Product` (M-to-M, through `OrderItem`)**
-    -   An `Order` contains many `OrderItem` records.
-    -   Each `OrderItem` links to a specific `Product` (or variant).
-    -   A `Product` can be part of many `OrderItem` records across different orders.
-    -   _Implementation_: `Order.items` is an array of `OrderItem` objects. `OrderItem.sku` links to `Product.id` or `ProductVariant.sku`.
+*   **Entities**: `Order`, `Product`
+*   **Attributes**: `Order.items` is an array of `OrderItem`. `OrderItem.sku` links to `ProductVariant.sku` or `Product.sku`.
+*   **Relationship**: An `Order` contains many `Product` variants.
+*   **Cardinality**: **Many-to-Many** (An `Order` can contain multiple `Product`s; a `Product` can be in many `Order`s). This is implemented via the `OrderItem` join table/object.
 
-### Procurement (Suppliers & Purchase Orders)
+### Customers & Products (Wishlist)
 
--   **`Supplier` to `PurchaseOrder` (1-to-M)**
-    -   A `Supplier` can have many `PurchaseOrder` records.
-    -   _Implementation_: `PurchaseOrder.supplierId` -> `Supplier.id`.
-
--   **`PurchaseOrder` to `Product` (M-to-M, through `PurchaseOrderItem`)**
-    -   A `PurchaseOrder` contains many `PurchaseOrderItem` records.
-    -   Each `PurchaseOrderItem` links to a specific `Product`.
-    -   _Implementation_: `PurchaseOrder.items` is an array of `PurchaseOrderItem` objects. `PurchaseOrderItem.productId` links to `Product.id`.
-
--   **`Supplier` to `Product` (M-to-M)**
-    -   A `Supplier` can supply many `Product` records.
-    -   A `Product` can be supplied by many `Supplier` records.
-    -   _Implementation_: `Supplier.productsSupplied` is an array of `Product.id`s, and a `Product`'s `supplierIds` property is an array of `Supplier.id`s.
-
-### Marketing (Campaigns, Discounts, Affiliates)
-
--   **`Campaign` to `Product` (M-to-M)**
-    -   A `Campaign` can promote many `Product` records.
-    -   A `Product` can be part of many `Campaign` records.
-    -   _Implementation_: `Campaign.applicableProductIds` is an array of `Product.id`s.
-    
--   **`Campaign` to `Affiliate` (M-to-M)**
-    -   A `Campaign` can be restricted to specific `Affiliate` records.
-    -   An `Affiliate` can have access to multiple campaigns.
-    -   _Implementation_: `Campaign.allowedAffiliateIds` is an array of `Affiliate.id`s.
-
--   **`Discount` to `Product` (M-to-M)**
-    -   A `Discount` can be applicable to many `Product` records.
-    -   A `Product` can be affected by many `Discount` records.
-    -   _Implementation_: `Discount.applicableProductIds` is an array of `Product.id`s.
-
--   **`Affiliate` to `Order` (1-to-M)**
-    -   An `Affiliate` can be credited with many `Order` records.
-    -   _Implementation_: `Order.salesAgentId` -> `Affiliate.id`. (Note: `Affiliate` is conceptually a type of `Staff`).
-
-### Financials (Transactions)
-
--   **`Transaction` to `Order` (1-to-1, Optional)**
-    -   An `Order` payment results in one `Transaction` record.
-    -   _Implementation_: `Transaction.orderId` -> `Order.id`.
-
--   **`Transaction` to `PurchaseOrder` (1-to-1, Optional)**
-    -   A `PurchaseOrder` payment results in one `Transaction` record.
-    -   _Implementation_: `Transaction.purchaseOrderId` -> `PurchaseOrder.id`.
-
--   **`Transaction` to `StaffProfile` (M-to-1, Optional)**
-    -   A `Transaction` for a salary or commission payout is linked to one `StaffProfile`.
-    -   _Implementation_: `Transaction.payoutForStaffId` -> `StaffProfile.id`.
-
-### Store Configuration (Conceptual Relationships)
-
--   **`ShippingZone` to `Location`**
-    -   These are related through application logic (e.g., a Location's country determines which ShippingZone applies) but not through a direct ID link in the database schema.
-
--   **`Templates` to Entities (`Product`, `Campaign`, etc.)**
-    -   Templates are used to **create** new entities but are not directly linked to the created records. This is a one-way, "blueprint" relationship handled by the application logic.
+*   **Entities**: `Customer`, `Product`
+*   **Attributes**: `Customer.wishlist` is an array of `Product.sku` values.
+*   **Relationship**: A `Customer` can wishlist a `Product`.
+*   **Cardinality**: **Many-to-Many** (A `Customer` can have many `Product`s in their wishlist; a `Product` can be wishlisted by many `Customer`s).
 
 ---
 
-This document provides a clear, high-level overview for developers to understand the intended data connections and implement the necessary logic for joins and data integrity.
+## Staff & Roles Relationships
+
+### Staff & Roles
+
+*   **Entities**: `Staff`, `Role`
+*   **Attributes**: `Staff.role` (string) stores the `name` of the `Role`.
+*   **Relationship**: A `Staff` member is assigned a `Role`.
+*   **Cardinality**: **Many-to-One** (Many `Staff` members can have the same `Role`; each `Staff` member has exactly one `Role`).
+
+### Staff & Order Fulfillment
+
+*   **Entities**: `Staff`, `Order`
+*   **Attributes**:
+    *   `Order.assignedStaffId` links to `Staff.id`.
+    *   `Order.fulfilledByStaffId` links to `Staff.id`.
+*   **Relationship**: A `Staff` member is assigned to fulfill an `Order`.
+*   **Cardinality**: **One-to-Many** (A `Staff` member can be assigned to or fulfill many `Order`s; an `Order` is assigned to one `Staff` member at a time).
+
+### Staff & Order Sales Credit
+
+*   **Entities**: `Staff` (as Sales Agent), `Affiliate`, `Order`
+*   **Attributes**: `Order.salesAgentId` links to `Staff.id` or `Affiliate.id`.
+*   **Relationship**: A `Staff` member or `Affiliate` is credited with a sale.
+*   **Cardinality**: **One-to-Many** (A `Staff`/`Affiliate` can be credited with many `Order`s; an `Order` is credited to at most one agent).
+
+### Staff & Customer Creation
+
+*   **Entities**: `Staff`, `Customer`
+*   **Attributes**: `Customer.createdById` links to `Staff.id`.
+*   **Relationship**: A `Staff` member manually creates a `Customer` profile.
+*   **Cardinality**: **One-to-Many** (A `Staff` member can create many `Customer`s; a manually created `Customer` is created by one `Staff` member).
+
+---
+
+## Product & Catalog Relationships
+
+### Product Organization
+
+*   **Entities**: `Product`, `Category`
+*   **Attributes**: `Product.category` (string) stores the `name` of the `Category`.
+*   **Relationship**: A `Product` belongs to a `Category`.
+*   **Cardinality**: **Many-to-One** (Many `Product`s can be in one `Category`; each `Product` belongs to one `Category`).
+
+*   **Entities**: `Category` (self-referencing)
+*   **Attributes**: `Category.parentId` links to another `Category.id`.
+*   **Relationship**: A `Category` can be a subcategory of another `Category`.
+*   **Cardinality**: **One-to-Many** (A parent `Category` can have many child `Category` records; a child `Category` has one parent).
+
+---
+
+## Procurement Relationships
+
+### Purchase Orders & Suppliers
+
+*   **Entities**: `PurchaseOrder`, `Supplier`
+*   **Attributes**: `PurchaseOrder.supplierId` links to `Supplier.id`.
+*   **Relationship**: A `PurchaseOrder` is sent to a `Supplier`.
+*   **Cardinality**: **One-to-Many** (A `Supplier` can receive many `PurchaseOrder`s; a `PurchaseOrder` is from one `Supplier`).
+
+### Purchase Orders & Products
+
+*   **Entities**: `PurchaseOrder`, `Product`
+*   **Attributes**: `PurchaseOrder.items` is an array of `PurchaseOrderItem`. `PurchaseOrderItem.productId` links to `Product.sku`.
+*   **Relationship**: A `PurchaseOrder` contains `Product`s to be procured.
+*   **Cardinality**: **Many-to-Many** (A `PurchaseOrder` can contain multiple `Product`s; a `Product` can be on many `PurchaseOrder`s). Implemented via the `PurchaseOrderItem` join object.
+
+### Suppliers & Products
+
+*   **Entities**: `Supplier`, `Product`
+*   **Attributes**: `Supplier.productsSupplied` is an array of `Product.sku` values. `Product.supplierIds` is an array of `Supplier.id` values.
+*   **Relationship**: A `Supplier` provides a `Product`.
+*   **Cardinality**: **Many-to-Many** (A `Supplier` can supply many `Product`s; a `Product` can be sourced from many `Supplier`s).
+
+---
+
+## Marketing Relationships
+
+### Campaigns & Products
+
+*   **Entities**: `Campaign`, `Product`
+*   **Attributes**: `Campaign.applicableProductIds` is an array of `Product.sku` values.
+*   **Relationship**: A `Campaign` can promote specific `Product`s.
+*   **Cardinality**: **Many-to-Many** (A `Campaign` can apply to many `Product`s; a `Product` can be in many `Campaign`s).
+
+### Discounts & Products
+
+*   **Entities**: `Discount`, `Product`
+*   **Attributes**: `Discount.applicableProductIds` is an array of `Product.sku` values.
+*   **Relationship**: A `Discount` can be restricted to specific `Product`s.
+*   **Cardinality**: **Many-to-Many** (A `Discount` can apply to many `Product`s; a `Product` can have many `Discount`s).
+
+### Campaigns & Affiliates
+
+*   **Entities**: `Campaign`, `Affiliate`
+*   **Attributes**: `Campaign.allowedAffiliateIds` is an array of `Affiliate.id` values.
+*   **Relationship**: A `Campaign` can be restricted for use by specific `Affiliate`s.
+*   **Cardinality**: **Many-to-Many** (A `Campaign` can be available to many `Affiliate`s; an `Affiliate` can participate in many `Campaign`s).
+
+---
+
+## Financial Relationships
+
+*   **Entities**: `Transaction`, `Order`
+*   **Attributes**: `Transaction.orderId` links to `Order.id`.
+*   **Relationship**: A `Transaction` records the payment for an `Order`.
+*   **Cardinality**: **One-to-One** (optional) (An `Order` has one corresponding sales `Transaction`; a `Transaction` can be linked to one `Order`).
+
+*   **Entities**: `Transaction`, `PurchaseOrder`
+*   **Attributes**: `Transaction.purchaseOrderId` links to `PurchaseOrder.id`.
+*   **Relationship**: A `Transaction` records the expense for a `PurchaseOrder`.
+*   **Cardinality**: **One-to-One** (optional) (A `PurchaseOrder` has one corresponding expense `Transaction`).
+
+*   **Entities**: `Transaction`, `Staff`
+*   **Attributes**: `Transaction.payoutForStaffId` links to `Staff.id`.
+*   **Relationship**: A `Transaction` records a payout (commission/salary) to a `Staff` member.
+*   **Cardinality**: **Many-to-One** (optional) (Many payout `Transaction`s can be linked to one `Staff` member).
+
+---
+
+## Support & Communication Relationships
+
+*   **Entities**: `SupportTicket`, `Customer`
+*   **Attributes**: `SupportTicket.merchantId` links to `Customer.id`.
+*   **Relationship**: A `Customer` submits a `SupportTicket`.
+*   **Cardinality**: **Many-to-One** (A `Customer` can submit many `SupportTicket`s; a `SupportTicket` belongs to one `Customer`).
+
+*   **Entities**: `Communication`, `Customer`
+*   **Attributes**: A `Communication` object is stored within a `Customer`'s record. A `threadId` can link a `Communication` to another `Communication`.
+*   **Relationship**: A `Communication` is a record of an interaction with a `Customer`.
+*   **Cardinality**: **One-to-Many** (nested) (A `Customer` can have many `Communication` records).
+
+*   **Entities**: `DeliveryNote`, `Order`
+*   **Attributes**: `DeliveryNote` objects are stored within an `Order`'s `deliveryNotes` array.
+*   **Relationship**: A `DeliveryNote` is a log entry for an `Order`'s delivery process.
+*   **Cardinality**: **One-to-Many** (nested) (An `Order` can have many `DeliveryNote`s).
+
+---
+
+## Conceptual & Non-Database Relationships
+
+The following relationships are handled by application logic rather than direct database links:
+
+*   **Templates to Entities**: `ProductTemplate`, `EmailTemplate`, etc., act as blueprints. They are used to **create** new entities (`Product`, `Campaign`), but no persistent link is stored from the created entity back to the template.
+*   **Settings Entities**: `ShippingZone`, `Location`, and `AffiliateProgramSettings` are configuration entities. They are related to other entities through application logic (e.g., an `Order`'s shipping address country determines which `ShippingZone` applies), not through stored ID references in the core business entities.
