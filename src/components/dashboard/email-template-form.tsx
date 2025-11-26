@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ArrowLeft, Save, Info } from 'lucide-react';
+import { Save, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -26,34 +26,28 @@ const availableVariables = [
     { variable: '{{orderTotal}}', description: "The total amount of the order" },
 ];
 
+const emptyTemplate: Partial<EmailTemplate> = {
+    name: '',
+    description: '',
+    subject: '',
+    body: '',
+}
+
 type EmailTemplateFormProps = {
     initialTemplate?: EmailTemplate | null;
 }
 
 export function EmailTemplateForm({ initialTemplate }: EmailTemplateFormProps) {
-    const [template, setTemplate] = useState<Partial<EmailTemplate> | null>(initialTemplate);
+    const [template, setTemplate] = useState<Partial<EmailTemplate>>(initialTemplate || emptyTemplate);
     const router = useRouter();
     const { toast } = useToast();
+    const isEditing = !!initialTemplate;
 
     useEffect(() => {
         if (initialTemplate) {
             setTemplate(initialTemplate);
         }
     }, [initialTemplate]);
-
-    if (!template) {
-        // This can happen if the template ID is invalid
-        return (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Template Not Found</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>The requested email template could not be found.</p>
-                </CardContent>
-            </Card>
-        );
-    }
     
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
@@ -65,30 +59,26 @@ export function EmailTemplateForm({ initialTemplate }: EmailTemplateFormProps) {
     }
 
     const handleSave = () => {
+        if (!template?.name || !template.subject || !template.body) {
+            toast({ variant: 'destructive', title: "Name, subject and body are required." });
+            return;
+        }
         // In a real app, this would call a service to save the template
         console.log("Saving template:", template);
         toast({
-            title: "Template Saved",
-            description: `The "${template.name}" email template has been updated.`
+            title: isEditing ? "Template Updated" : "Template Created",
+            description: `The "${template.name}" email template has been saved.`
         });
         router.push('/dashboard/templates?tab=email-templates');
     }
     
     return (
          <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={() => router.back()}>
-                    <ArrowLeft className="h-4 w-4" />
+            <div className="flex justify-end">
+                <Button onClick={handleSave}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save {isEditing ? 'Changes' : 'Template'}
                 </Button>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Edit "{template.name}" Template</h1>
-                </div>
-                 <div className="ml-auto flex items-center gap-2">
-                    <Button onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save Changes
-                    </Button>
-                </div>
             </div>
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

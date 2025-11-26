@@ -30,8 +30,7 @@ export default function EditEmailTemplatePage() {
         return (
             <DashboardPageLayout title="Loading Template...">
                 <div className="space-y-6">
-                    <Skeleton className="h-64 w-full" />
-                    <Skeleton className="h-48 w-full" />
+                    <Skeleton className="h-64 w-full max-w-4xl mx-auto" />
                 </div>
             </DashboardPageLayout>
         )
@@ -39,7 +38,7 @@ export default function EditEmailTemplatePage() {
     
     if (!template) {
          return (
-            <DashboardPageLayout title="Error">
+            <DashboardPageLayout title="Error" backHref="/dashboard/templates?tab=email-templates">
                 <p>Template not found.</p>
             </DashboardPageLayout>
         );
