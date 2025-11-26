@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
@@ -161,7 +160,7 @@ export default function DashboardPage() {
                   </Link>
                 </Card>
                 <Card>
-                   <Link href="/dashboard/orders?tab=deliveries">
+                   <Link href="/dashboard/orders?status=Paid&fulfillmentMethod=Delivery">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-red-500" />

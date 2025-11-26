@@ -1,8 +1,8 @@
-
 'use client';
 import * as React from 'react';
 import {
   ColumnDef,
+  ColumnFiltersState,
 } from '@tanstack/react-table';
 import { MoreHorizontal, ArrowUpDown, User, Truck, Store, PackageCheck, ShoppingCart, PlusCircle, Edit } from 'lucide-react';
 import Link from 'next/link';
@@ -359,9 +359,11 @@ type OrdersTableProps = {
   orders: Order[];
   staff: Staff[];
   isLoading: boolean;
+  columnFilters: ColumnFiltersState;
+  setColumnFilters: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
 };
 
-export function OrdersTable({ orders, staff, isLoading }: OrdersTableProps) {
+export function OrdersTable({ orders, staff, isLoading, columnFilters, setColumnFilters }: OrdersTableProps) {
   const [data, setData] = React.useState<Order[]>(orders);
   const [settings, setSettings] = React.useState<OnboardingFormData | null>(null);
   const { user } = useAuth();
@@ -392,6 +394,8 @@ export function OrdersTable({ orders, staff, isLoading }: OrdersTableProps) {
       initialState={{ columnVisibility }}
       data={data}
       isLoading={isLoading}
+      columnFilters={columnFilters}
+      setColumnFilters={setColumnFilters}
       filters={[
           { columnId: 'status', title: 'Status', options: orderStatuses },
           { columnId: 'fulfillmentMethod', title: 'Fulfillment', options: fulfillmentMethods },
@@ -402,7 +406,7 @@ export function OrdersTable({ orders, staff, isLoading }: OrdersTableProps) {
         icon: ShoppingCart,
         title: "No Orders Found",
         description: "You haven't received any orders matching these filters. When you do, they will appear here.",
-        cta: (
+        cta: ( user?.permissions.orders.create &&
             <Button asChild>
                 <Link href="/dashboard/orders/add">
                     <PlusCircle className="mr-2 h-4 w-4" />

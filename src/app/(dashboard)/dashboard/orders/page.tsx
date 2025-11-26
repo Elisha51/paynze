@@ -1,4 +1,3 @@
-
 'use client';
 
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -15,7 +14,8 @@ import { getStaff } from '@/services/staff';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { OrderAnalyticsReport } from '@/components/dashboard/analytics/order-analytics-report';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import type { ColumnFiltersState } from '@tanstack/react-table';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -25,9 +25,23 @@ export default function OrdersPage() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   
   const canCreate = user?.permissions.orders.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
+
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
+    const statusParam = searchParams.get('status');
+    const fulfillmentParam = searchParams.get('fulfillmentMethod');
+    const filters: ColumnFiltersState = [];
+    if (statusParam) {
+        filters.push({ id: 'status', value: [statusParam] });
+    }
+    if (fulfillmentParam) {
+        filters.push({ id: 'fulfillmentMethod', value: [fulfillmentParam] });
+    }
+    return filters;
+  });
 
   const loadData = useCallback(async () => {
     setIsLoading(true);
@@ -84,7 +98,13 @@ export default function OrdersPage() {
     >
         <DashboardPageLayout.TabContent value="all-orders">
             <DashboardPageLayout.Content>
-                <OrdersTable orders={orders} staff={staff} isLoading={isLoading} />
+                <OrdersTable 
+                    orders={orders} 
+                    staff={staff} 
+                    isLoading={isLoading} 
+                    columnFilters={columnFilters}
+                    setColumnFilters={setColumnFilters}
+                />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="deliveries">
