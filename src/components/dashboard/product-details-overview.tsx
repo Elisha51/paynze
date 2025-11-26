@@ -1,4 +1,3 @@
-
 'use client';
 
 import React from 'react';
@@ -20,12 +19,25 @@ import {
 import Image from 'next/image';
 import type { Product, Supplier, ProductVariant } from '@/lib/types';
 import { Remarkable } from 'remarkable';
-import { Laptop, Store } from 'lucide-react';
+import { Laptop, Store, PackageCheck, ShoppingBasket } from 'lucide-react';
 import { useMemo } from 'react';
 import { getSuppliers } from '@/services/procurement';
 import Link from 'next/link';
 
 const md = new Remarkable();
+
+const getAvailableStock = (product: Product) => {
+    if (product.inventoryTracking === "Don't Track") return Infinity;
+    return product.variants.reduce((sum, v) => 
+        sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.available, 0) || 0), 0);
+}
+
+const getOnHandStock = (product: Product) => {
+    if (product.inventoryTracking === "Don't Track") return Infinity;
+    return product.variants.reduce((sum, v) => 
+        sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.onHand, 0) || 0), 0);
+}
+
 
 export function ProductDetailsOverview({ product }: { product: Product }) {
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
@@ -227,6 +239,27 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                             {product.productVisibility?.includes('POS') && <Badge variant="outline" className="flex items-center gap-2"><Store /> Point of Sale</Badge>}
                         </div>
                     </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Inventory Overview</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <PackageCheck className="h-5 w-5" />
+                            <span>On Hand</span>
+                        </div>
+                        <span className="font-bold">{getOnHandStock(product)}</span>
+                     </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                             <ShoppingBasket className="h-5 w-5" />
+                            <span>Available</span>
+                        </div>
+                        <span className="font-bold text-green-600">{getAvailableStock(product)}</span>
+                     </div>
                 </CardContent>
             </Card>
         <Card>
