@@ -263,7 +263,7 @@ export function AffiliatesTab() {
     const { toast } = useToast();
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
-    const signupLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/affiliate-signup`;
+    const signupLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/store/affiliate-signup`;
     const { user } = useAuth();
     const canEdit = user?.permissions.marketing?.edit;
 

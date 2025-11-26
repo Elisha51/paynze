@@ -30,11 +30,11 @@ async function initializeMockAffiliates(): Promise<Affiliate[]> {
 const affiliateService = new DataService<Affiliate>('affiliates_derived', initializeMockAffiliates);
 
 export async function getAffiliates(): Promise<Affiliate[]> {
-    return affiliateService.getAll();
+    return await affiliateService.getAll();
 }
 
 export async function getAffiliateById(id: string): Promise<Affiliate | undefined> {
-    const allAffiliates = await affiliateService.getAll();
+    const allAffiliates = await getAffiliates();
     return allAffiliates.find(a => a.id === id);
 }
 
