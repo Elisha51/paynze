@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,7 +22,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Campaign, CampaignBanner, Affiliate, CustomerGroup } from '@/lib/types';
+import type { Campaign, CampaignBanner, Affiliate, CustomerGroup, RecurringSchedule } from '@/lib/types';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { Switch } from '../ui/switch';
 import { FileUploader } from '../ui/file-uploader';
@@ -36,11 +36,13 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { getCustomerGroups } from '@/services/customer-groups';
-import { setHours, setMinutes, format } from 'date-fns';
+import { format } from 'date-fns';
 import { Calendar } from '../ui/calendar';
 import { Separator } from '../ui/separator';
 import { Checkbox } from '../ui/checkbox';
 import { AnimatePresence, motion } from 'framer-motion';
+import { DateRange } from 'react-day-picker';
+import { DateRangePicker } from '../ui/date-range-picker';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -48,13 +50,16 @@ const emptyCampaign: Partial<Campaign> = {
   status: 'Draft',
   channel: 'Email',
   audience: 'All Customers',
-  startDate: new Date().toISOString(),
   affiliateAccess: 'none',
   allowedAffiliateIds: [],
-  scheduleType: 'one-time',
+  scheduleType: undefined,
   recurring: {
-    type: 'Daily',
-    days: [],
+    frequency: 'Weekly',
+    interval: 1,
+    daysOfWeek: [],
+    dayOfMonth: 1,
+    weekOfMonth: 'first',
+    dayOfWeek: 'Sunday',
     startTime: '09:00',
     endTime: '17:00'
   },
@@ -74,86 +79,21 @@ type CampaignFormProps = {
     initialCampaign?: Campaign | null;
 }
 
-const DateTimePicker = ({ date, setDate }: { date: Date | undefined, setDate: (date: Date | undefined) => void }) => {
-    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
-    const minutes = ['00', '15', '30', '45'];
-
-    const handleTimeChange = (type: 'hours' | 'minutes', value: string) => {
-        if (!date) {
-            let newDate = new Date();
-            if (type === 'hours') newDate = setHours(newDate, parseInt(value));
-            if (type === 'minutes') newDate = setMinutes(newDate, parseInt(value));
-            setDate(newDate);
-            return;
-        };
-        let newDate = new Date(date);
-        if (type === 'hours') {
-            newDate = setHours(newDate, parseInt(value));
-        } else {
-            newDate = setMinutes(newDate, parseInt(value));
-        }
-        setDate(newDate);
-    };
-
-    return (
-        <Popover>
-            <PopoverTrigger asChild>
-                <Button
-                    variant={"outline"}
-                    className={cn(
-                        "w-full justify-start text-left font-normal",
-                        !date && "text-muted-foreground"
-                    )}
-                >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP p") : <span>Pick a date and time</span>}
-                </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Calendar
-                    mode="single"
-                    selected={date}
-                    onSelect={(d) => setDate(d)}
-                    initialFocus
-                />
-                 <div className="p-3 border-t border-border">
-                    <div className="flex items-center gap-2">
-                        <Label>Time</Label>
-                        <Select
-                            value={date ? format(date, 'HH') : '09'}
-                            onValueChange={(v) => handleTimeChange('hours', v)}
-                        >
-                            <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
-                            <SelectContent>{hours.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}</SelectContent>
-                        </Select>
-                        <span>:</span>
-                         <Select
-                            value={date ? format(date, 'mm') : '00'}
-                            onValueChange={(v) => handleTimeChange('minutes', v)}
-                        >
-                            <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
-                            <SelectContent>{minutes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
-                        </Select>
-                    </div>
-                </div>
-            </PopoverContent>
-        </Popover>
-    );
-};
-
-
 export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>({
         ...emptyCampaign,
         ...initialCampaign,
-        scheduleType: initialCampaign?.scheduleType || 'one-time', // Ensure initial state is set
     });
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
-    const [startDate, setStartDate] = useState<Date | undefined>(initialCampaign?.startDate ? new Date(initialCampaign.startDate) : new Date());
-    const [endDate, setEndDate] = useState<Date | undefined>(initialCampaign?.endDate ? new Date(initialCampaign.endDate) : undefined);
-    const [noEndDate, setNoEndDate] = useState(!initialCampaign?.endDate);
-
+    const [dateRange, setDateRange] = useState<DateRange | undefined>(
+      initialCampaign?.startDate
+        ? {
+            from: new Date(initialCampaign.startDate),
+            to: initialCampaign.endDate ? new Date(initialCampaign.endDate) : undefined,
+          }
+        : undefined
+    );
 
     const router = useRouter();
     const { toast } = useToast();
@@ -166,17 +106,11 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
             setCampaign(prev => ({
                 ...prev, 
                 ...initialCampaign,
-                scheduleType: initialCampaign.scheduleType || 'one-time' // Ensure scheduleType is not undefined
             }));
-            if (initialCampaign.startDate) {
-                setStartDate(new Date(initialCampaign.startDate));
-            }
-             if (initialCampaign.endDate) {
-                setEndDate(new Date(initialCampaign.endDate));
-                setNoEndDate(false);
-            } else {
-                setNoEndDate(true);
-            }
+            const range: DateRange = {};
+            if (initialCampaign.startDate) range.from = new Date(initialCampaign.startDate);
+            if (initialCampaign.endDate) range.to = new Date(initialCampaign.endDate);
+            setDateRange(range);
         }
 
         async function loadData() {
@@ -189,12 +123,6 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         }
         loadData();
     }, [initialCampaign]);
-
-    useEffect(() => {
-        if (noEndDate) {
-            setEndDate(undefined);
-        }
-    }, [noEndDate]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -239,29 +167,29 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         })
     }
 
-    const handleRecurringChange = (field: keyof NonNullable<Campaign['recurring']>, value: any) => {
+    const handleRecurringChange = (field: keyof RecurringSchedule, value: any) => {
         setCampaign(prev => ({
             ...prev,
             recurring: {
-                ...(prev.recurring || { type: 'Daily', days: [], startTime: '09:00', endTime: '17:00' }),
+                ...(prev.recurring || { frequency: 'Weekly', interval: 1, daysOfWeek: [] }),
                 [field]: value
             }
         }));
     };
 
     const toggleRecurringDay = (day: string) => {
-        const currentDays = campaign.recurring?.days || [];
+        const currentDays = campaign.recurring?.daysOfWeek || [];
         const newDays = currentDays.includes(day)
             ? currentDays.filter(d => d !== day)
             : [...currentDays, day];
-        handleRecurringChange('days', newDays);
+        handleRecurringChange('daysOfWeek', newDays);
     }
     
     const handleSave = () => {
         const finalCampaign: Partial<Campaign> = {
             ...campaign,
-            startDate: startDate?.toISOString(),
-            endDate: noEndDate ? undefined : endDate?.toISOString(),
+            startDate: dateRange?.from?.toISOString(),
+            endDate: dateRange?.to?.toISOString(),
         };
 
         console.log("Saving campaign", finalCampaign);
@@ -425,7 +353,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                         <CardHeader>
                             <CardTitle>Schedule</CardTitle>
                         </CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-4">
                             <RadioGroup
                                 value={campaign.scheduleType}
                                 onValueChange={(v) => setCampaign(p => ({...p, scheduleType: v as any}))}
@@ -451,61 +379,90 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                     exit={{ opacity: 0, height: 0 }}
                                     className="overflow-hidden"
                                 >
-                                    <Separator className="my-6" />
-                                    {campaign.scheduleType === 'one-time' ? (
-                                        <div className="space-y-4">
-                                            <div className="space-y-2">
-                                                <Label>Start Date & Time</Label>
-                                                <DateTimePicker date={startDate} setDate={setStartDate} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label>End Date & Time</Label>
-                                                <DateTimePicker date={endDate} setDate={setEndDate} />
-                                                <div className="flex items-center space-x-2 pt-2">
-                                                    <Checkbox id="no-end-date" checked={noEndDate} onCheckedChange={(checked) => setNoEndDate(checked as boolean)} />
-                                                    <Label htmlFor="no-end-date" className="text-sm font-normal">
-                                                        No end date (run continuously)
-                                                    </Label>
-                                                </div>
-                                            </div>
+                                    <Separator className="my-4" />
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label>Campaign Duration</Label>
+                                            <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false}/>
                                         </div>
-                                    ) : (
-                                        <div className="space-y-6">
-                                             <div className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <Label>Start Date & Time</Label>
-                                                    <DateTimePicker date={startDate} setDate={setStartDate} />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <Label>End Date & Time</Label>
-                                                    <DateTimePicker date={endDate} setDate={setEndDate} />
-                                                </div>
-                                            </div>
-                                            <Separator/>
-                                            <div className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <Label>Repeats</Label>
-                                                    <Select value={campaign.recurring?.type} onValueChange={(v) => handleRecurringChange('type', v)}>
-                                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        {campaign.scheduleType === 'recurring' && (
+                                            <div className="space-y-4 pt-4 border-t">
+                                                <div className="flex items-center gap-2">
+                                                    <Label htmlFor="recurring-freq" className="text-sm">Repeats every</Label>
+                                                    <Input
+                                                        id="recurring-interval"
+                                                        type="number"
+                                                        value={campaign.recurring?.interval || 1}
+                                                        onChange={(e) => handleRecurringChange('interval', parseInt(e.target.value) || 1)}
+                                                        className="w-16 h-8"
+                                                        min={1}
+                                                    />
+                                                    <Select value={campaign.recurring?.frequency} onValueChange={(v) => handleRecurringChange('frequency', v as any)}>
+                                                        <SelectTrigger id="recurring-freq" className="w-[120px] h-8">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="Daily">Daily</SelectItem>
-                                                            <SelectItem value="Weekly">Weekly</SelectItem>
+                                                            <SelectItem value="Days">Days</SelectItem>
+                                                            <SelectItem value="Weeks">Weeks</SelectItem>
+                                                            <SelectItem value="Months">Months</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
-                                                {campaign.recurring?.type === 'Weekly' && (
-                                                    <div className="space-y-2">
-                                                        <Label>On these days</Label>
-                                                        <div className="flex flex-wrap gap-2">
-                                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                                                                <Button key={day} variant={(campaign.recurring?.days || []).includes(day) ? 'default' : 'outline'} size="sm" onClick={() => toggleRecurringDay(day)}>{day}</Button>
+                                                {campaign.recurring?.frequency === 'Weeks' && (
+                                                    <div className="pl-4">
+                                                        <Label className="text-xs">On these days</Label>
+                                                        <div className="flex flex-wrap gap-2 mt-2">
+                                                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                                                <Button key={day} variant={(campaign.recurring?.daysOfWeek || []).includes(day) ? 'default' : 'outline'} size="sm" onClick={() => toggleRecurringDay(day)}>{day}</Button>
                                                             ))}
                                                         </div>
                                                     </div>
                                                 )}
+                                                {campaign.recurring?.frequency === 'Months' && (
+                                                  <div className="pl-4 grid grid-cols-2 gap-4 items-center">
+                                                    <RadioGroup defaultValue="dayOfMonth" className="flex flex-col space-y-2">
+                                                        <div className="flex items-center space-x-2">
+                                                            <RadioGroupItem value="dayOfMonth" id="month-day"/>
+                                                            <Label htmlFor="month-day" className="font-normal flex items-center gap-2">On day
+                                                              <Input type="number" defaultValue={15} className="w-16 h-8"/>
+                                                            </Label>
+                                                        </div>
+                                                        <div className="flex items-center space-x-2">
+                                                            <RadioGroupItem value="dayOfWeek" id="month-weekday"/>
+                                                            <Label htmlFor="month-weekday" className="font-normal flex items-center gap-2">On the
+                                                               <Select defaultValue="first">
+                                                                <SelectTrigger className="w-28 h-8"><SelectValue/></SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="first">first</SelectItem>
+                                                                    <SelectItem value="second">second</SelectItem>
+                                                                    <SelectItem value="third">third</SelectItem>
+                                                                    <SelectItem value="fourth">fourth</SelectItem>
+                                                                    <SelectItem value="last">last</SelectItem>
+                                                                </SelectContent>
+                                                               </Select>
+                                                               <Select defaultValue="Monday">
+                                                                <SelectTrigger className="w-28 h-8"><SelectValue/></SelectTrigger>
+                                                                <SelectContent>
+                                                                    {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                                                </SelectContent>
+                                                               </Select>
+                                                            </Label>
+                                                        </div>
+                                                    </RadioGroup>
+                                                  </div>
+                                                )}
+
+                                                <div className="space-y-2 pt-4">
+                                                    <Label className="text-sm">Active between</Label>
+                                                    <div className="flex items-center gap-2">
+                                                        <Input type="time" value={campaign.recurring?.startTime} onChange={(e) => handleRecurringChange('startTime', e.target.value)} className="h-8"/>
+                                                        <span className="text-sm text-muted-foreground">and</span>
+                                                        <Input type="time" value={campaign.recurring?.endTime} onChange={(e) => handleRecurringChange('endTime', e.target.value)} className="h-8"/>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </motion.div>
                             )}
                             </AnimatePresence>

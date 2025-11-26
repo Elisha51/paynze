@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -513,6 +507,17 @@ export type CampaignBanner = {
   imageUrl?: string;
 }
 
+export type RecurringSchedule = {
+  frequency: 'Days' | 'Weeks' | 'Months';
+  interval: number;
+  daysOfWeek?: ('Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat')[];
+  dayOfMonth?: number;
+  weekOfMonth?: 'first' | 'second' | 'third' | 'fourth' | 'last';
+  dayOfWeek?: 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
+  startTime: string;
+  endTime: string;
+};
+
 // Marketing Types
 export type Campaign = {
   id: string;
@@ -523,15 +528,10 @@ export type Campaign = {
   openRate: string;
   ctr: string;
   audience: string;
-  startDate: string;
+  startDate?: string;
   endDate?: string;
   scheduleType?: 'one-time' | 'recurring';
-  recurring?: {
-    type: 'Daily' | 'Weekly';
-    days: string[]; // e.g. ['Mon', 'Wed', 'Fri']
-    startTime: string; // e.g. '09:00'
-    endTime: string;   // e.g. '17:00'
-  };
+  recurring?: RecurringSchedule;
   description: string;
   applicableProductIds?: string[];
   banner?: CampaignBanner;
