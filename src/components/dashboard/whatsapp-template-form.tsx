@@ -70,15 +70,15 @@ export function WhatsAppTemplateForm({ initialTemplate }: { initialTemplate?: Wh
                 <CardContent className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="name">Template Name</Label>
-                        <Input id="name" value={template?.name || ''} onChange={handleInputChange} />
+                        <Input id="name" value={template?.name || ''} onChange={handleInputChange} placeholder="e.g. Abandoned Cart Reminder"/>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="description">Description</Label>
-                        <Input id="description" value={template?.description || ''} onChange={handleInputChange} />
+                        <Input id="description" value={template?.description || ''} onChange={handleInputChange} placeholder="Sent to customers who left items in cart."/>
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="message">Message</Label>
-                        <Textarea id="message" value={template?.message || ''} onChange={handleInputChange} className="min-h-[120px]" />
+                        <Textarea id="message" value={template?.message || ''} onChange={handleInputChange} className="min-h-[120px]" placeholder="Hi {{customerName}}! We noticed you left some items in your cart..."/>
                     </div>
                 </CardContent>
             </Card>

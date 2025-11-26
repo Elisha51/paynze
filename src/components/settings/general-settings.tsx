@@ -73,7 +73,7 @@ export function GeneralSettings() {
             <CardContent className="space-y-6">
                 <div className="space-y-2">
                     <Label htmlFor="businessName">Store Name</Label>
-                    <Input id="businessName" value={settings.businessName || ''} onChange={handleInputChange} />
+                    <Input id="businessName" value={settings.businessName || ''} onChange={handleInputChange} placeholder="e.g. Kato Traders"/>
                 </div>
                  <div className="space-y-2">
                     <Label>Logo</Label>
@@ -97,7 +97,7 @@ export function GeneralSettings() {
                                 {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                               </SelectContent>
                             </Select>
-                            <Input id="contactPhone" type="tel" value={settings.contactPhone || ''} onChange={handleInputChange} />
+                            <Input id="contactPhone" type="tel" value={settings.contactPhone || ''} onChange={handleInputChange} placeholder="e.g. 772123456"/>
                         </div>
                     </div>
                     <div className="space-y-2">
@@ -128,7 +128,7 @@ export function GeneralSettings() {
                 <Separator />
                 <div className="space-y-2">
                     <Label htmlFor="taxRate">Default Tax Rate (%)</Label>
-                    <Input id="taxRate" type="number" value={settings.taxRate || ''} onChange={handleNumberChange} className="w-[180px]" />
+                    <Input id="taxRate" type="number" value={settings.taxRate || ''} onChange={handleNumberChange} className="w-[180px]" placeholder="e.g. 18"/>
                     <p className="text-sm text-muted-foreground">This rate will be applied to products marked as taxable.</p>
                 </div>
             </CardContent>

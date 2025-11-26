@@ -71,15 +71,15 @@ export function SmsTemplateForm({ initialTemplate }: { initialTemplate?: SmsTemp
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Template Name</Label>
-                            <Input id="name" value={template?.name || ''} onChange={handleInputChange} />
+                            <Input id="name" value={template?.name || ''} onChange={handleInputChange} placeholder="e.g. Shipping Confirmation"/>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="description">Description</Label>
-                            <Input id="description" value={template?.description || ''} onChange={handleInputChange} />
+                            <Input id="description" value={template?.description || ''} onChange={handleInputChange} placeholder="Sent when an order is shipped."/>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="message">Message</Label>
-                            <Textarea id="message" value={template?.message || ''} onChange={handleInputChange} className="min-h-[120px]" />
+                            <Textarea id="message" value={template?.message || ''} onChange={handleInputChange} className="min-h-[120px]" placeholder="Hi {{customerName}}, your order #{{orderId}} has shipped!"/>
                             <p className="text-xs text-muted-foreground">{(template?.message || '').length} characters. 1 SMS is 160 characters.</p>
                         </div>
                     </CardContent>

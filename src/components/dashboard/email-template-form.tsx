@@ -90,11 +90,11 @@ export function EmailTemplateForm({ initialTemplate }: EmailTemplateFormProps) {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="subject">Subject</Label>
-                                <Input id="subject" value={template.subject || ''} onChange={handleInputChange} />
+                                <Input id="subject" value={template.subject || ''} onChange={handleInputChange} placeholder="e.g. Your Order Confirmation from {{storeName}}" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="body">Body</Label>
-                                <RichTextEditor id="body" value={template.body || ''} onChange={handleBodyChange} />
+                                <RichTextEditor id="body" value={template.body || ''} onChange={handleBodyChange} placeholder="Hi {{customerName}}, thanks for your order..." />
                             </div>
                         </CardContent>
                     </Card>
@@ -107,11 +107,11 @@ export function EmailTemplateForm({ initialTemplate }: EmailTemplateFormProps) {
                          <CardContent className="space-y-4">
                              <div className="space-y-2">
                                 <Label htmlFor="name">Template Name</Label>
-                                <Input id="name" value={template.name || ''} onChange={handleInputChange} />
+                                <Input id="name" value={template.name || ''} onChange={handleInputChange} placeholder="e.g., Order Confirmation" />
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="description">Description</Label>
-                                <Textarea id="description" value={template.description || ''} onChange={handleInputChange} />
+                                <Textarea id="description" value={template.description || ''} onChange={handleInputChange} placeholder="e.g., Sent to customers after they place an order."/>
                             </div>
                         </CardContent>
                     </Card>

@@ -222,12 +222,12 @@ export default function CheckoutPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="name">Full Name</Label>
-                            <Input id="name" value={customer?.name || ''} onChange={handleCustomerChange} />
+                            <Input id="name" value={customer?.name || ''} onChange={handleCustomerChange} placeholder="e.g. Jane Doe"/>
                         </div>
                         <div className="grid sm:grid-cols-2 gap-4">
                            <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" type="email" value={customer?.email || ''} onChange={handleCustomerChange} />
+                                <Input id="email" type="email" value={customer?.email || ''} onChange={handleCustomerChange} placeholder="e.g. jane@example.com"/>
                             </div>
                              <div className="space-y-2">
                                 <Label htmlFor="phone">Phone Number</Label>
@@ -240,7 +240,7 @@ export default function CheckoutPage() {
                                         {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                                       </SelectContent>
                                     </Select>
-                                    <Input id="phone" type="tel" value={customer?.phone || ''} onChange={handleCustomerChange} />
+                                    <Input id="phone" type="tel" value={customer?.phone || ''} onChange={handleCustomerChange} placeholder="772123456"/>
                                 </div>
                             </div>
                         </div>
@@ -261,12 +261,12 @@ export default function CheckoutPage() {
                     <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="street">Street Address</Label>
-                            <Input id="street" value={customer?.shippingAddress?.street || ''} onChange={handleAddressChange} />
+                            <Input id="street" value={customer?.shippingAddress?.street || ''} onChange={handleAddressChange} placeholder="e.g. 123 Makerere Hill Rd"/>
                         </div>
                          <div className="grid sm:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="city">City</Label>
-                                <Input id="city" value={customer?.shippingAddress?.city || ''} onChange={handleAddressChange} />
+                                <Input id="city" value={customer?.shippingAddress?.city || ''} onChange={handleAddressChange} placeholder="e.g. Kampala"/>
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="country">Country</Label>

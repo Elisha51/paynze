@@ -225,7 +225,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="code">Discount Code</Label>
                                 <div className="flex gap-2">
-                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} />
+                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} placeholder="e.g. EID2024" />
                                     <Button variant="outline" onClick={generateCode}>
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         Generate
@@ -260,7 +260,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                 <div className="space-y-2">
                                     <Label htmlFor="value">Value</Label>
                                     <div className="relative">
-                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={discount.type === 'Percentage' ? 'pr-8' : `pl-8`} />
+                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={discount.type === 'Percentage' ? 'pr-8' : `pl-8`} placeholder="e.g. 15"/>
                                         <span className="absolute top-1/2 -translate-y-1/2 text-muted-foreground text-sm p-2">
                                             {discount.type === 'Percentage' ? '%' : currency}
                                         </span>
@@ -275,7 +275,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                         <CardContent className="space-y-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="buyQuantity">Quantity</Label>
-                                                <Input id="buyQuantity" type="number" value={discount.bogoDetails?.buyQuantity} onChange={(e) => handleBogoChange('buyQuantity', Number(e.target.value))} />
+                                                <Input id="buyQuantity" type="number" value={discount.bogoDetails?.buyQuantity} onChange={(e) => handleBogoChange('buyQuantity', Number(e.target.value))} placeholder="1" />
                                             </div>
                                             <ProductSelector
                                                 label="Specific products"
@@ -290,7 +290,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                         <CardContent className="space-y-4">
                                              <div className="space-y-2">
                                                 <Label htmlFor="getQuantity">Quantity</Label>
-                                                <Input id="getQuantity" type="number" value={discount.bogoDetails?.getQuantity} onChange={(e) => handleBogoChange('getQuantity', Number(e.target.value))} />
+                                                <Input id="getQuantity" type="number" value={discount.bogoDetails?.getQuantity} onChange={(e) => handleBogoChange('getQuantity', Number(e.target.value))} placeholder="1"/>
                                             </div>
                                             <ProductSelector
                                                 label="Specific products"
@@ -302,7 +302,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                                 <Label htmlFor="getDiscountPercentage">Discount Percentage on 'Get' items</Label>
                                                 <div className="relative">
                                                     <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="pr-8" placeholder="100"/>
-                                                    <span className="absolute right-0 top-0 -translate-y-1/2 text-muted-foreground text-sm p-2">%</span>
+                                                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Enter 100 for a "Buy One, Get One Free" offer.</p>
                                             </div>
@@ -325,7 +325,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             </div>
                              {hasUsageLimit && (
                                 <div className="pl-8 space-y-2">
-                                    <Input id="usageLimit" type="number" value={discount.usageLimit || ''} onChange={handleNumberChange} className="max-w-xs" />
+                                    <Input id="usageLimit" type="number" value={discount.usageLimit || ''} onChange={handleNumberChange} className="max-w-xs" placeholder="e.g. 500" />
                                 </div>
                              )}
                             <div className="flex items-center space-x-2">
@@ -406,8 +406,8 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                 <div className="relative">
-                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="pl-8" />
-                                     <span className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{currency}</span>
+                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="pl-8" placeholder="e.g. 50000" />
+                                     <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{currency}</span>
                                 </div>
                             </div>
                             <div className="space-y-2">
