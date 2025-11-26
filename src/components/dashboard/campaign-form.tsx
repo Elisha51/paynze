@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle, Clock, Mail, MessageSquare, Smartphone } from 'lucide-react';
@@ -436,6 +437,67 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                             </div>
                         </CardContent>
                     </Card>
+                     <Card>
+                        <CardHeader>
+                            <CardTitle>Affiliate Access</CardTitle>
+                            <CardDescription>Control if affiliates can use this campaign material.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                             <RadioGroup value={campaign.affiliateAccess} onValueChange={(v) => handleSelectChange('affiliateAccess', v)}>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="none" id="aff-none" />
+                                    <Label htmlFor="aff-none">No affiliates can use this</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="all" id="aff-all" />
+                                    <Label htmlFor="aff-all">All affiliates can use this</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="specific" id="aff-specific" />
+                                    <Label htmlFor="aff-specific">Only specific affiliates can use this</Label>
+                                </div>
+                            </RadioGroup>
+                            {campaign.affiliateAccess === 'specific' && (
+                                <div className="space-y-2 pl-6">
+                                    <Label>Allowed Affiliates</Label>
+                                     <Popover>
+                                        <PopoverTrigger asChild>
+                                            <Button variant="outline" role="combobox" className="w-full justify-between h-auto min-h-10">
+                                                <div className="flex flex-wrap gap-1">
+                                                    {(campaign.allowedAffiliateIds || []).length > 0
+                                                        ? (campaign.allowedAffiliateIds || []).map(id => {
+                                                            const affiliate = affiliates.find(a => a.id === id);
+                                                            return <Badge key={id} variant="secondary">{affiliate?.name || id}</Badge>;
+                                                        })
+                                                        : "Select affiliates..."
+                                                    }
+                                                </div>
+                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                            </Button>
+                                        </PopoverTrigger>
+                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                            <Command>
+                                                <CommandInput placeholder="Search affiliates..." />
+                                                <CommandEmpty>No affiliates found.</CommandEmpty>
+                                                <CommandGroup>
+                                                    {affiliates.map((affiliate) => (
+                                                    <CommandItem
+                                                        key={affiliate.id}
+                                                        value={affiliate.name}
+                                                        onSelect={() => handleAffiliateSelect(affiliate.id)}
+                                                    >
+                                                        <Check className={cn("mr-2 h-4 w-4", (campaign.allowedAffiliateIds || []).includes(affiliate.id) ? "opacity-100" : "opacity-0")} />
+                                                        {affiliate.name}
+                                                    </CommandItem>
+                                                    ))}
+                                                </CommandGroup>
+                                            </Command>
+                                        </PopoverContent>
+                                    </Popover>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
 
                     <Card>
                         <CardHeader>
@@ -549,3 +611,5 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         </div>
     );
 }
+
+    
