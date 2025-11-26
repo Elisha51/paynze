@@ -1,5 +1,4 @@
 
-
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -8,6 +7,7 @@ import { DataService } from './data-service';
 import { getAffiliates } from './affiliates';
 import { addNotification } from './notifications';
 import { addTransaction } from './finances';
+import { calculateCommissionForOrder } from './commissions';
 
 
 function initializeMockOrders(): Order[] {
@@ -182,15 +182,6 @@ function initializeMockOrders(): Order[] {
 
 const orderService = new DataService<Order>('orders', initializeMockOrders);
 
-const affiliateSettingsService = new DataService('affiliateSettings', () => ({
-    programStatus: 'Inactive',
-    commissionType: 'Percentage',
-    commissionRate: 10,
-    payoutThreshold: 50000,
-    cookieDuration: 30,
-}));
-
-
 export async function getOrders(): Promise<Order[]> {
   return await orderService.getAll();
 }
@@ -301,100 +292,14 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
 
     // Handle commissions after the order is updated
     if (isNewlyFulfilled) {
-        await handleCommission(updatedOrder.fulfilledByStaffId, updatedOrder, 'On Order Delivered');
+        await calculateCommissionForOrder(updatedOrder, 'On Order Delivered');
     }
     if (isNewlyPaid) {
-        await handleCommission(updatedOrder.salesAgentId, updatedOrder, 'On Order Paid');
+        await calculateCommissionForOrder(updatedOrder, 'On Order Paid');
     }
 
     return updatedOrder;
 }
-
-const checkCondition = (condition: CommissionRuleCondition, order: Order): boolean => {
-    switch (condition.subject) {
-        case 'Order Total':
-            const total = order.total;
-            const value = typeof condition.value === 'string' ? parseFloat(condition.value) : condition.value;
-            switch (condition.operator) {
-                case 'is greater than': return total > value;
-                case 'is less than': return total < value;
-                case 'is': return total === value;
-                default: return false;
-            }
-        case 'Product Category':
-             return order.items.some(item => {
-                 switch (condition.operator) {
-                     case 'is': return item.category === condition.value;
-                     case 'is not': return item.category !== condition.value;
-                     default: return false;
-                 }
-             });
-        default:
-            return false;
-    }
-};
-
-const handleCommission = async (staffId: string | undefined, order: Order, trigger: 'On Order Paid' | 'On Order Delivered') => {
-    if (!staffId) return;
-
-    const allStaff = await getStaff();
-    const staffMember = allStaff.find(s => s.id === staffId);
-    if (!staffMember) return;
-
-    const allRoles = await getRoles();
-    const staffRole = allRoles.find(r => r.name === staffMember.role);
-    if (!staffRole) return;
-
-    let totalEarnedCommission = 0;
-
-    if (staffRole.name === 'Affiliate') {
-        const affiliateSettingsArray = await affiliateSettingsService.getAll();
-        if (affiliateSettingsArray.length > 0) {
-            const affiliateSettings = affiliateSettingsArray[0] as any;
-            if (affiliateSettings.programStatus === 'Active' && trigger === 'On Order Paid') {
-                 if (affiliateSettings.commissionType === 'Percentage') {
-                    totalEarnedCommission += order.total * (affiliateSettings.commissionRate / 100);
-                } else {
-                    totalEarnedCommission += affiliateSettings.commissionRate;
-                }
-            }
-        }
-    } else if (staffRole.commissionRules && staffRole.commissionRules.length > 0) {
-        staffRole.commissionRules.forEach(rule => {
-            if (rule.trigger === trigger) {
-                const allConditionsMet = (rule.conditions || []).every(cond => checkCondition(cond, order));
-                if (allConditionsMet) {
-                    if (rule.type === 'Fixed Amount') {
-                        totalEarnedCommission += rule.rate;
-                    } else if (rule.type === 'Percentage of Sale') {
-                        totalEarnedCommission += order.total * (rule.rate / 100);
-                    }
-                }
-            }
-        });
-    }
-
-    let shouldUpdateStaff = false;
-    if (totalEarnedCommission > 0) {
-        staffMember.totalCommission = (staffMember.totalCommission || 0) + totalEarnedCommission;
-        shouldUpdateStaff = true;
-    }
-    
-    if (staffRole.name === 'Agent' && trigger === 'On Order Delivered') {
-        const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number, goal: number } | undefined;
-        if (deliveryTarget) {
-            staffMember.attributes = {
-                ...staffMember.attributes,
-                deliveryTarget: { ...deliveryTarget, current: (deliveryTarget.current || 0) + 1 }
-            };
-            shouldUpdateStaff = true;
-        }
-    }
-
-    if (shouldUpdateStaff) {
-        await updateStaff(staffMember);
-    }
-};
 
 export async function updateProductStock(
     variantSku: string, 
