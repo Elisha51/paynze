@@ -31,7 +31,7 @@ import { Textarea } from '../ui/textarea';
 import { updateProduct } from '@/services/products';
 import { ScrollArea } from '../ui/scroll-area';
 
-type AdjustmentAction = StockAdjustment['type'] | 'Transfer';
+type AdjustmentAction = Exclude<StockAdjustment['type'], 'Sale' | 'Return' | 'Un-reserve'> | 'Transfer';
 const addReasons = ['Supplier Shipment', 'Stock Take Correction', 'Return Processing', 'Other'];
 const damageReasons = ['Warehouse Damage', 'Expired Goods', 'Customer Return (Damaged)', 'Other'];
 const reserveReasons = ['Manual Order Hold', 'Quality Inspection', 'Photoshoot Sample', 'Other'];
@@ -133,12 +133,9 @@ export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product:
               stock.available -= quantity;
               stock.reserved += quantity;
               break;
-          case 'Un-reserve':
-              if (stock.reserved < quantity) {
-                  toast({ variant: 'destructive', title: 'Not enough reserved stock to un-reserve.' });
-                  return;
-              }
-              stock.reserved -= quantity;
+          case 'Manual Adjustment':
+              // This can be positive or negative
+              stock.onHand += quantity;
               stock.available += quantity;
               break;
           default: break;
@@ -149,8 +146,8 @@ export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product:
     variant.stockAdjustments.push({
         id: `adj-${Date.now()}`,
         date: new Date().toISOString(),
-        type: action,
-        quantity: action === 'Initial Stock' || action === 'Un-reserve' ? quantity : -quantity,
+        type: action as StockAdjustment['type'],
+        quantity: (action === 'Initial Stock' || action === 'Manual Adjustment') ? quantity : -quantity,
         reason: finalReason,
         channel: 'Manual',
         details: action === 'Transfer' ? `From ${fromLocation} to ${toLocation}` : `At ${fromLocation}`
@@ -188,11 +185,9 @@ export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product:
       switch(action) {
           case 'Initial Stock': return addReasons;
           case 'Damage': return damageReasons;
-          case 'Reserve':
-          case 'Un-reserve':
-              return reserveReasons;
+          case 'Reserve': return reserveReasons;
           case 'Transfer': return transferReasons;
-          default: return [];
+          default: return ['Other'];
       }
   }
 
@@ -212,7 +207,7 @@ export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product:
           <div className="grid gap-6 py-4 px-6">
             <div className="space-y-3">
                 <Label>Action</Label>
-                <RadioGroup value={action} onValueChange={(v) => { setAction(v as AdjustmentAction); setReason(''); }} className="grid grid-cols-2 lg:grid-cols-5 gap-2">
+                <RadioGroup value={action} onValueChange={(v) => { setAction(v as AdjustmentAction); setReason(''); }} className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                    <Label htmlFor="action-add" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Initial Stock' && "border-primary")}>
                       <RadioGroupItem value="Initial Stock" id="action-add" className="sr-only" />
                       <PlusCircle className="mb-2 h-5 w-5 text-green-600" />
@@ -227,11 +222,6 @@ export function ProductDetailsAdjustStock({ product, onStockUpdate }: { product:
                       <RadioGroupItem value="Reserve" id="action-reserve" className="sr-only" />
                       <BookLock className="mb-2 h-5 w-5 text-orange-600" />
                       <span className="text-xs text-center">Reserve</span>
-                  </Label>
-                   <Label htmlFor="action-unreserve" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Un-reserve' && "border-primary")}>
-                      <RadioGroupItem value="Un-reserve" id="action-unreserve" className="sr-only" />
-                      <BookLock className="mb-2 h-5 w-5 text-blue-600" />
-                      <span className="text-xs text-center">Un-reserve</span>
                   </Label>
                   <Label htmlFor="action-damage" className={cn("flex flex-col items-center justify-center rounded-md border-2 p-3 cursor-pointer", action === 'Damage' && "border-primary")}>
                       <RadioGroupItem value="Damage" id="action-damage" className="sr-only" />

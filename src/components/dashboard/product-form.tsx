@@ -181,6 +181,10 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 const optionCodes = Object.values(variant.optionValues).map(v => v.substring(0,3).toUpperCase()).join('-');
                 return { ...variant, sku: `${prevProduct.sku}-${optionCodes}` };
             }
+            // Preserve the base SKU for the default variant if variants are disabled
+            if (!prevProduct.hasVariants && newVariants.length === 1) {
+                return { ...variant, sku: prevProduct.sku };
+            }
             return variant;
         });
 

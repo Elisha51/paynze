@@ -49,7 +49,7 @@ export default function AffiliateDashboardPage() {
                 setAffiliate(affData || null);
                 if (affData) {
                     const orders = await getOrdersByAffiliate(affData.id);
-                    setReferredOrders(orders.filter(o => o.payment.status === 'completed'));
+                    setReferredOrders(orders);
                 }
             }
         }
@@ -59,6 +59,22 @@ export default function AffiliateDashboardPage() {
 
     const referralLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/?ref=${affiliate?.uniqueId}`;
     const currency = settings?.currency || 'UGX';
+
+    const { stats, paidOrders, totalConversions, totalSalesValue } = useMemo(() => {
+        const paidOrders = referredOrders.filter(o => o.payment.status === 'completed');
+        const totalConversions = referredOrders.length;
+        const totalSalesValue = referredOrders.reduce((sum, order) => sum + order.total, 0);
+
+        return {
+            paidOrders,
+            totalConversions,
+            totalSalesValue,
+            stats: {
+                // These stats can be built upon later if needed
+            }
+        }
+
+    }, [referredOrders]);
     
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
@@ -129,7 +145,7 @@ export default function AffiliateDashboardPage() {
         )
     }
 
-    const conversionRate = affiliate.linkClicks > 0 ? ((affiliate.conversions / affiliate.linkClicks) * 100).toFixed(2) : '0.00';
+    const conversionRate = affiliate.linkClicks > 0 ? ((totalConversions / affiliate.linkClicks) * 100).toFixed(2) : '0.00';
     const meetsPayoutThreshold = affiliate.pendingCommission >= (affiliateSettings?.payoutThreshold || 0);
 
     return (
@@ -196,7 +212,7 @@ export default function AffiliateDashboardPage() {
                                     <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{affiliate.conversions}</div>
+                                    <div className="text-2xl font-bold">{totalConversions}</div>
                                     <p className="text-xs text-muted-foreground">{conversionRate}% conversion rate</p>
                                 </CardContent>
                             </Card>
@@ -205,7 +221,7 @@ export default function AffiliateDashboardPage() {
                         <Card>
                             <CardHeader>
                                 <CardTitle>Your Referred Sales</CardTitle>
-                                <CardDescription>A list of completed sales you have referred.</CardDescription>
+                                <CardDescription>A list of all sales you have referred (both pending and paid).</CardDescription>
                             </CardHeader>
                             <CardContent>
                                 <Table>
