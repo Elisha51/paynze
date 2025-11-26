@@ -44,7 +44,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Alert, AlertTitle } from '../ui/alert';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -564,4 +564,3 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
-
