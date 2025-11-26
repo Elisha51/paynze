@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -36,13 +36,11 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { getCustomerGroups } from '@/services/customer-groups';
-import { format } from 'date-fns';
+import { format, setHours, setMinutes } from 'date-fns';
 import { Calendar } from '../ui/calendar';
 import { Separator } from '../ui/separator';
 import { Checkbox } from '../ui/checkbox';
 import { AnimatePresence, motion } from 'framer-motion';
-import { DateRange } from 'react-day-picker';
-import { DateRangePicker } from '../ui/date-range-picker';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -54,7 +52,7 @@ const emptyCampaign: Partial<Campaign> = {
   allowedAffiliateIds: [],
   scheduleType: undefined,
   recurring: {
-    frequency: 'Weekly',
+    frequency: 'Weeks',
     interval: 1,
     daysOfWeek: [],
     dayOfMonth: 1,
@@ -79,21 +77,54 @@ type CampaignFormProps = {
     initialCampaign?: Campaign | null;
 }
 
+const TimePicker = ({ date, onTimeChange }: { date: Date, onTimeChange: (newDate: Date) => void }) => {
+    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+    const minutes = ['00', '15', '30', '45'];
+    
+    const handleHourChange = (hour: string) => {
+        onTimeChange(setHours(date, parseInt(hour)));
+    };
+
+    const handleMinuteChange = (minute: string) => {
+        onTimeChange(setMinutes(date, parseInt(minute)));
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <Select value={String(date.getHours()).padStart(2, '0')} onValueChange={handleHourChange}>
+                <SelectTrigger className="w-[70px] h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                    {hours.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}
+                </SelectContent>
+            </Select>
+            <span>:</span>
+            <Select value={String(date.getMinutes()).padStart(2, '0')} onValueChange={handleMinuteChange}>
+                <SelectTrigger className="w-[70px] h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                    {minutes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+            </Select>
+             <span className="text-xs text-muted-foreground">(24h format)</span>
+        </div>
+    )
+}
+
 export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>({
         ...emptyCampaign,
         ...initialCampaign,
+        scheduleType: initialCampaign?.scheduleType || 'one-time'
     });
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>(
-      initialCampaign?.startDate
-        ? {
-            from: new Date(initialCampaign.startDate),
-            to: initialCampaign.endDate ? new Date(initialCampaign.endDate) : undefined,
-          }
-        : undefined
+    
+    const [startDate, setStartDate] = useState<Date | undefined>(
+        initialCampaign?.startDate ? new Date(initialCampaign.startDate) : new Date()
     );
+    const [endDate, setEndDate] = useState<Date | undefined>(
+        initialCampaign?.endDate ? new Date(initialCampaign.endDate) : undefined
+    );
+    const [noEndDate, setNoEndDate] = useState(!initialCampaign?.endDate);
 
     const router = useRouter();
     const { toast } = useToast();
@@ -106,11 +137,15 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
             setCampaign(prev => ({
                 ...prev, 
                 ...initialCampaign,
+                scheduleType: initialCampaign.scheduleType || 'one-time'
             }));
-            const range: DateRange = {};
-            if (initialCampaign.startDate) range.from = new Date(initialCampaign.startDate);
-            if (initialCampaign.endDate) range.to = new Date(initialCampaign.endDate);
-            setDateRange(range);
+            if (initialCampaign.startDate) setStartDate(new Date(initialCampaign.startDate));
+            if (initialCampaign.endDate) {
+                setEndDate(new Date(initialCampaign.endDate));
+                setNoEndDate(false);
+            } else {
+                setNoEndDate(true);
+            }
         }
 
         async function loadData() {
@@ -123,6 +158,13 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         }
         loadData();
     }, [initialCampaign]);
+    
+    useEffect(() => {
+        if (noEndDate) {
+            setEndDate(undefined);
+        }
+    }, [noEndDate]);
+
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -171,7 +213,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         setCampaign(prev => ({
             ...prev,
             recurring: {
-                ...(prev.recurring || { frequency: 'Weekly', interval: 1, daysOfWeek: [] }),
+                ...(prev.recurring || { frequency: 'Weeks', interval: 1, daysOfWeek: [] }),
                 [field]: value
             }
         }));
@@ -188,8 +230,8 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const handleSave = () => {
         const finalCampaign: Partial<Campaign> = {
             ...campaign,
-            startDate: dateRange?.from?.toISOString(),
-            endDate: dateRange?.to?.toISOString(),
+            startDate: startDate?.toISOString(),
+            endDate: noEndDate ? undefined : endDate?.toISOString(),
         };
 
         console.log("Saving campaign", finalCampaign);
@@ -382,9 +424,43 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                     <Separator className="my-4" />
                                     <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label>Campaign Duration</Label>
-                                            <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false}/>
+                                            <Label>Start Date & Time</Label>
+                                            <div className="flex items-center gap-2">
+                                                <Popover>
+                                                    <PopoverTrigger asChild>
+                                                        <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                            {startDate ? format(startDate, 'PPP') : <span>Pick a date</span>}
+                                                        </Button>
+                                                    </PopoverTrigger>
+                                                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} /></PopoverContent>
+                                                </Popover>
+                                                {startDate && <TimePicker date={startDate} onTimeChange={setStartDate} />}
+                                            </div>
                                         </div>
+                                        
+                                        <div className="space-y-2">
+                                            <Label>End Date & Time</Label>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="no-end-date" checked={noEndDate} onCheckedChange={(c) => setNoEndDate(c as boolean)} />
+                                                <Label htmlFor="no-end-date" className="font-normal">No end date</Label>
+                                            </div>
+                                             {!noEndDate && (
+                                                <div className="flex items-center gap-2">
+                                                    <Popover>
+                                                        <PopoverTrigger asChild>
+                                                            <Button variant="outline" className={cn("flex-1 justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                {endDate ? format(endDate, 'PPP') : <span>Pick a date</span>}
+                                                            </Button>
+                                                        </PopoverTrigger>
+                                                        <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} /></PopoverContent>
+                                                    </Popover>
+                                                    {endDate && <TimePicker date={endDate} onTimeChange={setEndDate} />}
+                                                </div>
+                                             )}
+                                        </div>
+                                        
                                         {campaign.scheduleType === 'recurring' && (
                                             <div className="space-y-4 pt-4 border-t">
                                                 <div className="flex items-center gap-2">
@@ -536,3 +612,6 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         </div>
     );
 }
+
+
+    
