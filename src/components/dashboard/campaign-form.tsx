@@ -38,7 +38,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { getCustomerGroups } from '@/services/customer-groups';
-import { format, parse } from 'date-fns';
+import { format, parse, setHours, setMinutes } from 'date-fns';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -151,20 +151,38 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
             return { ...prev, allowedAffiliateIds: newIds };
         })
     }
+    
+    const handleTimeChange = (
+      type: 'start' | 'end',
+      part: 'hours' | 'minutes',
+      value: string
+    ) => {
+      const timeSetter = type === 'start' ? setStartTime : setEndTime;
+      const currentTime = type === 'start' ? startTime : endTime;
+    
+      timeSetter(prevTime => {
+        const [h, m] = prevTime.split(':');
+        if (part === 'hours') {
+          return `${value}:${m}`;
+        }
+        return `${h}:${value}`;
+      });
+    };
+
 
     const handleSave = () => {
         let finalStartDate: string | undefined = undefined;
         let finalEndDate: string | undefined = undefined;
 
         if (dateRange?.from) {
-            const date = format(dateRange.from, 'yyyy-MM-dd');
-            const combined = parse(`${date} ${startTime}`, 'yyyy-MM-dd HH:mm', new Date());
+            const [hours, minutes] = startTime.split(':').map(Number);
+            const combined = setMinutes(setHours(dateRange.from, hours), minutes);
             finalStartDate = combined.toISOString();
         }
         
         if (dateRange?.to) {
-            const date = format(dateRange.to, 'yyyy-MM-dd');
-            const combined = parse(`${date} ${endTime}`, 'yyyy-MM-dd HH:mm', new Date());
+            const [hours, minutes] = endTime.split(':').map(Number);
+            const combined = setMinutes(setHours(dateRange.to, hours), minutes);
             finalEndDate = combined.toISOString();
         }
 
@@ -182,7 +200,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         router.push('/dashboard/marketing?tab=campaigns');
     }
     
-    const pageTitle = isEditing ? 'Edit Campaign' : 'Create Campaign';
+    const pageTitle = isEditing ? `Edit "${initialCampaign?.name}"` : 'Create Campaign';
     const cta = (
          <Button onClick={handleSave}>
             <Save className="mr-2 h-4 w-4" />
@@ -346,19 +364,45 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                 <Label>Active Dates</Label>
                                 <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false} />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                           <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor="startTime">Start Time</Label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="pl-10" />
+                                    <Label>Start Time (24h)</Label>
+                                    <div className="flex items-center gap-2">
+                                    <Select
+                                        value={startTime.split(':')[0]}
+                                        onValueChange={(v) => handleTimeChange('start', 'hours', v)}
+                                    >
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>{Array.from({ length: 24 }, (_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                    <span>:</span>
+                                    <Select
+                                        value={startTime.split(':')[1]}
+                                        onValueChange={(v) => handleTimeChange('start', 'minutes', v)}
+                                    >
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>{['00', '15', '30', '45'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                                    </Select>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="endTime">End Time</Label>
-                                    <div className="relative">
-                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                        <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="pl-10" />
+                                    <Label>End Time (24h)</Label>
+                                    <div className="flex items-center gap-2">
+                                    <Select
+                                        value={endTime.split(':')[0]}
+                                        onValueChange={(v) => handleTimeChange('end', 'hours', v)}
+                                    >
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>{Array.from({ length: 24 }, (_, i) => <SelectItem key={i} value={String(i).padStart(2, '0')}>{String(i).padStart(2, '0')}</SelectItem>)}</SelectContent>
+                                    </Select>
+                                    <span>:</span>
+                                    <Select
+                                        value={endTime.split(':')[1]}
+                                        onValueChange={(v) => handleTimeChange('end', 'minutes', v)}
+                                    >
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>{['00', '15', '30', '45'].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                                    </Select>
                                     </div>
                                 </div>
                             </div>
