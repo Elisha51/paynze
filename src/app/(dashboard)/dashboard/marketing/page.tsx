@@ -11,13 +11,12 @@ import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marke
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Megaphone, Gift, Users, PlusCircle, Mail, MessageSquare, Smartphone } from 'lucide-react';
+import { Megaphone, Gift, Users, PlusCircle } from 'lucide-react';
 import { getAffiliates } from '@/services/affiliates';
 import { DiscountsTab } from '@/components/dashboard/discounts-tab';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/auth-context';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/components/ui/dropdown-menu';
 
 
 function MarketingOverview({ campaigns, discounts, affiliates }: { campaigns: Campaign[], discounts: Discount[], affiliates: Affiliate[] }) {
@@ -114,22 +113,9 @@ export default function MarketingPage() {
     }
     if (activeTab === 'campaigns') {
       return (
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button><PlusCircle className="mr-2 h-4 w-4" /> Create Campaign</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-                <DropdownMenuItem asChild>
-                    <Link href="/dashboard/marketing/campaigns/add-email"><Mail className="mr-2 h-4 w-4" />Email Campaign</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/dashboard/marketing/campaigns/add-sms"><MessageSquare className="mr-2 h-4 w-4" />SMS Campaign</Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                    <Link href="/dashboard/marketing/campaigns/add-whatsapp"><Smartphone className="mr-2 h-4 w-4" />WhatsApp Campaign</Link>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
+        <Button asChild>
+          <Link href="/dashboard/marketing/campaigns/add"><PlusCircle className="mr-2 h-4 w-4" /> Create Campaign</Link>
+        </Button>
       );
     }
     if (activeTab === 'discounts') {

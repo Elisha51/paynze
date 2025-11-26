@@ -5,8 +5,8 @@ import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 
 export default function AddCampaignPage() {
   return (
-    <DashboardPageLayout title="Create Email Campaign" backHref="/dashboard/marketing?tab=campaigns">
-        <CampaignForm channel="Email" />
+    <DashboardPageLayout title="Create New Campaign" backHref="/dashboard/marketing?tab=campaigns">
+        <CampaignForm />
     </DashboardPageLayout>
   );
 }

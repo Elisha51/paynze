@@ -1,6 +1,6 @@
 'use client';
 
-import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle, Clock, MessageSquare, Smartphone, Mail } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle, Clock, Mail, MessageSquare, Smartphone } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -21,7 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Campaign, CampaignBanner, Affiliate, CustomerGroup, RecurringSchedule, WhatsAppTemplate, SmsTemplate, EmailTemplate, Product } from '@/lib/types';
+import type { Campaign, CampaignBanner, Affiliate, CustomerGroup, RecurringSchedule, WhatsAppTemplate, SmsTemplate, EmailTemplate, Product, CampaignContent } from '@/lib/types';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { Switch } from '../ui/switch';
 import { FileUploader } from '../ui/file-uploader';
@@ -42,10 +42,11 @@ import { Checkbox } from '../ui/checkbox';
 import { AnimatePresence, motion } from 'framer-motion';
 import { getEmailTemplates, getSmsTemplates, getWhatsAppTemplates } from '@/services/templates';
 import { Textarea } from '../ui/textarea';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
+
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
-  channel: 'Email',
   status: 'Draft',
   audience: 'All Customers',
   affiliateAccess: 'none',
@@ -55,6 +56,11 @@ const emptyCampaign: Partial<Campaign> = {
     frequency: 'Weeks',
     interval: 1,
     daysOfWeek: [],
+  },
+  content: {
+    email: { enabled: true, subject: '', body: '' },
+    sms: { enabled: false, message: '' },
+    whatsapp: { enabled: false, message: '' },
   },
   banner: {
     enabled: false,
@@ -70,7 +76,6 @@ const emptyCampaign: Partial<Campaign> = {
 
 type CampaignFormProps = {
     initialCampaign?: Campaign | null;
-    channel: 'Email' | 'SMS' | 'WhatsApp';
 }
 
 const TimePicker = ({ date, onTimeChange }: { date: Date, onTimeChange: (newDate: Date) => void }) => {
@@ -105,14 +110,11 @@ const TimePicker = ({ date, onTimeChange }: { date: Date, onTimeChange: (newDate
     )
 }
 
-export function CampaignForm({ initialCampaign, channel }: CampaignFormProps) {
-    const [campaign, setCampaign] = useState<Partial<Campaign>>({
-        ...emptyCampaign,
-        ...initialCampaign,
-        channel,
-        scheduleType: initialCampaign?.scheduleType || 'one-time'
-    });
-    const [templates, setTemplates] = useState<(EmailTemplate | SmsTemplate | WhatsAppTemplate)[]>([]);
+export function CampaignForm({ initialCampaign }: CampaignFormProps) {
+    const [campaign, setCampaign] = useState<Partial<Campaign>>(initialCampaign || emptyCampaign);
+    const [emailTemplates, setEmailTemplates] = useState<EmailTemplate[]>([]);
+    const [smsTemplates, setSmsTemplates] = useState<SmsTemplate[]>([]);
+    const [whatsAppTemplates, setWhatsAppTemplates] = useState<WhatsAppTemplate[]>([]);
 
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
@@ -134,10 +136,14 @@ export function CampaignForm({ initialCampaign, channel }: CampaignFormProps) {
     useEffect(() => {
         if (initialCampaign) {
             setCampaign(prev => ({
+                ...emptyCampaign, 
                 ...prev, 
                 ...initialCampaign,
-                channel,
-                scheduleType: initialCampaign.scheduleType || 'one-time'
+                scheduleType: initialCampaign.scheduleType || 'one-time',
+                content: {
+                    ...emptyCampaign.content,
+                    ...initialCampaign.content
+                }
             }));
             if (initialCampaign.startDate) setStartDate(new Date(initialCampaign.startDate));
             if (initialCampaign.endDate) {
@@ -149,17 +155,21 @@ export function CampaignForm({ initialCampaign, channel }: CampaignFormProps) {
         }
 
         async function loadData() {
-            const [affiliateData, customerGroupData, templateData] = await Promise.all([
+            const [affiliateData, customerGroupData, emailTpls, smsTpls, waTpls] = await Promise.all([
                 getAffiliates(),
                 getCustomerGroups(),
-                channel === 'Email' ? getEmailTemplates() : channel === 'SMS' ? getSmsTemplates() : getWhatsAppTemplates()
+                getEmailTemplates(),
+                getSmsTemplates(),
+                getWhatsAppTemplates()
             ]);
             setAffiliates(affiliateData.filter(a => a.status === 'Active'));
             setCustomerGroups(customerGroupData);
-            setTemplates(templateData);
+            setEmailTemplates(emailTpls);
+            setSmsTemplates(smsTpls);
+            setWhatsAppTemplates(waTpls);
         }
         loadData();
-    }, [initialCampaign, channel]);
+    }, [initialCampaign]);
     
     useEffect(() => {
         if (noEndDate) {
@@ -176,6 +186,69 @@ export function CampaignForm({ initialCampaign, channel }: CampaignFormProps) {
     const handleSelectChange = (id: 'status' | 'audience' | 'affiliateAccess', value: string) => {
         setCampaign(prev => ({...prev, [id]: value as any}));
     }
+    
+    const handleContentChange = (channel: keyof CampaignContent, field: 'subject' | 'body' | 'message', value: string) => {
+        setCampaign(prev => ({
+            ...prev,
+            content: {
+                ...prev.content,
+                [channel]: {
+                    ...prev.content?.[channel],
+                    [field]: value
+                }
+            }
+        }))
+    }
+    
+    const handleChannelToggle = (channel: keyof CampaignContent, enabled: boolean) => {
+        setCampaign(prev => ({
+            ...prev,
+            content: {
+                ...prev.content,
+                [channel]: {
+                    ...prev.content?.[channel],
+                    enabled
+                }
+            }
+        }))
+    }
+
+    const handleTemplateSelect = (channel: keyof CampaignContent, templateId: string) => {
+        let selectedTemplate;
+        let updates: Partial<CampaignContent['email'] | CampaignContent['sms'] | CampaignContent['whatsapp']> = {};
+
+        switch(channel) {
+            case 'email':
+                selectedTemplate = emailTemplates.find(t => t.id === templateId);
+                if (selectedTemplate) {
+                    updates = { subject: selectedTemplate.subject, body: selectedTemplate.body };
+                }
+                break;
+            case 'sms':
+                selectedTemplate = smsTemplates.find(t => t.id === templateId);
+                if (selectedTemplate) {
+                     updates = { message: selectedTemplate.message };
+                }
+                break;
+            case 'whatsapp':
+                selectedTemplate = whatsAppTemplates.find(t => t.id === templateId);
+                 if (selectedTemplate) {
+                     updates = { message: selectedTemplate.message };
+                }
+                break;
+        }
+
+        setCampaign(prev => ({
+            ...prev,
+            content: {
+                ...prev.content,
+                [channel]: {
+                    ...prev.content?.[channel],
+                    ...updates
+                }
+            }
+        }));
+    };
     
     const handleBannerChange = (field: keyof CampaignBanner, value: string | boolean | CampaignBanner['size']) => {
         setCampaign(prev => ({
@@ -240,164 +313,93 @@ export function CampaignForm({ initialCampaign, channel }: CampaignFormProps) {
         router.push('/dashboard/marketing?tab=campaigns');
     }
 
-    const channelIcons: Record<string, React.ElementType> = {
-        Email: Mail,
-        SMS: MessageSquare,
-        WhatsApp: Smartphone,
-    }
-
-    const ChannelIcon = channelIcons[channel];
-
-    const getChannelSpecificContent = () => {
-        switch(channel) {
-            case 'Email':
-                return (
-                     <RichTextEditor
-                        id="content"
-                        value={campaign.content || ''}
-                        onChange={(v) => setCampaign(p => ({...p, content: v}))}
-                        placeholder="Compose your email here..."
-                    />
-                )
-            case 'SMS':
-                 return (
-                    <>
-                        <Textarea
-                            id="content"
-                            value={campaign.content || ''}
-                            onChange={(e) => setCampaign(p => ({...p, content: e.target.value}))}
-                            placeholder="Type your SMS message here..."
-                            className="min-h-[120px]"
-                        />
-                         <p className="text-xs text-muted-foreground text-right">{(campaign.content || '').length} characters. 1 SMS is 160 characters.</p>
-                    </>
-                )
-            case 'WhatsApp':
-                 return (
-                    <Textarea
-                        id="content"
-                        value={campaign.content || ''}
-                        onChange={(e) => setCampaign(p => ({...p, content: e.target.value}))}
-                        placeholder="Type your WhatsApp message here..."
-                        className="min-h-[120px]"
-                    />
-                 )
-            default: return null;
-        }
-    }
-
     return (
          <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-3 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle className="flex items-center gap-2">
-                                <ChannelIcon className="h-6 w-6"/>
-                                {channel} Campaign Content
-                            </CardTitle>
+                            <CardTitle>Campaign Details</CardTitle>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Campaign Name</Label>
                                 <Input id="name" value={campaign.name || ''} onChange={handleInputChange} />
                             </div>
-                            <div className="space-y-2">
-                                <Label>Template (Optional)</Label>
-                                <Select onValueChange={(templateId) => {
-                                    const selectedTemplate = templates.find(t => t.id === templateId);
-                                    if (selectedTemplate) {
-                                        setCampaign(prev => ({
-                                            ...prev, 
-                                            subject: (selectedTemplate as EmailTemplate).subject, 
-                                            content: (selectedTemplate as EmailTemplate).body || (selectedTemplate as SmsTemplate | WhatsAppTemplate).message
-                                        }))
-                                    }
-                                }}>
-                                    <SelectTrigger><SelectValue placeholder="Start from a template..."/></SelectTrigger>
-                                    <SelectContent>
-                                        {templates.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                             <div className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                    <Label htmlFor="content">Message</Label>
-                                    <Button variant="ghost" size="sm" disabled>
-                                        <Sparkles className="h-4 w-4 mr-2" />
-                                        Generate with AI
-                                    </Button>
-                                </div>
-                                {getChannelSpecificContent()}
-                             </div>
                         </CardContent>
                     </Card>
-                    
                     <Card>
                         <CardHeader>
-                            <CardTitle>Storefront Banner</CardTitle>
-                            <CardDescription>Feature this campaign in a banner on your storefront homepage.</CardDescription>
+                            <CardTitle>Content</CardTitle>
+                            <CardDescription>Customize the message for each channel you want to use.</CardDescription>
                         </CardHeader>
                         <CardContent>
-                           {canCreateBanners ? (
-                                <div className="space-y-4">
-                                <div className="flex items-center space-x-2">
-                                    <Switch id="banner-enabled" checked={campaign.banner?.enabled} onCheckedChange={(c) => handleBannerChange('enabled', c)} />
-                                    <Label htmlFor="banner-enabled">Enable banner for this campaign</Label>
-                                </div>
-                                {campaign.banner?.enabled && (
-                                    <div className="space-y-4 pt-4 border-t">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="banner-title">Banner Title</Label>
-                                            <Input id="banner-title" value={campaign.banner.title} onChange={(e) => handleBannerChange('title', e.target.value)} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="banner-size">Banner Size</Label>
-                                            <Select value={campaign.banner.size} onValueChange={(v) => handleBannerChange('size', v as CampaignBanner['size'])}>
-                                                <SelectTrigger><SelectValue/></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="standard">Standard (3:1)</SelectItem>
-                                                    <SelectItem value="large">Large (2:1)</SelectItem>
-                                                    <SelectItem value="square">Square (1:1)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="banner-description">Banner Description</Label>
-                                            <Input id="banner-description" value={campaign.banner.description} onChange={(e) => handleBannerChange('description', e.target.value)} />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="banner-ctaText">CTA Button Text</Label>
-                                                <Input id="banner-ctaText" value={campaign.banner.ctaText} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="banner-ctaLink">CTA Link</Label>
-                                                <Input id="banner-ctaLink" value={campaign.banner.ctaLink} onChange={(e) => handleBannerChange('ctaLink', e.target.value)} placeholder="/store/product/SKU-123"/>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Banner Image</Label>
-                                            <FileUploader 
-                                                files={campaign.banner.imageUrl ? [{id: 'banner-img', url: campaign.banner.imageUrl}] : []}
-                                                onFilesChange={handleBannerImageUpload}
-                                                maxFiles={1}
-                                            />
-                                            <p className="text-xs text-muted-foreground">Recommended dimensions: 1200x400 for standard, 1200x600 for large, 800x800 for square.</p>
-                                        </div>
+                            <Tabs defaultValue="email">
+                                <TabsList className="grid w-full grid-cols-3">
+                                    <TabsTrigger value="email"><Mail className="mr-2 h-4 w-4"/>Email</TabsTrigger>
+                                    <TabsTrigger value="sms"><MessageSquare className="mr-2 h-4 w-4"/>SMS</TabsTrigger>
+                                    <TabsTrigger value="whatsapp"><Smartphone className="mr-2 h-4 w-4"/>WhatsApp</TabsTrigger>
+                                </TabsList>
+                                <TabsContent value="email" className="mt-6 space-y-4">
+                                     <div className="flex items-center space-x-2">
+                                        <Switch id="email-enabled" checked={campaign.content?.email?.enabled} onCheckedChange={(c) => handleChannelToggle('email', c)} />
+                                        <Label htmlFor="email-enabled">Enable Email Channel</Label>
                                     </div>
-                                )}
-                            </div>
-                           ) : (
-                             <Alert>
-                                <ShieldAlert className="h-4 w-4" />
-                                <AlertTitle>Upgrade to Unlock</AlertTitle>
-                                <AlertDescription>
-                                    Storefront banners are available on the Pro plan and above. 
-                                    <Button variant="link" asChild className="p-0 h-auto ml-1"><Link href="#">Upgrade your plan</Link></Button> to start using this feature.
-                                </AlertDescription>
-                            </Alert>
-                           )}
+                                    {campaign.content?.email?.enabled && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label>Template (Optional)</Label>
+                                                <Select onValueChange={(v) => handleTemplateSelect('email', v)}><SelectTrigger><SelectValue placeholder="Start from a template..."/></SelectTrigger><SelectContent>{emailTemplates.map(t=><SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select>
+                                            </div>
+                                             <div className="space-y-2">
+                                                <Label htmlFor="email-subject">Subject</Label>
+                                                <Input id="email-subject" value={campaign.content?.email?.subject} onChange={(e) => handleContentChange('email', 'subject', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="email-body">Body</Label>
+                                                <RichTextEditor id="email-body" value={campaign.content?.email?.body || ''} onChange={(v) => handleContentChange('email', 'body', v)} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </TabsContent>
+                                <TabsContent value="sms" className="mt-6 space-y-4">
+                                     <div className="flex items-center space-x-2">
+                                        <Switch id="sms-enabled" checked={campaign.content?.sms?.enabled} onCheckedChange={(c) => handleChannelToggle('sms', c)} />
+                                        <Label htmlFor="sms-enabled">Enable SMS Channel</Label>
+                                    </div>
+                                     {campaign.content?.sms?.enabled && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label>Template (Optional)</Label>
+                                                <Select onValueChange={(v) => handleTemplateSelect('sms', v)}><SelectTrigger><SelectValue placeholder="Start from a template..."/></SelectTrigger><SelectContent>{smsTemplates.map(t=><SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="sms-message">Message</Label>
+                                                <Textarea id="sms-message" value={campaign.content?.sms?.message} onChange={(e) => handleContentChange('sms', 'message', e.target.value)} />
+                                                <p className="text-xs text-muted-foreground text-right">{(campaign.content?.sms?.message || '').length} characters. 1 SMS is 160 characters.</p>
+                                            </div>
+                                        </div>
+                                     )}
+                                </TabsContent>
+                                <TabsContent value="whatsapp" className="mt-6 space-y-4">
+                                     <div className="flex items-center space-x-2">
+                                        <Switch id="wa-enabled" checked={campaign.content?.whatsapp?.enabled} onCheckedChange={(c) => handleChannelToggle('whatsapp', c)} />
+                                        <Label htmlFor="wa-enabled">Enable WhatsApp Channel</Label>
+                                    </div>
+                                     {campaign.content?.whatsapp?.enabled && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label>Template (Optional)</Label>
+                                                <Select onValueChange={(v) => handleTemplateSelect('whatsapp', v)}><SelectTrigger><SelectValue placeholder="Start from a template..."/></SelectTrigger><SelectContent>{whatsAppTemplates.map(t=><SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}</SelectContent></Select>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="wa-message">Message</Label>
+                                                <Textarea id="wa-message" value={campaign.content?.whatsapp?.message} onChange={(e) => handleContentChange('whatsapp', 'message', e.target.value)} />
+                                            </div>
+                                        </div>
+                                     )}
+                                </TabsContent>
+                            </Tabs>
                         </CardContent>
                     </Card>
                 </div>
@@ -536,70 +538,13 @@ export function CampaignForm({ initialCampaign, channel }: CampaignFormProps) {
                             </AnimatePresence>
                         </CardContent>
                     </Card>
-                    
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Affiliate Access</CardTitle>
-                            <CardDescription>Control which affiliates can see and use this campaign.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <RadioGroup value={campaign.affiliateAccess} onValueChange={(v) => handleSelectChange('affiliateAccess', v)} className="space-y-2">
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="none" id="aff-none" />
-                                    <Label htmlFor="aff-none">No Affiliates (Store Only)</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="all" id="aff-all" />
-                                    <Label htmlFor="aff-all">All Affiliates</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="specific" id="aff-specific" />
-                                    <Label htmlFor="aff-specific">Specific Affiliates</Label>
-                                </div>
-                            </RadioGroup>
-                            
-                            {campaign.affiliateAccess === 'specific' && (
-                                <div className="space-y-2 pt-2">
-                                    <Label>Allowed Affiliates</Label>
-                                     <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button variant="outline" role="combobox" className="w-full justify-between h-auto min-h-10">
-                                                <div className="flex flex-wrap gap-1">
-                                                    {(campaign.allowedAffiliateIds || []).length > 0
-                                                        ? (campaign.allowedAffiliateIds || []).map(id => {
-                                                            const affiliate = affiliates.find(a => a.id === id);
-                                                            return <Badge key={id} variant="secondary">{affiliate?.name || id}</Badge>;
-                                                        })
-                                                        : "Select affiliates..."
-                                                    }
-                                                </div>
-                                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                            <Command>
-                                                <CommandInput placeholder="Search affiliates..." />
-                                                <CommandEmpty>No affiliates found.</CommandEmpty>
-                                                <CommandGroup>
-                                                    {affiliates.map((affiliate) => (
-                                                    <CommandItem
-                                                        key={affiliate.id}
-                                                        value={affiliate.name}
-                                                        onSelect={() => handleAffiliateSelect(affiliate.id)}
-                                                    >
-                                                        <Check className={cn("mr-2 h-4 w-4", (campaign.allowedAffiliateIds || []).includes(affiliate.id) ? "opacity-100" : "opacity-0")} />
-                                                        {affiliate.name}
-                                                    </CommandItem>
-                                                    ))}
-                                                </CommandGroup>
-                                            </Command>
-                                        </PopoverContent>
-                                    </Popover>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
                 </div>
+            </div>
+             <div className="flex justify-end mt-6">
+                <Button size="lg" onClick={handleSave}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Campaign
+                </Button>
             </div>
         </div>
     );
