@@ -20,6 +20,7 @@ import {
   DialogDescription,
   DialogFooter,
   DialogClose,
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import {
   DropdownMenu,
@@ -40,7 +41,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
+  AlertDialogTrigger as AlertDialogTriggerPrimitive,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from '@/lib/config';
@@ -634,3 +635,5 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
+
+    
