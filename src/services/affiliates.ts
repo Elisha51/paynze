@@ -1,65 +1,90 @@
 
-import type { Affiliate, Order, Payout } from '@/lib/types';
+import type { Affiliate, Order, Payout, Staff } from '@/lib/types';
 import { DataService } from './data-service';
 import { getOrders } from './orders';
+import { getStaff } from './staff';
+
 
 async function initializeMockAffiliates(): Promise<Affiliate[]> {
-    const allOrders = await getOrders();
-    const mockData: Omit<Affiliate, 'id' | 'linkClicks' | 'conversions' | 'totalSales' | 'pendingCommission' | 'paidCommission' | 'payoutHistory'>[] = [
-        { name: 'Fatuma Asha', status: 'Active', contact: '0772123456', uniqueId: 'FATUMA123' },
-        { name: 'David Odhiambo', status: 'Active', contact: '0712345678', uniqueId: 'DAVIDO' },
-        { name: 'Brenda Wanjiku', status: 'Pending', contact: '0723456789', uniqueId: 'BRENDA24' },
-        { name: 'Suspended Sally', status: 'Suspended', contact: '0734567890', uniqueId: 'SALLY' },
-        { name: 'Rejected Ron', status: 'Rejected', contact: '0745678901', uniqueId: 'RONNIE' },
-        { name: 'Deactivated Dan', status: 'Deactivated', contact: '0756789012', uniqueId: 'DANDAN' },
-    ];
+    const allStaff = await getStaff();
+    const affiliateStaff = allStaff.filter(s => s.role === 'Affiliate');
     
-    // Calculate stats dynamically
-    return mockData.map((aff, index) => {
-        const id = `aff-00${index + 1}`;
-        const referredOrders = allOrders.filter(o => o.salesAgentId === id);
-        const paidOrders = referredOrders.filter(o => o.payment.status === 'completed');
-        const conversions = referredOrders.length;
-        const totalSales = referredOrders.reduce((sum, o) => sum + o.total, 0);
-        // Simple commission logic (10% for this mock)
-        const totalCommissionEarned = paidOrders.reduce((sum, o) => sum + o.total * 0.1, 0);
-        
-        const mockPayouts: Payout[] = aff.name === 'Fatuma Asha' 
-            ? [{ date: '2024-07-01', amount: 500000, currency: 'UGX' }, { date: '2024-06-01', amount: 480000, currency: 'UGX' }] 
-            : [];
-        const paidCommission = mockPayouts.reduce((sum, p) => sum + p.amount, 0);
-
-        return {
-            ...aff,
-            id,
-            linkClicks: conversions * 15, // Mocked clicks
-            conversions,
-            totalSales,
-            pendingCommission: totalCommissionEarned - paidCommission,
-            paidCommission,
-            payoutHistory: mockPayouts,
-        };
-    });
+    // We will now derive the affiliates directly from staff with the 'Affiliate' role
+    // This ensures data consistency. The fields are mapped.
+    return affiliateStaff.map(s => ({
+        id: s.id,
+        name: s.name,
+        status: s.status,
+        contact: s.phone || '',
+        uniqueId: s.email, // Using email as uniqueId for mock purposes
+        linkClicks: 50 + Math.floor(Math.random() * 200), // Random mock data
+        conversions: s.totalSales ? s.totalSales / 50000 : 0, // Mocked
+        totalSales: s.totalSales || 0,
+        pendingCommission: s.totalCommission || 0,
+        paidCommission: s.paidCommission || 0,
+        payoutHistory: s.payoutHistory || [],
+    }));
 }
 
-const affiliateService = new DataService<Affiliate>('affiliates', initializeMockAffiliates);
+
+const affiliateService = new DataService<Affiliate>('affiliates_derived', initializeMockAffiliates);
 
 export async function getAffiliates(): Promise<Affiliate[]> {
     return affiliateService.getAll();
 }
 
 export async function getAffiliateById(id: string): Promise<Affiliate | undefined> {
-    return affiliateService.getById(id);
+    const allAffiliates = await affiliateService.getAll();
+    return allAffiliates.find(a => a.id === id);
 }
 
-export async function addAffiliate(affiliate: Omit<Affiliate, 'id'>): Promise<Affiliate> {
-    const newAffiliate: Affiliate = {
-        ...affiliate,
-        id: `aff-${Date.now()}`
+export async function addAffiliate(affiliateData: Omit<Affiliate, 'id'>): Promise<Affiliate> {
+    const { addStaff } = await import('./staff');
+    const newStaffMember: Omit<Staff, 'id'> = {
+        name: affiliateData.name,
+        email: affiliateData.uniqueId, // Using uniqueId as email for consistency
+        phone: affiliateData.contact,
+        role: 'Affiliate',
+        status: 'Pending',
+        totalCommission: 0,
+        paidCommission: 0,
+        payoutHistory: [],
     };
-    return affiliateService.create(newAffiliate, { prepend: true });
+    const createdStaff = await addStaff(newStaffMember);
+
+    const newAffiliate: Affiliate = {
+        ...affiliateData,
+        id: createdStaff.id,
+    };
+    
+    // We don't need to save to a separate affiliate service anymore, but we can return the mapped object
+    return newAffiliate;
 }
 
 export async function updateAffiliate(affiliateId: string, updates: Partial<Affiliate>): Promise<Affiliate> {
-    return affiliateService.update(affiliateId, updates);
+    const { updateStaff } = await import('./staff');
+    
+    const staffUpdates: Partial<Staff> = {
+        name: updates.name,
+        status: updates.status,
+        phone: updates.contact,
+    };
+
+    const updatedStaff = await updateStaff(affiliateId, staffUpdates);
+
+    const updatedAffiliate: Affiliate = {
+        id: updatedStaff.id,
+        name: updatedStaff.name,
+        status: updatedStaff.status,
+        contact: updatedStaff.phone || '',
+        uniqueId: updatedStaff.email,
+        linkClicks: updates.linkClicks || 0,
+        conversions: updates.conversions || 0,
+        totalSales: updates.totalSales || 0,
+        pendingCommission: updatedStaff.totalCommission || 0,
+        paidCommission: updatedStaff.paidCommission || 0,
+        payoutHistory: updatedStaff.payoutHistory || [],
+    };
+    
+    return updatedAffiliate;
 }

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, Check, DollarSign } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import type { Staff, OnboardingFormData } from '@/lib/types';
 import { getStaff, updateStaff } from '@/services/staff';
 import { useToast } from '@/hooks/use-toast';

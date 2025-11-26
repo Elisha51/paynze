@@ -129,6 +129,32 @@ function initializeMockStaff(): Staff[] {
         paidCommission: 0,
         currency: 'KES',
       },
+      // Mock Affiliate as Staff
+      { 
+        id: 'aff-001', 
+        name: 'Fatuma Asha', 
+        email: 'fatuma@example.com',
+        phone: '0772123456',
+        role: 'Affiliate', 
+        status: 'Active',
+        totalCommission: 12000,
+        paidCommission: 98000,
+        currency: 'UGX',
+        payoutHistory: [
+            { date: '2024-06-01', amount: 98000, currency: 'UGX' }
+        ]
+      },
+      { 
+        id: 'aff-002', 
+        name: 'David Odhiambo', 
+        email: 'david@example.com',
+        phone: '0712345678',
+        role: 'Affiliate', 
+        status: 'Active',
+        totalCommission: 5500,
+        paidCommission: 0,
+        currency: 'KES'
+      },
     ];
 }
 

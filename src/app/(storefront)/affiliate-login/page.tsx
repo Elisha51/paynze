@@ -9,7 +9,7 @@ import { AuthLayout } from '@/components/layout/auth-layout';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { getAffiliates } from '@/services/affiliates';
+import { getStaff } from '@/services/staff';
 
 export default function AffiliateLoginPage() {
   const [email, setEmail] = useState('');
@@ -20,8 +20,8 @@ export default function AffiliateLoginPage() {
   const handleLogin = async () => {
     // This is a simulation. A real app would verify credentials.
     // We'll find the affiliate by email and check their status.
-    const allAffiliates = await getAffiliates();
-    const affiliate = allAffiliates.find(a => a.contact.includes('123456')); // Simulate finding by contact/email
+    const allStaff = await getStaff();
+    const affiliate = allStaff.find(s => s.role === 'Affiliate' && s.email.startsWith('fatuma')); // Simulate finding by email
 
     if (affiliate) {
         // Store a mock session identifier
@@ -52,7 +52,7 @@ export default function AffiliateLoginPage() {
               <Input
                 id="email"
                 type="email"
-                placeholder="e.g. 0772123456"
+                placeholder="e.g. fatuma@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -74,7 +74,7 @@ export default function AffiliateLoginPage() {
           </div>
           <div className="mt-4 text-center text-sm">
             Not an affiliate yet?{' '}
-            <Link href="/store/affiliate-signup" className="underline">
+            <Link href="/affiliate-signup" className="underline">
               Sign up
             </Link>
           </div>
