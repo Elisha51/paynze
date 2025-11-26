@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Clock, Repeat } from 'lucide-react';
@@ -37,7 +38,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { getCustomerGroups } from '@/services/customer-groups';
-import { format, parse, setHours, setMinutes } from 'date-fns';
+import { format, setHours, setMinutes } from 'date-fns';
 import { Calendar } from '../ui/calendar';
 import { Separator } from '../ui/separator';
 
@@ -164,7 +165,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         setCampaign(prev => ({
             ...prev,
             recurring: {
-                ...(prev.recurring || { type: 'Daily', days: [] }),
+                ...(prev.recurring || { type: 'Daily', days: [], startTime: '09:00', endTime: '17:00' }),
                 [field]: value
             }
         }));
@@ -200,6 +201,12 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
             endDate: finalEndDate,
         };
 
+        // If recurring, use the specific recurring times
+        if (finalCampaign.scheduleType === 'recurring' && finalCampaign.recurring) {
+            finalCampaign.recurring.startTime = startTime;
+            finalCampaign.recurring.endTime = endTime;
+        }
+
         console.log("Saving campaign", finalCampaign);
         toast({
             title: isEditing ? "Campaign Updated" : "Campaign Created",
@@ -207,6 +214,16 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         });
         router.push('/dashboard/marketing?tab=campaigns');
     }
+
+    const cta = (
+        <div className="flex gap-2">
+            <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+            <Button onClick={handleSave}>
+                <Save className="mr-2 h-4 w-4" />
+                {isEditing ? 'Save Changes' : 'Create Campaign'}
+            </Button>
+        </div>
+    );
 
     return (
          <div className="space-y-6">
@@ -385,12 +402,14 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                             
                             <Separator className="my-4" />
 
-                            {campaign.scheduleType === 'one-time' ? (
+                            {campaign.scheduleType === 'one-time' && (
                                 <div className="space-y-4">
                                     <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false} />
                                     <p className="text-xs text-muted-foreground pl-1">Leave end date blank for ongoing campaigns.</p>
                                 </div>
-                            ) : (
+                            )}
+
+                            {campaign.scheduleType === 'recurring' && (
                                 <div className="space-y-4">
                                      <div className="space-y-2">
                                         <Label>Repeats</Label>
@@ -412,19 +431,23 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                             </div>
                                         </div>
                                     )}
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <Label>Start Time</Label>
-                                            <Input type="time" value={campaign.recurring?.startTime} onChange={(e) => handleRecurringChange('startTime', e.target.value)} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>End Time</Label>
-                                            <Input type="time" value={campaign.recurring?.endTime} onChange={(e) => handleRecurringChange('endTime', e.target.value)} />
-                                        </div>
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">The campaign will be active between these times on the selected days.</p>
                                 </div>
                             )}
+
+                            <Separator className="my-4" />
+                            
+                             <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Start Time</Label>
+                                    <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>End Time</Label>
+                                    <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+                                </div>
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-2">Set the time of day the campaign should be active.</p>
+
                         </CardContent>
                     </Card>
                     
@@ -495,3 +518,4 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         </div>
     );
 }
+
