@@ -1,7 +1,6 @@
-
 'use client';
 
-import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle, Clock } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X, AlertCircle, Clock, MessageSquare, Smartphone, Mail } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -22,7 +21,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Campaign, CampaignBanner, Affiliate, CustomerGroup, RecurringSchedule } from '@/lib/types';
+import type { Campaign, CampaignBanner, Affiliate, CustomerGroup, RecurringSchedule, WhatsAppTemplate, SmsTemplate, EmailTemplate, Product } from '@/lib/types';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { Switch } from '../ui/switch';
 import { FileUploader } from '../ui/file-uploader';
@@ -41,25 +40,21 @@ import { Calendar } from '../ui/calendar';
 import { Separator } from '../ui/separator';
 import { Checkbox } from '../ui/checkbox';
 import { AnimatePresence, motion } from 'framer-motion';
+import { getEmailTemplates, getSmsTemplates, getWhatsAppTemplates } from '@/services/templates';
+import { Textarea } from '../ui/textarea';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
-  description: '',
-  status: 'Draft',
   channel: 'Email',
+  status: 'Draft',
   audience: 'All Customers',
   affiliateAccess: 'none',
   allowedAffiliateIds: [],
-  scheduleType: undefined,
+  scheduleType: 'one-time',
   recurring: {
     frequency: 'Weeks',
     interval: 1,
     daysOfWeek: [],
-    dayOfMonth: 1,
-    weekOfMonth: 'first',
-    dayOfWeek: 'Sunday',
-    startTime: '09:00',
-    endTime: '17:00'
   },
   banner: {
     enabled: false,
@@ -75,6 +70,7 @@ const emptyCampaign: Partial<Campaign> = {
 
 type CampaignFormProps = {
     initialCampaign?: Campaign | null;
+    channel: 'Email' | 'SMS' | 'WhatsApp';
 }
 
 const TimePicker = ({ date, onTimeChange }: { date: Date, onTimeChange: (newDate: Date) => void }) => {
@@ -109,12 +105,15 @@ const TimePicker = ({ date, onTimeChange }: { date: Date, onTimeChange: (newDate
     )
 }
 
-export function CampaignForm({ initialCampaign }: CampaignFormProps) {
+export function CampaignForm({ initialCampaign, channel }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>({
         ...emptyCampaign,
         ...initialCampaign,
+        channel,
         scheduleType: initialCampaign?.scheduleType || 'one-time'
     });
+    const [templates, setTemplates] = useState<(EmailTemplate | SmsTemplate | WhatsAppTemplate)[]>([]);
+
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
     
@@ -137,6 +136,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
             setCampaign(prev => ({
                 ...prev, 
                 ...initialCampaign,
+                channel,
                 scheduleType: initialCampaign.scheduleType || 'one-time'
             }));
             if (initialCampaign.startDate) setStartDate(new Date(initialCampaign.startDate));
@@ -149,15 +149,17 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         }
 
         async function loadData() {
-            const [affiliateData, customerGroupData] = await Promise.all([
+            const [affiliateData, customerGroupData, templateData] = await Promise.all([
                 getAffiliates(),
-                getCustomerGroups()
+                getCustomerGroups(),
+                channel === 'Email' ? getEmailTemplates() : channel === 'SMS' ? getSmsTemplates() : getWhatsAppTemplates()
             ]);
             setAffiliates(affiliateData.filter(a => a.status === 'Active'));
             setCustomerGroups(customerGroupData);
+            setTemplates(templateData);
         }
         loadData();
-    }, [initialCampaign]);
+    }, [initialCampaign, channel]);
     
     useEffect(() => {
         if (noEndDate) {
@@ -166,16 +168,12 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     }, [noEndDate]);
 
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { id, value } = e.target;
         setCampaign(prev => ({ ...prev, [id]: value }));
     };
-    
-    const handleRichTextChange = (value: string) => {
-        setCampaign(prev => ({ ...prev, description: value }));
-    }
 
-    const handleSelectChange = (id: 'status' | 'channel' | 'audience' | 'affiliateAccess', value: string) => {
+    const handleSelectChange = (id: 'status' | 'audience' | 'affiliateAccess', value: string) => {
         setCampaign(prev => ({...prev, [id]: value as any}));
     }
     
@@ -242,44 +240,107 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         router.push('/dashboard/marketing?tab=campaigns');
     }
 
+    const channelIcons: Record<string, React.ElementType> = {
+        Email: Mail,
+        SMS: MessageSquare,
+        WhatsApp: Smartphone,
+    }
+
+    const ChannelIcon = channelIcons[channel];
+
+    const getChannelSpecificContent = () => {
+        switch(channel) {
+            case 'Email':
+                return (
+                     <RichTextEditor
+                        id="content"
+                        value={campaign.content || ''}
+                        onChange={(v) => setCampaign(p => ({...p, content: v}))}
+                        placeholder="Compose your email here..."
+                    />
+                )
+            case 'SMS':
+                 return (
+                    <>
+                        <Textarea
+                            id="content"
+                            value={campaign.content || ''}
+                            onChange={(e) => setCampaign(p => ({...p, content: e.target.value}))}
+                            placeholder="Type your SMS message here..."
+                            className="min-h-[120px]"
+                        />
+                         <p className="text-xs text-muted-foreground text-right">{(campaign.content || '').length} characters. 1 SMS is 160 characters.</p>
+                    </>
+                )
+            case 'WhatsApp':
+                 return (
+                    <Textarea
+                        id="content"
+                        value={campaign.content || ''}
+                        onChange={(e) => setCampaign(p => ({...p, content: e.target.value}))}
+                        placeholder="Type your WhatsApp message here..."
+                        className="min-h-[120px]"
+                    />
+                 )
+            default: return null;
+        }
+    }
+
     return (
          <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-3 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Campaign Details</CardTitle>
+                            <CardTitle className="flex items-center gap-2">
+                                <ChannelIcon className="h-6 w-6"/>
+                                {channel} Campaign Content
+                            </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Campaign Name</Label>
                                 <Input id="name" value={campaign.name || ''} onChange={handleInputChange} />
                             </div>
+                            <div className="space-y-2">
+                                <Label>Template (Optional)</Label>
+                                <Select onValueChange={(templateId) => {
+                                    const selectedTemplate = templates.find(t => t.id === templateId);
+                                    if (selectedTemplate) {
+                                        setCampaign(prev => ({
+                                            ...prev, 
+                                            subject: (selectedTemplate as EmailTemplate).subject, 
+                                            content: (selectedTemplate as EmailTemplate).body || (selectedTemplate as SmsTemplate | WhatsAppTemplate).message
+                                        }))
+                                    }
+                                }}>
+                                    <SelectTrigger><SelectValue placeholder="Start from a template..."/></SelectTrigger>
+                                    <SelectContent>
+                                        {templates.map(t => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                              <div className="space-y-2">
                                 <div className="flex justify-between items-center">
-                                    <Label htmlFor="description">Message / Content</Label>
+                                    <Label htmlFor="content">Message</Label>
                                     <Button variant="ghost" size="sm" disabled>
                                         <Sparkles className="h-4 w-4 mr-2" />
                                         Generate with AI
                                     </Button>
                                 </div>
-                                 <RichTextEditor
-                                    id="description"
-                                    value={campaign.description || ''}
-                                    onChange={handleRichTextChange}
-                                    placeholder="Compose your campaign message here..."
-                                />
+                                {getChannelSpecificContent()}
                              </div>
                         </CardContent>
                     </Card>
                     
-                    {canCreateBanners ? (
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Storefront Banner</CardTitle>
-                                <CardDescription>Feature this campaign in a banner on your storefront homepage.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Storefront Banner</CardTitle>
+                            <CardDescription>Feature this campaign in a banner on your storefront homepage.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                           {canCreateBanners ? (
+                                <div className="space-y-4">
                                 <div className="flex items-center space-x-2">
                                     <Switch id="banner-enabled" checked={campaign.banner?.enabled} onCheckedChange={(c) => handleBannerChange('enabled', c)} />
                                     <Label htmlFor="banner-enabled">Enable banner for this campaign</Label>
@@ -326,25 +387,19 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                         </div>
                                     </div>
                                 )}
-                            </CardContent>
-                        </Card>
-                    ) : (
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Storefront Banner</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <Alert>
-                                    <ShieldAlert className="h-4 w-4" />
-                                    <AlertTitle>Upgrade to Unlock</AlertTitle>
-                                    <AlertDescription>
-                                        Storefront banners are available on the Pro plan and above. 
-                                        <Button variant="link" asChild className="p-0 h-auto ml-1"><Link href="#">Upgrade your plan</Link></Button> to start using this feature.
-                                    </AlertDescription>
-                                </Alert>
-                            </CardContent>
-                        </Card>
-                    )}
+                            </div>
+                           ) : (
+                             <Alert>
+                                <ShieldAlert className="h-4 w-4" />
+                                <AlertTitle>Upgrade to Unlock</AlertTitle>
+                                <AlertDescription>
+                                    Storefront banners are available on the Pro plan and above. 
+                                    <Button variant="link" asChild className="p-0 h-auto ml-1"><Link href="#">Upgrade your plan</Link></Button> to start using this feature.
+                                </AlertDescription>
+                            </Alert>
+                           )}
+                        </CardContent>
+                    </Card>
                 </div>
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
@@ -361,17 +416,6 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                         <SelectItem value="Scheduled">Scheduled</SelectItem>
                                         <SelectItem value="Active">Active</SelectItem>
                                         <SelectItem value="Completed">Completed</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="channel">Channel</Label>
-                                <Select value={campaign.channel} onValueChange={(v) => handleSelectChange('channel', v)}>
-                                    <SelectTrigger><SelectValue/></SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="Email">Email</SelectItem>
-                                        <SelectItem value="SMS">SMS</SelectItem>
-                                        <SelectItem value="Push">Push Notification</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -484,58 +528,6 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                                         </SelectContent>
                                                     </Select>
                                                 </div>
-                                                {campaign.recurring?.frequency === 'Weeks' && (
-                                                    <div className="pl-4">
-                                                        <Label className="text-xs">On these days</Label>
-                                                        <div className="flex flex-wrap gap-2 mt-2">
-                                                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                                                                <Button key={day} variant={(campaign.recurring?.daysOfWeek || []).includes(day) ? 'default' : 'outline'} size="sm" onClick={() => toggleRecurringDay(day)}>{day}</Button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-                                                )}
-                                                {campaign.recurring?.frequency === 'Months' && (
-                                                  <div className="pl-4 grid grid-cols-2 gap-4 items-center">
-                                                    <RadioGroup defaultValue="dayOfMonth" className="flex flex-col space-y-2">
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="dayOfMonth" id="month-day"/>
-                                                            <Label htmlFor="month-day" className="font-normal flex items-center gap-2">On day
-                                                              <Input type="number" defaultValue={15} className="w-16 h-8"/>
-                                                            </Label>
-                                                        </div>
-                                                        <div className="flex items-center space-x-2">
-                                                            <RadioGroupItem value="dayOfWeek" id="month-weekday"/>
-                                                            <Label htmlFor="month-weekday" className="font-normal flex items-center gap-2">On the
-                                                               <Select defaultValue="first">
-                                                                <SelectTrigger className="w-28 h-8"><SelectValue/></SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem value="first">first</SelectItem>
-                                                                    <SelectItem value="second">second</SelectItem>
-                                                                    <SelectItem value="third">third</SelectItem>
-                                                                    <SelectItem value="fourth">fourth</SelectItem>
-                                                                    <SelectItem value="last">last</SelectItem>
-                                                                </SelectContent>
-                                                               </Select>
-                                                               <Select defaultValue="Monday">
-                                                                <SelectTrigger className="w-28 h-8"><SelectValue/></SelectTrigger>
-                                                                <SelectContent>
-                                                                    {['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                                                                </SelectContent>
-                                                               </Select>
-                                                            </Label>
-                                                        </div>
-                                                    </RadioGroup>
-                                                  </div>
-                                                )}
-
-                                                <div className="space-y-2 pt-4">
-                                                    <Label className="text-sm">Active between</Label>
-                                                    <div className="flex items-center gap-2">
-                                                        <Input type="time" value={campaign.recurring?.startTime} onChange={(e) => handleRecurringChange('startTime', e.target.value)} className="h-8"/>
-                                                        <span className="text-sm text-muted-foreground">and</span>
-                                                        <Input type="time" value={campaign.recurring?.endTime} onChange={(e) => handleRecurringChange('endTime', e.target.value)} className="h-8"/>
-                                                    </div>
-                                                </div>
                                             </div>
                                         )}
                                     </div>
@@ -612,6 +604,3 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         </div>
     );
 }
-
-
-    

@@ -536,11 +536,6 @@ export type RecurringSchedule = {
   frequency: 'Days' | 'Weeks' | 'Months';
   interval: number;
   daysOfWeek?: ('Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat')[];
-  dayOfMonth?: number;
-  weekOfMonth?: 'first' | 'second' | 'third' | 'fourth' | 'last';
-  dayOfWeek?: 'Sunday' | 'Monday' | 'Tuesday' | 'Wednesday' | 'Thursday' | 'Friday' | 'Saturday';
-  startTime: string;
-  endTime: string;
 };
 
 // Marketing Types
@@ -548,7 +543,7 @@ export type Campaign = {
   id: string;
   name: string;
   status: 'Active' | 'Scheduled' | 'Draft' | 'Completed';
-  channel: 'Email' | 'SMS' | 'Push';
+  channel: 'Email' | 'SMS' | 'WhatsApp';
   sent: number;
   openRate: string;
   ctr: string;
@@ -557,7 +552,8 @@ export type Campaign = {
   endDate?: string;
   scheduleType?: 'one-time' | 'recurring';
   recurring?: RecurringSchedule;
-  description: string;
+  subject?: string; // For email
+  content: string; // For email (HTML), SMS (text), WhatsApp (text)
   applicableProductIds?: string[];
   banner?: CampaignBanner;
   affiliateAccess: 'none' | 'all' | 'specific';
