@@ -1,6 +1,6 @@
 
 
-import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition } from '@/lib/types';
+import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
@@ -204,16 +204,16 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
   };
 
   if (newOrder.channel === 'Online' && typeof window !== 'undefined') {
-    const urlParams = new URLSearchParams(window.location.search);
-    const ref = urlParams.get('ref');
-    if (ref) {
-      const affiliates = await getAffiliates();
-      const affiliate = affiliates.find(a => a.uniqueId === ref && a.status === 'Active');
-      if (affiliate) {
-        newOrder.salesAgentId = affiliate.id;
-        newOrder.salesAgentName = affiliate.name;
-        console.log(`Order attributed to affiliate: ${affiliate.name}`);
-      }
+    // Prioritize cookie for attribution
+    const cookieValue = document.cookie.split('; ').find(row => row.startsWith('paynze_affiliate_ref='))?.split('=')[1];
+    
+    if (cookieValue) {
+        const affiliates = await getAffiliates();
+        const affiliate = affiliates.find(a => a.uniqueId === cookieValue && a.status === 'Active');
+        if (affiliate) {
+            newOrder.salesAgentId = affiliate.id;
+            newOrder.salesAgentName = affiliate.name;
+        }
     }
   }
   

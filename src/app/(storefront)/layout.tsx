@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { CartProvider } from '@/context/cart-context';
 import Head from 'next/head';
+import { AffiliateTracker } from '@/components/storefront/affiliate-tracker';
 
 export default function StorefrontLayout({
   children,
@@ -25,6 +26,7 @@ export default function StorefrontLayout({
 
   return (
     <CartProvider>
+      <AffiliateTracker />
       <div className="flex min-h-screen flex-col">
         <StoreHeader settings={settings} />
         <main className="flex-1">{children}</main>
