@@ -29,7 +29,6 @@ import {
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { UpdateDeliveryStatusDialog } from './_components/update-delivery-status-dialog';
-import { DeliveryRunsheetCard } from './_components/delivery-runsheet-card';
 
 export default function MyTasksPage() {
     const { user } = useAuth();
@@ -53,30 +52,6 @@ export default function MyTasksPage() {
         loadTasks();
     }, [user]);
     
-    if (user?.role === 'Agent') {
-        return (
-            <DashboardPageLayout title="My Runsheet" description="Your assigned deliveries for today.">
-                <div className="space-y-4">
-                {assignedOrders.length > 0 ? (
-                    assignedOrders.map(order => (
-                        <DeliveryRunsheetCard key={order.id} order={order} onUpdate={loadTasks} />
-                    ))
-                ) : (
-                    <Card>
-                        <CardContent>
-                             <EmptyState
-                                icon={<Truck className="h-12 w-12 text-muted-foreground" />}
-                                title="No Deliveries"
-                                description="You have no assigned deliveries at the moment."
-                            />
-                        </CardContent>
-                    </Card>
-                )}
-                </div>
-            </DashboardPageLayout>
-        )
-    }
-
     const handleAddTodo = async (newTodo: string) => {
         if (!newTodo.trim()) return;
         const added = await addTodo({ title: newTodo, status: 'To Do', createdAt: new Date().toISOString() });
