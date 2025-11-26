@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
-import { PlusCircle, Trash2, DollarSign, Edit, MoreHorizontal, Settings, Wand2, TestTube2 } from 'lucide-react';
+import { PlusCircle, Trash2, DollarSign, Edit, MoreHorizontal, Settings } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,6 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
 import {
@@ -200,17 +199,21 @@ function CommissionRuleEditor({ rule, onRuleChange, onRemove }: { rule: Commissi
                 </div>
                 <div className="space-y-2">
                     <Label htmlFor={`rule-rate-${rule.id}`}>Rate ({rule.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
-                    <Input id={`rule-rate-${rule.id}`} type="number" value={rule.rate} onChange={(e) => onRuleChange('rate', e.target.value)} />
+                    <Input id={`rule-rate-${rule.id}`} type="number" value={rule.rate} onChange={(e) => onRuleChange('rate', Number(e.target.value))} />
                 </div>
             </div>
             
             {isAdvanced && (
                 <div className="mt-4 pt-4 border-t space-y-4">
-                    <Label>Conditions (all must be met)</Label>
+                    <div className="space-y-1">
+                        <Label>Conditions</Label>
+                        <p className="text-xs text-muted-foreground">This rule will only apply if all of the following conditions are met.</p>
+                    </div>
+
                     {(rule.conditions || []).map((condition, condIndex) => (
                         <Card key={condition.id} className="p-3 bg-muted/50">
                             <div className="flex items-end gap-2">
-                                <div className="grid grid-cols-3 gap-2 flex-1">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 flex-1">
                                     <div className="space-y-1">
                                         <Label htmlFor={`cond-subject-${condIndex}`} className="text-xs">Subject</Label>
                                         <Select value={condition.subject} onValueChange={(v) => handleConditionChange(condIndex, 'subject', v)}>
