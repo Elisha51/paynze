@@ -271,7 +271,8 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     }
   },
   {
-    accessorKey: 'status',
+    accessorFn: (row) => row.status,
+    id: 'status',
     header: 'Status',
     cell: ({ row }) => <Badge variant="outline">{row.getValue('status')}</Badge>,
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
@@ -287,21 +288,20 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
   {
     id: 'channel',
     header: 'Channel',
-    cell: ({ row }) => {
-        const content = row.original.content;
+    accessorFn: (row) => {
         const channels = [];
-        if (content?.email?.enabled) channels.push('Email');
-        if (content?.sms?.enabled) channels.push('SMS');
-        if (content?.whatsapp?.enabled) channels.push('WhatsApp');
+        if (row.content?.email?.enabled) channels.push('Email');
+        if (row.content?.sms?.enabled) channels.push('SMS');
+        if (row.content?.whatsapp?.enabled) channels.push('WhatsApp');
+        return channels;
+    },
+    cell: ({ row }) => {
+        const channels = row.getValue('channel') as string[] || [];
         return <div className="flex flex-wrap gap-1">{channels.map(c => <Badge key={c} variant="secondary">{c}</Badge>)}</div>
     },
     filterFn: (row, id, value) => {
-      const content = row.original.content;
-      const channels = [];
-      if (content?.email?.enabled) channels.push('Email');
-      if (content?.sms?.enabled) channels.push('SMS');
-      if (content?.whatsapp?.enabled) channels.push('WhatsApp');
-      return (value as string[]).some(val => channels.includes(val));
+      const rowChannels = row.getValue(id) as string[] || [];
+      return (value as string[]).some(val => rowChannels.includes(val));
     },
   },
   {
