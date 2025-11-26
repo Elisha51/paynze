@@ -1,10 +1,11 @@
+
 'use client';
 import { useState, useMemo } from 'react';
-import type { Customer, Communication, Order } from '@/lib/types';
+import type { Customer, Communication, Order, DeliveryNote } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { MessageSquare, Phone, Users, ShoppingBag, CornerDownRight, ChevronDown } from 'lucide-react';
+import { MessageSquare, Phone, Users, ShoppingBag, CornerDownRight, ChevronDown, Truck } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback } from '../ui/avatar';
@@ -22,13 +23,17 @@ type CustomerActivityLogProps = {
 type InteractionType = 'Note' | 'Phone' | 'Meeting';
 type ActivityType = 'all' | 'order' | 'communication';
 
-type UnifiedActivity = (Communication & { activityType: 'communication'; replies?: Communication[] }) | (Order & { activityType: 'order' });
+type UnifiedActivity = 
+    | (Communication & { activityType: 'communication'; replies?: Communication[] }) 
+    | (Order & { activityType: 'order' })
+    | (DeliveryNote & { activityType: 'delivery_note'; orderId: string });
 
 const iconMap: { [key: string]: React.ElementType } = {
   Note: MessageSquare,
   Phone: Phone,
   Meeting: Users,
   order: ShoppingBag,
+  delivery_note: Truck,
 };
 
 const ITEMS_PER_PAGE = 10;
@@ -74,19 +79,28 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
     const topLevelComms = communications.filter(c => !c.threadId);
     const replies = communications.filter(c => c.threadId);
 
-    const commsWithReplies = topLevelComms.map(comm => ({
+    const commsWithReplies: UnifiedActivity[] = topLevelComms.map(comm => ({
         ...comm,
         activityType: 'communication' as const,
         replies: replies.filter(r => r.threadId === comm.id).sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     }));
 
-    const orders = (customer.orders || []).map(o => ({...o, activityType: 'order' as const}));
+    const orders: UnifiedActivity[] = (customer.orders || []).map(o => ({...o, activityType: 'order' as const}));
+
+    const deliveryNotes: UnifiedActivity[] = (customer.orders || []).flatMap(order => 
+        (order.deliveryNotes || []).map(note => ({
+            ...note,
+            activityType: 'delivery_note' as const,
+            orderId: order.id,
+        }))
+    );
     
-    return [...commsWithReplies, ...orders].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return [...commsWithReplies, ...orders, ...deliveryNotes].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [communications, customer.orders]);
 
   const filteredActivities = useMemo(() => {
     if (filter === 'all') return allActivities;
+    if (filter === 'order') return allActivities.filter(a => a.activityType === 'order' || a.activityType === 'delivery_note');
     return allActivities.filter(activity => activity.activityType === filter);
   }, [allActivities, filter]);
 
@@ -125,7 +139,7 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
   };
 
   const TimelineItem = ({ activity, isLast }: { activity: UnifiedActivity, isLast: boolean }) => {
-    let Icon, title, content, replies;
+    let Icon, title, content, replies, orderId;
     const isExpanded = activity.activityType === 'communication' && expandedThreads.includes(activity.id);
 
     if (activity.activityType === 'communication') {
@@ -133,10 +147,16 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
         title = `Logged a ${activity.type.toLowerCase()} by ${activity.staffName}`;
         content = activity.content;
         replies = activity.replies;
-    } else { // Order
+    } else if (activity.activityType === 'order') {
         Icon = ShoppingBag;
         title = `Order #${activity.id} placed`;
         content = `Total: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: activity.currency }).format(activity.total)}`;
+        orderId = activity.id;
+    } else { // Delivery Note
+        Icon = Truck;
+        title = `Delivery update by ${activity.staffName}`;
+        content = activity.note;
+        orderId = activity.orderId;
     }
 
     return (
@@ -152,8 +172,8 @@ export function CustomerActivityLog({ customer }: CustomerActivityLogProps) {
             <div className="space-y-1 pb-8">
                 <p className="text-xs text-muted-foreground">{format(new Date(activity.date), 'PPP p')}</p>
                 <div className="text-sm font-medium">
-                  {activity.activityType === 'order' ? (
-                    <Link href={`/dashboard/orders/${activity.id}`} className="hover:underline">{title}</Link>
+                  {orderId ? (
+                    <Link href={`/dashboard/orders/${orderId}`} className="hover:underline">{title}</Link>
                   ) : (
                     <span>{title}</span>
                   )}
