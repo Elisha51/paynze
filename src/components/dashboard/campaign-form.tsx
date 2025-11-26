@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Clock, Repeat } from 'lucide-react';
@@ -215,16 +216,6 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         router.push('/dashboard/marketing?tab=campaigns');
     }
 
-    const cta = (
-        <div className="flex gap-2">
-            <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
-            <Button onClick={handleSave}>
-                <Save className="mr-2 h-4 w-4" />
-                {isEditing ? 'Save Changes' : 'Create Campaign'}
-            </Button>
-        </div>
-    );
-
     return (
          <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -436,13 +427,19 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
                             <Separator className="my-4" />
                             
-                             <div className="grid grid-cols-2 gap-4">
+                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label>Start Time</Label>
+                                    <Label className="flex items-center justify-between">
+                                        Start Time
+                                        <span className="text-xs text-muted-foreground">(24h format)</span>
+                                    </Label>
                                     <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>End Time</Label>
+                                    <Label className="flex items-center justify-between">
+                                        End Time
+                                        <span className="text-xs text-muted-foreground">(24h format)</span>
+                                    </Label>
                                     <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
                                 </div>
                             </div>
@@ -518,4 +515,3 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         </div>
     );
 }
-
