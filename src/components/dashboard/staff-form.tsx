@@ -26,6 +26,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import ReactCrop, { type Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { useAuth } from '@/context/auth-context';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
 
 
 const DynamicAttributeInput = ({ attribute, value, onChange }: { attribute: any, value: any, onChange: (key: string, value: any) => void }) => {
@@ -234,6 +235,7 @@ export function StaffForm({ initialStaff, onSave, isSelfEditing = false }: { ini
 
         if (onSave) {
             await onSave(staffMember);
+            toast({ title: 'Profile Updated' });
             return;
         }
         
@@ -457,7 +459,7 @@ export function StaffForm({ initialStaff, onSave, isSelfEditing = false }: { ini
                  )}
             </div>
             <div className="lg:col-span-3 flex justify-end gap-2">
-                <Button variant="outline" onClick={isSelfEditing ? onSave.bind(null, staffMember) : () => router.back()}>Cancel</Button>
+                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
                 <Button onClick={handleSaveChanges}>
                     <Save className="mr-2 h-4 w-4" />
                     Save Changes
