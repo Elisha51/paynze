@@ -149,7 +149,7 @@ export const customersColumns: ColumnDef<Customer>[] = [
         }, []);
 
       const customer = row.original;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: settings?.currency || 'UGX' }).format(customer.totalSpend);
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: customer.currency }).format(customer.totalSpend);
       return <div className="text-right font-medium">{formatted}</div>
     },
   },
@@ -287,6 +287,14 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
   {
     accessorKey: 'channel',
     header: 'Channel',
+    cell: ({ row }) => {
+        const content = row.original.content;
+        const channels = [];
+        if (content?.email?.enabled) channels.push('Email');
+        if (content?.sms?.enabled) channels.push('SMS');
+        if (content?.whatsapp?.enabled) channels.push('WhatsApp');
+        return <div className="flex flex-wrap gap-1">{channels.map(c => <Badge key={c} variant="secondary">{c}</Badge>)}</div>
+    },
     filterFn: (row, id, value) => value.includes(row.getValue(id)),
   },
   {

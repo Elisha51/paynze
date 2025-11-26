@@ -6,15 +6,9 @@ import type { Product } from '@/lib/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProductDetailsOverview } from './product-details-overview';
 import { ProductDetailsInventory } from './product-details-inventory';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { DateRange } from 'react-day-picker';
-import { addDays, format } from 'date-fns';
+import { addDays } from 'date-fns';
 import { DateRangePicker } from '../ui/date-range-picker';
+import type { DateRange } from 'react-day-picker';
 
 export function ProductDetails({ product }: { product: Product }) {
   const inventoryIsTracked = product.inventoryTracking !== "Don't Track";

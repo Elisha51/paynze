@@ -16,13 +16,13 @@ export default function EditCustomerPage() {
 
     useEffect(() => {
         async function loadCustomer() {
+            if (!id) return;
+            setIsLoading(true);
             const fetchedCustomer = await getCustomerById(id);
             setCustomer(fetchedCustomer || null);
             setIsLoading(false);
         }
-        if (id) {
-            loadCustomer();
-        }
+        loadCustomer();
     }, [id]);
 
     if (isLoading) {
