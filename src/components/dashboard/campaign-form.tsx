@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -38,6 +38,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { getCustomerGroups } from '@/services/customer-groups';
+import { format, parse } from 'date-fns';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -68,12 +69,8 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>(initialCampaign || emptyCampaign);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>(
-        initialCampaign?.startDate ? {
-            from: new Date(initialCampaign.startDate),
-            to: initialCampaign.endDate ? new Date(initialCampaign.endDate) : undefined,
-        } : undefined
-    );
+    const [dateRange, setDateRange] = useState<DateRange | undefined>();
+    const [startTime, setStartTime] = useState<string>('09:00');
 
     const router = useRouter();
     const { toast } = useToast();
@@ -84,7 +81,18 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     useEffect(() => {
         if (initialCampaign) {
             setCampaign(prev => ({...prev, ...initialCampaign}));
+            if (initialCampaign.startDate) {
+                const startDate = new Date(initialCampaign.startDate);
+                setDateRange({
+                    from: startDate,
+                    to: initialCampaign.endDate ? new Date(initialCampaign.endDate) : undefined,
+                });
+                setStartTime(format(startDate, 'HH:mm'));
+            }
+        } else {
+            setDateRange({ from: new Date(), to: undefined });
         }
+
         async function loadData() {
             const [affiliateData, customerGroupData] = await Promise.all([
                 getAffiliates(),
@@ -140,9 +148,16 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     }
 
     const handleSave = () => {
+        let finalStartDate: string | undefined = undefined;
+        if (dateRange?.from) {
+            const date = format(dateRange.from, 'yyyy-MM-dd');
+            const combined = parse(`${date} ${startTime}`, 'yyyy-MM-dd HH:mm', new Date());
+            finalStartDate = combined.toISOString();
+        }
+
         const finalCampaign: Partial<Campaign> = {
             ...campaign,
-            startDate: dateRange?.from?.toISOString(),
+            startDate: finalStartDate,
             endDate: dateRange?.to?.toISOString(),
         };
 
@@ -156,7 +171,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
-             <div className="flex justify-end gap-2">
+            <div className="lg:col-span-3 flex justify-end gap-2">
                 <Button onClick={handleSave}>
                     <Save className="mr-2 h-4 w-4" />
                     Save {isEditing ? 'Changes' : 'Campaign'}
@@ -312,10 +327,17 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
                     <Card>
                         <CardHeader><CardTitle>Schedule</CardTitle></CardHeader>
-                        <CardContent>
+                        <CardContent className="space-y-4">
                              <div className="space-y-2">
                                 <Label>Active Dates</Label>
                                 <DateRangePicker date={dateRange} setDate={setDateRange} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label htmlFor="startTime">Start Time</Label>
+                                <div className="relative">
+                                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                    <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="pl-10" />
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
