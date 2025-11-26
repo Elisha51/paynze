@@ -143,10 +143,14 @@ const DateTimePicker = ({ date, setDate }: { date: Date | undefined, setDate: (d
 
 
 export function CampaignForm({ initialCampaign }: CampaignFormProps) {
-    const [campaign, setCampaign] = useState<Partial<Campaign>>(initialCampaign || emptyCampaign);
+    const [campaign, setCampaign] = useState<Partial<Campaign>>({
+        ...emptyCampaign,
+        ...initialCampaign,
+        scheduleType: initialCampaign?.scheduleType || 'one-time', // Ensure initial state is set
+    });
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
-    const [startDate, setStartDate] = useState<Date | undefined>(initialCampaign?.startDate ? new Date(initialCampaign.startDate) : undefined);
+    const [startDate, setStartDate] = useState<Date | undefined>(initialCampaign?.startDate ? new Date(initialCampaign.startDate) : new Date());
     const [endDate, setEndDate] = useState<Date | undefined>(initialCampaign?.endDate ? new Date(initialCampaign.endDate) : undefined);
     const [noEndDate, setNoEndDate] = useState(!initialCampaign?.endDate);
 
@@ -159,7 +163,11 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
     useEffect(() => {
         if (initialCampaign) {
-            setCampaign(prev => ({...prev, ...initialCampaign}));
+            setCampaign(prev => ({
+                ...prev, 
+                ...initialCampaign,
+                scheduleType: initialCampaign.scheduleType || 'one-time' // Ensure scheduleType is not undefined
+            }));
             if (initialCampaign.startDate) {
                 setStartDate(new Date(initialCampaign.startDate));
             }
@@ -419,7 +427,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                         </CardHeader>
                         <CardContent>
                             <RadioGroup
-                                value={campaign.scheduleType || 'one-time'}
+                                value={campaign.scheduleType}
                                 onValueChange={(v) => setCampaign(p => ({...p, scheduleType: v as any}))}
                                 className="grid grid-cols-2 gap-4"
                             >
