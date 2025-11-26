@@ -15,6 +15,7 @@ import { CustomerAnalyticsReport } from '@/components/dashboard/analytics/custom
 import { useAuth } from '@/context/auth-context';
 import { CustomerGroupsTab } from '@/components/dashboard/customer-groups-tab';
 import type { ColumnFiltersState } from '@tanstack/react-table';
+import { usePathname } from 'next/navigation';
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -24,6 +25,7 @@ export default function CustomersPage() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   const { user } = useAuth();
+  const pathname = usePathname();
 
   const canCreate = user?.permissions.customers.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
@@ -39,7 +41,7 @@ export default function CustomersPage() {
     if(user) {
         loadData();
     }
-  }, [loadData, user]);
+  }, [loadData, user, pathname]);
 
   const tabs = [
     { value: 'all-customers', label: 'All Customers' },

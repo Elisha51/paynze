@@ -175,10 +175,18 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             const existingDefault = prevProduct.variants.find(v => Object.keys(v.optionValues).length === 0);
             newVariants = [existingDefault || { id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prevProduct.retailPrice }];
         }
+        
+        const updatedSkuVariants = newVariants.map(variant => {
+            if (prevProduct.sku && Object.keys(variant.optionValues).length > 0) {
+                const optionCodes = Object.values(variant.optionValues).map(v => v.substring(0,3).toUpperCase()).join('-');
+                return { ...variant, sku: `${prevProduct.sku}-${optionCodes}` };
+            }
+            return variant;
+        });
 
-        return { ...prevProduct, variants: newVariants };
+        return { ...prevProduct, variants: updatedSkuVariants };
     });
-}, [product.options, product.hasVariants]);
+}, [product.options, product.hasVariants, product.sku]);
 
 
   const handleInputChange = (
@@ -205,7 +213,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
       setProduct(prev => ({
           ...prev,
           dimensions: {
-              ...prev.dimensions,
+              ...(prev.dimensions || { length: 0, width: 0, height: 0 }),
               [dimension]: Number(value) || 0,
           }
       }));
@@ -220,8 +228,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             requiresShipping: isPhysical,
             inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
             hasVariants: isPhysical ? prev.hasVariants : false,
-            options: isPhysical ? prev.options : [],
-            variants: isPhysical ? prev.variants : [],
         }));
     } else {
         setProduct(prev => ({ ...prev, [id]: value }));
@@ -231,7 +237,8 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             ...prev, 
             inventoryTracking: value as Product['inventoryTracking'],
             lowStockThreshold: undefined, 
-            variants: prev.variants.map(v => ({...v, stockByLocation: []})) 
+            variants: prev.variants.map(v => ({...v, stockByLocation: []})),
+            hasVariants: false, // Can't have variants if not tracking inventory
         }));
     }
   }
@@ -728,7 +735,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="flex items-start space-x-3">
-                        <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)}/>
+                        <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)} disabled={product.inventoryTracking === "Don't Track"}/>
                         <div className="grid gap-1.5 leading-none">
                             <Label htmlFor="hasVariants">This product has variants</Label>
                             <p className="text-sm text-muted-foreground">

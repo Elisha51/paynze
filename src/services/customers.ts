@@ -105,6 +105,7 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'lastOrder
     const newCustomer: Customer = {
         id: `cust-${Date.now()}`,
         ...customerData,
+        source: customerData.source || 'Manual',
         lastOrderDate: '',
         totalSpend: 0,
         createdAt: new Date().toISOString(),

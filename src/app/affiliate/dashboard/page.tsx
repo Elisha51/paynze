@@ -172,7 +172,7 @@ export default function AffiliateDashboardPage() {
                                 <CardFooter>
                                     <Button 
                                         className="w-full" 
-                                        disabled={!meetsPayoutThreshold || payoutRequested}
+                                        disabled={!meetsPayoutThreshold || payoutRequested || affiliate.status !== 'Active'}
                                         onClick={handleRequestPayout}
                                     >
                                         <Send className="mr-2 h-4 w-4" />
@@ -236,8 +236,8 @@ export default function AffiliateDashboardPage() {
                                 </Table>
                             </CardContent>
                         </Card>
-
-                        <Card>
+                        
+                         <Card>
                             <CardHeader>
                                 <CardTitle>Payout History</CardTitle>
                             </CardHeader>

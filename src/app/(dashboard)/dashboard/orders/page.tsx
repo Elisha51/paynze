@@ -1,3 +1,4 @@
+
 'use client';
 
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
@@ -78,14 +79,14 @@ export default function OrdersPage() {
   
   const ctaContent = activeTab === 'analytics'
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
-    : ( canCreate ? (
+    : ( canCreate && activeTab === 'all-orders' && (
          <Button asChild>
             <Link href="/dashboard/orders/add">
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create Order
             </Link>
         </Button>
-      ) : null
+      )
     );
 
   return (
