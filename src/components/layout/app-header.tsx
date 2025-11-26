@@ -1,3 +1,4 @@
+
 'use client';
 import {
   DropdownMenu,
@@ -15,13 +16,14 @@ import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
 import { ClipboardCheck } from 'lucide-react';
 import { Badge } from '../ui/badge';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getStaffOrders } from '@/services/staff';
 import type { Order } from '@/lib/types';
 import { getTodos } from '@/services/todos';
 import { useAuth } from '@/context/auth-context';
 import { getInitials } from '@/lib/utils';
 import { GlobalSearch } from '../dashboard/global-search';
+import { usePathname } from 'next/navigation';
 
 type AppHeaderProps = {
     onboardingData: OnboardingFormData | null;
@@ -31,20 +33,22 @@ type AppHeaderProps = {
 export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps) {
     const { user } = useAuth();
     const [taskCount, setTaskCount] = useState(0);
+    const pathname = usePathname();
+
+    const loadTaskCount = useCallback(async () => {
+        if (!user) return;
+        const [assignedOrders, personalTodos] = await Promise.all([
+            getStaffOrders(user.id),
+            getTodos()
+        ]);
+        const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
+        const openTodos = personalTodos.filter(todo => todo.status === 'To Do');
+        setTaskCount(todoOrders.length + openTodos.length);
+    }, [user]);
 
     useEffect(() => {
-        async function loadTaskCount() {
-            if (!user) return;
-            const [assignedOrders, personalTodos] = await Promise.all([
-              getStaffOrders(user.id),
-              getTodos()
-            ]);
-            const todoOrders = assignedOrders.filter(order => !['Delivered', 'Picked Up', 'Cancelled'].includes(order.status));
-            const openTodos = personalTodos.filter(todo => todo.status === 'To Do');
-            setTaskCount(todoOrders.length + openTodos.length);
-        }
         loadTaskCount();
-    }, [user]);
+    }, [user, pathname, loadTaskCount]);
 
     const getMyInitials = (name: string) => {
         if (!name) return 'AD';

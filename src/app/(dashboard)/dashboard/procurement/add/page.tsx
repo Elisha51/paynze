@@ -108,7 +108,7 @@ export default function AddPurchaseOrderPage() {
                                          <Select onValueChange={(v) => handleItemChange(index, 'productId', v)}>
                                             <SelectTrigger><SelectValue placeholder="Select product..."/></SelectTrigger>
                                             <SelectContent>
-                                                {products.map(p => <SelectItem key={p.sku} value={p.sku}>{p.name}</SelectItem>)}
+                                                {products.map(p => <SelectItem key={p.sku} value={p.sku || ''}>{p.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
