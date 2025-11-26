@@ -2,7 +2,7 @@
 "use client"
 
 import * as React from "react"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, X } from "lucide-react"
 import { addDays, format } from "date-fns"
 import { DateRange } from "react-day-picker"
 
@@ -106,6 +106,11 @@ export function DateRangePicker({
           />
         </PopoverContent>
       </Popover>
+      {date?.to && (
+        <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setDate({...date, to: undefined})}>
+            <X className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   )
 }

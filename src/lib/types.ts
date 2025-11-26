@@ -4,6 +4,7 @@
 
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 export type OnboardingFormData = OnboardingData;
 
@@ -524,6 +525,13 @@ export type Campaign = {
   audience: string;
   startDate: string;
   endDate?: string;
+  scheduleType?: 'one-time' | 'recurring';
+  recurring?: {
+    type: 'Daily' | 'Weekly';
+    days: string[]; // e.g. ['Mon', 'Wed', 'Fri']
+    startTime: string; // e.g. '09:00'
+    endTime: string;   // e.g. '17:00'
+  };
   description: string;
   applicableProductIds?: string[];
   banner?: CampaignBanner;
