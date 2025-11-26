@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
 import { getStaff, updateStaff } from '@/services/staff';
-import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule, Staff, CommissionRuleTrigger, CommissionRuleType, CommissionRuleCondition } from '@/lib/types';
+import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule, Staff, CommissionRuleTrigger, CommissionRuleType, CommissionRuleCondition, Category } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -46,6 +46,7 @@ import {
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from '@/lib/config';
 import { Switch } from '../ui/switch';
+import { getCategories } from '@/services/categories';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -139,7 +140,7 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
     commissionRules: [],
 }
 
-function CommissionRuleEditor({ rule, onRuleChange, onRemove }: { rule: CommissionRule, onRuleChange: (field: keyof CommissionRule, value: any) => void, onRemove: () => void }) {
+function CommissionRuleEditor({ rule, onRuleChange, onRemove, categories }: { rule: CommissionRule, onRuleChange: (field: keyof CommissionRule, value: any) => void, onRemove: () => void, categories: Category[] }) {
     const [isAdvanced, setIsAdvanced] = useState(!!rule.conditions?.length || !!rule.name);
 
     const handleConditionChange = (condIndex: number, field: keyof CommissionRuleCondition, value: any) => {
@@ -230,16 +231,34 @@ function CommissionRuleEditor({ rule, onRuleChange, onRemove }: { rule: Commissi
                                          <Select value={condition.operator} onValueChange={(v) => handleConditionChange(condIndex, 'operator', v)}>
                                             <SelectTrigger id={`cond-op-${condIndex}`}><SelectValue /></SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="is">Is</SelectItem>
-                                                <SelectItem value="is not">Is Not</SelectItem>
-                                                <SelectItem value="is greater than">Is Greater Than</SelectItem>
-                                                <SelectItem value="is less than">Is Less Than</SelectItem>
+                                                {condition.subject === 'Product Category' ? (
+                                                    <>
+                                                        <SelectItem value="is">Is</SelectItem>
+                                                        <SelectItem value="is not">Is Not</SelectItem>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <SelectItem value="is">Is</SelectItem>
+                                                        <SelectItem value="is not">Is Not</SelectItem>
+                                                        <SelectItem value="is greater than">Is Greater Than</SelectItem>
+                                                        <SelectItem value="is less than">Is Less Than</SelectItem>
+                                                    </>
+                                                )}
                                             </SelectContent>
                                         </Select>
                                     </div>
                                     <div className="space-y-1">
                                         <Label htmlFor={`cond-val-${condIndex}`} className="text-xs">Value</Label>
-                                        <Input id={`cond-val-${condIndex}`} value={condition.value} onChange={(e) => handleConditionChange(condIndex, 'value', e.target.value)} />
+                                        {condition.subject === 'Product Category' ? (
+                                            <Select value={condition.value as string} onValueChange={(v) => handleConditionChange(condIndex, 'value', v)}>
+                                                <SelectTrigger id={`cond-val-${condIndex}`}><SelectValue placeholder="Select a category..."/></SelectTrigger>
+                                                <SelectContent>
+                                                    {categories.map(cat => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                                                </SelectContent>
+                                            </Select>
+                                        ) : (
+                                            <Input id={`cond-val-${condIndex}`} value={condition.value} onChange={(e) => handleConditionChange(condIndex, 'value', e.target.value)} />
+                                        )}
                                     </div>
                                 </div>
                                 <Button variant="ghost" size="icon" onClick={() => removeCondition(condIndex)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
@@ -265,14 +284,19 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
   const [newRole, setNewRole] = useState(emptyRole);
   const [editingRole, setEditingRole] = useState<Role | null>(null);
   const [originalRoleName, setOriginalRoleName] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
   
   useEffect(() => {
     setRoles(initialRoles);
-    async function loadStaff() {
-        const staffData = await getStaff();
+    async function loadData() {
+        const [staffData, categoriesData] = await Promise.all([
+            getStaff(),
+            getCategories(),
+        ]);
         setAllStaff(staffData);
+        setCategories(categoriesData);
     }
-    loadStaff();
+    loadData();
   }, [initialRoles]);
 
   const handlePermissionChange = (roleName: string, module: keyof Permissions, permissionKey: string, value: boolean) => {
@@ -521,6 +545,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                                           rule={rule}
                                                           onRuleChange={(field, value) => handleCommissionRuleChange(role.name, index, field, value)}
                                                           onRemove={() => removeCommissionRule(role.name, index)}
+                                                          categories={categories}
                                                         />
                                                     ))}
                                                     <Button variant="outline" size="sm" onClick={() => addCommissionRule(role.name)}>
