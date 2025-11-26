@@ -218,7 +218,7 @@ export default function ViewStaffPage() {
 
   const handleStatusChange = async (newStatus: Staff['status']) => {
     if (!staffMember) return;
-    const updatedStaff = await updateStaff({ ...staffMember, status: newStatus });
+    const updatedStaff = await updateStaff(staffMember.id, { status: newStatus });
     setStaffMember(updatedStaff);
     toast({ title: `Staff Member ${newStatus}`});
   };
@@ -229,10 +229,10 @@ export default function ViewStaffPage() {
       let updatedStaff: Staff | null = null;
 
       if (action === 'approve') {
-          updatedStaff = await updateStaff({ ...staffMember, status: 'Active' });
+          updatedStaff = await updateStaff(staffMember.id, { status: 'Active' });
           toast({ title: 'Staff Member Approved', description: `${staffMember.name} is now an active staff member.`});
       } else {
-          updatedStaff = await updateStaff({ ...staffMember, status: 'Deactivated', rejectionReason });
+          updatedStaff = await updateStaff(staffMember.id, { status: 'Deactivated', rejectionReason });
            toast({ variant: 'destructive', title: 'Staff Member Rejected', description: `${staffMember.name}'s application has been rejected.`});
       }
       setStaffMember(updatedStaff);
