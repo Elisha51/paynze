@@ -29,17 +29,18 @@ export default function LoginPage() {
   const onboardingSuccess = searchParams.get('onboarding') === 'success';
 
   const handleLogin = async () => {
-    // Simulate login: find the Admin user and log them in directly.
+    // Simulate login: find the Manager user and log them in directly.
+    // This user has more associated data for a better demo experience.
     const allStaff = await getStaff();
-    const adminUser = allStaff.find(s => s.role === 'Admin');
+    const managerUser = allStaff.find(s => s.role === 'Manager');
 
-    if (adminUser) {
-      login(adminUser);
+    if (managerUser) {
+      login(managerUser);
     } else {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Could not find a default Admin user to log in.',
+        description: 'Could not find a default Manager user to log in.',
       });
     }
   };
