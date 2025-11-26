@@ -403,6 +403,61 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                             </Tabs>
                         </CardContent>
                     </Card>
+                     {canCreateBanners && (
+                         <Card>
+                            <CardHeader>
+                                <CardTitle>Promotional Banner</CardTitle>
+                                <CardDescription>Display a banner on your storefront for this campaign.</CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="flex items-center space-x-2">
+                                    <Switch id="banner-enabled" checked={campaign.banner?.enabled} onCheckedChange={(c) => handleBannerChange('enabled', c)} />
+                                    <Label htmlFor="banner-enabled">Enable promotional banner</Label>
+                                </div>
+                                {campaign.banner?.enabled && (
+                                    <div className="space-y-4 pt-4 border-t">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="banner-title">Banner Title</Label>
+                                            <Input id="banner-title" value={campaign.banner?.title || ''} onChange={(e) => handleBannerChange('title', e.target.value)} />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="banner-description">Banner Description</Label>
+                                            <Textarea id="banner-description" value={campaign.banner?.description || ''} onChange={(e) => handleBannerChange('description', e.target.value)} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                             <div className="space-y-2">
+                                                <Label htmlFor="banner-ctaText">CTA Button Text</Label>
+                                                <Input id="banner-ctaText" value={campaign.banner?.ctaText || ''} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
+                                            </div>
+                                             <div className="space-y-2">
+                                                <Label htmlFor="banner-ctaLink">CTA Button Link</Label>
+                                                <Input id="banner-ctaLink" value={campaign.banner?.ctaLink || ''} onChange={(e) => handleBannerChange('ctaLink', e.target.value)} placeholder="/store/collection/sale" />
+                                            </div>
+                                        </div>
+                                         <div className="space-y-2">
+                                            <Label>Banner Image</Label>
+                                            <FileUploader
+                                                files={campaign.banner?.imageUrl ? [{ id: 'banner-img', url: campaign.banner.imageUrl }] : []}
+                                                onFilesChange={handleBannerImageUpload}
+                                                maxFiles={1}
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label>Banner Size</Label>
+                                            <Select value={campaign.banner?.size} onValueChange={(v) => handleBannerChange('size', v as any)}>
+                                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="standard">Standard (3:1)</SelectItem>
+                                                    <SelectItem value="large">Large (2:1)</SelectItem>
+                                                    <SelectItem value="square">Square (1:1)</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
@@ -600,61 +655,6 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                             </AnimatePresence>
                         </CardContent>
                     </Card>
-                     {canCreateBanners && (
-                         <Card>
-                            <CardHeader>
-                                <CardTitle>Promotional Banner</CardTitle>
-                                <CardDescription>Display a banner on your storefront for this campaign.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="flex items-center space-x-2">
-                                    <Switch id="banner-enabled" checked={campaign.banner?.enabled} onCheckedChange={(c) => handleBannerChange('enabled', c)} />
-                                    <Label htmlFor="banner-enabled">Enable promotional banner</Label>
-                                </div>
-                                {campaign.banner?.enabled && (
-                                    <div className="space-y-4 pt-4 border-t">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="banner-title">Banner Title</Label>
-                                            <Input id="banner-title" value={campaign.banner?.title || ''} onChange={(e) => handleBannerChange('title', e.target.value)} />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="banner-description">Banner Description</Label>
-                                            <Textarea id="banner-description" value={campaign.banner?.description || ''} onChange={(e) => handleBannerChange('description', e.target.value)} />
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                             <div className="space-y-2">
-                                                <Label htmlFor="banner-ctaText">CTA Button Text</Label>
-                                                <Input id="banner-ctaText" value={campaign.banner?.ctaText || ''} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
-                                            </div>
-                                             <div className="space-y-2">
-                                                <Label htmlFor="banner-ctaLink">CTA Button Link</Label>
-                                                <Input id="banner-ctaLink" value={campaign.banner?.ctaLink || ''} onChange={(e) => handleBannerChange('ctaLink', e.target.value)} placeholder="/store/collection/sale" />
-                                            </div>
-                                        </div>
-                                         <div className="space-y-2">
-                                            <Label>Banner Image</Label>
-                                            <FileUploader
-                                                files={campaign.banner?.imageUrl ? [{ id: 'banner-img', url: campaign.banner.imageUrl }] : []}
-                                                onFilesChange={handleBannerImageUpload}
-                                                maxFiles={1}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <Label>Banner Size</Label>
-                                            <Select value={campaign.banner?.size} onValueChange={(v) => handleBannerChange('size', v as any)}>
-                                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="standard">Standard (3:1)</SelectItem>
-                                                    <SelectItem value="large">Large (2:1)</SelectItem>
-                                                    <SelectItem value="square">Square (1:1)</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
                 </div>
             </div>
              <div className="flex justify-end mt-6">
