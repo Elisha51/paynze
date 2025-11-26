@@ -1,8 +1,7 @@
 
-
 'use client';
 
-import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Clock, Repeat } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Clock, Repeat, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,8 +23,6 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { Campaign, CampaignBanner, Affiliate, CustomerGroup } from '@/lib/types';
-import { DateRangePicker } from '../ui/date-range-picker';
-import { DateRange } from 'react-day-picker';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { Switch } from '../ui/switch';
 import { FileUploader } from '../ui/file-uploader';
@@ -39,9 +36,10 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { getCustomerGroups } from '@/services/customer-groups';
-import { format, setHours, setMinutes } from 'date-fns';
+import { setHours, setMinutes, format } from 'date-fns';
 import { Calendar } from '../ui/calendar';
 import { Separator } from '../ui/separator';
+import { Checkbox } from '../ui/checkbox';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -75,13 +73,75 @@ type CampaignFormProps = {
     initialCampaign?: Campaign | null;
 }
 
+const DateTimePicker = ({ date, setDate }: { date: Date | undefined, setDate: (date: Date | undefined) => void }) => {
+    const hours = Array.from({ length: 24 }, (_, i) => i.toString().padStart(2, '0'));
+    const minutes = ['00', '15', '30', '45'];
+
+    const handleTimeChange = (type: 'hours' | 'minutes', value: string) => {
+        if (!date) return;
+        let newDate = new Date(date);
+        if (type === 'hours') {
+            newDate = setHours(newDate, parseInt(value));
+        } else {
+            newDate = setMinutes(newDate, parseInt(value));
+        }
+        setDate(newDate);
+    };
+
+    return (
+        <Popover>
+            <PopoverTrigger asChild>
+                <Button
+                    variant={"outline"}
+                    className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !date && "text-muted-foreground"
+                    )}
+                >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {date ? format(date, "PPP p") : <span>Pick a date and time</span>}
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0">
+                <Calendar
+                    mode="single"
+                    selected={date}
+                    onSelect={(d) => setDate(d)}
+                    initialFocus
+                />
+                 <div className="p-3 border-t border-border">
+                    <div className="flex items-center gap-2">
+                        <Label>Time</Label>
+                        <Select
+                            value={date ? format(date, 'HH') : '09'}
+                            onValueChange={(v) => handleTimeChange('hours', v)}
+                        >
+                            <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                            <SelectContent>{hours.map(h => <SelectItem key={h} value={h}>{h}</SelectItem>)}</SelectContent>
+                        </Select>
+                        <span>:</span>
+                         <Select
+                            value={date ? format(date, 'mm') : '00'}
+                            onValueChange={(v) => handleTimeChange('minutes', v)}
+                        >
+                            <SelectTrigger className="w-20"><SelectValue /></SelectTrigger>
+                            <SelectContent>{minutes.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}</SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+};
+
+
 export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>(initialCampaign || emptyCampaign);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>();
-    const [startTime, setStartTime] = useState<string>('09:00');
-    const [endTime, setEndTime] = useState<string>('17:00');
+    const [startDate, setStartDate] = useState<Date | undefined>(initialCampaign?.startDate ? new Date(initialCampaign.startDate) : new Date());
+    const [endDate, setEndDate] = useState<Date | undefined>(initialCampaign?.endDate ? new Date(initialCampaign.endDate) : undefined);
+    const [noEndDate, setNoEndDate] = useState(!initialCampaign?.endDate);
 
 
     const router = useRouter();
@@ -94,18 +154,14 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         if (initialCampaign) {
             setCampaign(prev => ({...prev, ...initialCampaign}));
             if (initialCampaign.startDate) {
-                const startDate = new Date(initialCampaign.startDate);
-                setDateRange({
-                    from: startDate,
-                    to: initialCampaign.endDate ? new Date(initialCampaign.endDate) : undefined,
-                });
-                setStartTime(format(startDate, 'HH:mm'));
-                 if (initialCampaign.endDate) {
-                    setEndTime(format(new Date(initialCampaign.endDate), 'HH:mm'));
-                }
+                setStartDate(new Date(initialCampaign.startDate));
             }
-        } else {
-            setDateRange({ from: new Date(), to: undefined });
+             if (initialCampaign.endDate) {
+                setEndDate(new Date(initialCampaign.endDate));
+                setNoEndDate(false);
+            } else {
+                setNoEndDate(true);
+            }
         }
 
         async function loadData() {
@@ -118,6 +174,12 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         }
         loadData();
     }, [initialCampaign]);
+
+    useEffect(() => {
+        if (noEndDate) {
+            setEndDate(undefined);
+        }
+    }, [noEndDate]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -181,32 +243,11 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     }
     
     const handleSave = () => {
-        let finalStartDate: string | undefined = undefined;
-        let finalEndDate: string | undefined = undefined;
-
-        if (dateRange?.from) {
-            const [hours, minutes] = startTime.split(':').map(Number);
-            const combined = setMinutes(setHours(dateRange.from, hours), minutes);
-            finalStartDate = combined.toISOString();
-        }
-        
-        if (dateRange?.to) {
-            const [hours, minutes] = endTime.split(':').map(Number);
-            const combined = setMinutes(setHours(dateRange.to, hours), minutes);
-            finalEndDate = combined.toISOString();
-        }
-
         const finalCampaign: Partial<Campaign> = {
             ...campaign,
-            startDate: finalStartDate,
-            endDate: finalEndDate,
+            startDate: startDate?.toISOString(),
+            endDate: noEndDate ? undefined : endDate?.toISOString(),
         };
-
-        // If recurring, use the specific recurring times
-        if (finalCampaign.scheduleType === 'recurring' && finalCampaign.recurring) {
-            finalCampaign.recurring.startTime = startTime;
-            finalCampaign.recurring.endTime = endTime;
-        }
 
         console.log("Saving campaign", finalCampaign);
         toast({
@@ -391,8 +432,20 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
                             {campaign.scheduleType === 'one-time' ? (
                                 <div className="space-y-4">
-                                    <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false} />
-                                    <p className="text-xs text-muted-foreground pl-1">Leave end date blank for ongoing campaigns.</p>
+                                     <div className="space-y-2">
+                                        <Label>Start Date & Time</Label>
+                                        <DateTimePicker date={startDate} setDate={setStartDate} />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label>End Date & Time</Label>
+                                        <DateTimePicker date={endDate} setDate={setEndDate} />
+                                         <div className="flex items-center space-x-2 pt-2">
+                                            <Checkbox id="no-end-date" checked={noEndDate} onCheckedChange={(checked) => setNoEndDate(checked as boolean)} />
+                                            <Label htmlFor="no-end-date" className="text-sm font-normal">
+                                                No end date (run continuously)
+                                            </Label>
+                                        </div>
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-4">
@@ -418,25 +471,6 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                     )}
                                 </div>
                             )}
-
-                            <Separator className="my-6" />
-                            
-                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <Label className="flex items-center justify-between">
-                                        Start Time <span className="text-xs text-muted-foreground">(24h format)</span>
-                                    </Label>
-                                    <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label className="flex items-center justify-between">
-                                        End Time <span className="text-xs text-muted-foreground">(24h format)</span>
-                                    </Label>
-                                    <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-                                </div>
-                            </div>
-                            <p className="text-xs text-muted-foreground mt-2">Set the time of day the campaign should be active.</p>
-
                         </CardContent>
                     </Card>
                     
