@@ -1,5 +1,6 @@
 
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
+import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
 
 export type ProductImage = {
@@ -382,11 +383,14 @@ export type AssignableAttribute = {
     type: AttributeType;
 }
 
+export type CommissionRuleTrigger = typeof COMMISSION_RULE_TRIGGERS[number];
+export type CommissionRuleType = typeof COMMISSION_RULE_TYPES[number];
+
 export type CommissionRule = {
     id: string;
     name: string;
-    trigger: 'On Order Paid' | 'On Order Delivered';
-    type: 'Fixed Amount' | 'Percentage of Sale';
+    trigger: CommissionRuleTrigger;
+    type: CommissionRuleType;
     rate: number;
 }
 

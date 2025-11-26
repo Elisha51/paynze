@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
 import { getStaff, updateStaff } from '@/services/staff';
-import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule, Staff } from '@/lib/types';
+import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule, Staff, CommissionRuleTrigger, CommissionRuleType } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
@@ -45,6 +45,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from '@/lib/config';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -335,7 +336,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
           <Card>
               <CardHeader className="flex-row items-center justify-between">
                   <div>
-                      <CardTitle>Manage Roles &amp; Permissions</CardTitle>
+                      <CardTitle>Manage Roles & Permissions</CardTitle>
                       <CardDescription>Define what each staff member can see and do in your dashboard.</CardDescription>
                   </div>
                   <DialogTrigger asChild>
@@ -427,21 +428,19 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                                                 </div>
                                                                 <div className="space-y-2">
                                                                     <Label htmlFor={`rule-trigger-${index}`}>Trigger</Label>
-                                                                    <Select value={rule.trigger} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'trigger', v as CommissionRule['trigger'])}>
+                                                                    <Select value={rule.trigger} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'trigger', v as CommissionRuleTrigger)}>
                                                                         <SelectTrigger id={`rule-trigger-${index}`}><SelectValue /></SelectTrigger>
                                                                         <SelectContent>
-                                                                            <SelectItem value="On Order Paid">On Order Paid</SelectItem>
-                                                                            <SelectItem value="On Order Delivered">On Order Delivered</SelectItem>
+                                                                            {COMMISSION_RULE_TRIGGERS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
                                                                 <div className="space-y-2">
                                                                     <Label htmlFor={`rule-type-${index}`}>Type</Label>
-                                                                    <Select value={rule.type} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'type', v as CommissionRule['type'])}>
+                                                                    <Select value={rule.type} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'type', v as CommissionRuleType)}>
                                                                         <SelectTrigger id={`rule-type-${index}`}><SelectValue /></SelectTrigger>
                                                                         <SelectContent>
-                                                                            <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
-                                                                            <SelectItem value="Percentage of Sale">Percentage of Sale</SelectItem>
+                                                                            {COMMISSION_RULE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
                                                                         </SelectContent>
                                                                     </Select>
                                                                 </div>
