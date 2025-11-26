@@ -375,32 +375,26 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                 onValueChange={(v) => setCampaign(p => ({...p, scheduleType: v as any}))}
                                 className="grid grid-cols-2 gap-4 mb-4"
                             >
-                                <div>
-                                    <RadioGroupItem value="one-time" id="r1" className="peer sr-only" />
-                                    <Label htmlFor="r1" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                        <CalendarIcon className="mb-3 h-6 w-6" />
-                                        One-time
-                                    </Label>
-                                </div>
-                                <div>
-                                    <RadioGroupItem value="recurring" id="r2" className="peer sr-only" />
-                                    <Label htmlFor="r2" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                        <Repeat className="mb-3 h-6 w-6" />
-                                        Recurring
-                                    </Label>
-                                </div>
+                                <Label htmlFor="r1" className={cn("flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", campaign.scheduleType === 'one-time' && 'border-primary')}>
+                                    <RadioGroupItem value="one-time" id="r1" className="sr-only" />
+                                    <CalendarIcon className="mb-3 h-6 w-6" />
+                                    One-time
+                                </Label>
+                                <Label htmlFor="r2" className={cn("flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", campaign.scheduleType === 'recurring' && 'border-primary')}>
+                                    <RadioGroupItem value="recurring" id="r2" className="sr-only" />
+                                    <Repeat className="mb-3 h-6 w-6" />
+                                    Recurring
+                                </Label>
                             </RadioGroup>
                             
-                            <Separator className="my-4" />
+                            <Separator className="my-6" />
 
-                            {campaign.scheduleType === 'one-time' && (
+                            {campaign.scheduleType === 'one-time' ? (
                                 <div className="space-y-4">
                                     <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false} />
                                     <p className="text-xs text-muted-foreground pl-1">Leave end date blank for ongoing campaigns.</p>
                                 </div>
-                            )}
-
-                            {campaign.scheduleType === 'recurring' && (
+                            ) : (
                                 <div className="space-y-4">
                                      <div className="space-y-2">
                                         <Label>Repeats</Label>
@@ -425,20 +419,18 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                 </div>
                             )}
 
-                            <Separator className="my-4" />
+                            <Separator className="my-6" />
                             
                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label className="flex items-center justify-between">
-                                        Start Time
-                                        <span className="text-xs text-muted-foreground">(24h format)</span>
+                                        Start Time <span className="text-xs text-muted-foreground">(24h format)</span>
                                     </Label>
                                     <Input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label className="flex items-center justify-between">
-                                        End Time
-                                        <span className="text-xs text-muted-foreground">(24h format)</span>
+                                        End Time <span className="text-xs text-muted-foreground">(24h format)</span>
                                     </Label>
                                     <Input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
                                 </div>
