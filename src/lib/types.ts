@@ -173,11 +173,23 @@ export type SmsTemplate = {
   message: string; // Can contain variables like {{orderId}}
 };
 
+export type WhatsAppTemplateButton = {
+    type: 'cta' | 'reply';
+    text: string;
+    url?: string; // For CTA buttons
+}
+
 export type WhatsAppTemplate = {
   id: string;
   name: string;
   description: string;
   message: string;
+  category: 'Marketing' | 'Utility' | 'Authentication';
+  media?: {
+    type: 'image' | 'video' | 'document';
+    url: string; // Link to the media file
+  };
+  buttons?: WhatsAppTemplateButton[];
 };
 
 export type OrderItem = {
@@ -442,7 +454,7 @@ export type Staff = {
   lastLogin?: string;
   onlineStatus?: 'Online' | 'Offline';
   assignedOrders?: Order[];
-  completionRate?: number; // e.g., 98.5
+  completionRate?: number;
   totalSales?: number; // For sales agents
   totalCommission?: number; // For tracking earned commission
   payoutHistory?: Payout[];

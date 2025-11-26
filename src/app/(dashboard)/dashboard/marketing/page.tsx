@@ -1,4 +1,3 @@
-
 'use client';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { AffiliatesTab } from '@/components/dashboard/affiliates-tab';
@@ -12,7 +11,7 @@ import { MarketingAnalyticsReport } from '@/components/dashboard/analytics/marke
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Megaphone, Gift, Users, PlusCircle } from 'lucide-react';
+import { Megaphone, Gift, Users, PlusCircle, MessageSquare } from 'lucide-react';
 import { getAffiliates } from '@/services/affiliates';
 import { DiscountsTab } from '@/components/dashboard/discounts-tab';
 import Link from 'next/link';
@@ -86,7 +85,8 @@ export default function MarketingPage() {
   
   const tabs = [
     { value: 'overview', label: 'Overview' },
-    { value: 'campaigns', label: 'Campaigns' },
+    { value: 'campaigns', label: 'Campaigns (Email/SMS)' },
+    { value: 'whatsapp', label: 'WhatsApp' },
     { value: 'discounts', label: 'Discounts' },
     { value: 'affiliates', label: 'Affiliates' },
   ];
@@ -116,6 +116,13 @@ export default function MarketingPage() {
       return (
         <Button asChild>
           <Link href="/dashboard/marketing/campaigns/add"><PlusCircle className="mr-2 h-4 w-4" /> Create Campaign</Link>
+        </Button>
+      );
+    }
+    if (activeTab === 'whatsapp') {
+      return (
+        <Button asChild>
+          <Link href="/dashboard/marketing/whatsapp/add"><PlusCircle className="mr-2 h-4 w-4" /> Create WhatsApp Campaign</Link>
         </Button>
       );
     }
@@ -152,6 +159,11 @@ export default function MarketingPage() {
                     { columnId: 'channel', title: 'Channel', options: campaignChannelOptions },
                 ]}
             />
+        </DashboardPageLayout.Content>
+      </DashboardPageLayout.TabContent>
+      <DashboardPageLayout.TabContent value="whatsapp">
+        <DashboardPageLayout.Content>
+          <p>WhatsApp campaigns will be managed here.</p>
         </DashboardPageLayout.Content>
       </DashboardPageLayout.TabContent>
        <DashboardPageLayout.TabContent value="discounts">

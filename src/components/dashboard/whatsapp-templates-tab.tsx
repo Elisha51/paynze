@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -7,21 +6,33 @@ import { Button } from '@/components/ui/button';
 import { getWhatsAppTemplates, addWhatsAppTemplate } from '@/services/templates';
 import type { WhatsAppTemplate } from '@/lib/types';
 import Link from 'next/link';
-import { PlusCircle, Edit, Copy, Search, Settings } from 'lucide-react';
+import { PlusCircle, Edit, Copy, Search, Settings, File, Phone, Link2 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '../ui/input';
 import { EmptyState } from '../ui/empty-state';
 import { Skeleton } from '../ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
+import { Badge } from '../ui/badge';
+import Image from 'next/image';
 
 const TemplateCard = ({ template, onCopy, isCopied }: { template: WhatsAppTemplate, onCopy: (template: WhatsAppTemplate) => void, isCopied: boolean }) => (
     <Card className="flex flex-col">
         <CardHeader>
-            <CardTitle className="text-lg">{template.name}</CardTitle>
-            <CardDescription>{template.description}</CardDescription>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-lg">{template.name}</CardTitle>
+                <CardDescription>{template.description}</CardDescription>
+              </div>
+              <Badge variant="outline">{template.category}</Badge>
+            </div>
         </CardHeader>
-        <CardContent className="flex-1">
+        <CardContent className="flex-1 space-y-3">
+             {template.media && (
+              <div className="relative h-32 w-full bg-muted rounded-md overflow-hidden">
+                <Image src={template.media.url} alt={template.name} fill className="object-cover" />
+              </div>
+            )}
             <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">"{template.message}"</p>
         </CardContent>
         <CardFooter>
@@ -35,11 +46,32 @@ const TemplateCard = ({ template, onCopy, isCopied }: { template: WhatsAppTempla
 const MyTemplateCard = ({ template }: { template: WhatsAppTemplate }) => (
      <Card className="flex flex-col">
          <CardHeader>
-            <CardTitle className="text-lg">{template.name}</CardTitle>
-            <CardDescription>{template.description}</CardDescription>
+            <div className="flex justify-between items-start">
+              <div>
+                <CardTitle className="text-lg">{template.name}</CardTitle>
+                <CardDescription>{template.description}</CardDescription>
+              </div>
+              <Badge variant="outline">{template.category}</Badge>
+            </div>
         </CardHeader>
-        <CardContent className="flex-1">
-             <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">"{template.message}"</p>
+        <CardContent className="flex-1 space-y-3">
+            {template.media && (
+              <div className="relative h-32 w-full bg-muted rounded-md overflow-hidden">
+                <Image src={template.media.url} alt={template.name} fill className="object-cover" />
+              </div>
+            )}
+            <p className="text-sm text-muted-foreground bg-muted p-3 rounded-md">"{template.message}"</p>
+            {template.buttons && template.buttons.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {template.buttons.map((btn, i) => (
+                  <Button key={i} variant="secondary" size="sm" className="pointer-events-none">
+                    {btn.type === 'cta' && <Link2 className="mr-2 h-4 w-4" />}
+                    {btn.type === 'reply' && <Phone className="mr-2 h-4 w-4" />}
+                    {btn.text}
+                  </Button>
+                ))}
+              </div>
+            )}
         </CardContent>
         <CardFooter className="flex justify-end">
             <Button variant="outline" asChild>
@@ -51,7 +83,6 @@ const MyTemplateCard = ({ template }: { template: WhatsAppTemplate }) => (
         </CardFooter>
     </Card>
 );
-
 
 export function WhatsAppTemplatesTab() {
   const [allTemplates, setAllTemplates] = useState<WhatsAppTemplate[]>([]);
@@ -93,10 +124,13 @@ export function WhatsAppTemplatesTab() {
 
   const handleCopyTemplate = async (templateToCopy: WhatsAppTemplate) => {
     try {
-      const newTemplateData = {
+      const newTemplateData: Omit<WhatsAppTemplate, 'id'> = {
         name: templateToCopy.name,
         description: templateToCopy.description,
         message: templateToCopy.message,
+        category: templateToCopy.category,
+        media: templateToCopy.media,
+        buttons: templateToCopy.buttons,
       };
       
       const newTemplate = await addWhatsAppTemplate(newTemplateData);
@@ -116,7 +150,7 @@ export function WhatsAppTemplatesTab() {
     if (isLoading) {
       return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[200px] w-full" />)}
+          {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-[250px] w-full" />)}
         </div>
       );
     }
@@ -171,7 +205,7 @@ export function WhatsAppTemplatesTab() {
             <Card>
                  <CardHeader>
                     <CardTitle>My WhatsApp Templates</CardTitle>
-                    <CardDescription>Manage your custom WhatsApp templates.</CardDescription>
+                    <CardDescription>Manage your custom templates for WhatsApp campaigns. All templates require approval from Meta.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <Alert className="mb-6">
@@ -190,7 +224,7 @@ export function WhatsAppTemplatesTab() {
             <Card>
                 <CardHeader>
                     <CardTitle>WhatsApp Template Hub</CardTitle>
-                    <CardDescription>Find pre-built templates for WhatsApp messaging.</CardDescription>
+                    <CardDescription>Find pre-built, approved templates for common e-commerce scenarios.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="relative mb-4">

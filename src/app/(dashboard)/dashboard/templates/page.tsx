@@ -1,4 +1,3 @@
-
 'use client';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { ProductTemplatesTab } from '@/components/dashboard/product-templates-tab';
