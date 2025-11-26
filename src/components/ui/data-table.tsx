@@ -166,7 +166,7 @@ export function DataTable<TData, TValue>({
                 {headerGroup.headers.map((header) => {
                   const isActionsColumn = header.id === 'actions';
                   return (
-                    <TableHead key={header.id} className={isActionsColumn ? 'sticky right-0 bg-card' : ''}>
+                    <TableHead key={header.id} className={isActionsColumn ? 'sticky right-0 bg-card z-10' : ''}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -199,7 +199,7 @@ export function DataTable<TData, TValue>({
                   {row.getVisibleCells().map((cell) => {
                     const isActionsColumn = cell.column.id === 'actions';
                     return (
-                        <TableCell key={cell.id} className={isActionsColumn ? 'sticky right-0 bg-background' : ''}>
+                        <TableCell key={cell.id} className={isActionsColumn ? 'sticky right-0 bg-background z-10' : ''}>
                         {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext()

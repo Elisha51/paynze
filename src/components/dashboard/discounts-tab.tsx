@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui
 import { Button } from '../ui/button';
 import { getDiscounts, deleteDiscount } from '@/services/marketing';
 import type { Discount } from '@/lib/types';
-import { PlusCircle, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, Check, ChevronsUpDown } from 'lucide-react';
 import { DataTable } from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
@@ -17,9 +17,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { Checkbox } from '../ui/checkbox';
 
 const discountStatuses = [
     { value: 'Active', label: 'Active' },
@@ -34,6 +36,25 @@ const discountTypes = [
 ];
 
 const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discount>[] => [
+     {
+        id: 'select',
+        header: ({ table }) => (
+        <Checkbox
+            checked={table.getIsAllPageRowsSelected()}
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+        />
+        ),
+        cell: ({ row }) => (
+        <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+        />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+    },
     {
         accessorKey: 'code',
         header: 'Code',
@@ -41,7 +62,7 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
     {
         accessorKey: 'type',
         header: 'Type',
-        filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
     },
     {
         accessorKey: 'value',
@@ -79,7 +100,7 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
             const variant = status === 'Active' ? 'default' : status === 'Expired' ? 'destructive' : 'secondary';
             return <Badge variant={variant}>{status}</Badge>
         },
-        filterFn: (row, id, value) => value.includes(row.getValue(id)),
+        filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
     },
     {
         accessorKey: 'redemptions',
@@ -160,12 +181,6 @@ export function DiscountsTab() {
             Manage and create discount codes for your store.
           </CardDescription>
         </div>
-        <Button asChild>
-          <Link href="/dashboard/marketing/discounts/add">
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Create Discount
-          </Link>
-        </Button>
       </CardHeader>
       <CardContent>
         <DataTable 

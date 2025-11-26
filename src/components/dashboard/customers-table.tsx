@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { PlusCircle, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { Customer, CustomerGroup } from '@/lib/types';
+import type { Customer, CustomerGroup, Staff } from '@/lib/types';
 import { DataTable } from './data-table';
 import Link from 'next/link';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +11,7 @@ import { getCustomerColumns } from './customers-columns';
 import { useAuth } from '@/context/auth-context';
 import { getCustomerGroups } from '@/services/customer-groups';
 import type { ColumnFiltersState } from '@tanstack/react-table';
+import { getStaff } from '@/services/staff';
 
 export function CustomersTable({ 
     data, 
@@ -28,17 +29,22 @@ export function CustomersTable({
     const { toast } = useToast();
     const { user } = useAuth();
     const [customerGroups, setCustomerGroups] = React.useState<CustomerGroup[]>([]);
+    const [staff, setStaff] = React.useState<Staff[]>([]);
 
     const canCreate = user?.permissions.customers.create;
     const canEdit = user?.permissions.customers.edit ?? false;
     const canDelete = user?.permissions.customers.delete ?? false;
 
     React.useEffect(() => {
-        async function loadGroups() {
-            const groups = await getCustomerGroups();
+        async function loadData() {
+            const [groups, staffData] = await Promise.all([
+                getCustomerGroups(),
+                getStaff(),
+            ]);
             setCustomerGroups(groups);
+            setStaff(staffData.filter(s => s.role !== 'Affiliate'));
         }
-        loadGroups();
+        loadData();
     }, []);
 
     const handleDeleteCustomer = (customerId: string) => {
@@ -58,9 +64,8 @@ export function CustomersTable({
     
     const createdByOptions = React.useMemo(() => {
         if (!user?.permissions.customers.viewAll) return [];
-        const creators = new Set(data.filter(c => c.createdByName).map(c => c.createdByName));
-        return Array.from(creators).map(name => ({ value: name!, label: name!}));
-    }, [data, user]);
+        return staff.map(s => ({ value: s.name!, label: s.name!}));
+    }, [staff, user]);
 
 
   return (
@@ -83,7 +88,7 @@ export function CustomersTable({
         },
         ...(user?.permissions.customers.viewAll ? [{
             columnId: 'createdByName',
-            title: 'Created By',
+            title: 'Added By',
             options: createdByOptions,
         }] : [])
       ]}
