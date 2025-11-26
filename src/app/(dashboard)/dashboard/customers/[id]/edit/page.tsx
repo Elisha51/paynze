@@ -7,9 +7,6 @@ import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useParams } from 'next/navigation';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 
 export default function EditCustomerPage() {
     const params = useParams();

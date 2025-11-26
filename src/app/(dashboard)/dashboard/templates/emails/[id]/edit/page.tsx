@@ -36,6 +36,14 @@ export default function EditEmailTemplatePage() {
             </DashboardPageLayout>
         )
     }
+    
+    if (!template) {
+         return (
+            <DashboardPageLayout title="Error">
+                <p>Template not found.</p>
+            </DashboardPageLayout>
+        );
+    }
 
     return (
         <DashboardPageLayout title={`Edit "${template?.name}" Template`} backHref="/dashboard/templates?tab=email-templates">

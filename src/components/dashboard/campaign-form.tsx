@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ArrowLeft, Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -27,7 +27,6 @@ import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { RichTextEditor } from '../ui/rich-text-editor';
 import { Switch } from '../ui/switch';
-import { Separator } from '../ui/separator';
 import { FileUploader } from '../ui/file-uploader';
 import { useAuth } from '@/context/auth-context';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
@@ -155,23 +154,13 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         router.push('/dashboard/marketing?tab=campaigns');
     }
 
-    const handleBack = () => router.push('/dashboard/marketing?tab=campaigns');
-
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={handleBack}>
-                    <ArrowLeft className="h-4 w-4" />
+             <div className="flex justify-end gap-2">
+                <Button onClick={handleSave}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save {isEditing ? 'Changes' : 'Campaign'}
                 </Button>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{isEditing ? `Edit Campaign` : 'Create Campaign'}</h1>
-                </div>
-                 <div className="ml-auto flex items-center gap-2">
-                    <Button onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save {isEditing ? 'Changes' : 'Campaign'}
-                    </Button>
-                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">

@@ -1,5 +1,4 @@
 
-
 'use client';
 import { SupplierForm } from '@/components/dashboard/supplier-form';
 import { getSupplierById } from '@/services/procurement';

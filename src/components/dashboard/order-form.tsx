@@ -1,6 +1,6 @@
 
 'use client';
-import { Save, PlusCircle, Trash2, ArrowLeft, PackageSearch } from 'lucide-react';
+import { Save, PlusCircle, Trash2, PackageSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -229,6 +229,13 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
     
     return (
         <div className="space-y-6">
+             <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+                <Button onClick={handleSave}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Order
+                </Button>
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
@@ -304,13 +311,6 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
                         </CardContent>
                      </Card>
                 </div>
-            </div>
-             <div className="flex justify-end gap-2 mt-6">
-                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
-                <Button onClick={handleSave}>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save Order
-                </Button>
             </div>
         </div>
     )

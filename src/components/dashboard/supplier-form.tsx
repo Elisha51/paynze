@@ -1,6 +1,6 @@
 
 'use client';
-import { ArrowLeft, Save, Check, ChevronsUpDown, X, ShieldAlert } from 'lucide-react';
+import { Save, Check, ChevronsUpDown, ShieldAlert, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -85,10 +85,6 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
     router.push('/dashboard/procurement');
   }
 
-  const handleBack = () => {
-      router.back();
-  }
-
   if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
     return (
         <Card>
@@ -107,6 +103,13 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
 
   return (
     <div className="space-y-6 max-w-4xl">
+       <div className="flex justify-end gap-2">
+        <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+        <Button onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            Save Supplier
+        </Button>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Supplier Information</CardTitle>
@@ -191,13 +194,6 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
           </div>
         </CardContent>
       </Card>
-      <div className="flex justify-end gap-2">
-        <Button variant="outline" onClick={handleBack}>Cancel</Button>
-        <Button onClick={handleSave}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Supplier
-        </Button>
-      </div>
     </div>
   );
 }

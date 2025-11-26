@@ -1,14 +1,13 @@
 
 'use client';
 
-import { ArrowLeft, Save, Sparkles, Ticket, Check, ChevronsUpDown } from 'lucide-react';
+import { Save, Sparkles, Ticket, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -28,7 +27,6 @@ import { Checkbox } from '../ui/checkbox';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Switch } from '../ui/switch';
-import { Separator } from '../ui/separator';
 import { getProducts } from '@/services/products';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
@@ -205,25 +203,16 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         router.push('/dashboard/marketing?tab=discounts');
     }
 
-    const handleBack = () => router.push('/dashboard/marketing?tab=discounts');
-
     const currency = settings?.currency || 'UGX';
 
     return (
         <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="flex items-center gap-4">
-                <Button variant="outline" size="icon" onClick={handleBack}>
-                    <ArrowLeft className="h-4 w-4" />
+            <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+                <Button onClick={handleSave}>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save {isEditing ? 'Changes' : 'Discount'}
                 </Button>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{isEditing ? `Edit Discount` : 'Create Discount'}</h1>
-                </div>
-                 <div className="ml-auto flex items-center gap-2">
-                    <Button onClick={handleSave}>
-                        <Save className="mr-2 h-4 w-4" />
-                        Save {isEditing ? 'Changes' : 'Discount'}
-                    </Button>
-                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
