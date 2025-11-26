@@ -8,9 +8,12 @@ const mockCampaigns: Campaign[] = [
         id: 'camp-1',
         name: 'Eid Sale 2024',
         status: 'Completed',
-        content: { sms: { enabled: true, message: 'Eid sale is now on!'} },
+        content: { 
+            email: { enabled: true, subject: 'Eid Sale!', body: 'Our Eid sale is on now!' },
+            sms: { enabled: true, message: 'Eid sale is now on!'} 
+        },
         sent: 520,
-        openRate: 'N/A',
+        openRate: '28.5',
         ctr: '12.5',
         audience: 'All Customers',
         startDate: '2024-06-10',
@@ -29,7 +32,7 @@ const mockCampaigns: Campaign[] = [
         audience: 'Subscribers',
         startDate: '2024-07-20',
         affiliateAccess: 'specific',
-        allowedAffiliateIds: ['aff-001', 'aff-002'],
+        allowedAffiliateIds: ['aff-001'],
         banner: {
             enabled: true,
             type: 'Product Highlight',
@@ -93,6 +96,25 @@ const mockDiscounts: Discount[] = [
         startDate: '2024-01-01',
         usageLimit: 50,
         onePerCustomer: false,
+    },
+    {
+        code: 'BOGO-SHOES',
+        type: 'Buy X Get Y',
+        value: 0, // Not used for BOGO
+        status: 'Active',
+        redemptions: 8,
+        minPurchase: 0,
+        customerGroup: 'Everyone',
+        usageLimit: null,
+        onePerCustomer: true,
+        bogoDetails: {
+            buyQuantity: 1,
+            buyProductIds: ['SHOE-002-42', 'SHOE-002-43'],
+            getQuantity: 1,
+            getProductIds: ['JEWEL-01'],
+            getDiscountPercentage: 100
+        },
+        description: 'Buy a pair of leather shoes, get a necklace free!'
     },
     {
         code: 'FATUMA-SPECIAL',

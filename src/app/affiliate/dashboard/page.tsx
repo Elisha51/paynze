@@ -61,16 +61,14 @@ export default function AffiliateDashboardPage() {
     const currency = settings?.currency || 'UGX';
 
     const { paidOrders, totalConversions, totalSalesValue } = useMemo(() => {
-        const paidOrders = referredOrders.filter(o => o.payment.status === 'completed');
-        const totalConversions = referredOrders.length;
-        const totalSalesValue = referredOrders.reduce((sum, order) => sum + order.total, 0);
-
+        const paid = referredOrders.filter(o => o.payment.status === 'completed');
+        const conversions = referredOrders.length;
+        const salesValue = referredOrders.reduce((sum, order) => sum + order.total, 0);
         return {
-            paidOrders,
-            totalConversions,
-            totalSalesValue,
-        }
-
+            paidOrders: paid,
+            totalConversions: conversions,
+            totalSalesValue: salesValue,
+        };
     }, [referredOrders]);
     
     const formatCurrency = (amount: number) => {

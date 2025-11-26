@@ -18,7 +18,7 @@ async function initializeMockAffiliates(): Promise<Affiliate[]> {
         contact: s.phone || '',
         uniqueId: s.email, // Using email as uniqueId for mock purposes
         linkClicks: 50 + Math.floor(Math.random() * 200), // Random mock data
-        conversions: s.totalSales ? s.totalSales / 50000 : 0, // Mocked
+        conversions: s.totalSales ? Math.round(s.totalSales / 75000) : 0, // Mocked
         totalSales: s.totalSales || 0,
         pendingCommission: s.totalCommission || 0,
         paidCommission: s.paidCommission || 0,

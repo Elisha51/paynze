@@ -127,6 +127,21 @@ function initializeMockOrders(): Order[] {
             currency: 'UGX',
             shippingAddress: { street: '888 Demo Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
         },
+        { 
+            id: 'ORD-010',
+            customerId: 'cust-08',
+            customerName: 'Chloe Davis',
+            customerEmail: 'chloe@example.com',
+            salesAgentId: 'aff-002', // Referred by David Odhiambo
+            salesAgentName: 'David Odhiambo',
+            date: '2024-07-19T11:00:00Z', 
+            status: 'Awaiting Payment',
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
+            total: 75000,
+            currency: 'UGX',
+            shippingAddress: { street: '888 Demo Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+        },
     ];
     return [...mockOrders].map((order, index) => {
         const isPaid = order.status !== 'Awaiting Payment' && order.status !== 'Cancelled';

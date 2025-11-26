@@ -1,12 +1,12 @@
 
 
-import type { Order, Staff, Role, CommissionRuleCondition } from '@/lib/types';
+import type { Order, Staff, Role, CommissionRuleCondition, AffiliateProgramSettings } from '@/lib/types';
 import { DataService } from './data-service';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
 
-const affiliateSettingsService = new DataService('affiliateSettings', () => ({
-    programStatus: 'Inactive',
+const affiliateSettingsService = new DataService<AffiliateProgramSettings>('affiliateSettings', () => ({
+    programStatus: 'Active',
     commissionType: 'Percentage',
     commissionRate: 10,
     payoutThreshold: 50000,
@@ -50,8 +50,9 @@ export async function calculateCommissionForOrder(order: Order, trigger: 'On Ord
     const staffId = trigger === 'On Order Paid' ? order.salesAgentId : order.fulfilledByStaffId;
     
     if (!staffId) {
-      console.log(`No staff ID found for trigger "${trigger}" on order #${order.id}. Skipping commission.`);
-      return; // No staff associated with this action
+      // It's normal for many orders not to have an agent, so we just log this for debugging.
+      // console.log(`No staff ID found for trigger "${trigger}" on order #${order.id}. Skipping commission.`);
+      return;
     }
 
     const allStaff = await getStaff();
@@ -69,18 +70,18 @@ export async function calculateCommissionForOrder(order: Order, trigger: 'On Ord
     }
 
     let totalEarnedCommission = 0;
+    
+    let totalSales = staffMember.totalSales || 0;
+    totalSales += order.total;
 
     // Handle Affiliate Commissions (triggered only on payment)
     if (staffRole.name === 'Affiliate' && trigger === 'On Order Paid') {
-        const affiliateSettingsArray = await affiliateSettingsService.getAll();
-        if (affiliateSettingsArray.length > 0) {
-            const affiliateSettings = affiliateSettingsArray[0] as any;
-            if (affiliateSettings.programStatus === 'Active') {
-                 if (affiliateSettings.commissionType === 'Percentage') {
-                    totalEarnedCommission += order.total * (affiliateSettings.commissionRate / 100);
-                } else {
-                    totalEarnedCommission += affiliateSettings.commissionRate;
-                }
+        const affiliateSettings = await affiliateSettingsService.getById(0); // Assuming single settings object
+        if (affiliateSettings && affiliateSettings.programStatus === 'Active') {
+             if (affiliateSettings.commissionType === 'Percentage') {
+                totalEarnedCommission += order.total * (affiliateSettings.commissionRate / 100);
+            } else {
+                totalEarnedCommission += affiliateSettings.commissionRate;
             }
         }
     } 
@@ -101,8 +102,15 @@ export async function calculateCommissionForOrder(order: Order, trigger: 'On Ord
     }
 
     let shouldUpdateStaff = false;
+    const updates: Partial<Staff> = {};
     if (totalEarnedCommission > 0) {
-        staffMember.totalCommission = (staffMember.totalCommission || 0) + totalEarnedCommission;
+        updates.totalCommission = (staffMember.totalCommission || 0) + totalEarnedCommission;
+        shouldUpdateStaff = true;
+    }
+
+    // Always update total sales for the sales agent
+    if(trigger === 'On Order Paid') {
+        updates.totalSales = totalSales;
         shouldUpdateStaff = true;
     }
     
@@ -110,7 +118,7 @@ export async function calculateCommissionForOrder(order: Order, trigger: 'On Ord
     if (staffRole.name === 'Agent' && trigger === 'On Order Delivered') {
         const deliveryTarget = staffMember.attributes?.deliveryTarget as { current: number, goal: number } | undefined;
         if (deliveryTarget) {
-            staffMember.attributes = {
+            updates.attributes = {
                 ...staffMember.attributes,
                 deliveryTarget: { ...deliveryTarget, current: (deliveryTarget.current || 0) + 1 }
             };
@@ -119,7 +127,9 @@ export async function calculateCommissionForOrder(order: Order, trigger: 'On Ord
     }
 
     if (shouldUpdateStaff) {
-        await updateStaff(staffMember.id, staffMember);
-        console.log(`Commission of ${totalEarnedCommission} calculated for ${staffMember.name} from order #${order.id}`);
+        await updateStaff(staffMember.id, updates);
+        if (totalEarnedCommission > 0) {
+          console.log(`Commission of ${totalEarnedCommission} calculated for ${staffMember.name} from order #${order.id}`);
+        }
     }
 }
