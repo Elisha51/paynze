@@ -71,6 +71,8 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
     const [dateRange, setDateRange] = useState<DateRange | undefined>();
     const [startTime, setStartTime] = useState<string>('09:00');
+    const [endTime, setEndTime] = useState<string>('17:00');
+
 
     const router = useRouter();
     const { toast } = useToast();
@@ -88,6 +90,9 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                     to: initialCampaign.endDate ? new Date(initialCampaign.endDate) : undefined,
                 });
                 setStartTime(format(startDate, 'HH:mm'));
+                 if (initialCampaign.endDate) {
+                    setEndTime(format(new Date(initialCampaign.endDate), 'HH:mm'));
+                }
             }
         } else {
             setDateRange({ from: new Date(), to: undefined });
@@ -149,16 +154,24 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
 
     const handleSave = () => {
         let finalStartDate: string | undefined = undefined;
+        let finalEndDate: string | undefined = undefined;
+
         if (dateRange?.from) {
             const date = format(dateRange.from, 'yyyy-MM-dd');
             const combined = parse(`${date} ${startTime}`, 'yyyy-MM-dd HH:mm', new Date());
             finalStartDate = combined.toISOString();
         }
+        
+        if (dateRange?.to) {
+            const date = format(dateRange.to, 'yyyy-MM-dd');
+            const combined = parse(`${date} ${endTime}`, 'yyyy-MM-dd HH:mm', new Date());
+            finalEndDate = combined.toISOString();
+        }
 
         const finalCampaign: Partial<Campaign> = {
             ...campaign,
             startDate: finalStartDate,
-            endDate: dateRange?.to?.toISOString(),
+            endDate: finalEndDate,
         };
 
         console.log("Saving campaign", finalCampaign);
@@ -168,9 +181,17 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
         });
         router.push('/dashboard/marketing?tab=campaigns');
     }
+    
+    const pageTitle = isEditing ? 'Edit Campaign' : 'Create Campaign';
+    const cta = (
+         <Button onClick={handleSave}>
+            <Save className="mr-2 h-4 w-4" />
+            {isEditing ? 'Save Changes' : 'Save Campaign'}
+        </Button>
+    )
 
     return (
-        <div className="space-y-6 max-w-5xl mx-auto">
+         <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div className="lg:col-span-3 space-y-6">
                     <Card>
@@ -325,11 +346,20 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                 <Label>Active Dates</Label>
                                 <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false} />
                             </div>
-                             <div className="space-y-2">
-                                <Label htmlFor="startTime">Start Time</Label>
-                                <div className="relative">
-                                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                    <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="pl-10" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="startTime">Start Time</Label>
+                                    <div className="relative">
+                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input id="startTime" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} className="pl-10" />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="endTime">End Time</Label>
+                                    <div className="relative">
+                                        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                                        <Input id="endTime" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} className="pl-10" />
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
