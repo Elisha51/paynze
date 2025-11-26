@@ -396,11 +396,11 @@ export type CommissionRuleCondition = {
 
 export type CommissionRule = {
     id: string;
-    name: string;
+    name?: string;
     trigger: CommissionRuleTrigger;
     type: CommissionRuleType;
     rate: number;
-    conditions: CommissionRuleCondition[];
+    conditions?: CommissionRuleCondition[];
 };
 
 export type PerformanceTarget = {

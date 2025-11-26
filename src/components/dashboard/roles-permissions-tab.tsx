@@ -6,12 +6,12 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from '@/components/ui/button';
 import { updateRole, addRole as serviceAddRole } from '@/services/roles';
 import { getStaff, updateStaff } from '@/services/staff';
-import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule, Staff, CommissionRuleTrigger, CommissionRuleType } from '@/lib/types';
+import type { Role, Permissions, CrudPermissions, StaffRoleName, AssignableAttribute, CommissionRule, Staff, CommissionRuleTrigger, CommissionRuleType, CommissionRuleCondition } from '@/lib/types';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
-import { PlusCircle, Trash2, DollarSign, Edit, MoreHorizontal, Settings } from 'lucide-react';
+import { PlusCircle, Trash2, DollarSign, Edit, MoreHorizontal, Settings, Wand2, TestTube2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,6 @@ import { Input } from '@/components/ui/input';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Badge } from '../ui/badge';
-import { cn } from '@/lib/utils';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -46,6 +45,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from '@/lib/config';
+import { Switch } from '../ui/switch';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -139,6 +139,119 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
     commissionRules: [],
 }
 
+function CommissionRuleEditor({ rule, onRuleChange, onRemove }: { rule: CommissionRule, onRuleChange: (field: keyof CommissionRule, value: any) => void, onRemove: () => void }) {
+    const [isAdvanced, setIsAdvanced] = useState(!!rule.conditions?.length || !!rule.name);
+
+    const handleConditionChange = (condIndex: number, field: keyof CommissionRuleCondition, value: any) => {
+        const newConditions = [...(rule.conditions || [])];
+        const condition = {...newConditions[condIndex]};
+        (condition as any)[field] = value;
+        newConditions[condIndex] = condition;
+        onRuleChange('conditions', newConditions);
+    }
+    
+    const addCondition = () => {
+        const newCondition: CommissionRuleCondition = { id: `cond-${Date.now()}`, subject: 'Order Total', operator: 'is greater than', value: 0};
+        onRuleChange('conditions', [...(rule.conditions || []), newCondition]);
+    }
+
+    const removeCondition = (condIndex: number) => {
+        const newConditions = (rule.conditions || []).filter((_, i) => i !== condIndex);
+        onRuleChange('conditions', newConditions);
+    }
+
+    return (
+        <Card className="p-4">
+            <div className="flex justify-between items-start mb-4">
+                <div className="flex items-center space-x-2">
+                    <Switch id={`advanced-switch-${rule.id}`} checked={isAdvanced} onCheckedChange={setIsAdvanced} />
+                    <Label htmlFor={`advanced-switch-${rule.id}`}>{isAdvanced ? 'Advanced Rule' : 'Simple Rule'}</Label>
+                </div>
+                 <Button variant="ghost" size="icon" onClick={onRemove}>
+                    <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+            </div>
+
+            {isAdvanced && (
+                 <div className="space-y-2 mb-4">
+                    <Label htmlFor={`rule-name-${rule.id}`}>Rule Name</Label>
+                    <Input id={`rule-name-${rule.id}`} value={rule.name || ''} onChange={(e) => onRuleChange('name', e.target.value)} placeholder="e.g. High-Value Order Bonus" />
+                </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor={`rule-trigger-${rule.id}`}>Trigger</Label>
+                    <Select value={rule.trigger} onValueChange={(v) => onRuleChange('trigger', v as CommissionRuleTrigger)}>
+                        <SelectTrigger id={`rule-trigger-${rule.id}`}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            {COMMISSION_RULE_TRIGGERS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor={`rule-type-${rule.id}`}>Type</Label>
+                    <Select value={rule.type} onValueChange={(v) => onRuleChange('type', v as CommissionRuleType)}>
+                        <SelectTrigger id={`rule-type-${rule.id}`}><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            {COMMISSION_RULE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor={`rule-rate-${rule.id}`}>Rate ({rule.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
+                    <Input id={`rule-rate-${rule.id}`} type="number" value={rule.rate} onChange={(e) => onRuleChange('rate', e.target.value)} />
+                </div>
+            </div>
+            
+            {isAdvanced && (
+                <div className="mt-4 pt-4 border-t space-y-4">
+                    <Label>Conditions (all must be met)</Label>
+                    {(rule.conditions || []).map((condition, condIndex) => (
+                        <Card key={condition.id} className="p-3 bg-muted/50">
+                            <div className="flex items-end gap-2">
+                                <div className="grid grid-cols-3 gap-2 flex-1">
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`cond-subject-${condIndex}`} className="text-xs">Subject</Label>
+                                        <Select value={condition.subject} onValueChange={(v) => handleConditionChange(condIndex, 'subject', v)}>
+                                            <SelectTrigger id={`cond-subject-${condIndex}`}><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Order Total">Order Total</SelectItem>
+                                                <SelectItem value="Product Category">Product Category</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`cond-op-${condIndex}`} className="text-xs">Operator</Label>
+                                         <Select value={condition.operator} onValueChange={(v) => handleConditionChange(condIndex, 'operator', v)}>
+                                            <SelectTrigger id={`cond-op-${condIndex}`}><SelectValue /></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="is">Is</SelectItem>
+                                                <SelectItem value="is not">Is Not</SelectItem>
+                                                <SelectItem value="is greater than">Is Greater Than</SelectItem>
+                                                <SelectItem value="is less than">Is Less Than</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`cond-val-${condIndex}`} className="text-xs">Value</Label>
+                                        <Input id={`cond-val-${condIndex}`} value={condition.value} onChange={(e) => handleConditionChange(condIndex, 'value', e.target.value)} />
+                                    </div>
+                                </div>
+                                <Button variant="ghost" size="icon" onClick={() => removeCondition(condIndex)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                            </div>
+                        </Card>
+                    ))}
+                    <Button variant="outline" size="sm" onClick={addCondition}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Condition
+                    </Button>
+                </div>
+            )}
+        </Card>
+    );
+}
+
 export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRoles }: { roles: Role[], setRoles: React.Dispatch<React.SetStateAction<Role[]>>}) {
   const [roles, setRoles] = useState<Role[]>(initialRoles);
   const [allStaff, setAllStaff] = useState<Staff[]>([]);
@@ -174,18 +287,6 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     );
   };
 
-
-  const handleDescriptionChange = (roleName: string, description: string) => {
-      setRoles(prevRoles =>
-        prevRoles.map(role => {
-            if (role.name === roleName) {
-                return { ...role, description };
-            }
-            return role;
-        })
-      )
-  }
-  
   const handleSaveChanges = async (role: Role) => {
       await updateRole(role.name, role);
       setParentRoles(roles); // Sync state back up to the parent
@@ -276,17 +377,13 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     );
   }
 
-  const handleCommissionRuleChange = (roleName: string, index: number, field: keyof CommissionRule, value: string | number) => {
+  const handleCommissionRuleChange = (roleName: string, index: number, field: keyof CommissionRule, value: any) => {
     setRoles(prevRoles => 
         prevRoles.map(role => {
             if (role.name === roleName) {
                 const newRules = [...(role.commissionRules || [])];
                 const rule = { ...newRules[index] };
-                if (field === 'rate') {
-                    rule[field] = Number(value);
-                } else {
-                    (rule as any)[field] = value;
-                }
+                (rule as any)[field] = value;
                 newRules[index] = rule;
                 return { ...role, commissionRules: newRules };
             }
@@ -299,7 +396,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     setRoles(prevRoles => 
         prevRoles.map(role => {
             if (role.name === roleName) {
-                const newRules = [...(role.commissionRules || []), { id: `rule-${Date.now()}`, name: 'New Rule', trigger: 'On Order Paid', type: 'Fixed Amount', rate: 0 }];
+                const newRules = [...(role.commissionRules || []), { id: `rule-${Date.now()}`, trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 0, conditions: [] }];
                 return { ...role, commissionRules: newRules };
             }
             return role;
@@ -415,41 +512,12 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                                 <p className="text-sm text-muted-foreground mb-4">Define how staff with this role earn commissions. Multiple rules can apply.</p>
                                                 <div className="space-y-4">
                                                     {(role.commissionRules || []).map((rule, index) => (
-                                                        <Card key={index} className="p-4">
-                                                            <div className="flex justify-end mb-2">
-                                                                <Button variant="ghost" size="icon" onClick={() => removeCommissionRule(role.name, index)}>
-                                                                    <Trash2 className="h-4 w-4 text-destructive" />
-                                                                </Button>
-                                                            </div>
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                                <div className="space-y-2 lg:col-span-2">
-                                                                    <Label htmlFor={`rule-name-${index}`}>Rule Name</Label>
-                                                                    <Input id={`rule-name-${index}`} value={rule.name} onChange={(e) => handleCommissionRuleChange(role.name, index, 'name', e.target.value)} placeholder="e.g. Standard Delivery Fee" />
-                                                                </div>
-                                                                <div className="space-y-2">
-                                                                    <Label htmlFor={`rule-trigger-${index}`}>Trigger</Label>
-                                                                    <Select value={rule.trigger} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'trigger', v as CommissionRuleTrigger)}>
-                                                                        <SelectTrigger id={`rule-trigger-${index}`}><SelectValue /></SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {COMMISSION_RULE_TRIGGERS.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                </div>
-                                                                <div className="space-y-2">
-                                                                    <Label htmlFor={`rule-type-${index}`}>Type</Label>
-                                                                    <Select value={rule.type} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'type', v as CommissionRuleType)}>
-                                                                        <SelectTrigger id={`rule-type-${index}`}><SelectValue /></SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {COMMISSION_RULE_TYPES.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                                                        </SelectContent>
-                                                                    </Select>
-                                                                </div>
-                                                                <div className="space-y-2 lg:col-start-4">
-                                                                    <Label htmlFor={`rule-rate-${index}`}>Rate ({rule.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
-                                                                    <Input id={`rule-rate-${index}`} type="number" value={rule.rate} onChange={(e) => handleCommissionRuleChange(role.name, index, 'rate', e.target.value)} />
-                                                                </div>
-                                                            </div>
-                                                        </Card>
+                                                        <CommissionRuleEditor
+                                                          key={rule.id}
+                                                          rule={rule}
+                                                          onRuleChange={(field, value) => handleCommissionRuleChange(role.name, index, field, value)}
+                                                          onRemove={() => removeCommissionRule(role.name, index)}
+                                                        />
                                                     ))}
                                                     <Button variant="outline" size="sm" onClick={() => addCommissionRule(role.name)}>
                                                         <PlusCircle className="mr-2 h-4 w-4" /> Add Commission Rule
