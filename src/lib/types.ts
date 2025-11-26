@@ -457,6 +457,7 @@ export type Staff = {
   completionRate?: number;
   totalSales?: number; // For sales agents
   totalCommission?: number; // For tracking earned commission
+  paidCommission?: number;
   payoutHistory?: Payout[];
   bonuses?: Bonus[];
   // Dynamic attributes based on role

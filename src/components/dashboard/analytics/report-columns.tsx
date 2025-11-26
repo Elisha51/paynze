@@ -285,7 +285,7 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     }
   },
   {
-    accessorKey: 'channel',
+    id: 'channel',
     header: 'Channel',
     cell: ({ row }) => {
         const content = row.original.content;
@@ -295,7 +295,14 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
         if (content?.whatsapp?.enabled) channels.push('WhatsApp');
         return <div className="flex flex-wrap gap-1">{channels.map(c => <Badge key={c} variant="secondary">{c}</Badge>)}</div>
     },
-    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+    filterFn: (row, id, value) => {
+      const content = row.original.content;
+      const channels = [];
+      if (content?.email?.enabled) channels.push('Email');
+      if (content?.sms?.enabled) channels.push('SMS');
+      if (content?.whatsapp?.enabled) channels.push('WhatsApp');
+      return (value as string[]).some(val => channels.includes(val));
+    },
   },
   {
     accessorKey: 'sent',
