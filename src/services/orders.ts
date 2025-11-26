@@ -1,5 +1,6 @@
 
-import type { Order, Product, Staff, Role, StockAdjustment } from '@/lib/types';
+
+import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
@@ -309,6 +310,29 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
     return updatedOrder;
 }
 
+const checkCondition = (condition: CommissionRuleCondition, order: Order): boolean => {
+    switch (condition.subject) {
+        case 'Order Total':
+            const total = order.total;
+            const value = typeof condition.value === 'string' ? parseFloat(condition.value) : condition.value;
+            switch (condition.operator) {
+                case 'is greater than': return total > value;
+                case 'is less than': return total < value;
+                case 'is': return total === value;
+                default: return false;
+            }
+        case 'Product Category':
+             return order.items.some(item => {
+                 switch (condition.operator) {
+                     case 'is': return item.category === condition.value;
+                     case 'is not': return item.category !== condition.value;
+                     default: return false;
+                 }
+             });
+        default:
+            return false;
+    }
+};
 
 const handleCommission = async (staffId: string | undefined, order: Order, trigger: 'On Order Paid' | 'On Order Delivered') => {
     if (!staffId) return;
@@ -338,10 +362,13 @@ const handleCommission = async (staffId: string | undefined, order: Order, trigg
     } else if (staffRole.commissionRules && staffRole.commissionRules.length > 0) {
         staffRole.commissionRules.forEach(rule => {
             if (rule.trigger === trigger) {
-                if (rule.type === 'Fixed Amount') {
-                    totalEarnedCommission += rule.rate;
-                } else if (rule.type === 'Percentage of Sale') {
-                    totalEarnedCommission += order.total * (rule.rate / 100);
+                const allConditionsMet = (rule.conditions || []).every(cond => checkCondition(cond, order));
+                if (allConditionsMet) {
+                    if (rule.type === 'Fixed Amount') {
+                        totalEarnedCommission += rule.rate;
+                    } else if (rule.type === 'Percentage of Sale') {
+                        totalEarnedCommission += order.total * (rule.rate / 100);
+                    }
                 }
             }
         });

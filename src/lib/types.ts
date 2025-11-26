@@ -1,4 +1,5 @@
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -386,13 +387,21 @@ export type AssignableAttribute = {
 export type CommissionRuleTrigger = typeof COMMISSION_RULE_TRIGGERS[number];
 export type CommissionRuleType = typeof COMMISSION_RULE_TYPES[number];
 
+export type CommissionRuleCondition = {
+  id: string;
+  subject: 'Order Total' | 'Product Category';
+  operator: 'is' | 'is not' | 'is greater than' | 'is less than';
+  value: string | number;
+};
+
 export type CommissionRule = {
     id: string;
     name: string;
     trigger: CommissionRuleTrigger;
     type: CommissionRuleType;
     rate: number;
-}
+    conditions: CommissionRuleCondition[];
+};
 
 export type PerformanceTarget = {
     goal: number;

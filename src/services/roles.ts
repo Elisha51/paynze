@@ -1,4 +1,5 @@
 
+
 import type { Role, Permissions, CommissionRule } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -64,7 +65,7 @@ const mockRoles: Role[] = [
       tasks: { view: true, create: true, edit: false, delete: false },
     },
     commissionRules: [
-        { id: 'sales-1', name: 'Standard Sales Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 5 }
+        { id: 'sales-1', name: 'Standard Sales Commission', trigger: 'On Order Paid', type: 'Percentage of Sale', rate: 5, conditions: [] }
     ],
     assignableAttributes: [
         { key: 'salesTarget', label: 'Monthly Sales Target', type: 'kpi' },
@@ -81,7 +82,7 @@ const mockRoles: Role[] = [
       tasks: { view: true, create: false, edit: false, delete: false },
     },
     commissionRules: [
-        { id: 'delivery-1', name: 'Per-Delivery Fee', trigger: 'On Order Delivered', type: 'Fixed Amount', rate: 1500 }
+        { id: 'delivery-1', name: 'Per-Delivery Fee', trigger: 'On Order Delivered', type: 'Fixed Amount', rate: 1500, conditions: [] }
     ],
     assignableAttributes: [
         { key: 'deliveryTarget', label: 'Daily Delivery Target', type: 'kpi' },
