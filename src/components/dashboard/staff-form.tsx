@@ -127,7 +127,7 @@ const emptyStaff: Partial<Staff> = {
 };
 
 
-export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
+export function StaffForm({ initialStaff, onSave, isSelfEditing = false }: { initialStaff?: Staff | null, onSave?: (updatedStaff: Partial<Staff>) => Promise<void>, isSelfEditing?: boolean }) {
     const router = useRouter();
     const { toast } = useToast();
     const { user } = useAuth();
@@ -152,14 +152,14 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
         }
     }, [initialStaff]);
     
-    if ((isEditing && !canEdit) || (!isEditing && !canCreate)) {
+    if (!isSelfEditing && ((isEditing && !canEdit) || (!isEditing && !canCreate))) {
         return (
             <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center gap-2"><ShieldAlert className="text-destructive"/> Access Denied</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">You do not have permission to edit staff members.</p>
+                    <p className="text-muted-foreground">You do not have permission to perform this action.</p>
                      <Button variant="outline" onClick={() => router.back()} className="mt-4">
                         <ArrowLeft className="mr-2 h-4 w-4" /> Go Back
                     </Button>
@@ -231,6 +231,11 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     
     const handleSaveChanges = async () => {
         if (!staffMember) return;
+
+        if (onSave) {
+            await onSave(staffMember);
+            return;
+        }
         
         if (isEditing) {
             await updateStaff(staffMember as Staff);
@@ -282,6 +287,7 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
     }
 
     return (
+      <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
                 <Card>
@@ -313,7 +319,7 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" type="email" value={staffMember.email} onChange={handleCoreInfoChange} />
+                                <Input id="email" type="email" value={staffMember.email} onChange={handleCoreInfoChange} disabled={isSelfEditing} />
                             </div>
                         </div>
                         <div className="space-y-2">
@@ -323,43 +329,45 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
                     </CardContent>
                 </Card>
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Weekly Schedule</CardTitle>
-                        <CardDescription>Set the working hours for this staff member.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        {daysOfWeek.map(day => {
-                            const shift = staffMember?.schedule?.find(s => s.day === day);
-                            const isEnabled = !!shift;
-                            return (
-                                <div key={day} className="space-y-2">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center space-x-2">
-                                            <Switch id={`switch-${day}`} checked={isEnabled} onCheckedChange={(c) => toggleDay(day, c)} />
-                                            <Label htmlFor={`switch-${day}`} className="font-semibold">{day}</Label>
+                {!isSelfEditing && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Weekly Schedule</CardTitle>
+                            <CardDescription>Set the working hours for this staff member.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            {daysOfWeek.map(day => {
+                                const shift = staffMember?.schedule?.find(s => s.day === day);
+                                const isEnabled = !!shift;
+                                return (
+                                    <div key={day} className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center space-x-2">
+                                                <Switch id={`switch-${day}`} checked={isEnabled} onCheckedChange={(c) => toggleDay(day, c)} />
+                                                <Label htmlFor={`switch-${day}`} className="font-semibold">{day}</Label>
+                                            </div>
                                         </div>
+                                        {isEnabled && (
+                                            <div className="grid grid-cols-2 gap-4 pl-8">
+                                                <div className="space-y-1">
+                                                    <Label htmlFor={`start-${day}`} className="text-xs">Start Time</Label>
+                                                    <Input id={`start-${day}`} type="time" value={shift.startTime} onChange={(e) => handleShiftChange(day, 'startTime', e.target.value)} />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <Label htmlFor={`end-${day}`} className="text-xs">End Time</Label>
+                                                    <Input id={`end-${day}`} type="time" value={shift.endTime} onChange={(e) => handleShiftChange(day, 'endTime', e.target.value)} />
+                                                </div>
+                                            </div>
+                                        )}
+                                        <Separator />
                                     </div>
-                                    {isEnabled && (
-                                        <div className="grid grid-cols-2 gap-4 pl-8">
-                                            <div className="space-y-1">
-                                                <Label htmlFor={`start-${day}`} className="text-xs">Start Time</Label>
-                                                <Input id={`start-${day}`} type="time" value={shift.startTime} onChange={(e) => handleShiftChange(day, 'startTime', e.target.value)} />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label htmlFor={`end-${day}`} className="text-xs">End Time</Label>
-                                                <Input id={`end-${day}`} type="time" value={shift.endTime} onChange={(e) => handleShiftChange(day, 'endTime', e.target.value)} />
-                                            </div>
-                                        </div>
-                                    )}
-                                    <Separator />
-                                </div>
-                            )
-                        })}
-                    </CardContent>
-                </Card>
+                                )
+                            })}
+                        </CardContent>
+                    </Card>
+                )}
 
-                 {selectedRole?.assignableAttributes && selectedRole.assignableAttributes.length > 0 && (
+                 {selectedRole?.assignableAttributes && selectedRole.assignableAttributes.length > 0 && !isSelfEditing && (
                     <Card>
                         <CardHeader>
                             <CardTitle>Manage Attributes</CardTitle>
@@ -386,61 +394,101 @@ export function StaffForm({ initialStaff }: { initialStaff?: Staff | null }) {
             <div className="lg:col-span-1 space-y-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Role & Permissions</CardTitle>
+                        <CardTitle>Role & Status</CardTitle>
                         <CardDescription>Assign a role to determine what this staff member can see and do.</CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="role">Role</Label>
-                            <Select value={staffMember.role} onValueChange={handleRoleChange}>
+                            <Select value={staffMember.role} onValueChange={handleRoleChange} disabled={isSelfEditing}>
                                 <SelectTrigger id="role"><SelectValue placeholder="Select a role" /></SelectTrigger>
                                 <SelectContent>
                                     {allRoles.map(r => <SelectItem key={r.name} value={r.name}>{r.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
                         </div>
+                        <div className="space-y-2">
+                             <Label htmlFor="status">Status</Label>
+                             <Select value={staffMember.status} onValueChange={(v) => setStaffMember(prev => prev ? ({...prev, status: v as Staff['status']}) : null)} disabled={isSelfEditing}>
+                                <SelectTrigger id="status"><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Active">Active</SelectItem>
+                                    <SelectItem value="Pending Verification">Pending Verification</SelectItem>
+                                    <SelectItem value="Suspended">Suspended</SelectItem>
+                                    <SelectItem value="Deactivated">Deactivated</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </CardContent>
                 </Card>
-                 <Card>
-                    <CardHeader>
-                        <CardTitle>Verification Documents</CardTitle>
-                        <CardDescription>Upload identity or other verification documents for this staff member.</CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <FileUploader 
-                            files={[]}
-                            onFilesChange={handleVerificationDocsChange}
-                            maxFiles={5}
-                            accept={{ 'application/pdf': ['.pdf'], 'image/*': ['.jpeg', '.jpg', '.png'] }}
-                        />
-                        {staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0 && (
-                            <div className="space-y-2">
-                                <Label>Uploaded Documents</Label>
+                 {!isSelfEditing && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Verification Documents</CardTitle>
+                            <CardDescription>Upload identity or other verification documents for this staff member.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <FileUploader 
+                                files={[]}
+                                onFilesChange={handleVerificationDocsChange}
+                                maxFiles={5}
+                                accept={{ 'application/pdf': ['.pdf'], 'image/*': ['.jpeg', '.jpg', '.png'] }}
+                            />
+                            {staffMember.verificationDocuments && staffMember.verificationDocuments.length > 0 && (
                                 <div className="space-y-2">
-                                    {staffMember.verificationDocuments.map(doc => (
-                                        <div key={doc.name} className="flex items-center justify-between p-2 border rounded-md bg-muted">
-                                            <div className="flex items-center gap-2">
-                                                <FileText className="h-5 w-5 text-primary" />
-                                                <span className="text-sm font-medium">{doc.name}</span>
+                                    <Label>Uploaded Documents</Label>
+                                    <div className="space-y-2">
+                                        {staffMember.verificationDocuments.map(doc => (
+                                            <div key={doc.name} className="flex items-center justify-between p-2 border rounded-md bg-muted">
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="h-5 w-5 text-primary" />
+                                                    <span className="text-sm font-medium">{doc.name}</span>
+                                                </div>
+                                                <Button variant="ghost" size="icon" onClick={() => removeDocument(doc.name)}>
+                                                    <X className="h-4 w-4" />
+                                                </Button>
                                             </div>
-                                            <Button variant="ghost" size="icon" onClick={() => removeDocument(doc.name)}>
-                                                <X className="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </CardContent>
-                </Card>
+                            )}
+                        </CardContent>
+                    </Card>
+                 )}
             </div>
             <div className="lg:col-span-3 flex justify-end gap-2">
-                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+                <Button variant="outline" onClick={isSelfEditing ? onSave.bind(null, staffMember) : () => router.back()}>Cancel</Button>
                 <Button onClick={handleSaveChanges}>
                     <Save className="mr-2 h-4 w-4" />
                     Save Changes
                 </Button>
             </div>
         </div>
+
+        <Dialog open={!!imageToCrop} onOpenChange={(open) => !open && setImageToCrop(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Crop Your Profile Picture</DialogTitle>
+                </DialogHeader>
+                {imageToCrop && (
+                    <div className="flex justify-center">
+                        <ReactCrop
+                            crop={crop}
+                            onChange={c => setCrop(c)}
+                            aspect={1}
+                            minWidth={50}
+                            circularCrop
+                        >
+                            <img src={imageToCrop} alt="Crop preview" style={{maxHeight: '70vh'}}/>
+                        </ReactCrop>
+                    </div>
+                )}
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setImageToCrop(null)}>Cancel</Button>
+                    <Button onClick={handleCropComplete}>Save Crop</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      </>
     );
 }
