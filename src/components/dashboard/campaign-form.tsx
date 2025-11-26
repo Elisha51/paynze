@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Clock, Repeat, X } from 'lucide-react';
+import { Save, Sparkles, Image as ImageIcon, ShieldAlert, Check, ChevronsUpDown, Calendar as CalendarIcon, Repeat, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -40,6 +40,7 @@ import { setHours, setMinutes, format } from 'date-fns';
 import { Calendar } from '../ui/calendar';
 import { Separator } from '../ui/separator';
 import { Checkbox } from '../ui/checkbox';
+import { AnimatePresence, motion } from 'framer-motion';
 
 const emptyCampaign: Partial<Campaign> = {
   name: '',
@@ -78,7 +79,13 @@ const DateTimePicker = ({ date, setDate }: { date: Date | undefined, setDate: (d
     const minutes = ['00', '15', '30', '45'];
 
     const handleTimeChange = (type: 'hours' | 'minutes', value: string) => {
-        if (!date) return;
+        if (!date) {
+            let newDate = new Date();
+            if (type === 'hours') newDate = setHours(newDate, parseInt(value));
+            if (type === 'minutes') newDate = setMinutes(newDate, parseInt(value));
+            setDate(newDate);
+            return;
+        };
         let newDate = new Date(date);
         if (type === 'hours') {
             newDate = setHours(newDate, parseInt(value));
@@ -139,7 +146,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
     const [campaign, setCampaign] = useState<Partial<Campaign>>(initialCampaign || emptyCampaign);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
-    const [startDate, setStartDate] = useState<Date | undefined>(initialCampaign?.startDate ? new Date(initialCampaign.startDate) : new Date());
+    const [startDate, setStartDate] = useState<Date | undefined>(initialCampaign?.startDate ? new Date(initialCampaign.startDate) : undefined);
     const [endDate, setEndDate] = useState<Date | undefined>(initialCampaign?.endDate ? new Date(initialCampaign.endDate) : undefined);
     const [noEndDate, setNoEndDate] = useState(!initialCampaign?.endDate);
 
@@ -414,7 +421,7 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                             <RadioGroup
                                 value={campaign.scheduleType || 'one-time'}
                                 onValueChange={(v) => setCampaign(p => ({...p, scheduleType: v as any}))}
-                                className="grid grid-cols-2 gap-4 mb-4"
+                                className="grid grid-cols-2 gap-4"
                             >
                                 <Label htmlFor="r1" className={cn("flex flex-col items-center justify-between rounded-md border-2 p-4 cursor-pointer hover:bg-accent hover:text-accent-foreground", campaign.scheduleType === 'one-time' && 'border-primary')}>
                                     <RadioGroupItem value="one-time" id="r1" className="sr-only" />
@@ -428,49 +435,72 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                 </Label>
                             </RadioGroup>
                             
-                            <Separator className="my-6" />
-
-                            {campaign.scheduleType === 'one-time' ? (
-                                <div className="space-y-4">
-                                     <div className="space-y-2">
-                                        <Label>Start Date & Time</Label>
-                                        <DateTimePicker date={startDate} setDate={setStartDate} />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label>End Date & Time</Label>
-                                        <DateTimePicker date={endDate} setDate={setEndDate} />
-                                         <div className="flex items-center space-x-2 pt-2">
-                                            <Checkbox id="no-end-date" checked={noEndDate} onCheckedChange={(checked) => setNoEndDate(checked as boolean)} />
-                                            <Label htmlFor="no-end-date" className="text-sm font-normal">
-                                                No end date (run continuously)
-                                            </Label>
+                            <AnimatePresence>
+                            {campaign.scheduleType && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: 'auto' }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <Separator className="my-6" />
+                                    {campaign.scheduleType === 'one-time' ? (
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <Label>Start Date & Time</Label>
+                                                <DateTimePicker date={startDate} setDate={setStartDate} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>End Date & Time</Label>
+                                                <DateTimePicker date={endDate} setDate={setEndDate} />
+                                                <div className="flex items-center space-x-2 pt-2">
+                                                    <Checkbox id="no-end-date" checked={noEndDate} onCheckedChange={(checked) => setNoEndDate(checked as boolean)} />
+                                                    <Label htmlFor="no-end-date" className="text-sm font-normal">
+                                                        No end date (run continuously)
+                                                    </Label>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="space-y-4">
-                                     <div className="space-y-2">
-                                        <Label>Repeats</Label>
-                                        <Select value={campaign.recurring?.type} onValueChange={(v) => handleRecurringChange('type', v)}>
-                                            <SelectTrigger><SelectValue /></SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="Daily">Daily</SelectItem>
-                                                <SelectItem value="Weekly">Weekly</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    {campaign.recurring?.type === 'Weekly' && (
-                                        <div className="space-y-2">
-                                            <Label>On these days</Label>
-                                            <div className="flex flex-wrap gap-2">
-                                                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
-                                                    <Button key={day} variant={(campaign.recurring?.days || []).includes(day) ? 'default' : 'outline'} size="sm" onClick={() => toggleRecurringDay(day)}>{day}</Button>
-                                                ))}
+                                    ) : (
+                                        <div className="space-y-6">
+                                             <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <Label>Start Date & Time</Label>
+                                                    <DateTimePicker date={startDate} setDate={setStartDate} />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>End Date & Time</Label>
+                                                    <DateTimePicker date={endDate} setDate={setEndDate} />
+                                                </div>
+                                            </div>
+                                            <Separator/>
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <Label>Repeats</Label>
+                                                    <Select value={campaign.recurring?.type} onValueChange={(v) => handleRecurringChange('type', v)}>
+                                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="Daily">Daily</SelectItem>
+                                                            <SelectItem value="Weekly">Weekly</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                {campaign.recurring?.type === 'Weekly' && (
+                                                    <div className="space-y-2">
+                                                        <Label>On these days</Label>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                                                                <Button key={day} variant={(campaign.recurring?.days || []).includes(day) ? 'default' : 'outline'} size="sm" onClick={() => toggleRecurringDay(day)}>{day}</Button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
-                                </div>
+                                </motion.div>
                             )}
+                            </AnimatePresence>
                         </CardContent>
                     </Card>
                     
