@@ -129,7 +129,7 @@ function initializeMockOrders(): Order[] {
         },
     ];
     return [...mockOrders].map((order, index) => {
-        const isPaid = order.status !== 'Awaiting Payment';
+        const isPaid = order.status !== 'Awaiting Payment' && order.status !== 'Cancelled';
         const isMobileMoney = index % 3 !== 0;
 
         const fullOrder: Order = {

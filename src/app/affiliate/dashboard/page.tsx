@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Copy, DollarSign, Link as LinkIcon, BarChart, ShoppingCart, Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import type { Affiliate, OnboardingFormData, Order, AffiliateProgramSettings, Notification } from '@/lib/types';
+import type { Affiliate, OnboardingFormData, Order, AffiliateProgramSettings, Notification, Payout } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { getOrdersByAffiliate } from '@/services/orders';
@@ -60,7 +60,7 @@ export default function AffiliateDashboardPage() {
     const referralLink = `https://${settings?.subdomain || 'your-store'}.paynze.app/?ref=${affiliate?.uniqueId}`;
     const currency = settings?.currency || 'UGX';
 
-    const { stats, paidOrders, totalConversions, totalSalesValue } = useMemo(() => {
+    const { paidOrders, totalConversions, totalSalesValue } = useMemo(() => {
         const paidOrders = referredOrders.filter(o => o.payment.status === 'completed');
         const totalConversions = referredOrders.length;
         const totalSalesValue = referredOrders.reduce((sum, order) => sum + order.total, 0);
@@ -69,9 +69,6 @@ export default function AffiliateDashboardPage() {
             paidOrders,
             totalConversions,
             totalSalesValue,
-            stats: {
-                // These stats can be built upon later if needed
-            }
         }
 
     }, [referredOrders]);
@@ -198,22 +195,22 @@ export default function AffiliateDashboardPage() {
                             </Card>
                             <Card>
                                 <CardHeader className="flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm font-medium">Clicks</CardTitle>
-                                    <BarChart className="h-4 w-4 text-muted-foreground"/>
+                                    <CardTitle className="text-sm font-medium">All-Time Sales</CardTitle>
+                                    <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{affiliate.linkClicks}</div>
-                                    <p className="text-xs text-muted-foreground">Total clicks on your link</p>
+                                    <div className="text-2xl font-bold">{formatCurrency(totalSalesValue)}</div>
+                                    <p className="text-xs text-muted-foreground">From {totalConversions} conversions</p>
                                 </CardContent>
                             </Card>
                             <Card>
                                 <CardHeader className="flex-row items-center justify-between pb-2">
-                                    <CardTitle className="text-sm font-medium">Conversions</CardTitle>
-                                    <ShoppingCart className="h-4 w-4 text-muted-foreground"/>
+                                    <CardTitle className="text-sm font-medium">Total Paid Out</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-muted-foreground"/>
                                 </CardHeader>
                                 <CardContent>
-                                    <div className="text-2xl font-bold">{totalConversions}</div>
-                                    <p className="text-xs text-muted-foreground">{conversionRate}% conversion rate</p>
+                                    <div className="text-2xl font-bold">{formatCurrency(affiliate.paidCommission)}</div>
+                                    <p className="text-xs text-muted-foreground">Total commissions paid to date</p>
                                 </CardContent>
                             </Card>
                         </div>
@@ -267,7 +264,7 @@ export default function AffiliateDashboardPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {affiliate.payoutHistory && affiliate.payoutHistory.length > 0 ? (
-                                            affiliate.payoutHistory.map((payout, index) => (
+                                            affiliate.payoutHistory.map((payout: Payout, index) => (
                                                 <TableRow key={index}>
                                                     <TableCell>{format(new Date(payout.date), 'PPP')}</TableCell>
                                                     <TableCell className="text-right">{formatCurrency(payout.amount)}</TableCell>

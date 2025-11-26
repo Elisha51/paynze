@@ -20,6 +20,7 @@ function initializeMockStaff(): Staff[] {
         completionRate: 100,
         totalSales: 550000,
         totalCommission: 0,
+        paidCommission: 0,
         currency: 'UGX',
       },
       { 
@@ -35,6 +36,7 @@ function initializeMockStaff(): Staff[] {
         assignedOrders: [],
         totalSales: 125000,
         totalCommission: 6250,
+        paidCommission: 25000,
         currency: 'KES',
         attributes: {
           salesTarget: { goal: 500000, current: 125000 },
@@ -68,6 +70,7 @@ function initializeMockStaff(): Staff[] {
         assignedOrders: [],
         completionRate: 95.2,
         totalCommission: 4500,
+        paidCommission: 0,
         currency: 'UGX',
         attributes: {
           deliveryTarget: { current: 18, goal: 20 },
@@ -88,6 +91,7 @@ function initializeMockStaff(): Staff[] {
         onlineStatus: 'Online',
         assignedOrders: [],
         totalCommission: 0,
+        paidCommission: 0,
         currency: 'TZS',
       },
        { 
@@ -102,6 +106,7 @@ function initializeMockStaff(): Staff[] {
         onlineStatus: 'Offline',
         assignedOrders: [],
         totalCommission: 0,
+        paidCommission: 0,
         currency: 'KES',
       },
        { 
@@ -121,6 +126,7 @@ function initializeMockStaff(): Staff[] {
         onlineStatus: 'Offline',
         assignedOrders: [],
         totalCommission: 0,
+        paidCommission: 0,
         currency: 'KES',
       },
     ];
@@ -164,6 +170,7 @@ export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {
   const newMember: Staff = { 
       ...member, 
       id: `staff-${Date.now()}`,
+      paidCommission: 0,
       verificationDocuments: member.status === 'Pending Verification' ? [
         { name: 'National_ID.pdf', url: '#' },
         { name: 'Drivers_License.pdf', url: '#' },

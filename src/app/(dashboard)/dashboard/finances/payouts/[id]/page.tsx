@@ -51,9 +51,10 @@ export default function PayoutPage() {
         const updatedStaff: Staff = {
             ...staffMember,
             payoutHistory: [...(staffMember.payoutHistory || []), newPayout],
+            paidCommission: (staffMember.paidCommission || 0) + staffMember.totalCommission,
             totalCommission: 0 // Reset pending commission
         };
-        await updateStaff(updatedStaff);
+        await updateStaff(updatedStaff.id, updatedStaff);
 
         // 2. Create a corresponding expense transaction in the finance ledger
         await addTransaction({
