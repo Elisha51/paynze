@@ -7,7 +7,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardFooter
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -21,9 +20,10 @@ import {
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Order, Product, Customer, OnboardingFormData, ProductVariant } from '@/lib/types';
+import type { Order, Product, Customer, OnboardingFormData, ProductVariant, Staff } from '@/lib/types';
 import { getProducts } from '@/services/products';
 import { getCustomers } from '@/services/customers';
+import { getStaff } from '@/services/staff';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../ui/dialog';
 import { DataTable } from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
@@ -158,6 +158,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
     const [items, setItems] = useState<OrderItemForm[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [customers, setCustomers] = useState<Customer[]>([]);
+    const [staff, setStaff] = useState<Staff[]>([]);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const router = useRouter();
     const { toast } = useToast();
@@ -165,13 +166,15 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
 
     useEffect(() => {
         async function loadData() {
-            const [productsData, customersData, settingsData] = await Promise.all([
+            const [productsData, customersData, staffData, settingsData] = await Promise.all([
               getProducts(),
               getCustomers(),
+              getStaff(),
               localStorage.getItem('onboardingData')
             ]);
             setProducts(productsData.filter(p => p.status === 'published'));
             setCustomers(customersData);
+            setStaff(staffData.filter(s => s.role !== 'Affiliate'));
             if (settingsData) {
                 setSettings(JSON.parse(settingsData));
             }
@@ -225,6 +228,15 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
         console.log("Saving order", { ...order, items, total });
         toast({ title: `Order ${isEditing ? 'Updated' : 'Created'}`, description: "The order has been saved." });
         router.push(isEditing ? `/dashboard/orders/${order.id}` : '/dashboard/orders');
+    }
+
+    const handleAgentSelect = (staffId: string) => {
+        const selectedStaff = staff.find(s => s.id === staffId);
+        setOrder(p => ({
+            ...p,
+            salesAgentId: staffId,
+            salesAgentName: selectedStaff?.name
+        }))
     }
     
     return (
@@ -288,6 +300,16 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
                      <Card>
                         <CardHeader><CardTitle>Details</CardTitle></CardHeader>
                          <CardContent className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Sales Agent (for commission)</Label>
+                                <Select value={order.salesAgentId} onValueChange={handleAgentSelect}>
+                                    <SelectTrigger><SelectValue placeholder="Select a staff member..."/></SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">None</SelectItem>
+                                        {staff.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                             <div className="space-y-2">
                                 <Label>Fulfillment Method</Label>
                                 <Select value={order.fulfillmentMethod} onValueChange={(v) => setOrder(p => ({...p, fulfillmentMethod: v as Order['fulfillmentMethod']}))}>
