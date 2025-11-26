@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '../ui/separator';
-import { PlusCircle, Trash2, DollarSign, Edit, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, Trash2, DollarSign, Edit, MoreHorizontal, Settings } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { Alert, AlertTitle } from '../ui/alert';
 
 const permissionLabels: Record<keyof CrudPermissions, string> = {
     view: 'View',
@@ -334,7 +335,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
           <Card>
               <CardHeader className="flex-row items-center justify-between">
                   <div>
-                      <CardTitle>Manage Roles</CardTitle>
+                      <CardTitle>Manage Roles &amp; Permissions</CardTitle>
                       <CardDescription>Define what each staff member can see and do in your dashboard.</CardDescription>
                   </div>
                   <DialogTrigger asChild>
@@ -345,6 +346,14 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                   </DialogTrigger>
               </CardHeader>
               <CardContent>
+                <Alert className="mb-6">
+                    <Settings className="h-4 w-4" />
+                    <AlertTitle>How Roles Work</AlertTitle>
+                    <AlertDescription>
+                        Define roles here, then assign them to staff members on the Staff page. Changes to a role's permissions will affect all staff assigned to it.
+                    </AlertDescription>
+                </Alert>
+
                 <Accordion type="multiple" className="w-full">
                     {roles.map(role => (
                         <AccordionItem value={role.name} key={role.name}>
@@ -374,7 +383,7 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent>
                                             <DropdownMenuItem onClick={() => openEditDialog(role)}>
-                                                <Edit className="mr-2 h-4 w-4" /> Edit Role
+                                                <Edit className="mr-2 h-4 w-4" /> Edit Role Details
                                             </DropdownMenuItem>
                                         </DropdownMenuContent>
                                     </DropdownMenu>
@@ -382,114 +391,123 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
                             </div>
                              <AccordionContent>
                                 <div className="space-y-6 pt-4">
-                                    <Separator />
-                                    <h4 className="font-bold text-base">Module Permissions</h4>
-                                     <div className="space-y-4">
-                                        {permissionConfig.map(moduleConfig => (
-                                            <PermissionRow
-                                                key={moduleConfig.key}
-                                                label={moduleConfig.label}
-                                                permissions={role.permissions[moduleConfig.key] as CrudPermissions}
-                                                onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value)}
-                                                type={moduleConfig.type}
-                                            />
-                                        ))}
-                                    </div>
-                                    <Separator />
-                                    <h4 className="font-bold text-base">Commission Rules</h4>
-                                    <p className="text-sm text-muted-foreground">Define how staff with this role earn commissions. Multiple rules can apply.</p>
-                                    <div className="space-y-4">
-                                        {(role.commissionRules || []).map((rule, index) => (
-                                            <Card key={index} className="p-4">
-                                                <div className="flex justify-end mb-2">
-                                                    <Button variant="ghost" size="icon" onClick={() => removeCommissionRule(role.name, index)}>
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                    <Accordion type="multiple" className="w-full space-y-4">
+                                        <AccordionItem value="permissions" className="border rounded-md px-4">
+                                            <AccordionTrigger className="py-3">Module Permissions</AccordionTrigger>
+                                            <AccordionContent className="pt-4">
+                                                <div className="space-y-4">
+                                                    {permissionConfig.map(moduleConfig => (
+                                                        <PermissionRow
+                                                            key={moduleConfig.key}
+                                                            label={moduleConfig.label}
+                                                            permissions={role.permissions[moduleConfig.key] as CrudPermissions}
+                                                            onPermissionChange={(key, value) => handlePermissionChange(role.name, moduleConfig.key, key, value)}
+                                                            type={moduleConfig.type}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="commissions" className="border rounded-md px-4">
+                                            <AccordionTrigger className="py-3">Commission Rules</AccordionTrigger>
+                                            <AccordionContent className="pt-4">
+                                                <p className="text-sm text-muted-foreground mb-4">Define how staff with this role earn commissions. Multiple rules can apply.</p>
+                                                <div className="space-y-4">
+                                                    {(role.commissionRules || []).map((rule, index) => (
+                                                        <Card key={index} className="p-4">
+                                                            <div className="flex justify-end mb-2">
+                                                                <Button variant="ghost" size="icon" onClick={() => removeCommissionRule(role.name, index)}>
+                                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                                </Button>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                                                <div className="space-y-2 lg:col-span-2">
+                                                                    <Label htmlFor={`rule-name-${index}`}>Rule Name</Label>
+                                                                    <Input id={`rule-name-${index}`} value={rule.name} onChange={(e) => handleCommissionRuleChange(role.name, index, 'name', e.target.value)} placeholder="e.g. Standard Delivery Fee" />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label htmlFor={`rule-trigger-${index}`}>Trigger</Label>
+                                                                    <Select value={rule.trigger} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'trigger', v as CommissionRule['trigger'])}>
+                                                                        <SelectTrigger id={`rule-trigger-${index}`}><SelectValue /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="On Order Paid">On Order Paid</SelectItem>
+                                                                            <SelectItem value="On Order Delivered">On Order Delivered</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label htmlFor={`rule-type-${index}`}>Type</Label>
+                                                                    <Select value={rule.type} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'type', v as CommissionRule['type'])}>
+                                                                        <SelectTrigger id={`rule-type-${index}`}><SelectValue /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
+                                                                            <SelectItem value="Percentage of Sale">Percentage of Sale</SelectItem>
+                                                                        </SelectContent>
+                                                                    </Select>
+                                                                </div>
+                                                                <div className="space-y-2 lg:col-start-4">
+                                                                    <Label htmlFor={`rule-rate-${index}`}>Rate ({rule.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
+                                                                    <Input id={`rule-rate-${index}`} type="number" value={rule.rate} onChange={(e) => handleCommissionRuleChange(role.name, index, 'rate', e.target.value)} />
+                                                                </div>
+                                                            </div>
+                                                        </Card>
+                                                    ))}
+                                                    <Button variant="outline" size="sm" onClick={() => addCommissionRule(role.name)}>
+                                                        <PlusCircle className="mr-2 h-4 w-4" /> Add Commission Rule
                                                     </Button>
                                                 </div>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                                                    <div className="space-y-2 lg:col-span-2">
-                                                        <Label htmlFor={`rule-name-${index}`}>Rule Name</Label>
-                                                        <Input id={`rule-name-${index}`} value={rule.name} onChange={(e) => handleCommissionRuleChange(role.name, index, 'name', e.target.value)} placeholder="e.g. Standard Delivery Fee" />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`rule-trigger-${index}`}>Trigger</Label>
-                                                        <Select value={rule.trigger} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'trigger', v as CommissionRule['trigger'])}>
-                                                            <SelectTrigger id={`rule-trigger-${index}`}><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="On Order Paid">On Order Paid</SelectItem>
-                                                                <SelectItem value="On Order Delivered">On Order Delivered</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                     <div className="space-y-2">
-                                                        <Label htmlFor={`rule-type-${index}`}>Type</Label>
-                                                        <Select value={rule.type} onValueChange={(v) => handleCommissionRuleChange(role.name, index, 'type', v as CommissionRule['type'])}>
-                                                            <SelectTrigger id={`rule-type-${index}`}><SelectValue /></SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="Fixed Amount">Fixed Amount</SelectItem>
-                                                                <SelectItem value="Percentage of Sale">Percentage of Sale</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                    <div className="space-y-2 lg:col-start-4">
-                                                        <Label htmlFor={`rule-rate-${index}`}>Rate ({rule.type === 'Percentage of Sale' ? '%' : 'UGX'})</Label>
-                                                        <Input id={`rule-rate-${index}`} type="number" value={rule.rate} onChange={(e) => handleCommissionRuleChange(role.name, index, 'rate', e.target.value)} />
-                                                    </div>
-                                                </div>
-                                            </Card>
-                                        ))}
-                                        <Button variant="outline" size="sm" onClick={() => addCommissionRule(role.name)}>
-                                            <PlusCircle className="mr-2 h-4 w-4" /> Add Commission Rule
-                                        </Button>
-                                    </div>
-
-
-                                    <Separator />
-                                    <h4 className="font-bold text-base">Custom Attributes</h4>
-                                    <p className="text-sm text-muted-foreground">Define custom data fields for staff members with this role. These fields will appear on their profile and can be used for tracking, assignments, or information.</p>
-                                    <div className="space-y-4">
-                                        {(role.assignableAttributes || []).map((attr, index) => (
-                                            <Card key={index} className="p-4">
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`attr-label-${index}`}>Label</Label>
-                                                        <Input id={`attr-label-${index}`} value={attr.label} onChange={(e) => handleAttributeChange(role.name, index, 'label', e.target.value)} placeholder="e.g. Sales Target"/>
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`attr-key-${index}`}>Key</Label>
-                                                        <Input id={`attr-key-${index}`} value={attr.key} onChange={(e) => handleAttributeChange(role.name, index, 'key', e.target.value)} placeholder="e.g. salesTarget" />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`attr-type-${index}`}>Type</Label>
-                                                         <Select value={attr.type} onValueChange={(v) => handleAttributeChange(role.name, index, 'type', v)}>
-                                                            <SelectTrigger id={`attr-type-${index}`}>
-                                                                <SelectValue/>
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="kpi">KPI / Target</SelectItem>
-                                                                <SelectItem value="tags">Tags / List</SelectItem>
-                                                                <SelectItem value="string">Text</SelectItem>
-                                                                <SelectItem value="number">Number</SelectItem>
-                                                                <SelectItem value="date">Date</SelectItem>
-                                                                <SelectItem value="boolean">Yes/No (Boolean)</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-                                                <div className="flex justify-end mt-2">
-                                                     <Button variant="ghost" size="icon" onClick={() => removeAttribute(role.name, index)}>
-                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                        <AccordionItem value="attributes" className="border rounded-md px-4">
+                                            <AccordionTrigger className="py-3">Custom Attributes</AccordionTrigger>
+                                            <AccordionContent className="pt-4">
+                                                 <p className="text-sm text-muted-foreground mb-4">Define custom data fields for staff members with this role. These fields will appear on their profile and can be used for tracking, assignments, or information.</p>
+                                                <div className="space-y-4">
+                                                    {(role.assignableAttributes || []).map((attr, index) => (
+                                                        <Card key={index} className="p-4">
+                                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                                                                <div className="space-y-2">
+                                                                    <Label htmlFor={`attr-label-${index}`}>Label</Label>
+                                                                    <Input id={`attr-label-${index}`} value={attr.label} onChange={(e) => handleAttributeChange(role.name, index, 'label', e.target.value)} placeholder="e.g. Sales Target"/>
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <Label htmlFor={`attr-key-${index}`}>Key</Label>
+                                                                    <Input id={`attr-key-${index}`} value={attr.key} onChange={(e) => handleAttributeChange(role.name, index, 'key', e.target.value)} placeholder="e.g. salesTarget" />
+                                                                </div>
+                                                                <div className="flex items-end gap-2">
+                                                                    <div className="space-y-2 flex-1">
+                                                                        <Label htmlFor={`attr-type-${index}`}>Type</Label>
+                                                                        <Select value={attr.type} onValueChange={(v) => handleAttributeChange(role.name, index, 'type', v)}>
+                                                                            <SelectTrigger id={`attr-type-${index}`}>
+                                                                                <SelectValue/>
+                                                                            </SelectTrigger>
+                                                                            <SelectContent>
+                                                                                <SelectItem value="kpi">KPI / Target</SelectItem>
+                                                                                <SelectItem value="tags">Tags / List</SelectItem>
+                                                                                <SelectItem value="string">Text</SelectItem>
+                                                                                <SelectItem value="number">Number</SelectItem>
+                                                                                <SelectItem value="date">Date</SelectItem>
+                                                                                <SelectItem value="boolean">Yes/No (Boolean)</SelectItem>
+                                                                            </SelectContent>
+                                                                        </Select>
+                                                                    </div>
+                                                                    <Button variant="ghost" size="icon" onClick={() => removeAttribute(role.name, index)}>
+                                                                        <Trash2 className="h-4 w-4 text-destructive" />
+                                                                    </Button>
+                                                                </div>
+                                                            </div>
+                                                        </Card>
+                                                    ))}
+                                                    <Button variant="outline" size="sm" onClick={() => addAttribute(role.name)}>
+                                                        <PlusCircle className="mr-2 h-4 w-4" /> Add Attribute
                                                     </Button>
                                                 </div>
-                                            </Card>
-                                        ))}
-                                         <Button variant="outline" size="sm" onClick={() => addAttribute(role.name)}>
-                                            <PlusCircle className="mr-2 h-4 w-4" /> Add Attribute
-                                        </Button>
-                                    </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
                                 </div>
                                 <div className="flex justify-end mt-6">
-                                    <Button onClick={() => handleSaveChanges(role)}>Save Changes</Button>
+                                    <Button onClick={() => handleSaveChanges(role)}>Save Changes for {role.name}</Button>
                                 </div>
                              </AccordionContent>
                         </AccordionItem>
@@ -546,3 +564,4 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
+
