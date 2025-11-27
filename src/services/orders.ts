@@ -1,6 +1,7 @@
 
 
 
+
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -29,6 +30,11 @@ function initializeMockOrders(): Order[] {
             assignedStaffName: 'Peter Jones',
             fulfilledByStaffId: 'staff-003',
             fulfilledByStaffName: 'Peter Jones',
+            deliveryNotes: [
+                { id: 'note-001a', staffId: 'staff-003', staffName: 'Peter Jones', note: 'Status updated to "Shipped".', date: '2024-07-25T11:00:00Z' },
+                { id: 'note-001b', staffId: 'staff-003', staffName: 'Peter Jones', note: 'Status updated to "Delivered". Customer received and signed.', date: '2024-07-25T14:30:00Z' }
+            ],
+            proofOfDeliveryUrl: 'https://picsum.photos/seed/pod1/400/300'
         },
         { 
             id: 'ORD-002', 
@@ -43,6 +49,7 @@ function initializeMockOrders(): Order[] {
             shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
             fulfilledByStaffId: 'staff-002',
             fulfilledByStaffName: 'Jane Smith',
+            pickupDetails: { name: 'Liam Johnson', phone: '+254712345678', date: '2024-07-25T16:00:00Z'}
         },
          { 
             id: 'ORD-003', 
@@ -100,13 +107,17 @@ function initializeMockOrders(): Order[] {
             customerName: 'Sophia Miller', 
             customerEmail: 'sophia@example.com', 
             date: '2024-07-22T18:00:00Z', 
-            status: 'Shipped', 
+            status: 'Attempted Delivery', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 2, price: 25000, category: 'Accessories' }],
             total: 50000,
             shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
             assignedStaffId: 'staff-003', // Peter Jones
             assignedStaffName: 'Peter Jones',
+            deliveryNotes: [
+                { id: 'note-007a', staffId: 'staff-003', staffName: 'Peter Jones', note: 'Status updated to "Shipped".', date: '2024-07-22T18:30:00Z' },
+                { id: 'note-007b', staffId: 'staff-003', staffName: 'Peter Jones', note: 'Status updated to "Attempted Delivery". Customer not home.', date: '2024-07-23T12:00:00Z' }
+            ],
         },
         { 
             id: 'ORD-008',
@@ -122,8 +133,12 @@ function initializeMockOrders(): Order[] {
             total: 50000,
             currency: 'UGX',
             shippingAddress: { street: '777 Test Road', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            assignedStaffId: 'staff-003',
             fulfilledByStaffId: 'staff-003',
             fulfilledByStaffName: 'Peter Jones',
+            deliveryNotes: [
+                 { id: 'note-008a', staffId: 'staff-003', staffName: 'Peter Jones', note: 'Status updated to "Delivered". Left with security guard as per instruction.', date: '2024-07-21T15:00:00Z' }
+            ]
         },
     ];
     return [...mockOrders].map((order, index) => {
@@ -209,6 +224,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
 
     const isNewlyCancelled = updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled';
     const isNewlyPaid = updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed';
+    const isNewlyShipped = updates.status === 'Shipped' && originalOrder.status !== 'Shipped';
 
     // Un-reserve stock if cancelled
     if (isNewlyCancelled) {
@@ -240,6 +256,10 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
             }
             updates.payment.status = 'completed';
         }
+    }
+
+    if (isNewlyShipped && !updates.assignedStaffId) {
+        throw new Error("Cannot mark order as Shipped without an assigned staff member.");
     }
 
     const finalUpdates = {

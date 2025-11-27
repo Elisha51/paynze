@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import type { Order } from '@/lib/types';
+import type { Order, DeliveryNote } from '@/lib/types';
 import { updateOrder } from '@/services/orders';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { PenSquare } from 'lucide-react';
@@ -41,15 +41,19 @@ export function UpdateDeliveryStatusDialog({ order, onUpdate, children }: Update
     if (!user) return;
 
     const updates: Partial<Order> = { status };
-    if (notes.trim()) {
-      const newNote = {
+    
+    const newNote: DeliveryNote = {
         id: `note-${Date.now()}`,
         staffId: user.id,
         staffName: user.name,
-        note: notes.trim(),
+        note: `Status updated to "${status}". ${notes.trim()}`.trim(),
         date: new Date().toISOString(),
-      };
-      updates.deliveryNotes = [...(order.deliveryNotes || []), newNote];
+    };
+    updates.deliveryNotes = [...(order.deliveryNotes || []), newNote];
+    
+    if (status === 'Delivered') {
+        updates.fulfilledByStaffId = user.id;
+        updates.fulfilledByStaffName = user.name;
     }
     
     if (proof.length > 0) {
@@ -103,15 +107,17 @@ export function UpdateDeliveryStatusDialog({ order, onUpdate, children }: Update
               placeholder="e.g., Customer not available, left with security."
             />
           </div>
-          <div className="space-y-2">
-            <Label>Proof of Delivery (Optional)</Label>
-            <FileUploader
-                files={proof}
-                onFilesChange={setProof}
-                maxFiles={1}
-                accept={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
-            />
-          </div>
+          {status === 'Delivered' && (
+            <div className="space-y-2">
+                <Label>Proof of Delivery (Optional)</Label>
+                <FileUploader
+                    files={proof}
+                    onFilesChange={setProof}
+                    maxFiles={1}
+                    accept={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
+                />
+            </div>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>Cancel</Button>

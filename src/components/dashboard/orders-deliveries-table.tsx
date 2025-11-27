@@ -142,11 +142,9 @@ const getColumns = (
     header: 'Delivered On',
     cell: ({ row }) => {
         const order = row.original;
-        let deliveredNote;
-        if (order.status === 'Delivered') {
-            deliveredNote = order.deliveryNotes?.find(n => order.status === 'Delivered');
-        }
-        return deliveredNote?.date ? format(new Date(deliveredNote.date), 'PP p') : <span className="text-muted-foreground">—</span>;
+        if (order.status !== 'Delivered') return <span className="text-muted-foreground">—</span>;
+        const deliveredNote = (order.deliveryNotes || []).find(n => n.note.includes('Status updated to "Delivered"'));
+        return deliveredNote?.date ? format(new Date(deliveredNote.date), 'PP p') : <span className="text-muted-foreground">N/A</span>;
     }
   },
   {
