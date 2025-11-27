@@ -43,7 +43,7 @@ function initializeMockOrders(): Order[] {
             customerName: 'Noah Williams', 
             customerEmail: 'noah@example.com', 
             date: '2024-07-24T14:00:00Z', 
-            status: 'Paid', 
+            status: 'Shipped', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
             total: 10000,
@@ -182,14 +182,15 @@ function initializeMockOrders(): Order[] {
                 assignedStaffName: 'Peter Jones',
             }
         }
-        if (order.id === 'ORD-003') { // Make one explicitly unassigned
+        // Assign an order to the Admin for runsheet visibility
+        if (order.id === 'ORD-003') {
             return {
                 ...fullOrder,
-                status: 'Paid' as const,
+                status: 'Shipped' as const,
                 payment: { ...fullOrder.payment, status: 'completed' as const },
                 fulfillmentMethod: 'Delivery' as const,
-                assignedStaffId: undefined,
-                assignedStaffName: undefined,
+                assignedStaffId: 'staff-001', // Assign to Admin
+                assignedStaffName: 'John Doe',
             }
         }
         return fullOrder;
