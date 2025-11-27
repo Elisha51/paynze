@@ -39,6 +39,7 @@ import { useAuth } from '@/context/auth-context';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { AssignOrderDialog } from './assign-order-dialog';
 import { FulfillOrderDialog } from './fulfill-order-dialog';
+import { ConfirmPickupDialog } from './confirm-pickup-dialog';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
@@ -308,9 +309,9 @@ const getColumns = (
                                 </FulfillOrderDialog>
                             )}
                             {order.status === 'Ready for Pickup' && (
-                                <FulfillOrderDialog order={order} action="pickup" onUpdate={onUpdate}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
-                                </FulfillOrderDialog>
+                                <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
+                                </ConfirmPickupDialog>
                             )}
                             {order.status === 'Shipped' && (
                                 <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate}>

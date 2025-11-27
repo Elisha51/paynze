@@ -70,7 +70,6 @@ export default function OrdersPage() {
 
   const tabs = [
     { value: 'all-orders', label: 'All Orders' },
-    { value: 'deliveries', label: 'Deliveries' },
   ];
   
   if (canViewAnalytics) {
@@ -106,11 +105,6 @@ export default function OrdersPage() {
                     columnFilters={columnFilters}
                     setColumnFilters={setColumnFilters}
                 />
-            </DashboardPageLayout.Content>
-        </DashboardPageLayout.TabContent>
-        <DashboardPageLayout.TabContent value="deliveries">
-            <DashboardPageLayout.Content>
-                <OrdersDeliveriesTable orders={orders} staff={staff} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         {canViewAnalytics && (

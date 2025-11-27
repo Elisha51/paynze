@@ -80,10 +80,10 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
     if (!hasPermission) return false;
     
     const userRole = user?.role || '';
-    if (item.roles && !item.roles.includes(userRole)) {
+    if (item.roles && !item.roles.includes(userRole as StaffRoleName)) {
       return false;
     }
-    if (item.hideForRoles && item.hideForRoles.includes(userRole)) {
+    if (item.hideForRoles && item.hideForRoles.includes(userRole as StaffRoleName)) {
       return false;
     }
     return true;

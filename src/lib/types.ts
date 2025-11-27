@@ -1,5 +1,6 @@
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -217,6 +218,13 @@ export type DeliveryNote = {
   date: string;
 };
 
+export type PickupDetails = {
+  name: string;
+  phone: string;
+  idNumber?: string;
+  date: string;
+};
+
 export type Order = {
     id: string;
     customerId: string;
@@ -247,6 +255,7 @@ export type Order = {
     fulfilledByStaffName?: string;
     deliveryNotes?: DeliveryNote[];
     proofOfDeliveryUrl?: string;
+    pickupDetails?: PickupDetails;
 };
 
 export type Communication = {
