@@ -7,12 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Trash2, Truck, ClipboardList } from 'lucide-react';
+import { PlusCircle, Trash2, ClipboardList } from 'lucide-react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
 import { getTodos, addTodo, updateTodo, deleteTodo } from '@/services/todos';
-import { getStaffOrders } from '@/services/staff';
-import type { Order, Todo } from '@/lib/types';
+import type { Todo } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { formatDistanceToNow } from 'date-fns';
 import {
@@ -28,22 +27,16 @@ import {
 } from "@/components/ui/alert-dialog"
 import { EmptyState } from '@/components/ui/empty-state';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
-import { UpdateDeliveryStatusDialog } from './_components/update-delivery-status-dialog';
 
 export default function MyTasksPage() {
     const { user } = useAuth();
-    const [assignedOrders, setAssignedOrders] = useState<Order[]>([]);
     const [todos, setTodos] = useState<Todo[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     
     const loadTasks = async () => {
         if (!user) return;
         setIsLoading(true);
-        const [orders, userTodos] = await Promise.all([
-            getStaffOrders(user.id),
-            getTodos()
-        ]);
-        setAssignedOrders(orders.filter(o => !['Delivered', 'Picked Up', 'Cancelled'].includes(o.status)));
+        const userTodos = await getTodos();
         setTodos(userTodos);
         setIsLoading(false);
     }
@@ -74,39 +67,8 @@ export default function MyTasksPage() {
     }
 
     return (
-        <DashboardPageLayout title="My Tasks">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Assigned Deliveries</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        {assignedOrders.length > 0 ? (
-                            <ul className="space-y-3">
-                                {assignedOrders.map(order => (
-                                    <li key={order.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                            <Truck className="h-5 w-5 text-primary" />
-                                            <div>
-                                                <Link href={`/dashboard/orders/${order.id}`} className="font-medium hover:underline">Deliver Order #{order.id}</Link>
-                                                <p className="text-sm text-muted-foreground">To: {order.customerName}</p>
-                                            </div>
-                                            <Badge variant={order.status === 'Shipped' ? 'default' : 'secondary'}>{order.status}</Badge>
-                                        </div>
-                                         <UpdateDeliveryStatusDialog order={order} onUpdate={loadTasks} />
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                             <EmptyState
-                                icon={<Truck className="h-12 w-12 text-muted-foreground" />}
-                                title="No Deliveries"
-                                description="You have no assigned deliveries at the moment."
-                            />
-                        )}
-                    </CardContent>
-                </Card>
-
+        <DashboardPageLayout title="My Tasks" description="Manage your personal to-do list.">
+            <div className="max-w-2xl mx-auto">
                 <Card>
                     <CardHeader>
                         <CardTitle>Personal To-Do List</CardTitle>
@@ -212,5 +174,3 @@ function TodoInput({ onAdd }: { onAdd: (title: string) => void }) {
         </div>
     )
 }
-
-    

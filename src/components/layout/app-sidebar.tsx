@@ -40,11 +40,11 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import type { Permissions, StaffRoleName } from '@/lib/types';
 import { ScrollArea } from '../ui/scroll-area';
 
-const menuItems: { href: string; label: string; icon: React.ElementType; permission: (p: Permissions) => boolean | undefined; roles?: StaffRoleName[] }[] = [
+const menuItems: { href: string; label: string; icon: React.ElementType; permission: (p: Permissions) => boolean | undefined; roles?: StaffRoleName[]; hideForRoles?: StaffRoleName[] }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: Permissions) => p && p.dashboard && p.dashboard.view },
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, permission: (p: Permissions) => p && p.orders && p.orders.view },
   { href: '/dashboard/my-runsheet', label: 'My Runsheet', icon: Truck, permission: (p: Permissions) => p && p.tasks && p.tasks.view, roles: ['Agent'] },
-  { href: '/dashboard/my-tasks', label: 'My Tasks', icon: ClipboardCheck, permission: (p: Permissions) => p && p.tasks && p.tasks.view, roles: ['Admin', 'Manager', 'Sales Agent', 'Finance Manager'] },
+  { href: '/dashboard/my-tasks', label: 'My Tasks', icon: ClipboardCheck, permission: (p: Permissions) => p && p.tasks && p.tasks.view, hideForRoles: ['Agent'] },
   { href: '/dashboard/products', label: 'Products', icon: Package, permission: (p: Permissions) => p && p.products && p.products.view },
   { href: '/dashboard/customers', label: 'Customers', icon: Users, permission: (p: Permissions) => p && p.customers && p.customers.view },
   { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: Permissions) => p && p.procurement && p.procurement.view },
@@ -79,8 +79,13 @@ export default function AppSidebar({ onboardingData }: AppSidebarProps) {
   const allowedMenuItems = menuItems.filter(item => {
     const hasPermission = item.permission(userPermissions);
     if (!hasPermission) return false;
-    if (item.roles) {
-      return item.roles.includes(user?.role || '');
+    
+    const userRole = user?.role || '';
+    if (item.roles && !item.roles.includes(userRole)) {
+      return false;
+    }
+    if (item.hideForRoles && item.hideForRoles.includes(userRole)) {
+      return false;
     }
     return true;
   });
