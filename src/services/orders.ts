@@ -1,5 +1,6 @@
 
 
+
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -24,6 +25,10 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
             total: 75000, 
             shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            assignedStaffId: 'staff-003',
+            assignedStaffName: 'Peter Jones',
+            fulfilledByStaffId: 'staff-003',
+            fulfilledByStaffName: 'Peter Jones',
         },
         { 
             id: 'ORD-002', 
@@ -36,6 +41,8 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 5, price: 32000, category: 'Fabrics' }],
             total: 160000,
             shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+            fulfilledByStaffId: 'staff-002',
+            fulfilledByStaffName: 'Jane Smith',
         },
          { 
             id: 'ORD-003', 
@@ -48,6 +55,8 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
             total: 10000,
             shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
+            assignedStaffId: 'staff-001', // Assigned to Admin
+            assignedStaffName: 'John Doe',
         },
         { 
             id: 'ORD-004', 
@@ -55,7 +64,7 @@ function initializeMockOrders(): Order[] {
             customerName: 'Emma Brown', 
             customerEmail: 'emma@example.com', 
             date: '2024-07-24T09:00:00Z', 
-            status: 'Awaiting Payment', 
+            status: 'Paid', // Changed to Paid to make it assignable
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
             total: 80000,
@@ -96,6 +105,8 @@ function initializeMockOrders(): Order[] {
             items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 2, price: 25000, category: 'Accessories' }],
             total: 50000,
             shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
+            assignedStaffId: 'staff-003', // Peter Jones
+            assignedStaffName: 'Peter Jones',
         },
         { 
             id: 'ORD-008',
@@ -111,36 +122,8 @@ function initializeMockOrders(): Order[] {
             total: 50000,
             currency: 'UGX',
             shippingAddress: { street: '777 Test Road', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-        },
-        { 
-            id: 'ORD-009',
-            customerId: 'cust-08',
-            customerName: 'Chloe Davis',
-            customerEmail: 'chloe@example.com',
-            salesAgentId: 'aff-001', // Referred by Fatuma Asha
-            salesAgentName: 'Fatuma Asha',
-            date: '2024-07-20T15:00:00Z', 
-            status: 'Picked Up',
-            fulfillmentMethod: 'Pickup',
-            items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 4, price: 30000, category: 'Fabrics' }],
-            total: 120000,
-            currency: 'UGX',
-            shippingAddress: { street: '888 Demo Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-        },
-        { 
-            id: 'ORD-010',
-            customerId: 'cust-08',
-            customerName: 'Chloe Davis',
-            customerEmail: 'chloe@example.com',
-            salesAgentId: 'aff-002', // Referred by David Odhiambo
-            salesAgentName: 'David Odhiambo',
-            date: '2024-07-19T11:00:00Z', 
-            status: 'Awaiting Payment',
-            fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'SHOE-002-42', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
-            total: 75000,
-            currency: 'UGX',
-            shippingAddress: { street: '888 Demo Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            fulfilledByStaffId: 'staff-003',
+            fulfilledByStaffName: 'Peter Jones',
         },
     ];
     return [...mockOrders].map((order, index) => {
@@ -156,42 +139,6 @@ function initializeMockOrders(): Order[] {
                 status: isPaid ? 'completed' : 'pending',
                 transactionId: isPaid ? `txn_${order.id}` : undefined,
             },
-        }
-        if (order.id === 'ORD-001') { // Assign the first order for delivery
-            return {
-                ...fullOrder,
-                assignedStaffId: 'staff-003',
-                assignedStaffName: 'Peter Jones',
-                fulfilledByStaffId: 'staff-003',
-                fulfilledByStaffName: 'Peter Jones',
-            };
-        }
-        if (order.id === 'ORD-002') { // Mark second order as a pickup
-            return {
-                ...fullOrder,
-                status: 'Picked Up' as const,
-                fulfillmentMethod: 'Pickup' as const,
-                fulfilledByStaffId: 'staff-002', // Sales agent handled the pickup
-                fulfilledByStaffName: 'Jane Smith',
-            }
-        }
-        if (order.id === 'ORD-007') {
-             return {
-                ...fullOrder,
-                assignedStaffId: 'staff-003', // Peter Jones
-                assignedStaffName: 'Peter Jones',
-            }
-        }
-        // Assign an order to the Admin for runsheet visibility
-        if (order.id === 'ORD-003') {
-            return {
-                ...fullOrder,
-                status: 'Shipped' as const,
-                payment: { ...fullOrder.payment, status: 'completed' as const },
-                fulfillmentMethod: 'Delivery' as const,
-                assignedStaffId: 'staff-001', // Assign to Admin
-                assignedStaffName: 'John Doe',
-            }
         }
         return fullOrder;
     });
