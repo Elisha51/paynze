@@ -14,6 +14,7 @@ const defaultPermissions: Permissions = {
   finances: { view: false, create: false, edit: false, delete: false },
   staff: { view: false, create: false, edit: false, delete: false },
   tasks: { view: false, create: false, edit: false, delete: false },
+  runsheet: { view: false },
   settings: { view: false, edit: false },
 };
 
@@ -32,6 +33,7 @@ const mockRoles: Role[] = [
       finances: { view: true, create: true, edit: true, delete: true },
       staff: { view: true, create: true, edit: true, delete: true },
       tasks: { view: true, create: true, edit: true, delete: true },
+      runsheet: { view: true },
       settings: { view: true, edit: true },
     },
     assignableAttributes: [],
@@ -50,6 +52,7 @@ const mockRoles: Role[] = [
       staff: { view: true, create: true, edit: true, delete: false },
       tasks: { view: true, create: true, edit: true, delete: false },
       templates: { view: true, create: true, edit: true, delete: false },
+      runsheet: { view: true },
     },
     assignableAttributes: [],
     commissionRules: [],
@@ -80,6 +83,7 @@ const mockRoles: Role[] = [
       dashboard: { view: true },
       orders: { view: true, create: false, edit: true, delete: false },
       tasks: { view: true, create: false, edit: false, delete: false },
+      runsheet: { view: true },
     },
     commissionRules: [
         { id: 'delivery-1', name: 'Per-Delivery Fee', trigger: 'On Order Delivered', type: 'Fixed Amount', rate: 1500, conditions: [] }

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -76,6 +77,7 @@ const permissionConfig: PermissionModuleConfig[] = [
   { key: 'finances', label: 'Finances', type: 'crud' },
   { key: 'staff', label: 'Staff', type: 'crud' },
   { key: 'tasks', label: 'Tasks', type: 'crud' },
+  { key: 'runsheet', label: 'Runsheet', type: 'simple' },
   { key: 'settings', label: 'Settings', type: 'simple' },
 ];
 
@@ -92,14 +94,13 @@ const PermissionRow = ({ label, permissions, onPermissionChange, type = 'crud' }
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm sm:flex sm:flex-wrap sm:gap-x-4">
                 {(Object.keys(permissionLabels) as Array<keyof CrudPermissions>).map((key) => {
-                    if (type === 'simple' && !['view', 'edit'].includes(key) && label !== 'Settings') {
+                    if (type === 'simple' && !['view', 'edit'].includes(key)) {
                        if(label === 'Dashboard' && key !== 'view') return null;
-                       if(label !== 'Dashboard' && label !== 'Settings') return null;
+                       if(label === 'Runsheet' && key !== 'view') return null;
+                       if(label !== 'Dashboard' && label !== 'Settings' && label !== 'Runsheet') return null;
                     }
-                     if (type === 'simple' && label === 'Settings' && !['view', 'edit'].includes(key)) {
-                         return null;
-                     }
-                     if(type === 'simple' && label === 'Dashboard' && key !== 'view') {
+
+                     if(type === 'simple' && (label === 'Dashboard' || label === 'Runsheet') && key !== 'view') {
                         return null;
                      }
 
@@ -134,6 +135,7 @@ const emptyRole: Omit<Role, 'name'> & {name: StaffRoleName | ''} = {
         finances: { view: false, create: false, edit: false, delete: false },
         staff: { view: false, create: false, edit: false, delete: false },
         tasks: { view: false, create: false, edit: false, delete: false },
+        runsheet: { view: false },
         settings: { view: false, edit: false },
     },
     assignableAttributes: [],
@@ -660,5 +662,3 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
-
-    

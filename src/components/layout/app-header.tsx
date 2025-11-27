@@ -1,4 +1,5 @@
 
+
 'use client';
 import {
   DropdownMenu,
@@ -59,7 +60,7 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
         return name.substring(0, 2);
     }
     
-    const showRunsheet = user?.role === 'Admin' || user?.role === 'Agent';
+    const showRunsheet = user?.permissions.runsheet?.view;
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
