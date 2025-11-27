@@ -7,6 +7,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -238,6 +239,16 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
             salesAgentName: selectedStaff?.name
         }))
     }
+
+    const handlePaymentMethodChange = (v: string) => {
+        setOrder(p => {
+            const currentPayment = p?.payment || { status: 'pending' };
+            return {
+                ...p,
+                payment: { ...currentPayment, method: v as any }
+            }
+        });
+    }
     
     return (
         <div className="space-y-6">
@@ -322,7 +333,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
                             </div>
                             <div className="space-y-2">
                                 <Label>Payment Method</Label>
-                                <Select value={order.payment?.method} onValueChange={(v) => setOrder(p => ({ ...p, payment: { ...p.payment, status: 'pending', method: v as any } }))}>
+                                <Select value={order.payment?.method} onValueChange={handlePaymentMethodChange}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Cash on Delivery">Cash on Delivery</SelectItem>
