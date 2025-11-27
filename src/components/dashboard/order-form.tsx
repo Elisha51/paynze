@@ -242,7 +242,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
 
     const handlePaymentMethodChange = (v: string) => {
         setOrder(p => {
-            const currentPayment = p?.payment || { status: 'pending' };
+            const currentPayment = p?.payment || { status: 'pending', method: 'Cash on Delivery' };
             return {
                 ...p,
                 payment: { ...currentPayment, method: v as any }
