@@ -1,8 +1,5 @@
 
 
-
-
-
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -374,3 +371,4 @@ export async function updateProductStock(
     product.variants[variantIndex] = variant;
     await updateProduct(product);
 }
+
