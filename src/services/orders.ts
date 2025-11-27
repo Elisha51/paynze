@@ -178,7 +178,7 @@ function initializeMockOrders(): Order[] {
         if (order.id === 'ORD-007') {
              return {
                 ...fullOrder,
-                assignedStaffId: 'staff-003',
+                assignedStaffId: 'staff-003', // Peter Jones
                 assignedStaffName: 'Peter Jones',
             }
         }
