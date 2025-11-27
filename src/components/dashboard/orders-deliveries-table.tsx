@@ -4,6 +4,7 @@ import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { MoreHorizontal, Truck, Store, User, ArrowUpDown } from 'lucide-react';
 import Link from 'next/link';
+
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,6 +22,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui
 import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from './assign-order-dialog';
 import { Checkbox } from '../ui/checkbox';
+import { EmptyState } from '../ui/empty-state';
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
   'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
@@ -38,14 +40,8 @@ const paymentMethods = [
     { value: 'Cash on Delivery', label: 'Cash on Delivery' },
 ];
 
-const fulfillmentMethods = [
-    { value: 'Delivery', label: 'Delivery' },
-    { value: 'Pickup', label: 'Pickup' },
-];
-
 const deliveryStatuses = [
     { value: 'Paid', label: 'Ready to Fulfill' },
-    { value: 'Ready for Pickup', label: 'In Store' },
     { value: 'Shipped', label: 'In Transit' },
     { value: 'Attempted Delivery', label: 'Attempted' },
 ];
@@ -115,22 +111,6 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     ),
   },
   {
-    accessorKey: 'total',
-    header: ({ column }) => (
-      <div className="text-right">
-        <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            Total
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      </div>
-    ),
-    cell: ({ row }) => {
-      const order = row.original;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total);
-      return <div className="text-right font-medium">{formatted}</div>;
-    },
-  },
-  {
     id: 'paymentMethod',
     accessorFn: row => row.payment?.method,
     header: 'Payment Method',
@@ -143,17 +123,6 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
       if (!method) return false;
       return (value as string[]).includes(method);
     },
-  },
-  {
-    accessorKey: 'fulfillmentMethod',
-    header: 'Delivery Type',
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        {row.original.fulfillmentMethod === 'Delivery' ? <Truck className="h-4 w-4 text-muted-foreground"/> : <Store className="h-4 w-4 text-muted-foreground"/>}
-        {row.original.fulfillmentMethod}
-      </div>
-    ),
-     filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
   },
   {
     accessorKey: 'status',
@@ -236,8 +205,9 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
 
   const deliveryWorklist = data
     .filter(o => {
-        const isReadyForFulfillment = ['Paid', 'Ready for Pickup', 'Shipped', 'Attempted Delivery'].includes(o.status);
-        return isReadyForFulfillment;
+        const isDelivery = o.fulfillmentMethod === 'Delivery';
+        const isReadyForFulfillment = ['Paid', 'Shipped', 'Attempted Delivery'].includes(o.status);
+        return isDelivery && isReadyForFulfillment;
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -266,11 +236,6 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                 isLoading={!orders || !staff}
                 filters={[
                     {
-                        columnId: 'fulfillmentMethod',
-                        title: 'Delivery Type',
-                        options: fulfillmentMethods
-                    },
-                    {
                         columnId: 'assignedStaffName',
                         title: 'Assigned To',
                         options: staffOptions
@@ -286,6 +251,11 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                         options: deliveryStatuses,
                     },
                 ]}
+                emptyState={{
+                    icon: Truck,
+                    title: "No Active Deliveries",
+                    description: "There are no orders currently awaiting delivery assignment or in transit."
+                }}
             />
         </CardContent>
     </Card>

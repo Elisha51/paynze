@@ -17,6 +17,7 @@ import { DateRange } from 'react-day-picker';
 import { OrderAnalyticsReport } from '@/components/dashboard/analytics/order-analytics-report';
 import { usePathname, useSearchParams } from 'next/navigation';
 import type { ColumnFiltersState } from '@tanstack/react-table';
+import { OrdersPickupsTable } from '@/components/dashboard/orders-pickups-table';
 
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -70,6 +71,8 @@ export default function OrdersPage() {
 
   const tabs = [
     { value: 'all-orders', label: 'All Orders' },
+    { value: 'deliveries', label: 'Deliveries' },
+    { value: 'pickups', label: 'Pickups' },
   ];
   
   if (canViewAnalytics) {
@@ -105,6 +108,16 @@ export default function OrdersPage() {
                     columnFilters={columnFilters}
                     setColumnFilters={setColumnFilters}
                 />
+            </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+        <DashboardPageLayout.TabContent value="deliveries">
+            <DashboardPageLayout.Content>
+                <OrdersDeliveriesTable orders={orders} staff={staff} />
+            </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+         <DashboardPageLayout.TabContent value="pickups">
+            <DashboardPageLayout.Content>
+                <OrdersPickupsTable orders={orders} isLoading={isLoading} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         {canViewAnalytics && (
