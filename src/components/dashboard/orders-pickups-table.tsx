@@ -61,7 +61,7 @@ const getPickupColumns = (
   {
     accessorKey: 'date',
     header: 'Ready On',
-    cell: ({ row }) => format(new Date(row.original.date), 'PPP')
+    cell: ({ row }) => format(new Date(row.original.date), 'PPP p')
   },
   {
     accessorKey: 'total',

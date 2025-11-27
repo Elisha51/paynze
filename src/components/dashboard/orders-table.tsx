@@ -170,8 +170,16 @@ const getColumns = (
     header: 'Fulfilled On',
     cell: ({ row }) => {
         const order = row.original;
-        const fulfillmentDate = order.pickupDetails?.date || order.deliveryNotes?.find(n => order.status === 'Delivered')?.date;
-        return fulfillmentDate ? format(new Date(fulfillmentDate), 'PPP') : '—';
+        let fulfillmentDate: string | undefined;
+
+        if (order.status === 'Delivered') {
+            const deliveredNote = order.deliveryNotes?.find(n => order.status === 'Delivered');
+            fulfillmentDate = deliveredNote?.date;
+        } else if (order.status === 'Picked Up') {
+            fulfillmentDate = order.pickupDetails?.date;
+        }
+
+        return fulfillmentDate ? format(new Date(fulfillmentDate), 'PP p') : <span className="text-muted-foreground">—</span>;
     }
   },
   {
@@ -398,7 +406,8 @@ export function OrdersTable({ orders, staff, isLoading, columnFilters, setColumn
   
   const columnVisibility = React.useMemo(() => {
     const hasAnyAssignments = data.some(o => !!o.assignedStaffName || !!o.fulfilledByStaffName);
-    return { assignedStaffName: hasAnyAssignments, fulfilledOn: hasAnyAssignments };
+    const hasAnyFulfilled = data.some(o => o.status === 'Delivered' || o.status === 'Picked Up');
+    return { assignedStaffName: hasAnyAssignments, fulfilledOn: hasAnyFulfilled };
   }, [data]);
 
   return (

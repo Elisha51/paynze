@@ -23,6 +23,7 @@ import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from './assign-order-dialog';
 import { Checkbox } from '../ui/checkbox';
 import { EmptyState } from '../ui/empty-state';
+import { format } from 'date-fns';
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
   'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
@@ -41,7 +42,6 @@ const paymentMethods = [
 ];
 
 const deliveryStatuses = [
-    { value: 'Paid', label: 'Ready to Fulfill' },
     { value: 'Shipped', label: 'In Transit' },
     { value: 'Attempted Delivery', label: 'Attempted' },
 ];
@@ -202,9 +202,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
 
   const deliveryWorklist = data
     .filter(o => {
-        const isDelivery = o.fulfillmentMethod === 'Delivery';
-        const isReadyForFulfillment = ['Paid', 'Shipped', 'Attempted Delivery'].includes(o.status);
-        return isDelivery && isReadyForFulfillment;
+        return o.fulfillmentMethod === 'Delivery' && ['Shipped', 'Attempted Delivery'].includes(o.status);
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -224,7 +222,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     <Card>
         <CardHeader>
             <CardTitle>Delivery Worklist</CardTitle>
-            <CardDescription>A summary of paid orders that are ready for fulfillment or are in transit.</CardDescription>
+            <CardDescription>A summary of orders currently in transit for delivery.</CardDescription>
         </CardHeader>
         <CardContent>
              <DataTable
@@ -251,7 +249,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                 emptyState={{
                     icon: Truck,
                     title: "No Active Deliveries",
-                    description: "There are no orders currently awaiting delivery assignment or in transit."
+                    description: "There are no orders currently in transit. Assign a paid order for delivery to get started."
                 }}
             />
         </CardContent>
