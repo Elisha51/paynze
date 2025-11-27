@@ -125,7 +125,7 @@ const ProductSelectionDialog = ({ products, onAddProducts }: { products: Product
                 </DialogHeader>
                 <div className="h-[60vh]">
                     <ScrollArea className="h-full">
-                        <DataTable 
+                        <DataTable
                             columns={columns}
                             data={productRows}
                             isLoading={products.length === 0}
@@ -182,7 +182,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
         loadData();
         
         if (initialOrder) {
-            setOrder(initialOrder);
+            setOrder(prev => ({...emptyOrder, ...prev, ...initialOrder}));
             setItems(initialOrder.items.map(item => ({
                 productId: item.sku, // This might need adjustment if SKU is not the primary ID
                 name: item.name,
