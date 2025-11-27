@@ -29,7 +29,7 @@ export default function OrdersPage() {
   const searchParams = useSearchParams();
   
   const canCreate = user?.permissions.orders.create;
-  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise';
+  const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
     const statusParam = searchParams.get('status');
