@@ -661,6 +661,3 @@ export function RolesPermissionsTab({ roles: initialRoles, setRoles: setParentRo
     </>
   );
 }
-
-    
-    
