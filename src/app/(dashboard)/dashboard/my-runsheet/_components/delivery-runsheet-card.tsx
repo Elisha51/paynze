@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { UpdateDeliveryStatusDialog } from '../../my-tasks/_components/update-delivery-status-dialog';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, User, FileText, Landmark, ShoppingBag } from 'lucide-react';
+import { MapPin, User, FileText, Landmark, ShoppingBag, PenSquare } from 'lucide-react';
 
 type DeliveryRunsheetCardProps = {
   order: Order;
@@ -42,7 +42,7 @@ export function DeliveryRunsheetCard({ order, onUpdate }: DeliveryRunsheetCardPr
           </div>
         </div>
         <UpdateDeliveryStatusDialog order={order} onUpdate={onUpdate}>
-            Update Status
+            <Button size="sm"><PenSquare className="mr-2 h-4 w-4" /> Update</Button>
         </UpdateDeliveryStatusDialog>
       </CardHeader>
       <Separator />

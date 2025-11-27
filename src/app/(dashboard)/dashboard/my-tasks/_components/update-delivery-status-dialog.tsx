@@ -24,11 +24,12 @@ import { useAuth } from '@/context/auth-context';
 type UpdateDeliveryStatusDialogProps = {
   order: Order;
   onUpdate: () => void;
+  children: React.ReactNode;
 };
 
 const deliveryStatuses: Order['status'][] = ['Shipped', 'Attempted Delivery', 'Delivered'];
 
-export function UpdateDeliveryStatusDialog({ order, onUpdate }: UpdateDeliveryStatusDialogProps) {
+export function UpdateDeliveryStatusDialog({ order, onUpdate, children }: UpdateDeliveryStatusDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [status, setStatus] = useState<Order['status']>(order.status);
   const [notes, setNotes] = useState('');
@@ -72,7 +73,7 @@ export function UpdateDeliveryStatusDialog({ order, onUpdate }: UpdateDeliverySt
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button size="sm"><PenSquare className="mr-2 h-4 w-4" /> Update</Button>
+        {children}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
