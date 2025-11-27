@@ -27,7 +27,7 @@ import {
   Landmark,
   UserCog,
   Megaphone,
-  ClipboardCheck,
+  ClipboardList,
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { useSidebar } from '../ui/sidebar';
@@ -43,7 +43,7 @@ import { ScrollArea } from '../ui/scroll-area';
 const menuItems: { href: string; label: string; icon: React.ElementType; permission: (p: Permissions) => boolean | undefined; roles?: StaffRoleName[]; hideForRoles?: StaffRoleName[] }[] = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: (p: Permissions) => p && p.dashboard && p.dashboard.view },
   { href: '/dashboard/orders', label: 'Orders', icon: ShoppingCart, permission: (p: Permissions) => p && p.orders && p.orders.view },
-  { href: '/dashboard/my-runsheet', label: 'Runsheet', icon: Truck, permission: (p: Permissions) => p && p.tasks && p.tasks.view, roles: ['Admin', 'Agent'] },
+  { href: '/dashboard/my-runsheet', label: 'Runsheet', icon: ClipboardList, permission: (p: Permissions) => p && p.tasks && p.tasks.view, roles: ['Admin', 'Agent'] },
   { href: '/dashboard/products', label: 'Products', icon: Package, permission: (p: Permissions) => p && p.products && p.products.view },
   { href: '/dashboard/customers', label: 'Customers', icon: Users, permission: (p: Permissions) => p && p.customers && p.customers.view },
   { href: '/dashboard/procurement', label: 'Procurement', icon: Truck, permission: (p: Permissions) => p && p.procurement && p.procurement.view },
