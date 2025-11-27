@@ -322,7 +322,7 @@ export function OrderForm({ initialOrder }: { initialOrder?: Order | null }) {
                             </div>
                             <div className="space-y-2">
                                 <Label>Payment Method</Label>
-                                <Select value={order.payment?.method} onValueChange={(v) => setOrder(p => ({...p, payment: { ...p.payment!, method: v as Order['payment']['method']} }))}>
+                                <Select value={order.payment?.method} onValueChange={(v) => setOrder(p => ({ ...p, payment: { ...p.payment, status: 'pending', method: v as any } }))}>
                                     <SelectTrigger><SelectValue /></SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="Cash on Delivery">Cash on Delivery</SelectItem>
