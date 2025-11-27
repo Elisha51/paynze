@@ -129,6 +129,21 @@ const getColumns = (
     ),
   },
   {
+    accessorKey: 'date',
+    header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
+          >
+            Date
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+      cell: ({ row }) => format(new Date(row.original.date), 'PPP')
+  },
+  {
     accessorKey: 'customerName',
     header: ({ column }) => {
         return (
@@ -151,34 +166,19 @@ const getColumns = (
     }
   },
   {
-    accessorKey: 'date',
-    header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
-          >
-            Date
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        );
-      },
-      cell: ({ row }) => format(new Date(row.original.date), 'PPP')
-  },
-  {
     id: 'paymentMethod',
-    accessorFn: row => row.payment?.method,
+    accessorFn: row => row.payment.method,
     header: 'Payment',
     cell: ({ row }) => {
       const payment = row.original.payment;
       return (
-        <Badge variant={payment?.status === 'completed' ? 'default' : 'secondary'}>
-          {payment?.method || 'N/A'}
+        <Badge variant={payment.status === 'completed' ? 'default' : 'secondary'}>
+          {payment.method || 'N/A'}
         </Badge>
       );
     },
     filterFn: (row, id, value) => {
-        const method = row.original.payment?.method;
+        const method = row.original.payment.method;
         if (!method) return false;
         return value.includes(method)
     },
@@ -190,6 +190,13 @@ const getColumns = (
         const channel = row.getValue('channel') as string;
         return <Badge variant="outline">{channel}</Badge>
     },
+    filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id))
+    },
+  },
+  {
+    accessorKey: 'fulfillmentMethod',
+    header: 'Fulfillment',
     filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
     },
@@ -212,13 +219,6 @@ const getColumns = (
     },
   },
     {
-    accessorKey: 'fulfillmentMethod',
-    header: 'Fulfillment',
-    filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
-    },
-  },
-    {
     accessorKey: 'assignedStaffName',
     header: 'Assigned To',
     cell: ({ row }) => {
@@ -226,8 +226,12 @@ const getColumns = (
         const staffName = order.fulfilledByStaffName || order.assignedStaffName;
         const staffId = order.fulfilledByStaffId || order.assignedStaffId;
         
-        if (!staffName) {
-            return <Badge variant="destructive">Unassigned</Badge>
+        if (!staffId || !staffName) {
+            return canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' ? (
+                 <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                    <Button variant="outline" size="sm">Assign Agent</Button>
+                </AssignOrderDialog>
+            ) : <span className="text-muted-foreground">—</span>;
         }
 
         return (
@@ -275,9 +279,40 @@ const getColumns = (
         const updatedOrder = await updateOrder(order.id, { status: 'Cancelled' });
         onUpdate(updatedOrder);
       }
+      
+      const nextAction = () => {
+        if (!canEdit) return null;
+
+        switch (order.status) {
+            case 'Paid':
+                if (order.fulfillmentMethod === 'Pickup') {
+                    return (
+                        <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                           <Button size="sm">Mark Ready for Pickup</Button>
+                        </FulfillOrderDialog>
+                    );
+                }
+                return null; // Delivery assignment is now inline
+            case 'Ready for Pickup':
+                 return (
+                    <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
+                       <Button size="sm">Confirm Pickup</Button>
+                    </ConfirmPickupDialog>
+                 );
+            case 'Shipped':
+                return (
+                    <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate}>
+                       <Button size="sm">Mark as Delivered</Button>
+                    </FulfillOrderDialog>
+                );
+            default:
+                return null;
+        }
+      }
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
+            {nextAction()}
             <AlertDialog>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -302,23 +337,10 @@ const getColumns = (
                           <>
                             {isPaid && order.fulfillmentMethod === 'Delivery' && (
                                 <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                        {order.assignedStaffId ? 'Re-assign Agent' : 'Assign Agent'}
+                                    </DropdownMenuItem>
                                 </AssignOrderDialog>
-                            )}
-                            {isPaid && order.fulfillmentMethod === 'Pickup' && (
-                                <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Ready for Pickup</DropdownMenuItem>
-                                </FulfillOrderDialog>
-                            )}
-                            {order.status === 'Ready for Pickup' && (
-                                <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
-                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Confirm Customer Pickup</DropdownMenuItem>
-                                </ConfirmPickupDialog>
-                            )}
-                            {order.status === 'Shipped' && (
-                                <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Delivered</DropdownMenuItem>
-                                </FulfillOrderDialog>
                             )}
                             
                             {canBeCancelled && (

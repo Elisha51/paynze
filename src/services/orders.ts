@@ -2,6 +2,7 @@
 
 
 
+
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -134,6 +135,7 @@ function initializeMockOrders(): Order[] {
             currency: 'UGX',
             shippingAddress: { street: '777 Test Road', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
             assignedStaffId: 'staff-003',
+            assignedStaffName: 'Peter Jones',
             fulfilledByStaffId: 'staff-003',
             fulfilledByStaffName: 'Peter Jones',
             deliveryNotes: [
@@ -225,6 +227,14 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
     const isNewlyCancelled = updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled';
     const isNewlyPaid = updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed';
     const isNewlyShipped = updates.status === 'Shipped' && originalOrder.status !== 'Shipped';
+    
+    // Automatically add staff name if only ID is provided
+    if (updates.assignedStaffId && !updates.assignedStaffName) {
+        const staffMember = await getStaff().then(staff => staff.find(s => s.id === updates.assignedStaffId));
+        if (staffMember) {
+            updates.assignedStaffName = staffMember.name;
+        }
+    }
 
     // Un-reserve stock if cancelled
     if (isNewlyCancelled) {
