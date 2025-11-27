@@ -61,7 +61,7 @@ const getPickupColumns = (
   {
     accessorKey: 'date',
     header: 'Ready On',
-    cell: ({ row }) => format(new Date(row.original.date), 'PPP p')
+    cell: ({ row }) => format(new Date(row.original.date), 'PP p')
   },
   {
     accessorKey: 'total',
@@ -71,6 +71,17 @@ const getPickupColumns = (
       const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(order.total);
       return <div className="text-right font-medium">{formatted}</div>;
     },
+  },
+   {
+    id: 'pickedUpOn',
+    header: 'Picked-up On',
+    cell: ({ row }) => {
+        const order = row.original;
+        if (order.status !== 'Picked Up' || !order.pickupDetails?.date) {
+            return <span className="text-muted-foreground">—</span>;
+        }
+        return format(new Date(order.pickupDetails.date), 'PP p');
+    }
   },
   {
     id: 'actions',
@@ -90,12 +101,14 @@ const getPickupColumns = (
                     <DropdownMenuItem asChild>
                         <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
                     </DropdownMenuItem>
-                    <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            <PackageCheck className="mr-2 h-4 w-4" />
-                            Confirm Pickup
-                        </DropdownMenuItem>
-                    </ConfirmPickupDialog>
+                    {order.status === 'Ready for Pickup' && (
+                        <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                <PackageCheck className="mr-2 h-4 w-4" />
+                                Confirm Pickup
+                            </DropdownMenuItem>
+                        </ConfirmPickupDialog>
+                    )}
                 </DropdownMenuContent>
             </DropdownMenu>
         </div>
@@ -122,20 +135,20 @@ export function OrdersPickupsTable({ orders, isLoading }: OrdersPickupsTableProp
   }, [orders]);
 
   const handleUpdate = (updatedOrder: Order) => {
-    setData(currentData => currentData.filter(o => o.id !== updatedOrder.id));
+    setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
   };
   
   const columns = React.useMemo(() => getPickupColumns(handleUpdate, settings?.currency || 'UGX'), [settings?.currency]);
   
   const pickupWorklist = data
-    .filter(o => o.status === 'Ready for Pickup')
-    .sort((a,b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .filter(o => o.fulfillmentMethod === 'Pickup' && ['Ready for Pickup', 'Picked Up'].includes(o.status))
+    .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <Card>
         <CardHeader>
             <CardTitle>Pickup Worklist</CardTitle>
-            <CardDescription>A list of orders that are ready for customer pickup.</CardDescription>
+            <CardDescription>A list of orders that are ready for or have been collected by customers.</CardDescription>
         </CardHeader>
         <CardContent>
              <DataTable

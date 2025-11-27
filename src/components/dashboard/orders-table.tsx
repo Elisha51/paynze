@@ -166,23 +166,6 @@ const getColumns = (
       cell: ({ row }) => format(new Date(row.original.date), 'PPP')
   },
   {
-    id: 'fulfilledOn',
-    header: 'Fulfilled On',
-    cell: ({ row }) => {
-        const order = row.original;
-        let fulfillmentDate: string | undefined;
-
-        if (order.status === 'Delivered') {
-            const deliveredNote = order.deliveryNotes?.find(n => order.status === 'Delivered');
-            fulfillmentDate = deliveredNote?.date;
-        } else if (order.status === 'Picked Up') {
-            fulfillmentDate = order.pickupDetails?.date;
-        }
-
-        return fulfillmentDate ? format(new Date(fulfillmentDate), 'PP p') : <span className="text-muted-foreground">—</span>;
-    }
-  },
-  {
     id: 'paymentMethod',
     accessorFn: row => row.payment?.method,
     header: 'Payment',
@@ -406,8 +389,7 @@ export function OrdersTable({ orders, staff, isLoading, columnFilters, setColumn
   
   const columnVisibility = React.useMemo(() => {
     const hasAnyAssignments = data.some(o => !!o.assignedStaffName || !!o.fulfilledByStaffName);
-    const hasAnyFulfilled = data.some(o => o.status === 'Delivered' || o.status === 'Picked Up');
-    return { assignedStaffName: hasAnyAssignments, fulfilledOn: hasAnyFulfilled };
+    return { assignedStaffName: hasAnyAssignments };
   }, [data]);
 
   return (

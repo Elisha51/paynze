@@ -24,6 +24,7 @@ import { AssignOrderDialog } from './assign-order-dialog';
 import { Checkbox } from '../ui/checkbox';
 import { EmptyState } from '../ui/empty-state';
 import { format } from 'date-fns';
+import { FulfillOrderDialog } from './fulfill-order-dialog';
 
 const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
   'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
@@ -44,6 +45,7 @@ const paymentMethods = [
 const deliveryStatuses = [
     { value: 'Shipped', label: 'In Transit' },
     { value: 'Attempted Delivery', label: 'Attempted' },
+    { value: 'Delivered', label: 'Delivered' },
 ];
 
 const getColumns = (
@@ -96,21 +98,7 @@ const getColumns = (
         </Button>
     ),
   },
-  {
-    id: 'paymentMethod',
-    accessorFn: row => row.payment?.method,
-    header: 'Payment Method',
-    cell: ({ row }) => {
-      const payment = row.original.payment;
-      return <span>{payment?.method || 'N/A'}</span>;
-    },
-    filterFn: (row, id, value) => {
-      const method = row.original.payment?.method;
-      if (!method) return false;
-      return (value as string[]).includes(method);
-    },
-  },
-  {
+   {
     accessorKey: 'status',
     header: 'Fulfillment Status',
     cell: ({ row }) => {
@@ -148,6 +136,18 @@ const getColumns = (
         const staffName = row.original.assignedStaffName || 'Unassigned';
         return (value as string[]).includes(staffName);
     },
+  },
+  {
+    id: 'deliveredOn',
+    header: 'Delivered On',
+    cell: ({ row }) => {
+        const order = row.original;
+        let deliveredNote;
+        if (order.status === 'Delivered') {
+            deliveredNote = order.deliveryNotes?.find(n => order.status === 'Delivered');
+        }
+        return deliveredNote?.date ? format(new Date(deliveredNote.date), 'PP p') : <span className="text-muted-foreground">—</span>;
+    }
   },
   {
     id: 'actions',
@@ -202,7 +202,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
 
   const deliveryWorklist = data
     .filter(o => {
-        return o.fulfillmentMethod === 'Delivery' && ['Shipped', 'Attempted Delivery'].includes(o.status);
+        return o.fulfillmentMethod === 'Delivery' && ['Shipped', 'Attempted Delivery', 'Delivered'].includes(o.status);
     })
     .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -234,11 +234,6 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                         columnId: 'assignedStaffName',
                         title: 'Assigned To',
                         options: staffOptions
-                    },
-                    {
-                        columnId: 'paymentMethod',
-                        title: 'Payment',
-                        options: paymentMethods,
                     },
                     {
                         columnId: 'status',
