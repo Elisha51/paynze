@@ -18,7 +18,8 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useSearchParams } from 'next/navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Shield } from 'lucide-react';
+import type { StaffRoleName } from '@/lib/types';
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -28,19 +29,18 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const onboardingSuccess = searchParams.get('onboarding') === 'success';
 
-  const handleLogin = async () => {
-    // Simulate login: find the Manager user and log them in directly.
-    // This user has more associated data for a better demo experience.
+  const handleLoginAs = async (role: StaffRoleName) => {
+    // Simulate login: find a user with the specified role and log them in directly.
     const allStaff = await getStaff();
-    const managerUser = allStaff.find(s => s.role === 'Manager');
+    const userToLogin = allStaff.find(s => s.role === role);
 
-    if (managerUser) {
-      login(managerUser);
+    if (userToLogin) {
+      login(userToLogin);
     } else {
       toast({
         variant: 'destructive',
         title: 'Login Failed',
-        description: 'Could not find a default Manager user to log in.',
+        description: `Could not find a user with the role "${role}" to log in.`,
       });
     }
   };
@@ -94,12 +94,22 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <Button onClick={handleLogin} type="submit" className="w-full">
+            <Button onClick={() => handleLoginAs('Admin')} type="submit" className="w-full">
               Login
             </Button>
-            <Button variant="outline" className="w-full">
-              Login with Google
-            </Button>
+            
+            <Alert className="mt-4">
+                <Shield className="h-4 w-4" />
+                <AlertTitle>Developer Controls</AlertTitle>
+                <AlertDescription>
+                    Use the buttons below to quickly log in as different user roles to test functionality.
+                </AlertDescription>
+            </Alert>
+            <div className="grid grid-cols-2 gap-2">
+                 <Button variant="outline" onClick={() => handleLoginAs('Manager')}>Login as Manager</Button>
+                 <Button variant="outline" onClick={() => handleLoginAs('Agent')}>Login as Agent</Button>
+            </div>
+
           </div>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{' '}
