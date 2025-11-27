@@ -46,25 +46,11 @@ const deliveryStatuses = [
     { value: 'Attempted Delivery', label: 'Attempted' },
 ];
 
-type OrdersDeliveriesTableProps = {
-  orders: Order[];
-  staff: Staff[];
-};
-
-export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTableProps) {
-  const [data, setData] = React.useState<Order[]>(orders);
-  const { user } = useAuth();
-  const canEdit = user?.permissions.orders.edit;
-
-  React.useEffect(() => {
-    setData(orders);
-  }, [orders]);
-
-  const handleUpdate = (updatedOrder: Order) => {
-    setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-  };
-  
-  const columns: ColumnDef<Order>[] = [
+const getColumns = (
+  onUpdate: (updatedOrder: Order) => void,
+  staff: Staff[],
+  canEdit: boolean
+): ColumnDef<Order>[] => [
   {
     id: 'select',
     header: ({ table }) => (
@@ -146,16 +132,6 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
         }
 
         if (!staffId || !staffName) {
-            if (canEdit && order.fulfillmentMethod === 'Delivery' && (order.status === 'Paid' || order.status === 'Awaiting Payment')) {
-                return (
-                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate}>
-                        <Button variant="outline" size="sm">
-                            <User className="mr-2 h-4 w-4" />
-                            Assign
-                        </Button>
-                    </AssignOrderDialog>
-                )
-            }
             return <Badge variant="destructive">Unassigned</Badge>
         }
         return (
@@ -190,8 +166,10 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                     <DropdownMenuLabel>Order Actions</DropdownMenuLabel>
                     <DropdownMenuItem asChild><Link href={`/dashboard/orders/${order.id}`}>View Details</Link></DropdownMenuItem>
                     {canEdit && 
-                    <AssignOrderDialog order={order} staff={staff} onUpdate={handleUpdate}>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Re-assign Agent</DropdownMenuItem>
+                    <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            {order.assignedStaffId ? 'Re-assign Agent' : 'Assign Agent'}
+                        </DropdownMenuItem>
                     </AssignOrderDialog>
                     }
                 </DropdownMenuContent>
@@ -202,6 +180,25 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
   },
 ];
 
+type OrdersDeliveriesTableProps = {
+  orders: Order[];
+  staff: Staff[];
+};
+
+export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTableProps) {
+  const [data, setData] = React.useState<Order[]>(orders);
+  const { user } = useAuth();
+  const canEdit = user?.permissions.orders.edit;
+
+  React.useEffect(() => {
+    setData(orders);
+  }, [orders]);
+
+  const handleUpdate = (updatedOrder: Order) => {
+    setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+  };
+  
+  const columns = React.useMemo(() => getColumns(handleUpdate, staff, !!canEdit), [staff, canEdit]);
 
   const deliveryWorklist = data
     .filter(o => {

@@ -22,6 +22,7 @@ import { useAuth } from '@/context/auth-context';
 import { ConfirmPickupDialog } from './confirm-pickup-dialog';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../ui/card';
 import { updateOrder } from '@/services/orders';
+import { format } from 'date-fns';
 
 const getPickupColumns = (
   onUpdate: (updatedOrder: Order) => void,
@@ -60,6 +61,7 @@ const getPickupColumns = (
   {
     accessorKey: 'date',
     header: 'Ready On',
+    cell: ({ row }) => format(new Date(row.original.date), 'PPP')
   },
   {
     accessorKey: 'total',
@@ -76,12 +78,26 @@ const getPickupColumns = (
       const order = row.original;
       return (
         <div className="text-right">
-            <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
-                <Button>
-                    <PackageCheck className="mr-2 h-4 w-4" />
-                    Confirm Pickup
-                </Button>
-            </ConfirmPickupDialog>
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="h-8 w-8 p-0">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                        <Link href={`/dashboard/orders/${order.id}`}>View Details</Link>
+                    </DropdownMenuItem>
+                    <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <PackageCheck className="mr-2 h-4 w-4" />
+                            Confirm Pickup
+                        </DropdownMenuItem>
+                    </ConfirmPickupDialog>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
       );
     },
@@ -106,7 +122,7 @@ export function OrdersPickupsTable({ orders, isLoading }: OrdersPickupsTableProp
   }, [orders]);
 
   const handleUpdate = (updatedOrder: Order) => {
-    setData(currentData => currentData.map(o => o.id === updatedOrder.id ? updatedOrder : o));
+    setData(currentData => currentData.filter(o => o.id !== updatedOrder.id));
   };
   
   const columns = React.useMemo(() => getPickupColumns(handleUpdate, settings?.currency || 'UGX'), [settings?.currency]);

@@ -40,6 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { AssignOrderDialog } from './assign-order-dialog';
 import { FulfillOrderDialog } from './fulfill-order-dialog';
 import { ConfirmPickupDialog } from './confirm-pickup-dialog';
+import { format } from 'date-fns';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
@@ -162,6 +163,16 @@ const getColumns = (
           </Button>
         );
       },
+      cell: ({ row }) => format(new Date(row.original.date), 'PPP')
+  },
+  {
+    id: 'fulfilledOn',
+    header: 'Fulfilled On',
+    cell: ({ row }) => {
+        const order = row.original;
+        const fulfillmentDate = order.pickupDetails?.date || order.deliveryNotes?.find(n => order.status === 'Delivered')?.date;
+        return fulfillmentDate ? format(new Date(fulfillmentDate), 'PPP') : '—';
+    }
   },
   {
     id: 'paymentMethod',
@@ -310,7 +321,7 @@ const getColumns = (
                             )}
                             {order.status === 'Ready for Pickup' && (
                                 <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
-                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Picked Up</DropdownMenuItem>
+                                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Confirm Customer Pickup</DropdownMenuItem>
                                 </ConfirmPickupDialog>
                             )}
                             {order.status === 'Shipped' && (
@@ -387,7 +398,7 @@ export function OrdersTable({ orders, staff, isLoading, columnFilters, setColumn
   
   const columnVisibility = React.useMemo(() => {
     const hasAnyAssignments = data.some(o => !!o.assignedStaffName || !!o.fulfilledByStaffName);
-    return { assignedStaffName: hasAnyAssignments };
+    return { assignedStaffName: hasAnyAssignments, fulfilledOn: hasAnyAssignments };
   }, [data]);
 
   return (
