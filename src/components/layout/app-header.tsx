@@ -14,7 +14,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
-import { ClipboardCheck } from 'lucide-react';
+import { ClipboardCheck, Truck } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import React, { useEffect, useState, useCallback } from 'react';
 import { getStaffOrders } from '@/services/staff';
@@ -58,6 +58,8 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
         }
         return name.substring(0, 2);
     }
+    
+    const showRunsheet = user?.role === 'Admin' || user?.role === 'Agent';
 
   return (
     <header className="flex h-14 items-center gap-4 border-b bg-background px-4 lg:h-[60px] lg:px-6 sticky top-0 z-30">
@@ -82,6 +84,15 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
                 <span className="sr-only">My Tasks</span>
             </Link>
         </Button>
+        
+        {showRunsheet && (
+            <Button asChild variant="ghost" size="icon" className="rounded-full relative">
+                <Link href="/dashboard/my-runsheet">
+                    <Truck className="h-5 w-5" />
+                    <span className="sr-only">My Runsheet</span>
+                </Link>
+            </Button>
+        )}
 
         <NotificationBell />
 
