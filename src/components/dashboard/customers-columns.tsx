@@ -88,13 +88,15 @@ export const getCustomerColumns = (onDelete: (customerId: string) => void, canEd
     },
     {
       accessorKey: 'totalSpend',
-      header: ({ column }) => (
-        <div className="text-right">
-          <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
-            Total Spend <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
-      ),
+      header: ({ column }) => {
+        return (
+            <div className="text-right">
+                <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>
+                    Total Spend <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+          </div>
+        );
+      },
       cell: ({ row }) => {
         const customer = row.original;
         const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: customer.currency }).format(customer.totalSpend);
@@ -104,11 +106,10 @@ export const getCustomerColumns = (onDelete: (customerId: string) => void, canEd
     {
       id: 'actions',
       enableHiding: false,
-      header: () => <div className="text-right sticky right-0">Actions</div>,
       cell: ({ row }) => {
         const customer = row.original;
         return (
-          <div className="bg-background text-right sticky right-0">
+          <div className="text-right">
              <AlertDialog>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

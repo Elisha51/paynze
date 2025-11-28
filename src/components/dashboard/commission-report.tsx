@@ -93,7 +93,6 @@ const getColumns = (canEdit: boolean, payoutThreshold?: number): ColumnDef<Commi
     },
     {
         id: 'actions',
-        header: () => <div className="text-right">Actions</div>,
         cell: ({ row }) => {
             const { staffId, commission } = row.original;
             const meetsThreshold = payoutThreshold !== undefined ? commission >= payoutThreshold : true;

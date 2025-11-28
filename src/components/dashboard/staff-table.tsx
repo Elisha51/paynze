@@ -2,7 +2,7 @@
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, UserPlus } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, UserPlus, Edit } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +35,7 @@ const getStatusBadge = (status: Staff['status']) => {
 }
 
 const getColumns = (
-  onUpdate: (updatedStaff: Staff) => void
+  canEdit: boolean
 ): ColumnDef<Staff>[] => [
   {
     id: 'select',
@@ -114,11 +114,10 @@ const getColumns = (
   },
   {
     id: 'actions',
-    enableHiding: false,
     cell: ({ row }) => {
       const staff = row.original;
       return (
-        <div className="relative bg-background text-right sticky right-0">
+        <div className="text-right">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-8 w-8 p-0">
@@ -131,6 +130,11 @@ const getColumns = (
               <DropdownMenuItem asChild>
                 <Link href={`/dashboard/staff/${staff.id}`}>View Details</Link>
               </DropdownMenuItem>
+              {canEdit && (
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/staff/${staff.id}/edit`}><Edit className="mr-2 h-4 w-4"/>Edit</Link>
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -146,16 +150,11 @@ type StaffTableProps = {
 };
 
 export function StaffTable({ staff, setStaff, isLoading }: StaffTableProps) {
-  const { toast } = useToast();
   const { user } = useAuth();
+  const canCreate = user?.permissions.staff.create;
   const canEdit = user?.permissions.staff.edit ?? false;
-
-  const handleStatusUpdate = async (id: string, status: Staff['status']) => {
-    const updated = await updateStaff(id, { status });
-    setStaff(prev => prev.map(s => s.id === id ? updated : s));
-  };
   
-  const columns = React.useMemo(() => getColumns(handleStatusUpdate), [handleStatusUpdate]);
+  const columns = React.useMemo(() => getColumns(canEdit), [canEdit]);
 
   const roleOptions = React.useMemo(() => {
     const roles = new Set(staff.map(s => s.role));

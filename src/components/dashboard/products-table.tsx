@@ -5,7 +5,7 @@ import Image from 'next/image';
 import {
   ColumnDef,
 } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, Package, PlusCircle, PackageCheck, FileArchive, File as FileIcon } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, Package, PlusCircle, PackageCheck, FileArchive, File as FileIcon, Edit } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -211,11 +211,10 @@ const getColumns = (
   {
     id: 'actions',
     enableHiding: false,
-    header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
         const product = row.original;
         return (
-          <div className="relative bg-background text-right sticky right-0">
+          <div className="text-right">
             <AlertDialog>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -231,7 +230,7 @@ const getColumns = (
                   </DropdownMenuItem>
                   {canEdit && (
                     <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/products/${product.sku}/edit`}>Edit</Link>
+                      <Link href={`/dashboard/products/${product.sku}/edit`}><Edit className="mr-2 h-4 w-4"/>Edit</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
