@@ -11,23 +11,45 @@ import {
 import { Button } from '@/components/ui/button';
 import { Copy, Ticket } from 'lucide-react';
 import { getCustomerById } from '@/services/customers';
+import { getDiscounts } from '@/services/marketing';
 import type { Customer, Discount } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default function DiscountsPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [eligibleDiscounts, setEligibleDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
-    async function loadCustomer() {
-      // In a real app, you'd get the ID from a session.
-      const cust = await getCustomerById('cust-02');
-      setCustomer(cust || null);
+    async function loadData() {
+      const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
+      if (!loggedInCustomerId) {
+        setLoading(false);
+        return;
+      }
+      
+      const [custData, allDiscounts] = await Promise.all([
+        getCustomerById(loggedInCustomerId),
+        getDiscounts()
+      ]);
+      
+      setCustomer(custData || null);
+
+      if (custData) {
+        const activeDiscounts = allDiscounts.filter(d => d.status === 'Active');
+        const filtered = activeDiscounts.filter(discount => 
+            discount.customerGroup === 'Everyone' || discount.customerGroup === custData.customerGroup
+        );
+        setEligibleDiscounts(filtered);
+      }
+      
       setLoading(false);
     }
-    loadCustomer();
+    loadData();
   }, []);
 
   const copyCode = (code: string) => {
@@ -49,8 +71,9 @@ export default function DiscountsPage() {
           <CardTitle>My Vouchers</CardTitle>
           <CardDescription>Your available discounts and vouchers.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p>Loading your vouchers...</p>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-24 w-full" />
         </CardContent>
       </Card>
     );
@@ -65,8 +88,8 @@ export default function DiscountsPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {customer?.discounts && customer.discounts.length > 0 ? (
-          customer.discounts.map((discount, index) => (
+        {eligibleDiscounts.length > 0 ? (
+          eligibleDiscounts.map((discount, index) => (
             <div key={discount.code}>
                 <div className="p-4 border border-dashed rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -85,13 +108,15 @@ export default function DiscountsPage() {
                         </Button>
                     </div>
                 </div>
-                {index < customer.discounts!.length - 1 && <Separator className="my-4" />}
+                {index < eligibleDiscounts.length - 1 && <Separator className="my-4" />}
             </div>
           ))
         ) : (
-          <p className="text-muted-foreground text-center py-8">
-            You currently have no special discounts or vouchers.
-          </p>
+          <EmptyState 
+            icon={<Ticket className="h-12 w-12 text-muted-foreground" />}
+            title="No Vouchers Available"
+            description="You currently have no special discounts. Check back later!"
+          />
         )}
       </CardContent>
     </Card>
