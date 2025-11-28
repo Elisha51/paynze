@@ -41,14 +41,17 @@ export default function StaffPage() {
     const staffToUpdate = originalStaff.find(s => s.id === staffId);
     if (!staffToUpdate) return;
     
-    const optimisticData = staff.map(s => s.id === staffId ? { ...s, status } : s);
+    const updatedStaffMember = { ...staffToUpdate, status, rejectionReason: status === 'Rejected' ? reason : undefined };
+    
+    // Optimistic UI update
+    const optimisticData = staff.map(s => s.id === staffId ? updatedStaffMember : s);
     setStaff(optimisticData);
 
     try {
-        await updateStaff(staffId, { status, rejectionReason: reason });
+        await updateStaff(updatedStaffMember.id, updatedStaffMember);
         toast({ title: 'Staff Status Updated', description: `${staffToUpdate.name}'s status has been set to ${status}.` });
     } catch (e) {
-        setStaff(originalStaff);
+        setStaff(originalStaff); // Revert on failure
         toast({ variant: 'destructive', title: 'Update failed', description: 'Could not update staff status.'});
     }
   };
