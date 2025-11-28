@@ -131,6 +131,6 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'lastOrder
     return createdCustomer;
 }
 
-export async function updateCustomer(customer: Customer): Promise<Customer> {
+export async function updateCustomer(customer: Partial<Customer> & { id: string }): Promise<Customer> {
     return await customerService.update(customer.id, customer);
 }

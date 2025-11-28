@@ -43,8 +43,11 @@ export default function ProductDetailPage() {
         const loggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
         if (loggedIn) {
             // This is a mock. In a real app you'd get the ID from a session.
-            const currentCustomer = await getCustomerById('cust-02');
-            setCustomer(currentCustomer || null);
+            const customerId = localStorage.getItem('loggedInCustomerId');
+            if (customerId) {
+              const currentCustomer = await getCustomerById(customerId);
+              setCustomer(currentCustomer || null);
+            }
         }
     }
     loadCustomer();
@@ -60,9 +63,11 @@ export default function ProductDetailPage() {
       setProduct(foundProduct || null);
 
       if (foundProduct) {
-        if (foundProduct.hasVariants && foundProduct.options.length > 0) {
+        if (foundProduct.hasVariants && foundProduct.options.length > 0 && foundProduct.options[0].name) {
           const initialOptions = foundProduct.options.reduce((acc, option) => {
-            acc[option.name] = option.values[0];
+            if(option.name) {
+              acc[option.name] = option.values[0];
+            }
             return acc;
           }, {} as Record<string, string>);
           setSelectedOptions(initialOptions);
@@ -113,7 +118,7 @@ export default function ProductDetailPage() {
 
   const handleToggleWishlist = async () => {
       handleProtectedAction(async () => {
-        if (!customer || !product) return;
+        if (!customer || !product || !product.sku) return;
         
         const currentWishlist = customer.wishlist || [];
         const newWishlist = isWishlisted 
@@ -168,7 +173,7 @@ export default function ProductDetailPage() {
   }
   
   const price = selectedVariant?.price ?? product.retailPrice;
-  const isAvailable = selectedVariant ? selectedVariant.status === 'In Stock' || selectedVariant.status === 'Low Stock' : true;
+  const isAvailable = selectedVariant ? selectedVariant.status === 'In Stock' || selectedVariant.status === 'Low Stock' : product.variants.length > 0;
 
   return (
     <>
@@ -197,37 +202,39 @@ export default function ProductDetailPage() {
             <div className="prose prose-sm max-w-none text-muted-foreground" dangerouslySetInnerHTML={{ __html: md.render(product.shortDescription || '') }} />
 
             {product.hasVariants && product.options.map(option => (
-              <div key={option.name} className="space-y-3">
-                <Label className="text-lg font-semibold">{option.name}</Label>
-                <RadioGroup
-                  value={selectedOptions[option.name]}
-                  onValueChange={(value) => handleOptionChange(option.name, value)}
-                  className="flex flex-wrap gap-2"
-                >
-                  {option.values.map(value => {
-                    const isOptionAvailable = getIsVariantAvailable(option.name, value);
-                    return (
-                      <Label
-                        key={value}
-                        htmlFor={`${option.name}-${value}`}
-                        className={cn(
-                            "cursor-pointer rounded-md border px-4 py-2 transition-colors relative",
-                            selectedOptions[option.name] === value
-                            ? "border-primary bg-primary text-primary-foreground"
-                            : "border-border bg-background hover:bg-muted",
-                            !isOptionAvailable && "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-                        )}
-                      >
-                        <RadioGroupItem value={value} id={`${option.name}-${value}`} className="sr-only" disabled={!isOptionAvailable}/>
-                        {value}
-                        {!isOptionAvailable && (
-                          <span className="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full bg-destructive" />
-                        )}
-                      </Label>
-                    )
-                  })}
-                </RadioGroup>
-              </div>
+              option.name && (
+                <div key={option.name} className="space-y-3">
+                  <Label className="text-lg font-semibold">{option.name}</Label>
+                  <RadioGroup
+                    value={selectedOptions[option.name]}
+                    onValueChange={(value) => handleOptionChange(option.name, value)}
+                    className="flex flex-wrap gap-2"
+                  >
+                    {option.values.map(value => {
+                      const isOptionAvailable = getIsVariantAvailable(option.name, value);
+                      return (
+                        <Label
+                          key={value}
+                          htmlFor={`${option.name}-${value}`}
+                          className={cn(
+                              "cursor-pointer rounded-md border px-4 py-2 transition-colors relative",
+                              selectedOptions[option.name] === value
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "border-border bg-background hover:bg-muted",
+                              !isOptionAvailable && "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                          )}
+                        >
+                          <RadioGroupItem value={value} id={`${option.name}-${value}`} className="sr-only" disabled={!isOptionAvailable}/>
+                          {value}
+                          {!isOptionAvailable && (
+                            <span className="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full bg-destructive" />
+                          )}
+                        </Label>
+                      )
+                    })}
+                  </RadioGroup>
+                </div>
+              )
             ))}
 
             <Separator />
@@ -252,13 +259,13 @@ export default function ProductDetailPage() {
             </div>
             
             {product.longDescription && (
-              <>
-                  <Separator />
-                  <div className="space-y-4">
-                      <h3 className="text-xl font-bold">Product Details</h3>
-                      <div className="prose prose-sm max-w-none text-muted-foreground" dangerouslySetInnerHTML={{ __html: md.render(product.longDescription) }} />
-                  </div>
-              </>
+                <div className="pt-6">
+                    <Separator />
+                    <div className="py-8 space-y-4">
+                        <h3 className="text-xl font-bold">Product Details</h3>
+                        <div className="prose prose-sm max-w-none text-muted-foreground" dangerouslySetInnerHTML={{ __html: md.render(product.longDescription) }} />
+                    </div>
+                </div>
             )}
           </div>
         </div>
