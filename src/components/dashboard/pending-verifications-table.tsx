@@ -88,15 +88,30 @@ const getColumns = (
             }
             
             return (
-                <div className="flex items-center justify-end gap-2">
+                <div className="text-right">
                     <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-destructive border-destructive/50 hover:bg-destructive/10 hover:text-destructive">
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Reject
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem onClick={() => onStatusUpdate(staff.id, 'Active')}>
+                                    <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                                    Approve
+                                </DropdownMenuItem>
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                        <XCircle className="mr-2 h-4 w-4" />
+                                        Reject
+                                    </DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                         <AlertDialogContent>
                             <AlertDialogHeader>
                                 <AlertDialogTitle>Reject Staff Member</AlertDialogTitle>
                                 <AlertDialogDescription>
@@ -113,10 +128,6 @@ const getColumns = (
                             </AlertDialogFooter>
                         </AlertDialogContent>
                     </AlertDialog>
-                    <Button variant="outline" size="sm" onClick={() => onStatusUpdate(staff.id, 'Active')}>
-                        <CheckCircle className="mr-2 h-4 w-4" />
-                        Approve
-                    </Button>
                 </div>
             );
         },
@@ -151,4 +162,3 @@ export function PendingVerificationsTable({
     />
   );
 }
-

@@ -13,6 +13,8 @@ import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { PendingVerificationsTable } from '@/components/dashboard/pending-verifications-table';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 
 export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -95,6 +97,13 @@ export default function StaffPage() {
       >
         <DashboardPageLayout.TabContent value="all-staff">
             <DashboardPageLayout.Content>
+                <Alert className="mb-4">
+                  <Info className="h-4 w-4" />
+                  <AlertTitle>Staff Workflow</AlertTitle>
+                  <AlertDescription>
+                    New staff members created via the "Add Staff" button will appear in the "Pending" tab for approval before they can access the dashboard.
+                  </AlertDescription>
+                </Alert>
                 <StaffTable staff={internalStaff} setStaff={setStaff} isLoading={isLoading} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
