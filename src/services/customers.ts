@@ -4,6 +4,8 @@ import type { Customer, Staff, Discount, Communication } from '@/lib/types';
 import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
+import { addActivity } from './activities';
+import { useAuth } from '@/context/auth-context';
 
 function initializeMockCustomers(): Customer[] {
     const mockCustomers: Omit<Customer, 'communications' | 'orders' | 'discounts' | 'wishlist'>[] = [
@@ -114,7 +116,19 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'lastOrder
         wishlist: [],
         discounts: [],
     };
-    return await customerService.create(newCustomer, { prepend: true });
+    
+    const createdCustomer = await customerService.create(newCustomer, { prepend: true });
+
+    if(customerData.createdById) {
+         await addActivity({
+            staffId: customerData.createdById,
+            staffName: customerData.createdByName || 'Unknown',
+            activity: 'Customer Created',
+            details: { text: newCustomer.name, link: `/dashboard/customers/${newCustomer.id}` }
+        });
+    }
+
+    return createdCustomer;
 }
 
 export async function updateCustomer(customer: Customer): Promise<Customer> {

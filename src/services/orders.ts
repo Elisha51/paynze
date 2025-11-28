@@ -1,5 +1,4 @@
 
-
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -9,7 +8,7 @@ import { getAffiliates } from './affiliates';
 import { addNotification } from './notifications';
 import { addTransaction } from './finances';
 import { calculateCommissionForOrder } from './commissions';
-
+import { addActivity } from './activities';
 
 function initializeMockOrders(): Order[] {
     const mockOrders: Omit<Order, 'channel' | 'currency' | 'payment'>[] = [
@@ -199,17 +198,30 @@ export async function addOrder(order: Omit<Order, 'id'>): Promise<Order> {
       await updateProductStock(item.sku, item.quantity, 'Reserve', `Order #${newOrder.id}`);
   }
 
-  await orderService.create(newOrder, { prepend: true });
+  const createdOrder = await orderService.create(newOrder, { prepend: true });
   
   // Add a notification for the merchant
   await addNotification({
     type: 'new-order',
-    title: `New Order #${newOrder.id}`,
-    description: `You've received a new order from ${newOrder.customerName}.`,
-    link: `/dashboard/orders/${newOrder.id}`
+    title: `New Order #${createdOrder.id}`,
+    description: `You've received a new order from ${createdOrder.customerName}.`,
+    link: `/dashboard/orders/${createdOrder.id}`
   });
   
-  return newOrder;
+  // This is a mock implementation. Real apps would get the logged in user from a session context.
+  const allStaff = await getStaff();
+  const loggedInUser = allStaff[0]; // Assuming Admin
+  if (loggedInUser && newOrder.channel === 'Manual') {
+      await addActivity({
+          staffId: loggedInUser.id,
+          staffName: loggedInUser.name,
+          activity: `Manual Order Created`,
+          details: { text: `Order #${createdOrder.id}`, link: `/dashboard/orders/${createdOrder.id}` },
+      });
+  }
+
+
+  return createdOrder;
 }
 
 export async function updateOrder(orderId: string, updates: Partial<Order>): Promise<Order> {
@@ -265,8 +277,20 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
         }
     }
 
-    if (isNewlyShipped && !updates.assignedStaffId) {
+    if (isNewlyShipped && !updates.assignedStaffId && !originalOrder.assignedStaffId) {
         throw new Error("Cannot mark order as Shipped without an assigned staff member.");
+    }
+    
+    if (updates.status && updates.status !== originalOrder.status) {
+         // This is a mock implementation. Real apps would get the logged in user from a session context.
+        const allStaff = await getStaff();
+        const loggedInUser = allStaff[0]; // Assuming Admin
+        await addActivity({
+            staffId: loggedInUser.id,
+            staffName: loggedInUser.name,
+            activity: `Order Status Updated`,
+            details: { text: `Order #${orderId} to ${updates.status}`, link: `/dashboard/orders/${orderId}` },
+        });
     }
 
     const finalUpdates = {
@@ -371,4 +395,3 @@ export async function updateProductStock(
     product.variants[variantIndex] = variant;
     await updateProduct(product);
 }
-

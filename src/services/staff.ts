@@ -1,5 +1,4 @@
 
-
 import type { Staff, Order, StaffActivity, Bonus, Affiliate } from '@/lib/types';
 import { format, subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
@@ -158,17 +157,7 @@ function initializeMockStaff(): Staff[] {
     ];
 }
 
-const mockActivities: StaffActivity[] = [
-    { id: 'act-1', staffId: 'staff-003', staffName: 'Peter Jones', activity: 'Order Marked as Delivered', details: { text: 'Order #ORD-001', link: '/dashboard/orders/ORD-001'}, timestamp: subHours(new Date(), 3).toISOString() },
-    { id: 'act-2', staffId: 'staff-002', staffName: 'Jane Smith', activity: 'Order Created Manually', details: { text: 'Order #ORD-002', link: '/dashboard/orders/ORD-002'}, timestamp: subHours(new Date(), 6).toISOString() },
-    { id: 'act-3', staffId: 'staff-001', staffName: 'John Doe', activity: 'Staff Member Approved', details: { text: 'Aisha Omar', link: '/dashboard/staff/staff-006' }, timestamp: subHours(new Date(), 26).toISOString() },
-    { id: 'act-4', staffId: 'staff-004', staffName: 'Mary Anne', activity: 'Payout Processed', details: { text: 'Payout for Peter Jones' }, timestamp: subDays(new Date(), 2).toISOString() },
-    { id: 'act-5', staffId: 'staff-003', staffName: 'Peter Jones', activity: 'Order Assigned', details: { text: 'Order #ORD-007', link: '/dashboard/orders/ORD-007'}, timestamp: subDays(new Date(), 3).toISOString() },
-    { id: 'act-6', staffId: 'staff-002', staffName: 'Jane Smith', activity: 'Product Edited', details: { text: 'Handmade Leather Shoes', link: '/dashboard/products/SHOE-002' }, timestamp: subDays(new Date(), 4).toISOString() },
-];
-
 const staffService = new DataService<Staff>('staff', initializeMockStaff);
-const activityService = new DataService<StaffActivity>('staffActivity', () => mockActivities);
 
 export async function getStaff(): Promise<Staff[]> {
   const staffOrAffiliates = await staffService.getAll();
@@ -182,14 +171,6 @@ export async function getStaffOrders(staffId: string): Promise<Order[]> {
     const orderService = new DataService<Order>('orders', () => []);
     const allOrders = await orderService.getAll();
     return allOrders.filter(o => o.assignedStaffId === staffId);
-}
-
-export async function getStaffActivity(staffId?: string): Promise<StaffActivity[]> {
-    let allActivities = await activityService.getAll();
-    if (staffId) {
-        allActivities = allActivities.filter(a => a.staffId === staffId);
-    }
-    return allActivities.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
 export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {

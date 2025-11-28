@@ -5,7 +5,7 @@ import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { DataTable } from '@/components/dashboard/data-table';
-import { getStaffActivity } from '@/services/staff';
+import { getStaffActivity } from '@/services/activities';
 import type { Staff, StaffActivity } from '@/lib/types';
 import { format } from 'date-fns';
 import Link from 'next/link';
