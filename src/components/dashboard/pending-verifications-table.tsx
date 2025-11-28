@@ -3,7 +3,7 @@
 
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { XCircle, CheckCircle, MoreHorizontal } from 'lucide-react';
+import { XCircle, CheckCircle, MoreHorizontal, Info } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import {
   AlertDialog,
@@ -30,6 +31,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
+import Link from 'next/link';
 
 const getColumns = (
   onStatusUpdate: (staffId: string, status: 'Active' | 'Rejected', reason?: string) => void
@@ -59,16 +61,16 @@ const getColumns = (
         cell: ({ row }) => {
             const staff = row.original;
             return (
-                <div className="flex items-center gap-3">
-                <Avatar className="h-8 w-8">
-                    <AvatarImage src={staff.avatarUrl} />
-                    <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
-                </Avatar>
-                <div className="flex flex-col">
-                    <span className="font-medium">{staff.name}</span>
-                    <span className="text-xs text-muted-foreground">{staff.email}</span>
-                </div>
-                </div>
+                <Link href={`/dashboard/staff/${staff.id}`} className="flex items-center gap-3 group">
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={staff.avatarUrl} />
+                        <AvatarFallback>{getInitials(staff.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                        <span className="font-medium group-hover:underline">{staff.name}</span>
+                        <span className="text-xs text-muted-foreground">{staff.email}</span>
+                    </div>
+                </Link>
             );
         },
     },
@@ -99,6 +101,12 @@ const getColumns = (
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuItem asChild>
+                                    <Link href={`/dashboard/staff/${staff.id}`}>
+                                        <Info className="mr-2 h-4 w-4" /> View Details
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={() => onStatusUpdate(staff.id, 'Active')}>
                                     <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
                                     Approve
