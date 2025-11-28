@@ -196,6 +196,7 @@ export async function addStaff(member: Omit<Staff, 'id'>): Promise<Staff> {
   const newMember: Staff = { 
       ...member, 
       id: `staff-${Date.now()}`,
+      status: member.status || 'Pending Verification',
       paidCommission: 0,
       verificationDocuments: member.status === 'Pending Verification' ? [
         { name: 'National_ID.pdf', url: '#' },

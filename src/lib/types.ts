@@ -184,7 +184,7 @@ export type WhatsAppTemplate = {
   name: string;
   description: string;
   message: string;
-  category: 'Marketing' | 'Utility' | 'Authentication';
+  category?: 'Marketing' | 'Utility' | 'Authentication';
   media?: {
     type: 'image' | 'video' | 'document';
     url: string; // Link to the media file
@@ -371,7 +371,7 @@ export type AffiliateProgramSettings = {
 
 
 // Staff Management
-export type StaffRoleName = 'Admin' | 'Sales Agent' | 'Delivery Rider' | 'Finance Manager' | 'Affiliate' | string;
+export type StaffRoleName = 'Admin' | 'Sales Agent' | 'Agent' | 'Manager' | 'Finance Manager' | 'Affiliate' | string;
 
 export type CrudPermissions = {
   view: boolean;
@@ -457,7 +457,7 @@ export type Staff = {
   phone?: string;
   avatarUrl?: string;
   role: StaffRoleName;
-  status: 'Active' | 'Pending Verification' | 'Suspended' | 'Deactivated';
+  status: 'Active' | 'Pending Verification' | 'Suspended' | 'Deactivated' | 'Rejected';
   rejectionReason?: string;
   verificationDocuments?: { name: string; url: string }[];
   lastLogin?: string;

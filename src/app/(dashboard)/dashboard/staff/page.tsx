@@ -2,20 +2,23 @@
 'use client';
 import { useState, useEffect } from 'react';
 import type { Staff } from '@/lib/types';
-import { getStaff } from '@/services/staff';
+import { getStaff, updateStaff } from '@/services/staff';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Settings, Activity, Users } from 'lucide-react';
+import { PlusCircle, Settings, Activity, Users, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 import { StaffTable } from '@/components/dashboard/staff-table';
 import { StaffActivityLog } from '@/components/dashboard/staff-activity-log';
 import { useAuth } from '@/context/auth-context';
+import { useToast } from '@/hooks/use-toast';
+import { PendingVerificationsTable } from '@/components/dashboard/pending-verifications-table';
 
 export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all-staff');
   const { user } = useAuth();
+  const { toast } = useToast();
 
   const canCreate = user?.permissions.staff.create;
   const canEdit = user?.permissions.staff.edit;
@@ -30,10 +33,30 @@ export default function StaffPage() {
     loadData();
   }, []);
 
+  const handleStatusUpdate = async (staffId: string, status: 'Active' | 'Deactivated' | 'Rejected', reason?: string) => {
+    const originalStaff = [...staff];
+    const staffToUpdate = originalStaff.find(s => s.id === staffId);
+    if (!staffToUpdate) return;
+    
+    const optimisticData = staff.map(s => s.id === staffId ? { ...s, status } : s);
+    setStaff(optimisticData);
+
+    try {
+        await updateStaff(staffId, { status, rejectionReason: reason });
+        toast({ title: 'Staff Status Updated', description: `${staffToUpdate.name}'s status has been set to ${status}.` });
+    } catch (e) {
+        setStaff(originalStaff);
+        toast({ variant: 'destructive', title: 'Update failed', description: 'Could not update staff status.'});
+    }
+  };
+
+
   const internalStaff = staff.filter(s => s.role !== 'Affiliate');
+  const pendingStaff = internalStaff.filter(s => s.status === 'Pending Verification');
 
   const tabs = [
     { value: 'all-staff', label: 'All Staff', icon: Users, permission: true },
+    ...(pendingStaff.length > 0 ? [{ value: 'pending', label: 'Pending', count: pendingStaff.length }] : []),
     { value: 'activity', label: 'Activity Log', icon: Activity, permission: true },
   ];
 
@@ -66,6 +89,17 @@ export default function StaffPage() {
                 <StaffTable staff={internalStaff} setStaff={setStaff} isLoading={isLoading} />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
+
+        <DashboardPageLayout.TabContent value="pending">
+            <DashboardPageLayout.Content>
+                <PendingVerificationsTable 
+                    pendingStaff={pendingStaff}
+                    onStatusUpdate={handleStatusUpdate}
+                    isLoading={isLoading}
+                />
+            </DashboardPageLayout.Content>
+        </DashboardPageLayout.TabContent>
+
         <DashboardPageLayout.TabContent value="activity">
             <DashboardPageLayout.Content>
               <StaffActivityLog staff={staff} />
