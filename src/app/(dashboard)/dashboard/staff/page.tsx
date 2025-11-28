@@ -12,6 +12,7 @@ import { StaffActivityLog } from '@/components/dashboard/staff-activity-log';
 import { useAuth } from '@/context/auth-context';
 import { useToast } from '@/hooks/use-toast';
 import { PendingVerificationsTable } from '@/components/dashboard/pending-verifications-table';
+import { Badge } from '@/components/ui/badge';
 
 export default function StaffPage() {
   const [staff, setStaff] = useState<Staff[]>([]);
@@ -56,7 +57,15 @@ export default function StaffPage() {
 
   const tabs = [
     { value: 'all-staff', label: 'All Staff', icon: Users, permission: true },
-    ...(pendingStaff.length > 0 ? [{ value: 'pending', label: 'Pending', count: pendingStaff.length }] : []),
+    ...(pendingStaff.length > 0 ? [{ 
+        value: 'pending', 
+        label: (
+          <div className="flex items-center gap-2">
+            Pending
+            <Badge variant="destructive" className="px-1.5 py-0.5 text-xs">{pendingStaff.length}</Badge>
+          </div>
+        )
+    }] : []),
     { value: 'activity', label: 'Activity Log', icon: Activity, permission: true },
   ];
 
