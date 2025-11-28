@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -430,12 +431,31 @@ export default function ViewStaffPage() {
 
       {renderVerificationCard()}
 
+      {isPendingVerification && hasDocuments && (
+        <Card>
+            <CardHeader>
+                <CardTitle>Verification Documents</CardTitle>
+                <CardDescription>Review these documents before approving the staff member.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                <div className="flex flex-wrap gap-4">
+                    {staffMember.verificationDocuments?.map(doc => (
+                        <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
+                            <FileText className="h-5 w-5 text-primary"/>
+                            <span className="text-sm font-medium">{doc.name}</span>
+                        </a>
+                    ))}
+                </div>
+            </CardContent>
+        </Card>
+       )}
+
       <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance &amp; Attributes</TabsTrigger>}
           <TabsTrigger value="activity">Activity Log</TabsTrigger>
-          <TabsTrigger value="details">Documents &amp; Details</TabsTrigger>
+          <TabsTrigger value="details">Contact Details</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="mt-6 space-y-6">
             {showAssignedOrders && (
@@ -546,23 +566,6 @@ export default function ViewStaffPage() {
             <StaffActivityLog staffId={staffMember.id} />
         </TabsContent>
         <TabsContent value="details" className="mt-6 space-y-6">
-             {hasDocuments && (
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Verification Documents</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="flex flex-wrap gap-4">
-                            {staffMember.verificationDocuments?.map(doc => (
-                                <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
-                                    <FileText className="h-5 w-5 text-primary"/>
-                                    <span className="text-sm font-medium">{doc.name}</span>
-                                </a>
-                            ))}
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
             <Card>
               <CardHeader>
                 <CardTitle>Contact Information</CardTitle>
