@@ -23,11 +23,11 @@ export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('all-orders');
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'all-orders');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const { user } = useAuth();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   
   const canCreate = user?.permissions.orders.create;
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
