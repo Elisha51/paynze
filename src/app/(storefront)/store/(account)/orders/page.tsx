@@ -23,10 +23,13 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     async function loadOrders() {
-      // In a real app, you would fetch orders for the logged-in customer.
-      // We are fetching all orders and filtering for simulation purposes.
+      setIsLoading(true);
+      const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
       const allOrders = await getOrders();
-      setOrders(allOrders.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      if (loggedInCustomerId) {
+          const customerOrders = allOrders.filter(o => o.customerId === loggedInCustomerId);
+          setOrders(customerOrders.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
+      }
       setIsLoading(false);
     }
     loadOrders();
