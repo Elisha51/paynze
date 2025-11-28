@@ -360,97 +360,8 @@ export default function ViewStaffPage() {
     return null;
   }
 
-  return (
-    <div className="space-y-6">
-       <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" asChild>
-          <Link href="/dashboard/staff">
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Back to Staff</span>
-          </Link>
-        </Button>
-         <Avatar className="h-16 w-16">
-            <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
-            <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
-        </Avatar>
-        <div className="flex-1">
-          <h1 className="text-2xl font-bold tracking-tight">
-            {staffMember.name}
-          </h1>
-          <p className="text-muted-foreground text-sm flex items-center gap-2">
-            {staffMember.role}
-             <Badge variant={staffMember.status === 'Active' ? 'default' : staffMember.status === 'Pending Verification' ? 'secondary' : 'destructive'} className="capitalize">{staffMember.status}</Badge>
-            <span className={cn(
-                "h-2 w-2 rounded-full",
-                staffMember.onlineStatus === 'Online' ? 'bg-green-500' : 'bg-gray-400'
-            )}></span>
-            {staffMember.onlineStatus}
-          </p>
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-            {canEditStaff && (
-                <Button variant="outline" asChild>
-                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                    </Link>
-                </Button>
-            )}
-            <AlertDialog>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                            <MoreVertical className="h-5 w-5" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem>View Activity Log</DropdownMenuItem>
-                        {canEditStaff && staffMember.status !== 'Deactivated' && (
-                             <AlertDialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Deactivate Member</DropdownMenuItem>
-                            </AlertDialogTrigger>
-                        )}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Are you sure you want to deactivate this member?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            This will permanently revoke their access. This action cannot be undone.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction onClick={() => handleStatusChange('Deactivated')} className="bg-destructive hover:bg-destructive/90">Deactivate</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </div>
-      </div>
-
-      {renderVerificationCard()}
-
-      {isPendingVerification && hasDocuments && (
-        <Card>
-            <CardHeader>
-                <CardTitle>Verification Documents</CardTitle>
-                <CardDescription>Review these documents before approving the staff member.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="flex flex-wrap gap-4">
-                    {staffMember.verificationDocuments?.map(doc => (
-                        <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
-                            <FileText className="h-5 w-5 text-primary"/>
-                            <span className="text-sm font-medium">{doc.name}</span>
-                        </a>
-                    ))}
-                </div>
-            </CardContent>
-        </Card>
-       )}
-
-      <Tabs defaultValue="overview" className="w-full">
+  const renderContentForActiveUser = () => (
+    <Tabs defaultValue="overview" className="w-full">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
           {(hasAttributes || staffMember.totalCommission) && <TabsTrigger value="performance">Performance &amp; Attributes</TabsTrigger>}
@@ -578,6 +489,115 @@ export default function ViewStaffPage() {
             </Card>
         </TabsContent>
       </Tabs>
+  );
+  
+  const renderContentForPendingUser = () => (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <Card>
+                <CardHeader>
+                    <CardTitle>Verification Documents</CardTitle>
+                    <CardDescription>Review these documents before approving the staff member.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    {hasDocuments ? (
+                        <div className="flex flex-wrap gap-4">
+                            {staffMember.verificationDocuments?.map(doc => (
+                                <a href={doc.url} key={doc.name} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 border rounded-md bg-background hover:bg-muted">
+                                    <FileText className="h-5 w-5 text-primary"/>
+                                    <span className="text-sm font-medium">{doc.name}</span>
+                                </a>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">No documents were uploaded for verification.</p>
+                    )}
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>Contact Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                    <p><strong>Email:</strong> {staffMember.email}</p>
+                    <p><strong>Phone:</strong> {staffMember.phone}</p>
+                </CardContent>
+            </Card>
+      </div>
+  );
+
+  return (
+    <div className="space-y-6">
+       <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/dashboard/staff">
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Back to Staff</span>
+          </Link>
+        </Button>
+         <Avatar className="h-16 w-16">
+            <AvatarImage src={staffMember.avatarUrl} alt={staffMember.name} />
+            <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
+        </Avatar>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold tracking-tight">
+            {staffMember.name}
+          </h1>
+          <p className="text-muted-foreground text-sm flex items-center gap-2">
+            {staffMember.role}
+             <Badge variant={staffMember.status === 'Active' ? 'default' : staffMember.status === 'Pending Verification' ? 'secondary' : 'destructive'} className="capitalize">{staffMember.status}</Badge>
+            <span className={cn(
+                "h-2 w-2 rounded-full",
+                staffMember.onlineStatus === 'Online' ? 'bg-green-500' : 'bg-gray-400'
+            )}></span>
+            {staffMember.onlineStatus}
+          </p>
+        </div>
+        <div className="ml-auto flex items-center gap-2">
+            {canEditStaff && (
+                <Button variant="outline" asChild>
+                    <Link href={`/dashboard/staff/${staffMember.id}/edit`}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                    </Link>
+                </Button>
+            )}
+            <AlertDialog>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                            <MoreVertical className="h-5 w-5" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem>View Activity Log</DropdownMenuItem>
+                        {canEditStaff && staffMember.status !== 'Deactivated' && (
+                             <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">Deactivate Member</DropdownMenuItem>
+                            </AlertDialogTrigger>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure you want to deactivate this member?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently revoke their access. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleStatusChange('Deactivated')} className="bg-destructive hover:bg-destructive/90">Deactivate</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
+        </div>
+      </div>
+
+      {renderVerificationCard()}
+
+      {isPendingVerification ? renderContentForPendingUser() : renderContentForActiveUser()}
     </div>
   );
 }
+
