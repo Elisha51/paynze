@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
@@ -118,6 +119,7 @@ export default function OrderDetailsPage() {
             <Badge variant={statusVariant}>{order.status}</Badge>
         </CardHeader>
         <CardContent>
+          <div className="flex flex-col gap-4">
             {order.items.map((item, index) => (
                 <div key={index} className="flex items-start gap-4">
                     <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
@@ -137,6 +139,7 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
             ))}
+          </div>
         </CardContent>
         <Separator />
         <CardContent className="space-y-2 pt-4">

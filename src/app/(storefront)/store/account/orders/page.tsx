@@ -1,3 +1,4 @@
+
 'use client';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -37,6 +38,7 @@ export default function MyOrdersPage() {
   const getStatusVariant = (status: Order['status']) => {
     switch (status) {
       case 'Delivered':
+      case 'Picked Up':
       case 'Paid':
         return 'default';
       case 'Shipped':

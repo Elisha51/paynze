@@ -49,7 +49,7 @@ function initializeMockCustomers(): Customer[] {
                 threadId: 'comm-2-0'
             });
         }
-        if (index === 1) {
+        if (index === 1) { // Olivia Smith
             baseComms.push({
                 id: 'comm-2-1',
                 type: 'Meeting' as const,
