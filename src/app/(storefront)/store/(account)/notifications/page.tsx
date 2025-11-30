@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -9,20 +9,75 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { NotificationList } from '@/components/shared/notification-list';
-import type { Notification } from '@/lib/types';
+import type { Notification, Order } from '@/lib/types';
+import { getOrders } from '@/services/orders';
 
 
-const mockCustomerNotifications: Notification[] = [
-    { id: 'cust-notif-1', type: 'new-order', title: 'Order Delivered', description: 'Your order #ORD-001 has been successfully delivered.', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), read: true, link: '/store/account/orders/ORD-001', archived: false },
-    { id: 'cust-notif-2', type: 'low-stock', title: 'Out for Delivery', description: 'Your order #ORD-007 is out for delivery and will arrive today.', timestamp: new Date(new Date().setHours(new Date().getHours() - 2)).toISOString(), read: false, link: '/store/account/orders/ORD-007', archived: false },
-    { id: 'cust-notif-3', type: 'task-assigned', title: 'Order Shipped', description: 'Your order #ORD-007 has been shipped and is on its way to you.', timestamp: new Date(new Date().setDate(new Date().getDate() - 1)).toISOString(), read: false, link: '/store/account/orders/ORD-007', archived: false },
-    { id: 'cust-notif-4', type: 'new-order', title: 'Order Confirmed', description: 'Your order #ORD-003 has been confirmed and is being processed.', timestamp: new Date(new Date().setDate(new Date().getDate() - 2)).toISOString(), read: false, link: '/store/account/orders/ORD-003', archived: false },
-].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+function generateNotificationsFromOrders(orders: Order[]): Notification[] {
+  const notifications: Omit<Notification, 'id' | 'read' | 'archived'>[] = [];
+
+  orders.forEach(order => {
+    // Notification for order placement
+    notifications.push({
+      type: 'new-order',
+      title: `Order #${order.id} Confirmed`,
+      description: `Your order for ${new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency }).format(order.total)} has been confirmed.`,
+      timestamp: new Date(order.date).toISOString(),
+      link: `/store/account/orders/${order.id}`,
+    });
+
+    // Notification for shipping
+    if (order.status === 'Shipped' || order.status === 'Delivered' || order.status === 'Picked Up' || order.status === 'Attempted Delivery') {
+      const shipDate = new Date(order.date);
+      shipDate.setHours(shipDate.getHours() + 1); // Simulate 1 hour after order
+      notifications.push({
+        type: 'task-assigned',
+        title: `Order #${order.id} Shipped`,
+        description: 'Your order is on its way to you.',
+        timestamp: shipDate.toISOString(),
+        link: `/store/account/orders/${order.id}`,
+      });
+    }
+
+    // Notification for delivery
+    if (order.status === 'Delivered' || order.status === 'Picked Up') {
+        const deliveryDate = new Date(order.date);
+        deliveryDate.setHours(deliveryDate.getHours() + 6); // Simulate 6 hours after order
+         notifications.push({
+            type: 'new-order',
+            title: `Order #${order.id} Delivered`,
+            description: 'Your order has been successfully delivered.',
+            timestamp: deliveryDate.toISOString(),
+            link: `/store/account/orders/${order.id}`,
+        });
+    }
+  });
+
+  return notifications
+    .map((n, index) => ({ ...n, id: `cust-notif-${index}`, read: index > 2, archived: false }))
+    .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+}
 
 
 export default function NotificationsPage() {
-    const [notifications, setNotifications] = useState(mockCustomerNotifications);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [notificationFilter, setNotificationFilter] = useState<'all' | 'unread'>('all');
+    const [isLoading, setIsLoading] = useState(true);
+    
+    useEffect(() => {
+        async function loadData() {
+            setIsLoading(true);
+            const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
+            if(loggedInCustomerId) {
+                const allOrders = await getOrders();
+                const customerOrders = allOrders.filter(o => o.customerId === loggedInCustomerId);
+                const generatedNotifications = generateNotificationsFromOrders(customerOrders);
+                setNotifications(generatedNotifications);
+            }
+            setIsLoading(false);
+        }
+        loadData();
+    }, []);
 
     // Notification State Management
     const activeNotifications = useMemo(() => notifications.filter(n => !n.archived), [notifications]);
