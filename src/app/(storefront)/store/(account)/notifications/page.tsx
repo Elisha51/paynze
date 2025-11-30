@@ -54,7 +54,7 @@ function generateNotificationsFromOrders(orders: Order[]): Notification[] {
   });
 
   return notifications
-    .map((n, index) => ({ ...n, id: `cust-notif-${index}`, read: index > 2, archived: false }))
+    .map((n, index) => ({ ...n, id: `cust-notif-${n.title}-${index}`, read: index > 2, archived: false }))
     .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 

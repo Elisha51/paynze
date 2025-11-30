@@ -16,6 +16,9 @@ import { useEffect, useState } from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/dashboard/data-table';
 import { Checkbox } from '@/components/ui/checkbox';
+import { EmptyState } from '@/components/ui/empty-state';
+import { ShoppingCart } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function MyOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -25,8 +28,8 @@ export default function MyOrdersPage() {
     async function loadOrders() {
       setIsLoading(true);
       const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
-      const allOrders = await getOrders();
       if (loggedInCustomerId) {
+          const allOrders = await getOrders();
           const customerOrders = allOrders.filter(o => o.customerId === loggedInCustomerId);
           setOrders(customerOrders.sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
       }
@@ -38,6 +41,7 @@ export default function MyOrdersPage() {
   const getStatusVariant = (status: Order['status']) => {
     switch (status) {
       case 'Delivered':
+      case 'Picked Up':
       case 'Paid':
         return 'default';
       case 'Shipped':
@@ -55,25 +59,6 @@ export default function MyOrdersPage() {
   };
 
   const columns: ColumnDef<Order>[] = [
-    {
-        id: 'select',
-        header: ({ table }) => (
-        <Checkbox
-            checked={table.getIsAllPageRowsSelected()}
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-        />
-        ),
-        cell: ({ row }) => (
-        <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-        />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
     {
         accessorKey: 'id',
         header: 'Order',
@@ -109,7 +94,17 @@ export default function MyOrdersPage() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <DataTable columns={columns} data={orders} isLoading={isLoading} />
+        <DataTable 
+            columns={columns} 
+            data={orders} 
+            isLoading={isLoading}
+            emptyState={{
+                icon: ShoppingCart,
+                title: "You haven't placed any orders yet.",
+                description: "Your orders will appear here once you've made a purchase.",
+                cta: <Button asChild><Link href="/store">Continue Shopping</Link></Button>
+            }}
+        />
       </CardContent>
     </Card>
   );

@@ -49,7 +49,7 @@ function initializeMockCustomers(): Customer[] {
                 threadId: 'comm-2-0'
             });
         }
-        if (index === 1) { // Olivia Smith
+        if (index === 1) { // Olivia Smith - our test customer
             baseComms.push({
                 id: 'comm-2-1',
                 type: 'Meeting' as const,
@@ -69,7 +69,7 @@ function initializeMockCustomers(): Customer[] {
             ...customer,
             communications: baseComms,
             orders: [],
-            wishlist: index === 1 ? ['COFF-01', 'JEWEL-01'] : [],
+            wishlist: index === 1 ? ['COFF-01', 'JEWEL-01', 'KIT-001-BG'] : [],
             discounts: index === 1 ? mockDiscounts : []
         };
     });
@@ -78,8 +78,9 @@ function initializeMockCustomers(): Customer[] {
 const customerService = new DataService<Customer>('customers', initializeMockCustomers);
 
 export async function getCustomers(user?: Staff & { permissions: any }): Promise<Customer[]> {
-  const allCustomers = await customerService.getAll();
   if (!user) return []; // If no user, return no customers
+  
+  const allCustomers = await customerService.getAll();
   
   if (user.permissions.customers?.viewAll || process.env.NODE_ENV === 'development') {
       return allCustomers;
