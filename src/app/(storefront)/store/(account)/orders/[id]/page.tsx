@@ -28,10 +28,21 @@ export default function OrderDetailsPage() {
 
   useEffect(() => {
     async function fetchOrder() {
-      if (!id) return;
-      // In a real app, you'd fetch based on the logged-in customer's orders
+      if (!id) {
+        setLoading(false);
+        return;
+      }
+      
+      const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
       const fetchedOrder = await getOrderById(id);
-      setOrder(fetchedOrder || null);
+
+      // Security Check: Ensure the order belongs to the logged-in customer.
+      if (fetchedOrder && fetchedOrder.customerId === loggedInCustomerId) {
+        setOrder(fetchedOrder);
+      } else {
+        setOrder(null); // Treat as not found if it doesn't belong to the user
+      }
+
       setLoading(false);
     }
     fetchOrder();
@@ -77,12 +88,13 @@ export default function OrderDetailsPage() {
 
   const statusVariant = {
       'Awaiting Payment': 'secondary',
-      Paid: 'default',
+      'Paid': 'default',
       'Ready for Pickup': 'outline',
-      Shipped: 'outline',
-      Delivered: 'default',
+      'Shipped': 'outline',
+      'Attempted Delivery': 'outline',
+      'Delivered': 'default',
       'Picked Up': 'default',
-      Cancelled: 'destructive',
+      'Cancelled': 'destructive',
   }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
 
   const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0);
