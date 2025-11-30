@@ -117,8 +117,6 @@ export default function CheckoutPage() {
                 email: customer.email,
                 phone: `${countryCode}${customer.phone}`,
                 customerGroup: 'default',
-                lastOrderDate: '',
-                totalSpend: 0,
                 currency: currency,
             });
             localStorage.setItem('isCustomerLoggedIn', 'true');
@@ -370,3 +368,5 @@ export default function CheckoutPage() {
     </div>
   );
 }
+
+    
