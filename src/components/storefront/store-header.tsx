@@ -39,12 +39,15 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
     
     // Simulate customer authentication state
     const [isCustomerAuthenticated, setIsCustomerAuthenticated] = useState(false);
+    const [isAffiliateAuthenticated, setIsAffiliateAuthenticated] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authModalReason, setAuthModalReason] = useState('');
   
     useEffect(() => {
-        const loggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
-        setIsCustomerAuthenticated(loggedIn);
+        const customerLoggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
+        const affiliateLoggedIn = !!localStorage.getItem('loggedInAffiliateId');
+        setIsCustomerAuthenticated(customerLoggedIn);
+        setIsAffiliateAuthenticated(affiliateLoggedIn);
     }, []);
 
     // Mock unread notification count for the customer
@@ -60,6 +63,12 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
 
     const handleCustomerLogout = () => {
         localStorage.setItem('isCustomerLoggedIn', 'false');
+        localStorage.removeItem('loggedInCustomerId');
+        window.location.reload();
+    };
+
+    const handleAffiliateLogout = () => {
+        localStorage.removeItem('loggedInAffiliateId');
         window.location.reload();
     };
 
@@ -136,6 +145,14 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={handleStaffLogout}>Log Out</DropdownMenuItem>
                                 </>
+                            ) : isAffiliateAuthenticated ? (
+                                <>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/affiliate/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleAffiliateLogout}>Log Out</DropdownMenuItem>
+                                </>
                             ) : isCustomerAuthenticated ? (
                                 <>
                                     <DropdownMenuItem asChild><Link href="/store/account">My Profile</Link></DropdownMenuItem>
@@ -174,6 +191,10 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                                         </Button>
                                     ) : user ? (
                                          <Button variant="outline" onClick={handleStaffLogout}>
+                                            Log Out
+                                        </Button>
+                                    ) : isAffiliateAuthenticated ? (
+                                         <Button variant="outline" onClick={handleAffiliateLogout}>
                                             Log Out
                                         </Button>
                                     ) : (
