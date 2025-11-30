@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function WishlistPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -24,13 +25,21 @@ export default function WishlistPage() {
 
   useEffect(() => {
     async function loadData() {
-      // In a real app, you'd get the customer ID from a session.
-      const cust = await getCustomerById('cust-02');
+      const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
+      if (!loggedInCustomerId) {
+        setLoading(false);
+        return;
+      }
+      
+      const [cust, allProducts] = await Promise.all([
+        getCustomerById(loggedInCustomerId),
+        getProducts()
+      ]);
+      
       setCustomer(cust || null);
       
       if (cust?.wishlist && cust.wishlist.length > 0) {
-        const allProducts = await getProducts();
-        const wishlistItems = allProducts.filter(p => cust.wishlist.includes(p.sku || ''));
+        const wishlistItems = allProducts.filter(p => p.sku && cust.wishlist.includes(p.sku));
         setWishlistProducts(wishlistItems);
       }
       setLoading(false);
@@ -46,7 +55,15 @@ export default function WishlistPage() {
           <CardDescription>Your saved items for later.</CardDescription>
         </CardHeader>
         <CardContent>
-          <p>Loading your wishlist...</p>
+           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                      <Skeleton className="aspect-square w-full" />
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-1/4" />
+                  </div>
+              ))}
+          </div>
         </CardContent>
       </Card>
     );
