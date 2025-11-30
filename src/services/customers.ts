@@ -5,7 +5,6 @@ import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
 import { addActivity } from './activities';
-import { useAuth } from '@/context/auth-context';
 
 function initializeMockCustomers(): Customer[] {
     const mockCustomers: Omit<Customer, 'communications' | 'orders' | 'discounts' | 'wishlist'>[] = [
@@ -80,13 +79,14 @@ const customerService = new DataService<Customer>('customers', initializeMockCus
 
 export async function getCustomers(user?: Staff & { permissions: any }): Promise<Customer[]> {
   const allCustomers = await customerService.getAll();
-  if (user?.permissions?.customers?.viewAll || process.env.NODE_ENV === 'development') {
+  if (!user) return []; // If no user, return no customers
+  
+  if (user.permissions.customers?.viewAll || process.env.NODE_ENV === 'development') {
       return allCustomers;
   }
-  if (user) {
-      return allCustomers.filter(c => c.createdById === user.id);
-  }
-  return [];
+  
+  // Return only customers created by the logged-in user if they don't have viewAll permission
+  return allCustomers.filter(c => c.createdById === user.id);
 }
 
 export async function getCustomerById(customerId: string): Promise<Customer | undefined> {
@@ -134,5 +134,3 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'lastOrder
 export async function updateCustomer(customer: Partial<Customer> & { id: string }): Promise<Customer> {
     return await customerService.update(customer.id, customer);
 }
-
-    
