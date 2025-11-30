@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -42,7 +41,6 @@ export default function ProductDetailPage() {
     async function loadCustomer() {
         const loggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
         if (loggedIn) {
-            // This is a mock. In a real app you'd get the ID from a session.
             const customerId = localStorage.getItem('loggedInCustomerId');
             if (customerId) {
               const currentCustomer = await getCustomerById(customerId);

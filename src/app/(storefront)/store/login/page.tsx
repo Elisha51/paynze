@@ -15,6 +15,8 @@ export default function StoreLoginPage() {
     const handleLogin = () => {
         // Simulate successful customer login
         localStorage.setItem('isCustomerLoggedIn', 'true');
+        // For testing, we'll log in as a specific mock user
+        localStorage.setItem('loggedInCustomerId', 'cust-02'); 
         // Redirect to the intended page, or back to the store.
         router.push(redirectUrl || '/store');
     }

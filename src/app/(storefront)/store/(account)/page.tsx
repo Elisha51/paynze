@@ -17,8 +17,6 @@ export default function AccountPage() {
 
   useEffect(() => {
     async function loadCustomer() {
-      // In a real app, you'd get the ID from a session.
-      // We are using a hardcoded ID for this mock application.
       const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
       if (loggedInCustomerId) {
         const cust = await getCustomerById(loggedInCustomerId);
