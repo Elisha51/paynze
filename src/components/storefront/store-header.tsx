@@ -1,6 +1,6 @@
 
 'use client';
-import { ShoppingCart, User, Bell, Menu, Store } from 'lucide-react';
+import { ShoppingCart, User, Bell, Menu, Store, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { OnboardingFormData } from '@/lib/types';
@@ -26,6 +26,7 @@ import { useState, useEffect } from 'react';
 import { AuthModal } from './auth-modal';
 import { Separator } from '../ui/separator';
 import Image from 'next/image';
+import { useAuth } from '@/context/auth-context';
 
 
 type StoreHeaderProps = {
@@ -34,13 +35,13 @@ type StoreHeaderProps = {
 
 export function StoreHeader({ settings }: StoreHeaderProps) {
     const { cartCount } = useCart();
+    const { user, logout } = useAuth();
     
     // Simulate customer authentication state
     const [isCustomerAuthenticated, setIsCustomerAuthenticated] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
     const [authModalReason, setAuthModalReason] = useState('');
   
-    // In a real app, this would use a proper customer auth context.
     useEffect(() => {
         const loggedIn = localStorage.getItem('isCustomerLoggedIn') === 'true';
         setIsCustomerAuthenticated(loggedIn);
@@ -55,6 +56,15 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
             setAuthModalReason(reason);
             setIsAuthModalOpen(true);
         }
+    };
+
+    const handleCustomerLogout = () => {
+        localStorage.setItem('isCustomerLoggedIn', 'false');
+        window.location.reload();
+    };
+
+    const handleStaffLogout = () => {
+        logout(); // This will redirect to /login
     };
     
     return (
@@ -118,15 +128,20 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>My Account</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            {isCustomerAuthenticated ? (
+                            {user ? (
+                                <>
+                                    <DropdownMenuItem asChild>
+                                        <Link href="/dashboard"><LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard</Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem onClick={handleStaffLogout}>Log Out</DropdownMenuItem>
+                                </>
+                            ) : isCustomerAuthenticated ? (
                                 <>
                                     <DropdownMenuItem asChild><Link href="/store/account">My Profile</Link></DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href="/store/account/orders">My Orders</Link></DropdownMenuItem>
                                     <DropdownMenuSeparator />
-                                    <DropdownMenuItem onClick={() => {
-                                        localStorage.setItem('isCustomerLoggedIn', 'false');
-                                        window.location.reload();
-                                    }}>
+                                    <DropdownMenuItem onClick={handleCustomerLogout}>
                                         Log Out
                                     </DropdownMenuItem>
                                 </>
@@ -154,10 +169,11 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                                     <Link href="/affiliate-signup" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">Become an Affiliate</Link>
                                     <Separator />
                                      {isCustomerAuthenticated ? (
-                                        <Button variant="outline" onClick={() => {
-                                            localStorage.setItem('isCustomerLoggedIn', 'false');
-                                            window.location.reload();
-                                        }}>
+                                        <Button variant="outline" onClick={handleCustomerLogout}>
+                                            Log Out
+                                        </Button>
+                                    ) : user ? (
+                                         <Button variant="outline" onClick={handleStaffLogout}>
                                             Log Out
                                         </Button>
                                     ) : (
