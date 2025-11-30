@@ -155,7 +155,7 @@ export function StoreHeader({ settings }: StoreHeaderProps) {
                                 </>
                             ) : isCustomerAuthenticated ? (
                                 <>
-                                    <DropdownMenuItem asChild><Link href="/store/account">My Profile</Link></DropdownMenuItem>
+                                    <DropdownMenuItem asChild><Link href="/store/account">My Account</Link></DropdownMenuItem>
                                     <DropdownMenuItem asChild><Link href="/store/account/orders">My Orders</Link></DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem onClick={handleCustomerLogout}>
