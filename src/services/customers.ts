@@ -69,7 +69,7 @@ function initializeMockCustomers(): Customer[] {
             ...customer,
             communications: baseComms,
             orders: [],
-            wishlist: index === 1 ? ['COFF-01', 'JEWEL-01', 'KIT-001-BG'] : [],
+            wishlist: index === 1 ? ['COFF-01', 'JEWEL-01', 'KIT-001-BG', 'EBOOK-001', 'SHOE-002-42'] : [],
             discounts: index === 1 ? mockDiscounts : []
         };
     });

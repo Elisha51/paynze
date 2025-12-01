@@ -138,6 +138,58 @@ function initializeMockOrders(): Order[] {
                  { id: 'note-008a', staffId: 'staff-003', staffName: 'Peter Jones', note: 'Status updated to "Delivered". Left with security guard as per instruction.', date: '2024-07-21T15:00:00Z' }
             ]
         },
+        { 
+            id: 'ORD-009', 
+            customerId: 'cust-02',
+            customerName: 'Olivia Smith',
+            customerEmail: 'olivia@example.com',
+            date: '2024-07-20T11:00:00Z', 
+            status: 'Paid', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
+            total: 80000,
+            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+        },
+        { 
+            id: 'ORD-010', 
+            customerId: 'cust-02',
+            customerName: 'Olivia Smith',
+            customerEmail: 'olivia@example.com',
+            date: '2024-06-15T09:30:00Z', 
+            status: 'Delivered', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 1, price: 25000, category: 'Accessories' }],
+            total: 25000,
+            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            fulfilledByStaffId: 'staff-003',
+            fulfilledByStaffName: 'Peter Jones'
+        },
+        { 
+            id: 'ORD-011', 
+            customerId: 'cust-02',
+            customerName: 'Olivia Smith',
+            customerEmail: 'olivia@example.com',
+            date: '2024-05-10T15:00:00Z', 
+            status: 'Delivered', 
+            fulfillmentMethod: 'Delivery',
+            items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 3, price: 35000, category: 'Fabrics' }],
+            total: 105000,
+            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            fulfilledByStaffId: 'staff-003',
+            fulfilledByStaffName: 'Peter Jones'
+        },
+        { 
+            id: 'ORD-012', 
+            customerId: 'cust-02',
+            customerName: 'Olivia Smith',
+            customerEmail: 'olivia@example.com',
+            date: '2024-04-01T12:00:00Z', 
+            status: 'Cancelled', 
+            fulfillmentMethod: 'Pickup',
+            items: [{ sku: 'SHOE-002-43', name: 'Handmade Leather Shoes - Size 43', quantity: 1, price: 75000, category: 'Footwear' }],
+            total: 75000,
+            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+        },
     ];
     return [...mockOrders].map((order, index) => {
         const isPaid = order.status !== 'Awaiting Payment' && order.status !== 'Cancelled';

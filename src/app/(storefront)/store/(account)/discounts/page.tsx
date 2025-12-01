@@ -17,6 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
 
 export default function DiscountsPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -40,11 +41,10 @@ export default function DiscountsPage() {
       setCustomer(custData || null);
 
       if (custData) {
-        const activeDiscounts = allDiscounts.filter(d => d.status === 'Active');
-        const filtered = activeDiscounts.filter(discount => 
+        const filtered = allDiscounts.filter(discount => 
             discount.customerGroup === 'Everyone' || discount.customerGroup === custData.customerGroup
         );
-        setEligibleDiscounts(filtered);
+        setEligibleDiscounts(filtered.sort((a, b) => (a.status === 'Active' ? -1 : 1)));
       }
       
       setLoading(false);
@@ -95,7 +95,10 @@ export default function DiscountsPage() {
                     <div className="flex items-center gap-4">
                         <Ticket className="h-8 w-8 text-primary flex-shrink-0" />
                         <div>
-                            <p className="font-bold text-lg text-primary">{formatValue(discount)}</p>
+                            <div className="flex items-center gap-2">
+                                <p className="font-bold text-lg text-primary">{formatValue(discount)}</p>
+                                <Badge variant={discount.status === 'Active' ? 'default' : 'outline'}>{discount.status}</Badge>
+                            </div>
                             <p className="text-sm text-muted-foreground">
                                 {discount.description || `On orders above ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(discount.minPurchase)}`}
                             </p>
