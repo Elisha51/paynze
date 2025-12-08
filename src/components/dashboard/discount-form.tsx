@@ -154,7 +154,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     }, [initialDiscount]);
 
     useEffect(() => {
-        if (initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
+       if (initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
             setApplicability('specific');
         } else {
             setApplicability('all');
@@ -241,15 +241,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     const currency = settings?.currency || 'UGX';
 
     return (
-        <div className="space-y-6 max-w-4xl mx-auto">
-            <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
-                <Button onClick={handleSave}>
-                    <Save className="mr-2 h-4 w-4" />
-                    Save {isEditing ? 'Changes' : 'Discount'}
-                </Button>
-            </div>
-
+        <div className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 space-y-6">
                     <Card>
@@ -295,7 +287,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                 <div className="space-y-2">
                                     <Label htmlFor="value">Value</Label>
                                     <div className="flex items-center gap-2">
-                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1" placeholder="e.g. 15"/>
+                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1" placeholder={discount.type === 'Percentage' ? "15" : "10000"}/>
                                         {discount.type === 'Percentage' ? (
                                             <span className="text-muted-foreground text-sm p-2 bg-muted rounded-md border">%</span>
                                         ) : (
@@ -344,9 +336,9 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                             />
                                             <div className="space-y-2">
                                                 <Label htmlFor="getDiscountPercentage">Discount Percentage on 'Get' items</Label>
-                                                <div className="relative">
-                                                    <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="pr-8" placeholder="100"/>
-                                                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                                                <div className="flex items-center gap-2">
+                                                    <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="flex-1" placeholder="100"/>
+                                                    <span className="text-muted-foreground text-sm p-2 bg-muted rounded-md border">%</span>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Enter 100 for a "Buy One, Get One Free" offer.</p>
                                             </div>
@@ -479,7 +471,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                 <div className="flex items-center gap-2">
-                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="e.g. 50000" />
+                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="50000" />
                                      <Select value={discount.currency || currency} onValueChange={(v) => handleSelectChange('currency', v)}>
                                         <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
                                         <SelectContent>
@@ -496,6 +488,13 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             </div>
                         </CardContent>
                     </Card>
+                     <div className="flex justify-end gap-2">
+                        <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+                        <Button onClick={handleSave}>
+                            <Save className="mr-2 h-4 w-4" />
+                            Save {isEditing ? 'Changes' : 'Discount'}
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>
