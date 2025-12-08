@@ -62,7 +62,8 @@ function initializeMockCustomers(): Customer[] {
 
         const mockDiscounts: Discount[] = [
             { code: 'WELCOME15', type: 'Percentage', value: 15, status: 'Active', redemptions: 0, minPurchase: 0, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true },
-            { code: 'FREESHIP', type: 'Fixed Amount', value: 10000, status: 'Active', redemptions: 0, minPurchase: 50000, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true, description: 'Free shipping on your next order' },
+            { code: 'RETAIL5', type: 'Percentage', value: 5, status: 'Active', redemptions: 0, minPurchase: 20000, customerGroup: 'Retailer', usageLimit: null, onePerCustomer: false },
+            { code: 'FREESHIP', type: 'Fixed Amount', value: 10000, status: 'Expired', redemptions: 1, minPurchase: 50000, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true, description: 'Free shipping on your next order' },
         ];
 
         return {
@@ -108,7 +109,6 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'lastOrder
     const newCustomer: Customer = {
         id: `cust-${Date.now()}`,
         ...customerData,
-        source: customerData.source || 'Manual',
         lastOrderDate: '',
         totalSpend: 0,
         createdAt: new Date().toISOString(),
@@ -132,6 +132,6 @@ export async function addCustomer(customerData: Omit<Customer, 'id' | 'lastOrder
     return createdCustomer;
 }
 
-export async function updateCustomer(customer: Partial<Customer> & { id: string }): Promise<Customer> {
-    return await customerService.update(customer.id, customer);
+export async function updateCustomer(id: string, updates: Partial<Customer>): Promise<Customer> {
+    return await customerService.update(id, updates);
 }

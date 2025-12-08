@@ -43,7 +43,8 @@ export default function AccountLayout({
   }, [router]);
   
   const handleLogout = () => {
-      localStorage.setItem('isCustomerLoggedIn', 'false');
+      localStorage.removeItem('isCustomerLoggedIn');
+      localStorage.removeItem('loggedInCustomerId');
       router.push('/store');
   }
 

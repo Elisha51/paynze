@@ -67,7 +67,7 @@ export default function AccountPage() {
         const phoneWithoutCode = customer.phone?.replace(countryCode, '');
         const updatedCustomerData = { ...customer, phone: `${countryCode}${phoneWithoutCode}` };
 
-        const updated = await updateCustomer(updatedCustomerData);
+        const updated = await updateCustomer(updatedCustomerData.id, updatedCustomerData);
         setCustomer(updated);
         toast({ title: "Profile Updated", description: "Your personal information has been saved." });
     } catch (e) {

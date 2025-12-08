@@ -119,8 +119,9 @@ export default function OrderDetailsPage() {
             <Badge variant={statusVariant}>{order.status}</Badge>
         </CardHeader>
         <CardContent>
+          <div className="flex flex-col gap-4 divide-y">
             {order.items.map((item, index) => (
-                <div key={index} className="flex items-start gap-4">
+                <div key={index} className="flex items-start gap-4 pt-4 first:pt-0">
                     <div className="relative h-20 w-20 flex-shrink-0 overflow-hidden rounded-md">
                         <Image
                             src={item.imageUrl || `https://picsum.photos/seed/${item.sku}/80/80`}
@@ -138,6 +139,7 @@ export default function OrderDetailsPage() {
                     </div>
                 </div>
             ))}
+          </div>
         </CardContent>
         <Separator />
         <CardContent className="space-y-2 pt-4">

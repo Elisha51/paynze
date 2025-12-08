@@ -36,14 +36,12 @@ export default function StoreSignupPage() {
         email,
         phone: '',
         customerGroup: 'default',
-        lastOrderDate: '',
-        totalSpend: 0,
         currency: 'UGX' // This should ideally come from store settings
       });
 
       // Simulate login after successful signup
       localStorage.setItem('isCustomerLoggedIn', 'true');
-      localStorage.setItem('loggedInCustomerId', newCustomer.id); // Store mock customer ID
+      localStorage.setItem('loggedInCustomerId', newCustomer.id);
 
       toast({ title: 'Account Created!', description: 'Welcome to our store.' });
       router.push('/store/account'); // Redirect to account page
