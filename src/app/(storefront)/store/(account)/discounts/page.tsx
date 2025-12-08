@@ -46,8 +46,10 @@ export default function DiscountsPage() {
         );
         // Sort to show Active first, then Scheduled, then Expired
         setEligibleDiscounts(filtered.sort((a, b) => {
-            const statusOrder: Record<Discount['status'], number> = { 'Active': 1, 'Scheduled': 2, 'Expired': 3 };
-            return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
+            const statusOrder: Record<string, number> = { 'Active': 1, 'Scheduled': 2, 'Expired': 3 };
+            const aStatus = a.status || 'Expired';
+            const bStatus = b.status || 'Expired';
+            return (statusOrder[aStatus] || 4) - (statusOrder[bStatus] || 4);
         }));
       }
       
@@ -138,8 +140,8 @@ export default function DiscountsPage() {
                         <Separator className="my-2" />
                         <div className="text-xs text-muted-foreground space-y-1">
                              {discount.minPurchase > 0 && <p>• Minimum purchase of {formatCurrency(discount, discount.minPurchase)}</p>}
-                             {discount.usageLimit && <p>• Limited to {discount.usageLimit} total uses.</p>}
                              {discount.onePerCustomer && <p>• One use per customer.</p>}
+                             {discount.bogoDetails && <p>• {`Buy ${discount.bogoDetails.buyQuantity} of a selected item to get ${discount.bogoDetails.getQuantity} of another for ${discount.bogoDetails.getDiscountPercentage}% off.`}</p>}
                              {discount.endDate && <p>• {discount.status === 'Expired' ? 'Expired on' : 'Expires on'} {new Date(discount.endDate).toLocaleDateString()}</p>}
                         </div>
                     </div>

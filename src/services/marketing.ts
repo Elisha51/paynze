@@ -152,8 +152,8 @@ const mockDiscounts: Discount[] = [
         redemptions: 0,
         minPurchase: 75000,
         customerGroup: 'Everyone',
-        startDate: '2024-08-01',
-        endDate: '2024-08-31',
+        startDate: new Date(new Date().setDate(new Date().getDate() + 7)).toISOString(),
+        endDate: new Date(new Date().setDate(new Date().getDate() + 37)).toISOString(),
         usageLimit: null,
         onePerCustomer: true,
         description: 'Our annual summer sale. Get ready!'
