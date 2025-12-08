@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Save, Sparkles, Ticket, Check, ChevronsUpDown, Calendar as CalendarIcon } from 'lucide-react';
+import { Save, Sparkles, Ticket, Check, ChevronsUpDown, Calendar as CalendarIcon, ShieldAlert, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -133,23 +133,20 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     const isEditing = !!initialDiscount;
 
     useEffect(() => {
-        if (initialDiscount) {
-            setDiscount(initialDiscount);
-            setHasUsageLimit(!!initialDiscount.usageLimit);
-            setApplicability((initialDiscount.applicableProductIds && initialDiscount.applicableProductIds.length > 0) ? 'specific' : 'all');
-            setStartDate(initialDiscount.startDate ? new Date(initialDiscount.startDate) : new Date());
-            setEndDate(initialDiscount.endDate ? new Date(initialDiscount.endDate) : undefined);
-            setNoEndDate(!initialDiscount.endDate);
-        } else {
-            // Ensure BOGO details has a default condition type for new discounts
-            setDiscount(prev => ({
-                ...prev,
-                bogoDetails: {
-                    ...emptyDiscount.bogoDetails!,
-                    ...(prev.bogoDetails || {})
-                }
-            }));
-        }
+        const fullInitialDiscount = {
+            ...emptyDiscount,
+            ...initialDiscount,
+            bogoDetails: {
+                ...emptyDiscount.bogoDetails,
+                ...(initialDiscount?.bogoDetails || {}),
+            },
+        };
+        setDiscount(fullInitialDiscount);
+        setHasUsageLimit(!!initialDiscount?.usageLimit);
+        setApplicability((initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) ? 'specific' : 'all');
+        setStartDate(initialDiscount?.startDate ? new Date(initialDiscount.startDate) : new Date());
+        setEndDate(initialDiscount?.endDate ? new Date(initialDiscount.endDate) : undefined);
+        setNoEndDate(!initialDiscount?.endDate);
         
         const data = localStorage.getItem('onboardingData');
         if (data) {
@@ -307,7 +304,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                     <div className="flex items-center gap-2">
                                         <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1" placeholder={discount.type === 'Percentage' ? "15" : "10000"}/>
                                         {discount.type === 'Percentage' ? (
-                                            <span className="text-muted-foreground text-sm p-2 bg-muted rounded-md border">%</span>
+                                            <span className="text-muted-foreground p-2 rounded-md border bg-muted">%</span>
                                         ) : (
                                             <Select value={discount.currency || currency} onValueChange={(v) => handleSelectChange('currency', v)}>
                                                 <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
@@ -327,7 +324,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                     <Card>
                                         <CardHeader><CardTitle className="text-base">Customer Buys</CardTitle></CardHeader>
                                         <CardContent className="space-y-4">
-                                            <RadioGroup value={discount.bogoDetails?.buyConditionType || 'quantity'} onValueChange={(v) => handleBogoChange('buyConditionType', v as 'quantity' | 'amount')}>
+                                            <RadioGroup value={discount.bogoDetails?.buyConditionType} onValueChange={(v) => handleBogoChange('buyConditionType', v as 'quantity' | 'amount')}>
                                                 <div className="flex items-center space-x-2">
                                                     <RadioGroupItem value="quantity" id="buy-quantity-option" />
                                                     <Label htmlFor="buy-quantity-option">A minimum quantity of products</Label>
@@ -376,7 +373,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                                 <Label htmlFor="getDiscountPercentage">Discount Percentage on 'Get' items</Label>
                                                 <div className="flex items-center gap-2">
                                                     <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="flex-1" placeholder="100"/>
-                                                    <span className="text-muted-foreground text-sm p-2 bg-muted rounded-md border">%</span>
+                                                    <span className="text-muted-foreground p-2 rounded-md border bg-muted">%</span>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Enter 100 for a "Buy One, Get One Free" offer.</p>
                                             </div>
@@ -507,7 +504,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             )}
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
-                                <div className="flex items-center gap-2">
+                                 <div className="flex items-center gap-2">
                                     <Select value={discount.currency || currency} onValueChange={(v) => handleSelectChange('currency', v)}>
                                         <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
                                         <SelectContent>
@@ -516,7 +513,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                             <SelectItem value="TZS">TZS</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="50000" />
+                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="50000"/>
                                 </div>
                             </div>
                             <div className="space-y-2">
