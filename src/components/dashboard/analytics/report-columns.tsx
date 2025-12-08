@@ -1,7 +1,7 @@
 
 'use client';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, ArrowUpDown, ImageIcon, Edit, Trash2 } from 'lucide-react';
+import { MoreHorizontal, ArrowUpDown, ImageIcon, Edit, Trash2, Ban } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -336,6 +336,9 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
               <DropdownMenuItem asChild>
                 <Link href={`/dashboard/marketing/campaigns/${campaign.id}/edit`}><Edit className="mr-2 h-4 w-4"/> Edit</Link>
               </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Ban className="mr-2 h-4 w-4 text-orange-500" /> Discontinue
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <AlertDialogTrigger asChild>
                 <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
@@ -363,3 +366,4 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     },
   },
 ];
+

@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui
 import { Button } from '../ui/button';
 import { getDiscounts, deleteDiscount } from '@/services/marketing';
 import type { Discount } from '@/lib/types';
-import { PlusCircle, MoreHorizontal, Edit, Trash2, Check, ChevronsUpDown } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, Check, ChevronsUpDown, Ban } from 'lucide-react';
 import { DataTable } from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
@@ -86,15 +86,17 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
         header: 'Status',
         cell: ({ row }) => {
             const discount = row.original;
-            const now = new Date();
             let status: Discount['status'] = discount.status;
 
-            if (discount.startDate && new Date(discount.startDate) > now) {
-                status = 'Scheduled';
-            } else if (discount.endDate && new Date(discount.endDate) < now) {
-                status = 'Expired';
-            } else {
-                status = 'Active';
+            if (discount.status !== 'Expired') {
+                const now = new Date();
+                if (discount.startDate && new Date(discount.startDate) > now) {
+                    status = 'Scheduled';
+                } else if (discount.endDate && new Date(discount.endDate) < now) {
+                    status = 'Expired';
+                } else {
+                    status = 'Active';
+                }
             }
             
             const variant = status === 'Active' ? 'default' : status === 'Expired' ? 'destructive' : 'secondary';
@@ -131,6 +133,9 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
                             <DropdownMenuContent>
                                 <DropdownMenuItem asChild>
                                     <Link href={`/dashboard/marketing/discounts/${discount.code}/edit`}><Edit className="mr-2 h-4 w-4"/> Edit</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                    <Ban className="mr-2 h-4 w-4 text-orange-500" /> Discontinue
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <AlertDialogTrigger asChild>
