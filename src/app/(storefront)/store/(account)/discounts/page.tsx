@@ -46,7 +46,7 @@ export default function DiscountsPage() {
         );
         // Sort to show Active first, then Scheduled, then Expired
         setEligibleDiscounts(filtered.sort((a, b) => {
-            const statusOrder = { 'Active': 1, 'Scheduled': 2, 'Expired': 3 };
+            const statusOrder: Record<Discount['status'], number> = { 'Active': 1, 'Scheduled': 2, 'Expired': 3 };
             return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
         }));
       }
@@ -69,6 +69,9 @@ export default function DiscountsPage() {
         // A currency prop would be better here, but for now, we'll use a sensible default
         const currency = customer?.currency || 'UGX';
         return `${new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(discount.value)} OFF`;
+      }
+      if (discount.type === 'Buy X Get Y') {
+          return `Buy ${discount.bogoDetails?.buyQuantity || 1}, Get ${discount.bogoDetails?.getQuantity || 1}`;
       }
       return 'Special Offer';
   }
