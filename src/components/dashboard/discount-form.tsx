@@ -22,7 +22,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Discount, OnboardingFormData, Product, Affiliate } from '@/lib/types';
+import type { Discount, OnboardingFormData, Product, Affiliate, BogoDetails } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { Switch } from '../ui/switch';
 import { getProducts } from '@/services/products';
@@ -33,7 +33,7 @@ import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { format } from 'date-fns';
 import { Calendar } from '../ui/calendar';
-import { Alert, AlertDescription } from '../ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 
 const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   type: 'Percentage',
@@ -59,7 +59,8 @@ const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
 };
 
 type DiscountFormProps = {
-    initialDiscount?: Discount | null;
+    initialDiscount?: Partial<Discount> | null;
+    isEditing?: boolean;
 }
 
 type ApplicabilityType = 'all' | 'specific';
@@ -111,13 +112,15 @@ const ProductSelector = ({
 );
 
 
-export function DiscountForm({ initialDiscount }: DiscountFormProps) {
+export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFormProps) {
     const [discount, setDiscount] = useState<Partial<Discount>>(initialDiscount || emptyDiscount);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [hasUsageLimit, setHasUsageLimit] = useState(!!initialDiscount?.usageLimit);
-    const [applicability, setApplicability] = useState<ApplicabilityType>('all');
+    const [applicability, setApplicability] = useState<ApplicabilityType>(
+        (initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) ? 'specific' : 'all'
+    );
     
     const [startDate, setStartDate] = useState<Date | undefined>(
         initialDiscount?.startDate ? new Date(initialDiscount.startDate) : new Date()
@@ -130,17 +133,22 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
 
     const router = useRouter();
     const { toast } = useToast();
-    const isEditing = !!initialDiscount;
 
     useEffect(() => {
+        const bogoDetailsWithDefaults: BogoDetails = {
+            buyConditionType: 'quantity',
+            buyQuantity: 1,
+            buyProductIds: [],
+            getQuantity: 1,
+            getProductIds: [],
+            getDiscountPercentage: 100,
+            ...(initialDiscount?.bogoDetails || {}),
+        };
+
         const fullInitialDiscount = {
             ...emptyDiscount,
             ...initialDiscount,
-            bogoDetails: {
-                ...emptyDiscount.bogoDetails,
-                ...(initialDiscount?.bogoDetails || {}),
-                buyConditionType: initialDiscount?.bogoDetails?.buyConditionType || 'quantity',
-            },
+            bogoDetails: bogoDetailsWithDefaults,
         };
         setDiscount(fullInitialDiscount);
         setHasUsageLimit(!!initialDiscount?.usageLimit);
@@ -310,11 +318,9 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                     <Label htmlFor="value">Value</Label>
                                     <div className="flex items-center gap-2">
                                         <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1" placeholder={discount.type === 'Percentage' ? "15" : "10000"}/>
-                                        {discount.type === 'Percentage' ? (
-                                            <span className="text-muted-foreground p-2 rounded-md border bg-muted">%</span>
-                                        ) : (
-                                            <span className="text-muted-foreground p-2 rounded-md border bg-muted">{currency}</span>
-                                        )}
+                                        <div className="text-muted-foreground p-2 rounded-r-md border-l-0 border h-10 flex items-center bg-muted">
+                                            {discount.type === 'Percentage' ? '%' : currency}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -373,7 +379,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                                 <Label htmlFor="getDiscountPercentage">Discount Percentage on 'Get' items</Label>
                                                 <div className="flex items-center gap-2">
                                                     <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="flex-1" placeholder="100"/>
-                                                    <span className="text-muted-foreground p-2 rounded-md border bg-muted">%</span>
+                                                    <div className="text-muted-foreground p-2 rounded-r-md border-l-0 border h-10 flex items-center bg-muted">%</div>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Enter 100 for a "Buy One, Get One Free" offer.</p>
                                             </div>
@@ -504,9 +510,9 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             )}
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
-                                 <div className="flex items-center gap-2">
-                                     <span className="text-muted-foreground p-2 rounded-md border bg-muted">{currency}</span>
-                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="50000"/>
+                                <div className="flex items-center">
+                                    <span className="text-muted-foreground p-2 rounded-l-md border border-r-0 bg-muted">{currency}</span>
+                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1 rounded-l-none" placeholder="50000"/>
                                 </div>
                             </div>
                             <div className="space-y-2">

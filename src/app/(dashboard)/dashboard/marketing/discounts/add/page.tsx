@@ -25,7 +25,7 @@ export default function AddDiscountPage() {
 
   return (
     <DashboardPageLayout title={duplicateData ? "Duplicate Discount" : "Create Discount"} backHref="/dashboard/marketing?tab=discounts">
-        <DiscountForm initialDiscount={duplicateData} />
+        <DiscountForm initialDiscount={duplicateData} isEditing={false} />
     </DashboardPageLayout>
   )
 }
