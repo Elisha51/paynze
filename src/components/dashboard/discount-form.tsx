@@ -140,6 +140,15 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
             setStartDate(initialDiscount.startDate ? new Date(initialDiscount.startDate) : new Date());
             setEndDate(initialDiscount.endDate ? new Date(initialDiscount.endDate) : undefined);
             setNoEndDate(!initialDiscount.endDate);
+        } else {
+            // Ensure BOGO details has a default condition type for new discounts
+            setDiscount(prev => ({
+                ...prev,
+                bogoDetails: {
+                    ...emptyDiscount.bogoDetails!,
+                    ...(prev.bogoDetails || {})
+                }
+            }));
         }
         
         const data = localStorage.getItem('onboardingData');
@@ -156,14 +165,14 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         }
         loadData();
     }, [initialDiscount]);
-
+    
     useEffect(() => {
-       if (initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
+        if (isEditing && initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
             setApplicability('specific');
-        } else {
+        } else if (!isEditing) {
             setApplicability('all');
         }
-    }, [initialDiscount]);
+    }, [initialDiscount, isEditing]);
     
     useEffect(() => {
         if (noEndDate) {
