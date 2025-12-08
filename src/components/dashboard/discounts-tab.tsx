@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui
 import { Button } from '../ui/button';
 import { getDiscounts, deleteDiscount } from '@/services/marketing';
 import type { Discount } from '@/lib/types';
-import { PlusCircle, MoreHorizontal, Edit, Trash2, Check, ChevronsUpDown, Ban } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, Edit, Trash2, Check, ChevronsUpDown, Ban, Copy } from 'lucide-react';
 import { DataTable } from './data-table';
 import { ColumnDef } from '@tanstack/react-table';
 import { Badge } from '../ui/badge';
@@ -22,6 +22,7 @@ import {
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '../ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Checkbox } from '../ui/checkbox';
+import { useRouter } from 'next/navigation';
 
 const discountStatuses = [
     { value: 'Active', label: 'Active' },
@@ -35,7 +36,7 @@ const discountTypes = [
     { value: 'Buy X Get Y', label: 'Buy X Get Y' },
 ];
 
-const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discount>[] => [
+const getDiscountColumns = (onDelete: (code: string) => void, onDuplicate: (discount: Discount) => void): ColumnDef<Discount>[] => [
      {
         id: 'select',
         header: ({ table }) => (
@@ -134,6 +135,9 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
                                 <DropdownMenuItem asChild>
                                     <Link href={`/dashboard/marketing/discounts/${discount.code}/edit`}><Edit className="mr-2 h-4 w-4"/> Edit</Link>
                                 </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => onDuplicate(discount)}>
+                                    <Copy className="mr-2 h-4 w-4" /> Duplicate
+                                </DropdownMenuItem>
                                 <DropdownMenuItem>
                                     <Ban className="mr-2 h-4 w-4 text-orange-500" /> Discontinue
                                 </DropdownMenuItem>
@@ -169,6 +173,7 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
 export function DiscountsTab() {
   const [discounts, setDiscounts] = useState<Discount[]>([]);
   const { toast } = useToast();
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
@@ -184,7 +189,13 @@ export function DiscountsTab() {
     toast({ variant: 'destructive', title: "Discount Deleted" });
   }
 
-  const columns = getDiscountColumns(handleDelete);
+  const handleDuplicate = (discount: Discount) => {
+    // Store the discount data in localStorage and navigate to the add page
+    localStorage.setItem('duplicateDiscountData', JSON.stringify(discount));
+    router.push('/dashboard/marketing/discounts/add');
+  };
+
+  const columns = getDiscountColumns(handleDelete, handleDuplicate);
 
   return (
     <Card>

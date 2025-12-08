@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Save, Sparkles, Ticket, Check, ChevronsUpDown, Calendar as CalendarIcon, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { Save, Sparkles, Ticket, Check, ChevronsUpDown, Calendar as CalendarIcon, ShieldAlert, ArrowLeft, Info, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -33,7 +33,7 @@ import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
 import { format } from 'date-fns';
 import { Calendar } from '../ui/calendar';
-import { Checkbox } from '../ui/checkbox';
+import { Alert, AlertDescription } from '../ui/alert';
 
 const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   type: 'Percentage',
@@ -139,6 +139,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
             bogoDetails: {
                 ...emptyDiscount.bogoDetails,
                 ...(initialDiscount?.bogoDetails || {}),
+                buyConditionType: initialDiscount?.bogoDetails?.buyConditionType || 'quantity',
             },
         };
         setDiscount(fullInitialDiscount);
@@ -164,14 +165,6 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     }, [initialDiscount]);
     
     useEffect(() => {
-        if (isEditing && initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
-            setApplicability('specific');
-        } else if (!isEditing) {
-            setApplicability('all');
-        }
-    }, [initialDiscount, isEditing]);
-    
-    useEffect(() => {
         if (noEndDate) {
             setEndDate(undefined);
         }
@@ -191,7 +184,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         setDiscount(prev => ({...prev, [id]: value as any}));
     }
     
-    const handleCheckboxChange = (id: 'onePerCustomer', checked: boolean) => {
+    const handleSwitchChange = (id: 'onePerCustomer', checked: boolean) => {
         setDiscount(prev => ({...prev, [id]: checked }));
     }
     
@@ -245,11 +238,13 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
             finalDiscount.applicableProductIds = [];
         }
 
+        // In a real app, this would call a service
         console.log("Saving discount", finalDiscount);
         toast({
             title: isEditing ? "Discount Updated" : "Discount Created",
             description: `Discount code "${finalDiscount.code}" has been saved.`
         });
+        localStorage.removeItem('duplicateDiscountData');
         router.push('/dashboard/marketing?tab=discounts');
     }
 
@@ -267,36 +262,48 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="code">Discount Code</Label>
                                 <div className="flex gap-2">
-                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} placeholder="e.g. EID2024" />
-                                    <Button variant="outline" onClick={generateCode}>
+                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} placeholder="e.g. EID2024" disabled={isEditing}/>
+                                    <Button variant="outline" onClick={generateCode} disabled={isEditing}>
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         Generate
                                     </Button>
                                 </div>
+                                {isEditing && <p className="text-xs text-muted-foreground">The discount code cannot be changed after creation.</p>}
                             </div>
-                            <RadioGroup value={discount.type} onValueChange={(v) => handleSelectChange('type', v)} className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <div>
-                                    <RadioGroupItem value="Percentage" id="type-percentage" className="peer sr-only" />
-                                    <Label htmlFor="type-percentage" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                        <Ticket className="mb-3 h-6 w-6" />
-                                        Percentage
-                                    </Label>
-                                </div>
-                                 <div>
-                                    <RadioGroupItem value="Fixed Amount" id="type-fixed" className="peer sr-only" />
-                                    <Label htmlFor="type-fixed" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                         <Ticket className="mb-3 h-6 w-6" />
-                                        Fixed Amount
-                                    </Label>
-                                </div>
-                                 <div>
-                                    <RadioGroupItem value="Buy X Get Y" id="type-bogo" className="peer sr-only" />
-                                    <Label htmlFor="type-bogo" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary">
-                                         <Ticket className="mb-3 h-6 w-6" />
-                                        Buy X Get Y
-                                    </Label>
-                                </div>
-                            </RadioGroup>
+                            <div className="space-y-2">
+                                <Label>Discount Type</Label>
+                                {isEditing && (
+                                    <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800">
+                                        <Info className="h-4 w-4 !text-blue-800" />
+                                        <AlertDescription>
+                                            To change the discount type, duplicate this discount and create a new one.
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                                <RadioGroup value={discount.type} onValueChange={(v) => handleSelectChange('type', v)} className="grid grid-cols-1 sm:grid-cols-3 gap-4" disabled={isEditing}>
+                                    <div>
+                                        <RadioGroupItem value="Percentage" id="type-percentage" className="peer sr-only" />
+                                        <Label htmlFor="type-percentage" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary", isEditing && "cursor-not-allowed opacity-70")}>
+                                            <Ticket className="mb-3 h-6 w-6" />
+                                            Percentage
+                                        </Label>
+                                    </div>
+                                    <div>
+                                        <RadioGroupItem value="Fixed Amount" id="type-fixed" className="peer sr-only" />
+                                        <Label htmlFor="type-fixed" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary", isEditing && "cursor-not-allowed opacity-70")}>
+                                            <Ticket className="mb-3 h-6 w-6" />
+                                            Fixed Amount
+                                        </Label>
+                                    </div>
+                                    <div>
+                                        <RadioGroupItem value="Buy X Get Y" id="type-bogo" className="peer sr-only" />
+                                        <Label htmlFor="type-bogo" className={cn("flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary", isEditing && "cursor-not-allowed opacity-70")}>
+                                            <Ticket className="mb-3 h-6 w-6" />
+                                            Buy X Get Y
+                                        </Label>
+                                    </div>
+                                </RadioGroup>
+                            </div>
                             
                             {discount.type !== 'Buy X Get Y' && (
                                 <div className="space-y-2">
@@ -306,14 +313,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                         {discount.type === 'Percentage' ? (
                                             <span className="text-muted-foreground p-2 rounded-md border bg-muted">%</span>
                                         ) : (
-                                            <Select value={discount.currency || currency} onValueChange={(v) => handleSelectChange('currency', v)}>
-                                                <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="UGX">UGX</SelectItem>
-                                                    <SelectItem value="KES">KES</SelectItem>
-                                                    <SelectItem value="TZS">TZS</SelectItem>
-                                                </SelectContent>
-                                            </Select>
+                                            <span className="text-muted-foreground p-2 rounded-md border bg-muted">{currency}</span>
                                         )}
                                     </div>
                                 </div>
@@ -428,7 +428,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                 </div>
                              )}
                             <div className="flex items-center space-x-2">
-                                <Switch id="onePerCustomer" checked={!!discount.onePerCustomer} onCheckedChange={(c) => handleCheckboxChange('onePerCustomer', c as boolean)} />
+                                <Switch id="onePerCustomer" checked={!!discount.onePerCustomer} onCheckedChange={(c) => handleSwitchChange('onePerCustomer', c as boolean)} />
                                 <Label htmlFor="onePerCustomer">Limit to one use per customer</Label>
                             </div>
                         </CardContent>
@@ -505,14 +505,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                  <div className="flex items-center gap-2">
-                                    <Select value={discount.currency || currency} onValueChange={(v) => handleSelectChange('currency', v)}>
-                                        <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="UGX">UGX</SelectItem>
-                                            <SelectItem value="KES">KES</SelectItem>
-                                            <SelectItem value="TZS">TZS</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                     <span className="text-muted-foreground p-2 rounded-md border bg-muted">{currency}</span>
                                     <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="50000"/>
                                 </div>
                             </div>
@@ -535,7 +528,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                         <div className="flex items-center justify-between">
                                             <Label className="text-xs font-normal">End Date</Label>
                                             <div className="flex items-center space-x-2">
-                                                <Checkbox id="no-end-date" checked={noEndDate} onCheckedChange={(c) => setNoEndDate(c as boolean)} />
+                                                <Switch id="no-end-date" checked={noEndDate} onCheckedChange={(c) => setNoEndDate(c as boolean)} />
                                                 <Label htmlFor="no-end-date" className="text-xs font-normal">No end date</Label>
                                             </div>
                                         </div>
