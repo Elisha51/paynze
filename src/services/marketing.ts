@@ -1,5 +1,4 @@
 
-
 import type { Campaign, Discount } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -72,6 +71,7 @@ const mockDiscounts: Discount[] = [
         endDate: '2024-06-17',
         usageLimit: null,
         onePerCustomer: false,
+        description: 'This discount was for the Eid al-Adha celebration.'
     },
     {
         code: 'WELCOME10',
@@ -82,8 +82,9 @@ const mockDiscounts: Discount[] = [
         minPurchase: 0,
         customerGroup: 'Everyone',
         startDate: '2024-01-01',
-        usageLimit: null,
+        usageLimit: 1,
         onePerCustomer: true,
+        description: 'A special welcome gift for your first order.'
     },
     {
         code: 'RETAIL5',
@@ -96,7 +97,7 @@ const mockDiscounts: Discount[] = [
         startDate: '2024-07-01',
         usageLimit: null,
         onePerCustomer: false,
-        description: '5% off for our retail customers'
+        description: 'A small thank you for our regular retail customers.'
     },
     {
         code: 'WHOLESALE50K',
@@ -109,6 +110,7 @@ const mockDiscounts: Discount[] = [
         startDate: '2024-01-01',
         usageLimit: 50,
         onePerCustomer: false,
+        description: 'UGX 50,000 off for our wholesale partners on large orders.'
     },
     {
         code: 'BOGO-SHOES',
@@ -127,7 +129,7 @@ const mockDiscounts: Discount[] = [
             getProductIds: ['JEWEL-01'],
             getDiscountPercentage: 100
         },
-        description: 'Buy a pair of leather shoes, get a necklace free!'
+        description: 'Buy one pair of Handmade Leather Shoes, get a Maasai Beaded Necklace for free!'
     },
     {
         code: 'FATUMA-SPECIAL',
@@ -141,6 +143,20 @@ const mockDiscounts: Discount[] = [
         onePerCustomer: false,
         allowedAffiliateIds: ['aff-001'],
         description: 'Special 15% off coupon for Fatuma Asha\'s audience.'
+    },
+    {
+        code: 'SUMMER24',
+        type: 'Percentage',
+        value: 15,
+        status: 'Scheduled',
+        redemptions: 0,
+        minPurchase: 75000,
+        customerGroup: 'Everyone',
+        startDate: '2024-08-01',
+        endDate: '2024-08-31',
+        usageLimit: null,
+        onePerCustomer: true,
+        description: 'Our annual summer sale. Get ready!'
     }
 ];
 

@@ -14,10 +14,10 @@ import { getCustomerById } from '@/services/customers';
 import { getDiscounts } from '@/services/marketing';
 import type { Customer, Discount } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
-import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 export default function DiscountsPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
@@ -44,7 +44,11 @@ export default function DiscountsPage() {
         const filtered = allDiscounts.filter(discount => 
             discount.customerGroup === 'Everyone' || discount.customerGroup === custData.customerGroup
         );
-        setEligibleDiscounts(filtered.sort((a, b) => (a.status === 'Active' ? -1 : 1)));
+        // Sort to show Active first, then Scheduled, then Expired
+        setEligibleDiscounts(filtered.sort((a, b) => {
+            const statusOrder = { 'Active': 1, 'Scheduled': 2, 'Expired': 3 };
+            return (statusOrder[a.status] || 4) - (statusOrder[b.status] || 4);
+        }));
       }
       
       setLoading(false);
@@ -61,7 +65,21 @@ export default function DiscountsPage() {
       if (discount.type === 'Percentage') {
           return `${discount.value}% OFF`;
       }
-      return `${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(discount.value)} OFF`;
+      if (discount.type === 'Fixed Amount') {
+        // A currency prop would be better here, but for now, we'll use a sensible default
+        const currency = customer?.currency || 'UGX';
+        return `${new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(discount.value)} OFF`;
+      }
+      return 'Special Offer';
+  }
+
+  const getStatusInfo = (status: Discount['status']) => {
+    switch (status) {
+        case 'Active': return { variant: 'default', text: 'Active' };
+        case 'Scheduled': return { variant: 'secondary', text: 'Coming Soon' };
+        case 'Expired': return { variant: 'outline', text: 'Expired' };
+        default: return { variant: 'outline', text: status };
+    }
   }
 
   if (loading) {
@@ -72,8 +90,8 @@ export default function DiscountsPage() {
           <CardDescription>Your available discounts and vouchers.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-28 w-full" />
+          <Skeleton className="h-28 w-full" />
         </CardContent>
       </Card>
     );
@@ -89,31 +107,42 @@ export default function DiscountsPage() {
       </CardHeader>
       <CardContent className="space-y-4">
         {eligibleDiscounts.length > 0 ? (
-          eligibleDiscounts.map((discount, index) => (
-            <div key={discount.code}>
-                <div className="p-4 border border-dashed rounded-lg flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                        <Ticket className="h-8 w-8 text-primary flex-shrink-0" />
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <p className="font-bold text-lg text-primary">{formatValue(discount)}</p>
-                                <Badge variant={discount.status === 'Active' ? 'default' : 'outline'}>{discount.status}</Badge>
+          eligibleDiscounts.map((discount) => {
+            const statusInfo = getStatusInfo(discount.status);
+            return (
+                <div key={discount.code} className="p-4 border border-dashed rounded-lg flex flex-col sm:flex-row sm:items-start gap-4 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 h-full w-12 flex items-center justify-center bg-muted/50">
+                       <Ticket className="h-8 w-8 text-primary rotate-[-45deg]" />
+                    </div>
+                    <div className="flex-1 pl-16">
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h3 className="font-bold text-lg text-primary">{formatValue(discount)}</h3>
+                                    <Badge variant={statusInfo.variant as any}>{statusInfo.text}</Badge>
+                                </div>
+                                <p className="text-sm text-muted-foreground">{discount.description}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">
-                                {discount.description || `On orders above ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'UGX' }).format(discount.minPurchase)}`}
-                            </p>
+                            {discount.status === 'Active' && (
+                                <div className="flex items-center gap-2 bg-muted p-2 rounded-md mt-2 sm:mt-0">
+                                    <p className="font-mono text-foreground font-semibold">{discount.code}</p>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyCode(discount.code)}>
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                        <Separator className="my-2" />
+                        <div className="text-xs text-muted-foreground space-y-1">
+                             {discount.minPurchase > 0 && <p>• Minimum purchase of {formatCurrency(discount, discount.minPurchase)}</p>}
+                             {discount.usageLimit && <p>• Limited to {discount.usageLimit} total uses.</p>}
+                             {discount.onePerCustomer && <p>• One use per customer.</p>}
+                             {discount.endDate && <p>• {discount.status === 'Expired' ? 'Expired on' : 'Expires on'} {new Date(discount.endDate).toLocaleDateString()}</p>}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 bg-muted p-2 rounded-md">
-                        <p className="font-mono text-foreground font-semibold">{discount.code}</p>
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => copyCode(discount.code)}>
-                            <Copy className="h-4 w-4" />
-                        </Button>
-                    </div>
                 </div>
-                {index < eligibleDiscounts.length - 1 && <Separator className="my-4" />}
-            </div>
-          ))
+            )
+          })
         ) : (
           <EmptyState 
             icon={<Ticket className="h-12 w-12 text-muted-foreground" />}
@@ -124,4 +153,9 @@ export default function DiscountsPage() {
       </CardContent>
     </Card>
   );
+}
+
+function formatCurrency(discount: Discount, amount: number) {
+    const currency = 'UGX'; // Simplified for mock
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
 }
