@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   Card,
   CardContent,
@@ -11,15 +11,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Copy, Ticket } from 'lucide-react';
 import { getCustomerById } from '@/services/customers';
-import type { Customer, Discount } from '@/lib/types';
+import type { Customer, Discount, Product } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { getProducts } from '@/services/products';
 
 export default function DiscountsPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -31,8 +33,13 @@ export default function DiscountsPage() {
         return;
       }
       
-      const custData = await getCustomerById(loggedInCustomerId);
+      const [custData, productsData] = await Promise.all([
+        getCustomerById(loggedInCustomerId),
+        getProducts()
+      ]);
+      
       setCustomer(custData || null);
+      setProducts(productsData);
       setLoading(false);
     }
     loadData();
@@ -80,6 +87,26 @@ export default function DiscountsPage() {
   const formatCurrency = (amount: number) => {
     const currency = customer?.currency || 'UGX';
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  }
+  
+  const getApplicabilityText = (discount: Discount): string => {
+    if (discount.applicableProductIds && discount.applicableProductIds.length > 0) {
+      const productNames = discount.applicableProductIds
+        .map(id => products.find(p => p.sku === id)?.name)
+        .filter(Boolean)
+        .join(', ');
+      return `Applies to: ${productNames}`;
+    }
+    
+    if (discount.type === 'Buy X Get Y' && discount.bogoDetails?.buyProductIds.length) {
+      const buyProductNames = discount.bogoDetails.buyProductIds
+        .map(id => products.find(p => p.sku === id)?.name)
+        .filter(Boolean)
+        .join(' or ');
+      return `Applies when buying: ${buyProductNames}`;
+    }
+
+    return 'Applies to all products.';
   }
 
   if (loading) {
@@ -136,7 +163,8 @@ export default function DiscountsPage() {
                         <div className="text-xs text-muted-foreground space-y-1">
                              {discount.minPurchase > 0 && <p>• Minimum purchase of {formatCurrency(discount.minPurchase)}</p>}
                              {discount.onePerCustomer && <p>• One use per customer.</p>}
-                             {discount.type === 'Buy X Get Y' && discount.bogoDetails && <p>• {`Buy ${discount.bogoDetails.buyQuantity} of a selected item to get ${discount.bogoDetails.getQuantity} of another for ${discount.bogoDetails.getDiscountPercentage}% off.`}</p>}
+                             {discount.type === 'Buy X Get Y' && discount.bogoDetails && <p>• {`Buy ${discount.bogoDetails.buyQuantity}, get ${discount.bogoDetails.getQuantity} of a selected item for ${discount.bogoDetails.getDiscountPercentage}% off.`}</p>}
+                             <p>• {getApplicabilityText(discount)}</p>
                              {discount.endDate && <p>• {discount.status === 'Expired' ? 'Expired on' : 'Expires on'} {new Date(discount.endDate).toLocaleDateString()}</p>}
                         </div>
                     </div>
