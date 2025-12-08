@@ -5,10 +5,10 @@ import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
 import { addActivity } from './activities';
-import { getDiscounts } from './marketing'; // <-- Import getDiscounts
+import { getDiscounts } from './marketing';
 
 async function initializeMockCustomers(): Promise<Customer[]> {
-    const allDiscounts = await getDiscounts(); // Fetch all discounts once
+    const allDiscounts = await getDiscounts(); 
 
     const mockCustomers: Omit<Customer, 'communications' | 'orders' | 'discounts' | 'wishlist'>[] = [
         { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'Wholesaler', lastOrderDate: '2023-01-23', totalSpend: 250000, currency: 'KES', createdAt: '2022-11-15', source: 'Manual', createdById: 'staff-001', createdByName: 'John Doe' },
@@ -63,6 +63,7 @@ async function initializeMockCustomers(): Promise<Customer[]> {
             });
         }
 
+        // Correctly filter discounts for each customer
         const eligibleDiscounts = allDiscounts.filter(d => 
             d.customerGroup === 'Everyone' || d.customerGroup === customer.customerGroup
         );
