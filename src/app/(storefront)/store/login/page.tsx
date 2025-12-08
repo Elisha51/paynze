@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { getCustomerById } from '@/services/customers';
+import { getCustomerById, getCustomers } from '@/services/customers';
 import { useToast } from '@/hooks/use-toast';
 
 export default function StoreLoginPage() {
@@ -24,8 +24,11 @@ export default function StoreLoginPage() {
     const { toast } = useToast();
 
     const handleLogin = async () => {
-        // Simulate successful customer login
-        const customer = await getCustomerById('cust-02');
+        // Simulate successful customer login by finding a test user.
+        // This is more robust than using a hardcoded ID.
+        const allCustomers = await getCustomers();
+        const customer = allCustomers.find(c => c.customerGroup === 'Retailer');
+
         if (customer) {
             localStorage.setItem('isCustomerLoggedIn', 'true');
             localStorage.setItem('loggedInCustomerId', customer.id);
