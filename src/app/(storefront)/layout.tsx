@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { CartProvider } from '@/context/cart-context';
 import Head from 'next/head';
 import { AffiliateTracker } from '@/components/storefront/affiliate-tracker';
+import { Toaster } from '@/components/ui/toaster';
 
 export default function StorefrontLayout({
   children,
@@ -62,6 +63,7 @@ export default function StorefrontLayout({
             </div>
         </footer>
       </div>
+      <Toaster />
     </CartProvider>
   );
 }
