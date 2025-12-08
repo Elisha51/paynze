@@ -121,9 +121,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         } : undefined
     );
     const [hasUsageLimit, setHasUsageLimit] = useState(!!initialDiscount?.usageLimit);
-    const [applicability, setApplicability] = useState<ApplicabilityType>(
-        (initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) ? 'specific' : 'all'
-    );
+    const [applicability, setApplicability] = useState<ApplicabilityType>('all');
 
     const router = useRouter();
     const { toast } = useToast();
@@ -386,7 +384,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                 </div>
                              )}
                             <div className="flex items-center space-x-2">
-                                <Checkbox id="onePerCustomer" checked={discount.onePerCustomer} onCheckedChange={(c) => handleCheckboxChange('onePerCustomer', c as boolean)} />
+                                <Switch id="onePerCustomer" checked={discount.onePerCustomer} onCheckedChange={(c) => handleCheckboxChange('onePerCustomer', c as boolean)} />
                                 <Label htmlFor="onePerCustomer">Limit to one use per customer</Label>
                             </div>
                         </CardContent>
@@ -478,5 +476,3 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         </div>
     );
 }
-
-    
