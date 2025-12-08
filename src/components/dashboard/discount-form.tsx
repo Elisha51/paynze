@@ -24,7 +24,6 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { Discount, OnboardingFormData, Product, Affiliate } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { Checkbox } from '../ui/checkbox';
 import { DateRangePicker } from '../ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { Switch } from '../ui/switch';
@@ -287,10 +286,12 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                 <div className="space-y-2">
                                     <Label htmlFor="value">Value</Label>
                                     <div className="relative">
-                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={discount.type === 'Percentage' ? 'pr-8' : 'pl-8'} placeholder="e.g. 15"/>
-                                        <span className={cn("absolute top-1/2 -translate-y-1/2 text-muted-foreground text-sm", discount.type === 'Percentage' ? 'right-2.5' : 'left-2.5')}>
-                                            {discount.type === 'Percentage' ? '%' : currency}
-                                        </span>
+                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={cn(discount.type === 'Fixed Amount' && 'pl-8')} placeholder="e.g. 15"/>
+                                        {discount.type === 'Percentage' ? (
+                                            <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                                        ) : (
+                                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{currency}</span>
+                                        )}
                                     </div>
                                 </div>
                             )}
@@ -468,7 +469,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             </div>
                             <div className="space-y-2">
                                 <Label>Active Dates</Label>
-                                <DateRangePicker date={dateRange} setDate={setDateRange} />
+                                <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false} />
                             </div>
                         </CardContent>
                     </Card>
