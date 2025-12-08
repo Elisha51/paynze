@@ -8,6 +8,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  CardDescription
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -51,12 +52,15 @@ const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
       getQuantity: 1,
       getProductIds: [],
       getDiscountPercentage: 100,
-  }
+  },
+  applicableProductIds: [],
 };
 
 type DiscountFormProps = {
     initialDiscount?: Discount | null;
 }
+
+type ApplicabilityType = 'all' | 'specific';
 
 const ProductSelector = ({
     label,
@@ -117,6 +121,9 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         } : undefined
     );
     const [hasUsageLimit, setHasUsageLimit] = useState(!!initialDiscount?.usageLimit);
+    const [applicability, setApplicability] = useState<ApplicabilityType>(
+        (initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) ? 'specific' : 'all'
+    );
 
     const router = useRouter();
     const { toast } = useToast();
@@ -168,6 +175,14 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         });
     }
 
+     const handleApplicableProductChange = (sku: string) => {
+        setDiscount(prev => {
+            const currentIds = prev.applicableProductIds || [];
+            const newIds = currentIds.includes(sku) ? currentIds.filter(id => id !== sku) : [...currentIds, sku];
+            return { ...prev, applicableProductIds: newIds };
+        });
+    }
+
     const handleAffiliateSelect = (affiliateId: string) => {
         setDiscount(prev => {
             const currentIds = prev.allowedAffiliateIds || [];
@@ -193,6 +208,10 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
 
         if (!hasUsageLimit) {
             finalDiscount.usageLimit = null;
+        }
+
+        if (applicability === 'all') {
+            finalDiscount.applicableProductIds = [];
         }
 
         console.log("Saving discount", finalDiscount);
@@ -313,6 +332,35 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
 
                         </CardContent>
                     </Card>
+                    
+                    {discount.type !== 'Buy X Get Y' && (
+                        <Card>
+                            <CardHeader><CardTitle>Applicability</CardTitle></CardHeader>
+                            <CardContent className="space-y-4">
+                                <RadioGroup value={applicability} onValueChange={(v) => setApplicability(v as ApplicabilityType)}>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="all" id="apply-all" />
+                                        <Label htmlFor="apply-all">All products</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="specific" id="apply-specific" />
+                                        <Label htmlFor="apply-specific">Specific products</Label>
+                                    </div>
+                                </RadioGroup>
+                                {applicability === 'specific' && (
+                                    <div className="pt-2 pl-6">
+                                        <ProductSelector
+                                            label="Select products this discount applies to"
+                                            allProducts={products}
+                                            selectedProductIds={discount.applicableProductIds || []}
+                                            onSelect={handleApplicableProductChange}
+                                        />
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    )}
+
 
                     <Card>
                         <CardHeader>
