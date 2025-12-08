@@ -138,8 +138,8 @@ export default function DashboardPage() {
                         <div className="text-2xl font-bold">{formatCurrency(summaryMetrics.revenueToday)}</div>
                     </CardContent>
                 </Card>
-                <Card>
-                  <Link href="/dashboard/orders">
+                <Card className="hover:bg-muted transition-colors">
+                  <Link href="/dashboard/orders?status=Paid&status=Awaiting+Payment">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Pending Orders</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-yellow-500" />
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                     </CardContent>
                   </Link>
                 </Card>
-                 <Card>
+                 <Card className="hover:bg-muted transition-colors">
                   <Link href="/dashboard/orders?tab=deliveries">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Deliveries Today</CardTitle>
@@ -160,10 +160,10 @@ export default function DashboardPage() {
                     </CardContent>
                   </Link>
                 </Card>
-                <Card>
+                <Card className="hover:bg-muted transition-colors">
                    <Link href="/dashboard/orders?status=Paid&fulfillmentMethod=Delivery">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Deliveries</CardTitle>
+                        <CardTitle className="text-sm font-medium">Unassigned Deliveries</CardTitle>
                         <AlertTriangle className="h-4 w-4 text-red-500" />
                     </CardHeader>
                     <CardContent>
@@ -171,7 +171,7 @@ export default function DashboardPage() {
                     </CardContent>
                   </Link>
                 </Card>
-                 <Card>
+                 <Card className="hover:bg-muted transition-colors">
                   <Link href="/dashboard/staff">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Active Agents</CardTitle>

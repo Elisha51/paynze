@@ -33,11 +33,12 @@ export default function OrdersPage() {
   const canViewAnalytics = user?.plan === 'Pro' || user?.plan === 'Enterprise' || process.env.NODE_ENV === 'development';
 
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
-    const statusParam = searchParams.get('status');
-    const fulfillmentParam = searchParams.get('fulfillmentMethod');
     const filters: ColumnFiltersState = [];
-    if (statusParam) {
-        filters.push({ id: 'status', value: [statusParam] });
+    const statusParams = searchParams.getAll('status');
+    const fulfillmentParam = searchParams.get('fulfillmentMethod');
+
+    if (statusParams.length > 0) {
+        filters.push({ id: 'status', value: statusParams });
     }
     if (fulfillmentParam) {
         filters.push({ id: 'fulfillmentMethod', value: [fulfillmentParam] });
