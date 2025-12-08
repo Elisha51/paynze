@@ -15,13 +15,11 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { getCustomers } from '@/services/customers';
-import { useToast } from '@/hooks/use-toast';
 
 export default function StoreLoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirectUrl = searchParams.get('redirect');
-    const { toast } = useToast();
 
     const handleLogin = async () => {
         // Simulate successful customer login by finding a test user.
@@ -34,11 +32,7 @@ export default function StoreLoginPage() {
             // Redirect to the intended page, or back to the store account.
             router.push(redirectUrl || '/store/account');
         } else {
-             toast({
-                variant: 'destructive',
-                title: 'Login Failed',
-                description: 'Test customer not found.',
-            });
+             console.error("Test customer not found.");
         }
     }
 
