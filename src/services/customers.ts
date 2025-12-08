@@ -5,8 +5,11 @@ import { getOrders } from './orders';
 import { subDays, subHours } from 'date-fns';
 import { DataService } from './data-service';
 import { addActivity } from './activities';
+import { getDiscounts } from './marketing'; // <-- Import getDiscounts
 
-function initializeMockCustomers(): Customer[] {
+async function initializeMockCustomers(): Promise<Customer[]> {
+    const allDiscounts = await getDiscounts(); // Fetch all discounts once
+
     const mockCustomers: Omit<Customer, 'communications' | 'orders' | 'discounts' | 'wishlist'>[] = [
         { id: 'cust-01', name: 'Liam Johnson', email: 'liam@example.com', phone: '+254712345678', customerGroup: 'Wholesaler', lastOrderDate: '2023-01-23', totalSpend: 250000, currency: 'KES', createdAt: '2022-11-15', source: 'Manual', createdById: 'staff-001', createdByName: 'John Doe' },
         { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', customerGroup: 'Retailer', lastOrderDate: '2023-02-10', totalSpend: 75000, currency: 'UGX', createdAt: '2023-01-20', source: 'Online' },
@@ -60,18 +63,16 @@ function initializeMockCustomers(): Customer[] {
             });
         }
 
-        const mockDiscounts: Discount[] = [
-            { code: 'WELCOME15', type: 'Percentage', value: 15, status: 'Active', redemptions: 0, minPurchase: 0, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true },
-            { code: 'RETAIL5', type: 'Percentage', value: 5, status: 'Active', redemptions: 0, minPurchase: 20000, customerGroup: 'Retailer', usageLimit: null, onePerCustomer: false },
-            { code: 'FREESHIP', type: 'Fixed Amount', value: 10000, status: 'Expired', redemptions: 1, minPurchase: 50000, customerGroup: 'Everyone', usageLimit: 1, onePerCustomer: true, description: 'Free shipping on your next order' },
-        ];
+        const eligibleDiscounts = allDiscounts.filter(d => 
+            d.customerGroup === 'Everyone' || d.customerGroup === customer.customerGroup
+        );
 
         return {
             ...customer,
             communications: baseComms,
             orders: [],
             wishlist: index === 1 ? ['COFF-01', 'JEWEL-01', 'KIT-001-BG', 'EBOOK-001', 'SHOE-002-42'] : [],
-            discounts: index === 1 ? mockDiscounts : []
+            discounts: customer.id === 'cust-02' ? eligibleDiscounts : []
         };
     });
 }
