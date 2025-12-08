@@ -14,7 +14,7 @@ import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { getCustomers } from '@/services/customers';
+import { getCustomerById } from '@/services/customers';
 
 export default function StoreLoginPage() {
     const router = useRouter();
@@ -23,8 +23,7 @@ export default function StoreLoginPage() {
 
     const handleLogin = async () => {
         // Simulate successful customer login by finding a test user.
-        const allCustomers = await getCustomers();
-        const customer = allCustomers.find(c => c.customerGroup === 'Retailer');
+        const customer = await getCustomerById('cust-02'); // Specifically log in as Olivia Smith
 
         if (customer) {
             localStorage.setItem('isCustomerLoggedIn', 'true');
@@ -32,7 +31,7 @@ export default function StoreLoginPage() {
             // Redirect to the intended page, or back to the store account.
             router.push(redirectUrl || '/store/account');
         } else {
-             console.error("Test customer not found.");
+             console.error("Test customer 'cust-02' (Olivia Smith) not found.");
         }
     }
 

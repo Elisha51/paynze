@@ -33,7 +33,7 @@ async function initializeMockCustomers(): Promise<Customer[]> {
             }
         ];
 
-        if (index === 0) {
+        if (index === 0) { // Liam Johnson
             baseComms.push({
                 id: 'comm-2-0',
                 type: 'Phone' as const,
@@ -52,7 +52,7 @@ async function initializeMockCustomers(): Promise<Customer[]> {
                 threadId: 'comm-2-0'
             });
         }
-        if (index === 1) { // Olivia Smith - our test customer
+        if (customer.id === 'cust-02') { // Olivia Smith - our main test customer
             baseComms.push({
                 id: 'comm-2-1',
                 type: 'Meeting' as const,
@@ -71,8 +71,8 @@ async function initializeMockCustomers(): Promise<Customer[]> {
             ...customer,
             communications: baseComms,
             orders: [],
-            wishlist: index === 1 ? ['COFF-01', 'JEWEL-01', 'KIT-001-BG', 'EBOOK-001', 'SHOE-002-42'] : [],
-            discounts: customer.id === 'cust-02' ? eligibleDiscounts : []
+            wishlist: customer.id === 'cust-02' ? ['COFF-01', 'JEWEL-01', 'KIT-001-BG', 'EBOOK-001', 'SHOE-002-42'] : [],
+            discounts: eligibleDiscounts
         };
     });
 }
