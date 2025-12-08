@@ -14,19 +14,34 @@ import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
+import { getCustomerById } from '@/services/customers';
+import { useToast } from '@/hooks/use-toast';
 
 export default function StoreLoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirectUrl = searchParams.get('redirect');
+    const { toast } = useToast();
 
-    const handleLogin = () => {
+    const handleLogin = async () => {
         // Simulate successful customer login
-        localStorage.setItem('isCustomerLoggedIn', 'true');
-        // For testing, we'll log in as a specific mock user
-        localStorage.setItem('loggedInCustomerId', 'cust-02'); 
-        // Redirect to the intended page, or back to the store.
-        router.push(redirectUrl || '/store/account');
+        const customer = await getCustomerById('cust-02');
+        if (customer) {
+            localStorage.setItem('isCustomerLoggedIn', 'true');
+            localStorage.setItem('loggedInCustomerId', customer.id);
+             toast({
+                title: 'Logged In!',
+                description: `Welcome back, ${customer.name}.`,
+            });
+            // Redirect to the intended page, or back to the store account.
+            router.push(redirectUrl || '/store/account');
+        } else {
+             toast({
+                variant: 'destructive',
+                title: 'Login Failed',
+                description: 'Test customer not found.',
+            });
+        }
     }
 
   return (

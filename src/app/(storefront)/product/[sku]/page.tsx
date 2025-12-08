@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -123,7 +124,8 @@ export default function ProductDetailPage() {
             ? currentWishlist.filter(itemSku => itemSku !== product.sku)
             : [...currentWishlist, product.sku];
         
-        const updatedCustomer = await updateCustomer({ ...customer, wishlist: newWishlist });
+        const updatedCustomerData: Partial<Customer> = { id: customer.id, wishlist: newWishlist };
+        const updatedCustomer = await updateCustomer(updatedCustomerData as Customer);
         setCustomer(updatedCustomer);
 
         toast({
