@@ -103,6 +103,15 @@ const getDiscountColumns = (onDelete: (code: string) => void): ColumnDef<Discoun
         filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
     },
     {
+        accessorKey: 'customerGroup',
+        header: 'Target Group',
+        cell: ({ row }) => {
+            const customerGroup = row.getValue('customerGroup') as string;
+            return <Badge variant="outline">{customerGroup}</Badge>
+        },
+        filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
+    },
+    {
         accessorKey: 'redemptions',
         header: 'Redemptions',
     },
