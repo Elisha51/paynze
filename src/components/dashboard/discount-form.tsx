@@ -130,6 +130,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     useEffect(() => {
         if (initialDiscount) {
             setDiscount(initialDiscount);
+            setHasUsageLimit(!!initialDiscount.usageLimit);
             if (initialDiscount.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
                 setApplicability('specific');
             } else {
@@ -286,8 +287,8 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                 <div className="space-y-2">
                                     <Label htmlFor="value">Value</Label>
                                     <div className="relative">
-                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={discount.type === 'Percentage' ? 'pr-8' : `pl-8`} placeholder="e.g. 15"/>
-                                        <span className="absolute top-1/2 -translate-y-1/2 text-muted-foreground text-sm p-2">
+                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className={discount.type === 'Percentage' ? 'pr-8' : 'pl-8'} placeholder="e.g. 15"/>
+                                        <span className={cn("absolute top-1/2 -translate-y-1/2 text-muted-foreground text-sm", discount.type === 'Percentage' ? 'right-2.5' : 'left-2.5')}>
                                             {discount.type === 'Percentage' ? '%' : currency}
                                         </span>
                                     </div>
@@ -461,8 +462,8 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                 <div className="relative">
+                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{currency}</span>
                                     <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="pl-8" placeholder="e.g. 50000" />
-                                     <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">{currency}</span>
                                 </div>
                             </div>
                             <div className="space-y-2">
