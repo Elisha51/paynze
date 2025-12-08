@@ -2,10 +2,18 @@
 'use client';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { Shield } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 export default function StoreLoginPage() {
     const router = useRouter();
@@ -18,7 +26,7 @@ export default function StoreLoginPage() {
         // For testing, we'll log in as a specific mock user
         localStorage.setItem('loggedInCustomerId', 'cust-02'); 
         // Redirect to the intended page, or back to the store.
-        router.push(redirectUrl || '/store');
+        router.push(redirectUrl || '/store/account');
     }
 
   return (
@@ -54,11 +62,22 @@ export default function StoreLoginPage() {
                         Login
                     </Button>
                 </div>
-                <div className="mt-4 text-center text-sm">
-                Don&apos;t have an account?{' '}
-                <Link href="/store/signup" className="underline">
-                    Sign up
-                </Link>
+                <Separator className="my-6" />
+                <div className="space-y-4 text-center">
+                    <div className="flex items-center gap-2">
+                        <Shield className="h-5 w-5 text-muted-foreground" />
+                        <h4 className="font-semibold">For Testing Purposes</h4>
+                    </div>
+                    <p className="text-sm text-muted-foreground">Click below to bypass login and view the populated customer dashboard.</p>
+                     <Button variant="secondary" className="w-full" onClick={handleLogin}>
+                        Log in as Olivia Smith (Test User)
+                    </Button>
+                </div>
+                <div className="mt-6 text-center text-sm">
+                    Don&apos;t have an account?{' '}
+                    <Link href="/store/signup" className="underline">
+                        Sign up
+                    </Link>
                 </div>
             </CardContent>
         </Card>
