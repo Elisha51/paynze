@@ -130,6 +130,15 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     const isEditing = !!initialDiscount;
 
     useEffect(() => {
+        if (initialDiscount) {
+            setDiscount(initialDiscount);
+            if (initialDiscount.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
+                setApplicability('specific');
+            } else {
+                setApplicability('all');
+            }
+        }
+        
         const data = localStorage.getItem('onboardingData');
         if (data) {
             setSettings(JSON.parse(data));
@@ -143,7 +152,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
             setAffiliates(affiliateData.filter(a => a.status === 'Active'));
         }
         loadData();
-    }, []);
+    }, [initialDiscount]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -469,3 +478,5 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         </div>
     );
 }
+
+    
