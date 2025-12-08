@@ -48,6 +48,7 @@ const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   startDate: new Date().toISOString(),
   allowedAffiliateIds: [],
   bogoDetails: {
+      buyConditionType: 'quantity',
       buyQuantity: 1,
       buyProductIds: [],
       getQuantity: 1,
@@ -188,7 +189,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         setDiscount(prev => ({...prev, [id]: checked }));
     }
     
-    const handleBogoChange = (field: 'buyQuantity' | 'getQuantity' | 'getDiscountPercentage', value: number) => {
+    const handleBogoChange = (field: 'buyQuantity' | 'getQuantity' | 'getDiscountPercentage' | 'buyConditionType' | 'buyAmount', value: string | number) => {
         setDiscount(prev => ({ ...prev, bogoDetails: { ...(prev.bogoDetails || {}), [field]: value } as any }));
     }
 
@@ -317,16 +318,36 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                     <Card>
                                         <CardHeader><CardTitle className="text-base">Customer Buys</CardTitle></CardHeader>
                                         <CardContent className="space-y-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="buyQuantity">Quantity</Label>
-                                                <Input id="buyQuantity" type="number" value={discount.bogoDetails?.buyQuantity} onChange={(e) => handleBogoChange('buyQuantity', Number(e.target.value))} placeholder="1" />
-                                            </div>
-                                            <ProductSelector
-                                                label="Specific products"
-                                                allProducts={products}
-                                                selectedProductIds={discount.bogoDetails?.buyProductIds || []}
-                                                onSelect={(sku) => handleBogoProductChange('buyProductIds', sku)}
-                                            />
+                                            <RadioGroup value={discount.bogoDetails?.buyConditionType || 'quantity'} onValueChange={(v) => handleBogoChange('buyConditionType', v as 'quantity' | 'amount')}>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="quantity" id="buy-quantity-option" />
+                                                    <Label htmlFor="buy-quantity-option">A minimum quantity of products</Label>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <RadioGroupItem value="amount" id="buy-amount-option" />
+                                                    <Label htmlFor="buy-amount-option">A minimum purchase amount</Label>
+                                                </div>
+                                            </RadioGroup>
+                                            {discount.bogoDetails?.buyConditionType === 'quantity' ? (
+                                                <div className="pl-6 space-y-4">
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="buyQuantity">Quantity</Label>
+                                                        <Input id="buyQuantity" type="number" value={discount.bogoDetails?.buyQuantity} onChange={(e) => handleBogoChange('buyQuantity', Number(e.target.value))} placeholder="1" />
+                                                    </div>
+                                                    <ProductSelector
+                                                        label="Specific products (optional)"
+                                                        allProducts={products}
+                                                        selectedProductIds={discount.bogoDetails?.buyProductIds || []}
+                                                        onSelect={(sku) => handleBogoProductChange('buyProductIds', sku)}
+                                                    />
+                                                     <p className="text-xs text-muted-foreground">If no products are selected, this will apply to any products in the cart.</p>
+                                                </div>
+                                            ) : (
+                                                <div className="pl-6 space-y-2">
+                                                    <Label htmlFor="buyAmount">Minimum Amount ({currency})</Label>
+                                                    <Input id="buyAmount" type="number" value={discount.bogoDetails?.buyAmount} onChange={(e) => handleBogoChange('buyAmount', Number(e.target.value))} placeholder="e.g., 100000"/>
+                                                </div>
+                                            )}
                                         </CardContent>
                                     </Card>
                                      <Card>
@@ -358,33 +379,32 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                         </CardContent>
                     </Card>
                     
-                    {discount.type !== 'Buy X Get Y' && (
-                        <Card>
-                            <CardHeader><CardTitle>Applicability</CardTitle></CardHeader>
-                            <CardContent className="space-y-4">
-                                <RadioGroup value={applicability} onValueChange={(v) => setApplicability(v as ApplicabilityType)}>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="all" id="apply-all" />
-                                        <Label htmlFor="apply-all">All products</Label>
-                                    </div>
-                                    <div className="flex items-center space-x-2">
-                                        <RadioGroupItem value="specific" id="apply-specific" />
-                                        <Label htmlFor="apply-specific">Specific products</Label>
-                                    </div>
-                                </RadioGroup>
-                                {applicability === 'specific' && (
-                                    <div className="pt-2 pl-6">
-                                        <ProductSelector
-                                            label="Select products this discount applies to"
-                                            allProducts={products}
-                                            selectedProductIds={discount.applicableProductIds || []}
-                                            onSelect={handleApplicableProductChange}
-                                        />
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    )}
+                    <Card>
+                        <CardHeader><CardTitle>Applicability</CardTitle></CardHeader>
+                        <CardContent className="space-y-4">
+                            <RadioGroup value={applicability} onValueChange={(v) => setApplicability(v as ApplicabilityType)} disabled={discount.type === 'Buy X Get Y'}>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="all" id="apply-all" />
+                                    <Label htmlFor="apply-all">All products</Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <RadioGroupItem value="specific" id="apply-specific" />
+                                    <Label htmlFor="apply-specific">Specific products</Label>
+                                </div>
+                            </RadioGroup>
+                            {applicability === 'specific' && (
+                                <div className="pt-2 pl-6">
+                                    <ProductSelector
+                                        label="Select products this discount applies to"
+                                        allProducts={products}
+                                        selectedProductIds={discount.applicableProductIds || []}
+                                        onSelect={handleApplicableProductChange}
+                                    />
+                                </div>
+                            )}
+                             {discount.type === 'Buy X Get Y' && <p className="text-xs text-muted-foreground">BOGO applicability is defined in the offer configuration.</p>}
+                        </CardContent>
+                    </Card>
 
 
                     <Card>

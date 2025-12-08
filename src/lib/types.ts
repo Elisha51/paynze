@@ -585,11 +585,13 @@ export type Campaign = {
 };
 
 export type BogoDetails = {
-    buyQuantity: number;
-    buyProductIds: string[];
+    buyConditionType: 'quantity' | 'amount';
+    buyQuantity?: number;
+    buyProductIds?: string[];
+    buyAmount?: number;
     getQuantity: number;
     getProductIds: string[];
-    getDiscountPercentage: number; // e.g., 100 for free, 50 for 50% off
+    getDiscountPercentage: number;
 }
 
 export type Discount = {
