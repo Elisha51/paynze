@@ -1,7 +1,7 @@
 
 'use client';
 
-import { Save, Sparkles, Ticket, Check, ChevronsUpDown } from 'lucide-react';
+import { Save, Sparkles, Ticket, Check, ChevronsUpDown, Calendar as CalendarIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -24,8 +24,6 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { Discount, OnboardingFormData, Product, Affiliate } from '@/lib/types';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
-import { DateRangePicker } from '../ui/date-range-picker';
-import { DateRange } from 'react-day-picker';
 import { Switch } from '../ui/switch';
 import { getProducts } from '@/services/products';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
@@ -33,6 +31,9 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { getAffiliates } from '@/services/affiliates';
+import { format } from 'date-fns';
+import { Calendar } from '../ui/calendar';
+import { Checkbox } from '../ui/checkbox';
 
 const emptyDiscount: Omit<Discount, 'code'> & { code?: string } = {
   type: 'Percentage',
@@ -114,14 +115,17 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
-    const [dateRange, setDateRange] = useState<DateRange | undefined>(
-        initialDiscount?.startDate ? {
-            from: new Date(initialDiscount.startDate),
-            to: initialDiscount.endDate ? new Date(initialDiscount.endDate) : undefined,
-        } : undefined
-    );
     const [hasUsageLimit, setHasUsageLimit] = useState(!!initialDiscount?.usageLimit);
     const [applicability, setApplicability] = useState<ApplicabilityType>('all');
+    
+    const [startDate, setStartDate] = useState<Date | undefined>(
+        initialDiscount?.startDate ? new Date(initialDiscount.startDate) : new Date()
+    );
+    const [endDate, setEndDate] = useState<Date | undefined>(
+        initialDiscount?.endDate ? new Date(initialDiscount.endDate) : undefined
+    );
+    const [noEndDate, setNoEndDate] = useState(!initialDiscount?.endDate);
+
 
     const router = useRouter();
     const { toast } = useToast();
@@ -131,11 +135,10 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
         if (initialDiscount) {
             setDiscount(initialDiscount);
             setHasUsageLimit(!!initialDiscount.usageLimit);
-            if (initialDiscount.applicableProductIds && initialDiscount.applicableProductIds.length > 0) {
-                setApplicability('specific');
-            } else {
-                setApplicability('all');
-            }
+            setApplicability((initialDiscount.applicableProductIds && initialDiscount.applicableProductIds.length > 0) ? 'specific' : 'all');
+            setStartDate(initialDiscount.startDate ? new Date(initialDiscount.startDate) : new Date());
+            setEndDate(initialDiscount.endDate ? new Date(initialDiscount.endDate) : undefined);
+            setNoEndDate(!initialDiscount.endDate);
         }
         
         const data = localStorage.getItem('onboardingData');
@@ -160,6 +163,12 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
             setApplicability('all');
         }
     }, [initialDiscount]);
+    
+    useEffect(() => {
+        if (noEndDate) {
+            setEndDate(undefined);
+        }
+    }, [noEndDate]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
@@ -215,11 +224,10 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
     }
 
     const handleSave = () => {
-        // In a real app, this would be a service call
         const finalDiscount: Partial<Discount> = {
             ...discount,
-            startDate: dateRange?.from?.toISOString(),
-            endDate: dateRange?.to?.toISOString(),
+            startDate: startDate?.toISOString(),
+            endDate: noEndDate ? undefined : endDate?.toISOString(),
         };
 
         if (!hasUsageLimit) {
@@ -471,8 +479,7 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                 <div className="flex items-center gap-2">
-                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="50000" />
-                                     <Select value={discount.currency || currency} onValueChange={(v) => handleSelectChange('currency', v)}>
+                                    <Select value={discount.currency || currency} onValueChange={(v) => handleSelectChange('currency', v)}>
                                         <SelectTrigger className="w-[100px]"><SelectValue /></SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="UGX">UGX</SelectItem>
@@ -480,11 +487,43 @@ export function DiscountForm({ initialDiscount }: DiscountFormProps) {
                                             <SelectItem value="TZS">TZS</SelectItem>
                                         </SelectContent>
                                     </Select>
+                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1" placeholder="50000" />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <Label>Active Dates</Label>
-                                <DateRangePicker date={dateRange} setDate={setDateRange} showPresets={false} />
+                                <div className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-xs font-normal">Start Date</Label>
+                                        <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !startDate && "text-muted-foreground")}>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {startDate ? format(startDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={startDate} onSelect={setStartDate} /></PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-xs font-normal">End Date</Label>
+                                            <div className="flex items-center space-x-2">
+                                                <Checkbox id="no-end-date" checked={noEndDate} onCheckedChange={(c) => setNoEndDate(c as boolean)} />
+                                                <Label htmlFor="no-end-date" className="text-xs font-normal">No end date</Label>
+                                            </div>
+                                        </div>
+                                         <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" disabled={noEndDate} className={cn("w-full justify-start text-left font-normal", !endDate && "text-muted-foreground")}>
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {endDate ? format(endDate, 'PPP') : <span>Pick a date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={endDate} onSelect={setEndDate} /></PopoverContent>
+                                        </Popover>
+                                    </div>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
