@@ -11,7 +11,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Copy, Ticket } from 'lucide-react';
 import { getCustomerById } from '@/services/customers';
-import { getDiscounts } from '@/services/marketing';
 import type { Customer, Discount } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,7 +20,6 @@ import { Separator } from '@/components/ui/separator';
 
 export default function DiscountsPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
-  const [eligibleDiscounts, setEligibleDiscounts] = useState<Discount[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -33,30 +31,23 @@ export default function DiscountsPage() {
         return;
       }
       
-      const [custData, allDiscounts] = await Promise.all([
-        getCustomerById(loggedInCustomerId),
-        getDiscounts()
-      ]);
-      
+      const custData = await getCustomerById(loggedInCustomerId);
       setCustomer(custData || null);
-
-      if (custData) {
-        const filtered = allDiscounts.filter(discount => 
-            discount.customerGroup === 'Everyone' || discount.customerGroup === custData.customerGroup
-        );
-        // Sort to show Active first, then Scheduled, then Expired
-        setEligibleDiscounts(filtered.sort((a, b) => {
-            const statusOrder: Record<string, number> = { 'Active': 1, 'Scheduled': 2, 'Expired': 3 };
-            const aStatus = a.status || 'Expired';
-            const bStatus = b.status || 'Expired';
-            return (statusOrder[aStatus] || 4) - (statusOrder[bStatus] || 4);
-        }));
-      }
-      
       setLoading(false);
     }
     loadData();
   }, []);
+  
+  const eligibleDiscounts = useMemo(() => {
+    if (!customer?.discounts) return [];
+    // Sort to show Active first, then Scheduled, then Expired
+    return [...customer.discounts].sort((a, b) => {
+        const statusOrder: Record<string, number> = { 'Active': 1, 'Scheduled': 2, 'Expired': 3 };
+        const aStatus = a.status || 'Expired';
+        const bStatus = b.status || 'Expired';
+        return (statusOrder[aStatus] || 4) - (statusOrder[bStatus] || 4);
+    });
+  }, [customer]);
 
   const copyCode = (code: string) => {
     navigator.clipboard.writeText(code);
@@ -68,7 +59,6 @@ export default function DiscountsPage() {
           return `${discount.value}% OFF`;
       }
       if (discount.type === 'Fixed Amount') {
-        // A currency prop would be better here, but for now, we'll use a sensible default
         const currency = customer?.currency || 'UGX';
         return `${new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(discount.value)} OFF`;
       }
@@ -85,6 +75,11 @@ export default function DiscountsPage() {
         case 'Expired': return { variant: 'outline', text: 'Expired' };
         default: return { variant: 'outline', text: status };
     }
+  }
+
+  const formatCurrency = (amount: number) => {
+    const currency = customer?.currency || 'UGX';
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
 
   if (loading) {
@@ -139,9 +134,9 @@ export default function DiscountsPage() {
                         </div>
                         <Separator className="my-2" />
                         <div className="text-xs text-muted-foreground space-y-1">
-                             {discount.minPurchase > 0 && <p>• Minimum purchase of {formatCurrency(discount, discount.minPurchase)}</p>}
+                             {discount.minPurchase > 0 && <p>• Minimum purchase of {formatCurrency(discount.minPurchase)}</p>}
                              {discount.onePerCustomer && <p>• One use per customer.</p>}
-                             {discount.bogoDetails && <p>• {`Buy ${discount.bogoDetails.buyQuantity} of a selected item to get ${discount.bogoDetails.getQuantity} of another for ${discount.bogoDetails.getDiscountPercentage}% off.`}</p>}
+                             {discount.type === 'Buy X Get Y' && discount.bogoDetails && <p>• {`Buy ${discount.bogoDetails.buyQuantity} of a selected item to get ${discount.bogoDetails.getQuantity} of another for ${discount.bogoDetails.getDiscountPercentage}% off.`}</p>}
                              {discount.endDate && <p>• {discount.status === 'Expired' ? 'Expired on' : 'Expires on'} {new Date(discount.endDate).toLocaleDateString()}</p>}
                         </div>
                     </div>
@@ -158,9 +153,4 @@ export default function DiscountsPage() {
       </CardContent>
     </Card>
   );
-}
-
-function formatCurrency(discount: Discount, amount: number) {
-    const currency = 'UGX'; // Simplified for mock
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
 }
