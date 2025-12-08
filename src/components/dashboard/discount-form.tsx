@@ -118,9 +118,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
     const [products, setProducts] = useState<Product[]>([]);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
     const [hasUsageLimit, setHasUsageLimit] = useState(!!initialDiscount?.usageLimit);
-    const [applicability, setApplicability] = useState<ApplicabilityType>(
-        (initialDiscount?.applicableProductIds && initialDiscount.applicableProductIds.length > 0) ? 'specific' : 'all'
-    );
+    const [applicability, setApplicability] = useState<ApplicabilityType>('all');
     
     const [startDate, setStartDate] = useState<Date | undefined>(
         initialDiscount?.startDate ? new Date(initialDiscount.startDate) : new Date()
@@ -136,7 +134,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
 
     useEffect(() => {
         const bogoDetailsWithDefaults: BogoDetails = {
-            buyConditionType: initialDiscount?.bogoDetails?.buyConditionType || 'quantity',
+            buyConditionType: 'quantity',
             buyQuantity: 1,
             buyProductIds: [],
             getQuantity: 1,
@@ -189,7 +187,11 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
     };
 
     const handleSelectChange = (id: 'type' | 'customerGroup' | 'currency', value: string) => {
-        setDiscount(prev => ({...prev, [id]: value as any}));
+        const updates: Partial<Discount> = { [id]: value as any };
+        if (id === 'type') {
+            updates.value = 0;
+        }
+        setDiscount(prev => ({...prev, ...updates}));
     }
     
     const handleSwitchChange = (id: 'onePerCustomer', checked: boolean) => {
@@ -270,7 +272,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                             <div className="space-y-2">
                                 <Label htmlFor="code">Discount Code</Label>
                                 <div className="flex gap-2">
-                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} placeholder="e.g., SAVE20" disabled={isEditing}/>
+                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} placeholder="Enter discount code" disabled={isEditing}/>
                                     <Button variant="outline" onClick={generateCode} disabled={isEditing}>
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         Generate
@@ -317,7 +319,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                                 <div className="space-y-2">
                                     <Label htmlFor="value">Value</Label>
                                     <div className="flex items-center">
-                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1 rounded-r-none" placeholder="e.g. 15"/>
+                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1 rounded-r-none" placeholder="Enter value"/>
                                         <div className="text-muted-foreground p-2 rounded-r-md border border-l-0 h-10 flex items-center bg-muted">
                                             {discount.type === 'Percentage' ? '%' : currency}
                                         </div>
@@ -344,7 +346,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                                                 <div className="pl-6 space-y-4">
                                                     <div className="space-y-2">
                                                         <Label htmlFor="buyQuantity">Quantity</Label>
-                                                        <Input id="buyQuantity" type="number" value={discount.bogoDetails?.buyQuantity} onChange={(e) => handleBogoChange('buyQuantity', Number(e.target.value))} placeholder="1" />
+                                                        <Input id="buyQuantity" type="number" value={discount.bogoDetails?.buyQuantity} onChange={(e) => handleBogoChange('buyQuantity', Number(e.target.value))} placeholder="Enter quantity" />
                                                     </div>
                                                     <ProductSelector
                                                         label="Specific products (optional)"
@@ -357,7 +359,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                                             ) : (
                                                 <div className="pl-6 space-y-2">
                                                     <Label htmlFor="buyAmount">Minimum Amount ({currency})</Label>
-                                                    <Input id="buyAmount" type="number" value={discount.bogoDetails?.buyAmount} onChange={(e) => handleBogoChange('buyAmount', Number(e.target.value))} placeholder="e.g., 100000"/>
+                                                    <Input id="buyAmount" type="number" value={discount.bogoDetails?.buyAmount || ''} onChange={(e) => handleBogoChange('buyAmount', Number(e.target.value))} placeholder="Enter amount"/>
                                                 </div>
                                             )}
                                         </CardContent>
@@ -367,7 +369,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                                         <CardContent className="space-y-4">
                                              <div className="space-y-2">
                                                 <Label htmlFor="getQuantity">Quantity</Label>
-                                                <Input id="getQuantity" type="number" value={discount.bogoDetails?.getQuantity} onChange={(e) => handleBogoChange('getQuantity', Number(e.target.value))} placeholder="1"/>
+                                                <Input id="getQuantity" type="number" value={discount.bogoDetails?.getQuantity} onChange={(e) => handleBogoChange('getQuantity', Number(e.target.value))} placeholder="Enter quantity"/>
                                             </div>
                                             <ProductSelector
                                                 label="Specific products"
@@ -511,8 +513,17 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                 <div className="flex items-center">
-                                    <span className="text-muted-foreground p-2 rounded-l-md border border-r-0 bg-muted h-10 flex items-center">{currency}</span>
-                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="rounded-l-none" placeholder="e.g. 50000"/>
+                                    <div className="text-muted-foreground p-2 rounded-l-md border border-r-0 bg-muted h-10 flex items-center">
+                                        <Select value={discount.currency} onValueChange={(v) => handleSelectChange('currency', v)}>
+                                            <SelectTrigger className="border-0 bg-transparent h-auto p-0"><SelectValue/></SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="UGX">UGX</SelectItem>
+                                                <SelectItem value="KES">KES</SelectItem>
+                                                <SelectItem value="TZS">TZS</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="rounded-l-none" placeholder="Enter amount"/>
                                 </div>
                             </div>
                             <div className="space-y-2">
