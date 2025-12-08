@@ -240,7 +240,7 @@ export function StaffForm({ initialStaff, onSave, isSelfEditing = false }: { ini
         }
         
         if (isEditing) {
-            await updateStaff(staffMember as Staff);
+            await updateStaff(staffMember.id!, staffMember as Staff);
             toast({ title: 'Staff Member Updated' });
         } else {
             await addStaff(staffMember as Omit<Staff, 'id'>);
@@ -317,16 +317,16 @@ export function StaffForm({ initialStaff, onSave, isSelfEditing = false }: { ini
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="name">Full Name</Label>
-                                <Input id="name" value={staffMember.name} onChange={handleCoreInfoChange} />
+                                <Input id="name" value={staffMember.name} onChange={handleCoreInfoChange} placeholder="Enter full name" />
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email Address</Label>
-                                <Input id="email" type="email" value={staffMember.email} onChange={handleCoreInfoChange} disabled={isSelfEditing} />
+                                <Input id="email" type="email" value={staffMember.email} onChange={handleCoreInfoChange} disabled={isSelfEditing} placeholder="Enter email address" />
                             </div>
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="phone">Phone Number</Label>
-                            <Input id="phone" type="tel" value={staffMember.phone || ''} onChange={handleCoreInfoChange} />
+                            <Input id="phone" type="tel" value={staffMember.phone || ''} onChange={handleCoreInfoChange} placeholder="Enter phone number" />
                         </div>
                     </CardContent>
                 </Card>

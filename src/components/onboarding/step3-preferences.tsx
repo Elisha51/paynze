@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step3-preferences.tsx
 'use client';
 import { useOnboarding } from '@/context/onboarding-context';
@@ -72,13 +73,13 @@ export default function Step3Preferences() {
             {formData.delivery.pickup && (
                 <div className="space-y-2 pl-2">
                     <Label htmlFor="address">Pickup Address (Required)</Label>
-                    <Input id="address" placeholder="e.g. Shop 14, Kikuubo Lane" value={formData.delivery.address} onChange={handleInputChange} required />
+                    <Input id="address" placeholder="e.g., Shop 14, Kikuubo Lane, Kampala" value={formData.delivery.address} onChange={handleInputChange} required />
                 </div>
             )}
              <div className="space-y-2">
                 <Label htmlFor="deliveryFee">Flat Delivery Fee (optional)</Label>
                  <span className="font-normal leading-snug text-muted-foreground text-xs db-block">Charge a single fee for all deliveries. Leave blank for free delivery.</span>
-                <Input id="deliveryFee" type="number" placeholder="e.g. 10000" value={formData.delivery.deliveryFee} onChange={handleInputChange} />
+                <Input id="deliveryFee" type="number" placeholder="Enter amount" value={formData.delivery.deliveryFee} onChange={handleInputChange} />
             </div>
         </div>
       </CardContent>

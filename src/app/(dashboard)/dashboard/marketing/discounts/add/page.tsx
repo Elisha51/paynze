@@ -21,6 +21,12 @@ export default function AddDiscountPage() {
         console.error("Failed to parse duplicate discount data", e);
       }
     }
+    
+    // Cleanup function to remove the item from localStorage when the component unmounts
+    // This will prevent the "Duplicate Discount" title from appearing incorrectly on subsequent visits
+    return () => {
+      localStorage.removeItem('duplicateDiscountData');
+    };
   }, []);
 
   return (

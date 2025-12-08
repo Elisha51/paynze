@@ -105,7 +105,7 @@ export function PaymentsSettings() {
                                 <Label htmlFor="publicKey">Public Key</Label>
                                 <Input 
                                     id="publicKey"
-                                    placeholder="pk_test_..." 
+                                    placeholder="Enter your public key" 
                                     value={settings.paymentGatewaySettings?.publicKey || ''}
                                     onChange={(e) => handleApiKeyChange('publicKey', e.target.value)}
                                 />
@@ -115,7 +115,7 @@ export function PaymentsSettings() {
                                 <Input
                                     id="secretKey"
                                     type="password"
-                                    placeholder="sk_test_..."
+                                    placeholder="Enter your secret key"
                                     value={settings.paymentGatewaySettings?.secretKey || ''}
                                     onChange={(e) => handleApiKeyChange('secretKey', e.target.value)}
                                 />
@@ -130,7 +130,7 @@ export function PaymentsSettings() {
                                 <Input 
                                     id="mtn"
                                     type="tel" 
-                                    placeholder="+256772123456" 
+                                    placeholder="Enter MTN number" 
                                     value={settings.payoutAccounts?.mtn || ''}
                                     onChange={(e) => handlePayoutAccountChange('mtn', e.target.value)}
                                 />
@@ -140,7 +140,7 @@ export function PaymentsSettings() {
                                 <Input
                                     id="airtel"
                                     type="tel" 
-                                    placeholder="+256702987654"
+                                    placeholder="Enter Airtel number"
                                     value={settings.payoutAccounts?.airtel || ''}
                                     onChange={(e) => handlePayoutAccountChange('airtel', e.target.value)}
                                 />

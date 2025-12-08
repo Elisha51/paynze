@@ -71,7 +71,7 @@ export default function Step1BusinessInfo() {
       <CardContent className="space-y-6">
         <div className="space-y-2">
           <Label htmlFor="businessName">Business Name</Label>
-          <Input id="businessName" placeholder="e.g. Kato Traders" value={formData.businessName} onChange={handleInputChange} />
+          <Input id="businessName" placeholder="Enter your business name" value={formData.businessName} onChange={handleInputChange} />
         </div>
 
         <div className="space-y-3">
@@ -104,7 +104,7 @@ export default function Step1BusinessInfo() {
                     {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input id="contactPhone" type="tel" placeholder="772 123456" onChange={handlePhoneInputChange} />
+                <Input id="contactPhone" type="tel" placeholder="Enter phone number" onChange={handlePhoneInputChange} />
               </div>
             </div>
             <div className="space-y-2">

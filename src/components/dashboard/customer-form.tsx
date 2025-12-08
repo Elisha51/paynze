@@ -110,7 +110,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
 
     try {
         if (isEditing && customer.id) {
-            await updateCustomer(customer as Customer);
+            await updateCustomer(customer.id, customer as Customer);
         } else {
             if (!user) throw new Error("User not found");
             const newCustomerData = {
@@ -159,11 +159,11 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
             <CardContent className="space-y-4">
               <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" placeholder="e.g., John Doe" value={customer.name} onChange={handleInputChange} />
+                  <Input id="name" placeholder="Enter customer's full name" value={customer.name} onChange={handleInputChange} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="e.g., john.doe@example.com" value={customer.email} onChange={handleInputChange}/>
+                <Input id="email" type="email" placeholder="Enter email address" value={customer.email} onChange={handleInputChange}/>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
@@ -176,7 +176,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
                         {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                     </SelectContent>
                     </Select>
-                    <Input id="phone" type="tel" placeholder="712 345 678" value={customer.phone} onChange={handleInputChange}/>
+                    <Input id="phone" type="tel" placeholder="Enter phone number" value={customer.phone} onChange={handleInputChange}/>
                 </div>
               </div>
             </CardContent>
@@ -194,7 +194,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="e.g., Nairobi" value={customer.shippingAddress?.city} onChange={handleAddressChange}/>
+                        <Input id="city" placeholder="e.g., Kampala" value={customer.shippingAddress?.city} onChange={handleAddressChange}/>
                     </div>
                     <div className="space-y-2">
                        <Label htmlFor="country">Country</Label>

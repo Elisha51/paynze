@@ -117,16 +117,16 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
         <CardContent className="space-y-4">
           <div className="space-y-2">
               <Label htmlFor="name">Supplier Name</Label>
-              <Input id="name" placeholder="e.g., Kitenge Kings" value={supplier.name} onChange={handleInputChange} />
+              <Input id="name" placeholder="Enter supplier name" value={supplier.name} onChange={handleInputChange} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                   <Label htmlFor="contactName">Contact Name</Label>
-                  <Input id="contactName" placeholder="e.g., Grace Nakato" value={supplier.contactName} onChange={handleInputChange} />
+                  <Input id="contactName" placeholder="Enter contact person's name" value={supplier.contactName} onChange={handleInputChange} />
               </div>
               <div className="space-y-2">
                   <Label htmlFor="email">Contact Email</Label>
-                  <Input id="email" type="email" placeholder="e.g., grace@kitengekings.com" value={supplier.email} onChange={handleInputChange} />
+                  <Input id="email" type="email" placeholder="Enter contact email" value={supplier.email} onChange={handleInputChange} />
               </div>
           </div>
            <div className="space-y-2">
@@ -140,12 +140,12 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
                     {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Input id="phone" type="tel" placeholder="772 111 222" value={supplier.phone} onChange={handleInputChange} />
+                <Input id="phone" type="tel" placeholder="Enter phone number" value={supplier.phone} onChange={handleInputChange} />
               </div>
           </div>
           <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
-              <Textarea id="address" placeholder="e.g., 123 Textile Road, Kampala" value={supplier.address} onChange={handleInputChange} />
+              <Textarea id="address" placeholder="Enter full physical address" value={supplier.address} onChange={handleInputChange} />
           </div>
            <div className="space-y-2">
               <Label>Products Supplied</Label>

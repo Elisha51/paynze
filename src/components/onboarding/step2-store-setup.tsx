@@ -111,7 +111,7 @@ export default function Step2StoreSetup() {
                         <Label htmlFor="subdomain-option">Use a free Paynze Subdomain</Label>
                     </div>
                      <div className="flex items-center space-x-2 pl-6">
-                        <Input id="subdomain" placeholder="e.g. katos" value={formData.subdomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'subdomain'}/>
+                        <Input id="subdomain" placeholder="e.g., my-store" value={formData.subdomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'subdomain'}/>
                          <span className="text-muted-foreground">.paynze.app</span>
                         <Button variant="outline" onClick={checkAvailability} disabled={formData.domainType !== 'subdomain' || !formData.subdomain || isLoading}>
                             {isLoading ? <Loader2 className="h-4 w-4 animate-spin"/> : 'Check'}
@@ -144,7 +144,7 @@ export default function Step2StoreSetup() {
                         <Label htmlFor="custom-domain-option">Connect a Custom Domain you own</Label>
                     </div>
                     <div className="flex items-center space-x-2 pl-6">
-                        <Input id="customDomain" placeholder="e.g. www.katostraders.com" value={formData.customDomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'custom'} />
+                        <Input id="customDomain" placeholder="e.g., www.example.com" value={formData.customDomain} onChange={handleInputChange} className="flex-1" disabled={formData.domainType !== 'custom'} />
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 pl-6">You will configure DNS records after sign-up.</p>
                 </div>

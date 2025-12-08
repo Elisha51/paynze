@@ -113,7 +113,7 @@ const ProductSelector = ({
 
 
 export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFormProps) {
-    const [discount, setDiscount] = useState<Partial<Discount>>(initialDiscount || emptyDiscount);
+    const [discount, setDiscount] = useState<Partial<Discount>>({ ...emptyDiscount, ...initialDiscount });
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [affiliates, setAffiliates] = useState<Affiliate[]>([]);
@@ -136,13 +136,13 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
 
     useEffect(() => {
         const bogoDetailsWithDefaults: BogoDetails = {
-            buyConditionType: 'quantity',
+            buyConditionType: initialDiscount?.bogoDetails?.buyConditionType || 'quantity',
             buyQuantity: 1,
             buyProductIds: [],
             getQuantity: 1,
             getProductIds: [],
             getDiscountPercentage: 100,
-            ...(initialDiscount?.bogoDetails || {}),
+            ...initialDiscount?.bogoDetails,
         };
 
         const fullInitialDiscount = {
@@ -270,7 +270,7 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                             <div className="space-y-2">
                                 <Label htmlFor="code">Discount Code</Label>
                                 <div className="flex gap-2">
-                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} placeholder="e.g. EID2024" disabled={isEditing}/>
+                                    <Input id="code" value={discount.code || ''} onChange={handleInputChange} placeholder="e.g., SAVE20" disabled={isEditing}/>
                                     <Button variant="outline" onClick={generateCode} disabled={isEditing}>
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         Generate
@@ -316,9 +316,9 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                             {discount.type !== 'Buy X Get Y' && (
                                 <div className="space-y-2">
                                     <Label htmlFor="value">Value</Label>
-                                    <div className="flex items-center gap-2">
-                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1" placeholder={discount.type === 'Percentage' ? "15" : "10000"}/>
-                                        <div className="text-muted-foreground p-2 rounded-r-md border-l-0 border h-10 flex items-center bg-muted">
+                                    <div className="flex items-center">
+                                        <Input id="value" type="number" value={discount.value || ''} onChange={handleNumberChange} className="flex-1 rounded-r-none" placeholder="e.g. 15"/>
+                                        <div className="text-muted-foreground p-2 rounded-r-md border border-l-0 h-10 flex items-center bg-muted">
                                             {discount.type === 'Percentage' ? '%' : currency}
                                         </div>
                                     </div>
@@ -377,9 +377,9 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                                             />
                                             <div className="space-y-2">
                                                 <Label htmlFor="getDiscountPercentage">Discount Percentage on 'Get' items</Label>
-                                                <div className="flex items-center gap-2">
-                                                    <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="flex-1" placeholder="100"/>
-                                                    <div className="text-muted-foreground p-2 rounded-r-md border-l-0 border h-10 flex items-center bg-muted">%</div>
+                                                <div className="flex items-center">
+                                                    <Input id="getDiscountPercentage" type="number" value={discount.bogoDetails?.getDiscountPercentage} onChange={(e) => handleBogoChange('getDiscountPercentage', Number(e.target.value))} className="flex-1 rounded-r-none" placeholder="100"/>
+                                                    <div className="text-muted-foreground p-2 rounded-r-md border border-l-0 h-10 flex items-center bg-muted">%</div>
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">Enter 100 for a "Buy One, Get One Free" offer.</p>
                                             </div>
@@ -511,8 +511,8 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                             <div className="space-y-2">
                                 <Label htmlFor="minPurchase">Minimum purchase requirement</Label>
                                 <div className="flex items-center">
-                                    <span className="text-muted-foreground p-2 rounded-l-md border border-r-0 bg-muted">{currency}</span>
-                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="flex-1 rounded-l-none" placeholder="50000"/>
+                                    <span className="text-muted-foreground p-2 rounded-l-md border border-r-0 bg-muted h-10 flex items-center">{currency}</span>
+                                    <Input id="minPurchase" type="number" value={discount.minPurchase || ''} onChange={handleNumberChange} className="rounded-l-none" placeholder="e.g. 50000"/>
                                 </div>
                             </div>
                             <div className="space-y-2">
@@ -552,14 +552,14 @@ export function DiscountForm({ initialDiscount, isEditing = false }: DiscountFor
                             </div>
                         </CardContent>
                     </Card>
-                     <div className="flex justify-end gap-2">
-                        <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
-                        <Button onClick={handleSave}>
-                            <Save className="mr-2 h-4 w-4" />
-                            Save {isEditing ? 'Changes' : 'Discount'}
-                        </Button>
-                    </div>
                 </div>
+            </div>
+             <div className="flex justify-end mt-6">
+                <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
+                <Button onClick={handleSave} className="ml-2">
+                    <Save className="mr-2 h-4 w-4" />
+                    Save {isEditing ? 'Changes' : 'Discount'}
+                </Button>
             </div>
         </div>
     );
