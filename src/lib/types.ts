@@ -597,6 +597,7 @@ export type Discount = {
   type: 'Percentage' | 'Fixed Amount' | 'Buy X Get Y';
   value: number; // For Percentage or Fixed Amount
   status: 'Active' | 'Expired' | 'Scheduled';
+  currency: string;
   redemptions: number;
   minPurchase: number;
   customerGroup: 'Everyone' | 'New Customers' | 'Wholesalers' | 'Retailers' | 'No Affiliates' | 'Specific Affiliates';
