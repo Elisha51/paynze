@@ -30,6 +30,7 @@ import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance
 import { PayoutsReport } from '@/components/dashboard/payouts-report';
 import { FileUploader } from '@/components/ui/file-uploader';
 import { ReconciliationGuide } from '@/components/dashboard/reconciliation-guide';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 type ActiveTab = 'transactions' | 'commissions' | 'summary' | 'reconciliation' | 'analytics';
@@ -366,7 +367,9 @@ export default function FinancesPage() {
                 <DialogTitle>Preparing Your Statement File</DialogTitle>
                 <DialogDescription>Follow these steps to ensure your file is processed correctly by the AI.</DialogDescription>
             </DialogHeader>
-             <ReconciliationGuide />
+            <ScrollArea className="max-h-[60vh] pr-6">
+                <ReconciliationGuide />
+            </ScrollArea>
              <DialogFooter>
                  <DialogClose asChild><Button>Got it</Button></DialogClose>
              </DialogFooter>
