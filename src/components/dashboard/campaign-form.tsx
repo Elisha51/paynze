@@ -418,16 +418,19 @@ export function CampaignForm({ initialCampaign }: CampaignFormProps) {
                                     <div className="space-y-4 pt-4 border-t">
                                         <div className="space-y-2">
                                             <Label htmlFor="banner-title">Banner Title</Label>
-                                            <Input id="banner-title" value={campaign.banner?.title || ''} onChange={(e) => handleBannerChange('title', e.target.value)} />
+                                            <Input id="banner-title" maxLength={60} value={campaign.banner?.title || ''} onChange={(e) => handleBannerChange('title', e.target.value)} />
+                                            <p className="text-xs text-muted-foreground text-right">{(campaign.banner?.title?.length || 0)} / 60</p>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="banner-description">Banner Description</Label>
-                                            <Textarea id="banner-description" value={campaign.banner?.description || ''} onChange={(e) => handleBannerChange('description', e.target.value)} />
+                                            <Textarea id="banner-description" maxLength={120} value={campaign.banner?.description || ''} onChange={(e) => handleBannerChange('description', e.target.value)} />
+                                             <p className="text-xs text-muted-foreground text-right">{(campaign.banner?.description?.length || 0)} / 120</p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                              <div className="space-y-2">
                                                 <Label htmlFor="banner-ctaText">CTA Button Text</Label>
-                                                <Input id="banner-ctaText" value={campaign.banner?.ctaText || ''} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
+                                                <Input id="banner-ctaText" maxLength={20} value={campaign.banner?.ctaText || ''} onChange={(e) => handleBannerChange('ctaText', e.target.value)} />
+                                                 <p className="text-xs text-muted-foreground text-right">{(campaign.banner?.ctaText?.length || 0)} / 20</p>
                                             </div>
                                              <div className="space-y-2">
                                                 <Label htmlFor="banner-ctaLink">CTA Button Link</Label>
