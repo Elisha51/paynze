@@ -15,7 +15,7 @@ import { SidebarTrigger } from '../ui/sidebar';
 import Link from 'next/link';
 import { type OnboardingFormData } from '@/context/onboarding-context';
 import { NotificationBell } from './notification-bell';
-import { ClipboardCheck, Truck } from 'lucide-react';
+import { ClipboardCheck, Store, Truck } from 'lucide-react';
 import { Badge } from '../ui/badge';
 import React, { useEffect, useState, useCallback } from 'react';
 import { getStaffOrders } from '@/services/staff';
@@ -71,6 +71,12 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
       </div>
 
       <div className="flex items-center gap-2">
+        <Button asChild variant="outline" size="sm">
+            <Link href="/store" target="_blank">
+                <Store className="mr-2 h-4 w-4" />
+                Visit Store
+            </Link>
+        </Button>
         <Button asChild variant="ghost" size="icon" className="rounded-full relative">
             <Link href="/dashboard/my-tasks">
                 <ClipboardCheck className="h-5 w-5" />
