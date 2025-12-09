@@ -30,8 +30,8 @@ export function PromotionalCarousel({ campaigns }: PromotionalCarouselProps) {
 
   const sizeClasses = {
       standard: 'aspect-[3/1]',
-      large: 'aspect-[2/1]',
-      square: 'aspect-square',
+      large: 'aspect-[4/1]',
+      square: 'aspect-video', // Changed from aspect-square
   };
 
   return (
