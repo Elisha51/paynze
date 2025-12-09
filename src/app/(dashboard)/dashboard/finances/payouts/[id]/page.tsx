@@ -1,16 +1,75 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { ArrowLeft, Check } from 'lucide-react';
-import type { Staff, OnboardingFormData } from '@/lib/types';
+import { ArrowLeft, Check, DollarSign, FileText } from 'lucide-react';
+import type { Staff, OnboardingFormData, Order, Role, AffiliateProgramSettings, Payout } from '@/lib/types';
 import { getStaff, updateStaff } from '@/services/staff';
 import { useToast } from '@/hooks/use-toast';
 import { addTransaction } from '@/services/finances';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import { getOrders } from '@/services/orders';
+import { getRoles } from '@/services/roles';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { format } from 'date-fns';
+import Link from 'next/link';
+import { EmptyState } from '@/components/ui/empty-state';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
+import { ColumnDef } from '@tanstack/react-table';
+import { DataTable } from '@/components/dashboard/data-table';
+
+const payoutHistoryColumns: ColumnDef<Payout>[] = [
+    {
+        accessorKey: 'date',
+        header: 'Date',
+        cell: ({ row }) => format(new Date(row.getValue('date')), 'PPP')
+    },
+    {
+        accessorKey: 'amount',
+        header: 'Amount',
+        cell: ({ row }) => {
+            const payout = row.original;
+            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: payout.currency }).format(payout.amount);
+            return <div className="font-medium">{formatted}</div>;
+        },
+    },
+];
+
+type CommissionableOrder = Order & { commission: number };
+
+const commissionBreakdownColumns = (currency: string): ColumnDef<CommissionableOrder>[] => [
+    {
+        accessorKey: 'id',
+        header: 'Order',
+        cell: ({ row }) => (
+            <Link href={`/dashboard/orders/${row.original.id}`} className="font-medium hover:underline text-primary">
+                {row.getValue('id')}
+            </Link>
+        )
+    },
+    {
+        accessorKey: 'date',
+        header: 'Date',
+        cell: ({ row }) => format(new Date(row.getValue('date')), 'PPP')
+    },
+    {
+        accessorKey: 'total',
+        header: 'Order Total',
+        cell: ({ row }) => new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(row.original.total)
+    },
+    {
+        accessorKey: 'commission',
+        header: 'Commission Earned',
+        cell: ({ row }) => {
+             const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(row.original.commission);
+             return <div className="font-semibold text-green-600">{formatted}</div>
+        }
+    }
+];
 
 export default function PayoutPage() {
     const params = useParams();
@@ -21,31 +80,85 @@ export default function PayoutPage() {
     const [staffMember, setStaffMember] = useState<Staff | null>(null);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [allOrders, setAllOrders] = useState<Order[]>([]);
+    const [roles, setRoles] = useState<Role[]>([]);
+    const [affiliateSettings, setAffiliateSettings] = useState<AffiliateProgramSettings | null>(null);
 
     useEffect(() => {
         async function loadData() {
             setIsLoading(true);
-            const [staffData, settingsData] = await Promise.all([
+            const [staffData, settingsData, ordersData, rolesData, affSettingsData] = await Promise.all([
                 getStaff().then(all => all.find(s => s.id === id)),
-                localStorage.getItem('onboardingData')
+                localStorage.getItem('onboardingData'),
+                getOrders(),
+                getRoles(),
+                localStorage.getItem('affiliateSettings'),
             ]);
             setStaffMember(staffData || null);
-            if (settingsData) {
-                setSettings(JSON.parse(settingsData));
-            }
+            if (settingsData) setSettings(JSON.parse(settingsData));
+            if (affSettingsData) setAffiliateSettings(JSON.parse(affSettingsData));
+            setAllOrders(ordersData);
+            setRoles(rolesData);
             setIsLoading(false);
         }
         loadData();
     }, [id]);
 
+    const { unpaidCommissionableOrders } = useMemo(() => {
+        if (!staffMember || allOrders.length === 0 || roles.length === 0) {
+            return { unpaidCommissionableOrders: [] };
+        }
+        
+        const staffRole = roles.find(r => r.name === staffMember.role);
+        
+        const paidOutOrderIds = (staffMember.payoutHistory || []).flatMap(p => p.paidItemIds || []);
+        
+        const commissionableOrders: CommissionableOrder[] = [];
+
+        for (const order of allOrders) {
+            let commission = 0;
+            const trigger = order.status === 'Delivered' || order.status === 'Picked Up' ? 'On Order Delivered' : 'On Order Paid';
+            const staffId = trigger === 'On Order Paid' ? order.salesAgentId : order.fulfilledByStaffId;
+
+            if (staffId !== staffMember.id) continue;
+
+             if (staffRole?.name === 'Affiliate' && trigger === 'On Order Paid' && affiliateSettings?.programStatus === 'Active') {
+                if (affiliateSettings.commissionType === 'Percentage') {
+                    commission = order.total * (affiliateSettings.commissionRate / 100);
+                } else {
+                    commission = affiliateSettings.commissionRate;
+                }
+            } else if (staffRole?.commissionRules) {
+                 staffRole.commissionRules.forEach(rule => {
+                    if (rule.trigger === trigger) {
+                         if (rule.type === 'Fixed Amount') {
+                            commission += rule.rate;
+                        } else if (rule.type === 'Percentage of Sale') {
+                            commission += order.total * (rule.rate / 100);
+                        }
+                    }
+                 });
+            }
+            
+            if (commission > 0) {
+                commissionableOrders.push({ ...order, commission });
+            }
+        }
+        
+        const unpaid = commissionableOrders.filter(o => !paidOutOrderIds.includes(o.id));
+
+        return { unpaidCommissionableOrders: unpaid };
+
+    }, [staffMember, allOrders, roles, affiliateSettings]);
+
     const handleConfirmPayout = async () => {
         if (!staffMember || !staffMember.totalCommission) return;
 
-        // 1. Create a payout record for the staff member
-        const newPayout = {
+        const newPayout: Payout = {
             date: new Date().toISOString(),
             amount: staffMember.totalCommission,
-            currency: staffMember.currency || 'UGX'
+            currency: staffMember.currency || 'UGX',
+            paidItemIds: unpaidCommissionableOrders.map(o => o.id)
         };
 
         const updatedStaff: Staff = {
@@ -56,16 +169,15 @@ export default function PayoutPage() {
         };
         await updateStaff(updatedStaff.id, updatedStaff);
 
-        // 2. Create a corresponding expense transaction in the finance ledger
         await addTransaction({
             date: new Date().toISOString(),
             description: `Payout to ${staffMember.name} for commission`,
             amount: -staffMember.totalCommission,
             currency: staffMember.currency || 'UGX',
             type: 'Expense',
-            category: 'Salaries', // Or a dedicated 'Commissions' category
+            category: 'Salaries',
             status: 'Cleared',
-            paymentMethod: 'Mobile Money' // Or ask for this
+            paymentMethod: 'Mobile Money'
         });
 
         toast({
@@ -83,8 +195,8 @@ export default function PayoutPage() {
 
     if (isLoading) {
         return (
-            <DashboardPageLayout title="Confirm Payout">
-                 <Skeleton className="h-[400px] w-full max-w-2xl" />
+            <DashboardPageLayout title="Loading Payout Details...">
+                 <Skeleton className="h-[600px] w-full" />
             </DashboardPageLayout>
         )
     }
@@ -104,39 +216,71 @@ export default function PayoutPage() {
     }
 
     return (
-        <DashboardPageLayout title="Confirm Payout" backHref="/dashboard/finances?tab=commissions">
-             <Card className="max-w-2xl">
-                <CardHeader>
-                    <CardTitle>Review & Confirm Payout</CardTitle>
-                    <CardDescription>You are about to record a payout for the following staff member.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <div className="flex justify-between items-center p-4 border rounded-lg">
-                        <div>
-                            <p className="font-semibold text-lg">{staffMember.name}</p>
-                            <p className="text-sm text-muted-foreground">{staffMember.role}</p>
+        <DashboardPageLayout title={`Review Payout for ${staffMember.name}`} backHref="/dashboard/finances?tab=commissions">
+            <div className="space-y-6">
+                <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                        <div className="flex items-center gap-4">
+                             <Avatar className="h-12 w-12">
+                                <AvatarImage src={staffMember.avatarUrl} />
+                                <AvatarFallback>{getInitials(staffMember.name)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <CardTitle>{staffMember.name}</CardTitle>
+                                <CardDescription>{staffMember.role}</CardDescription>
+                            </div>
                         </div>
                         <div className="text-right">
-                             <p className="text-sm text-muted-foreground">Unpaid Commission</p>
-                             <p className="text-2xl font-bold text-primary">{formatCurrency(staffMember.totalCommission || 0)}</p>
+                             <p className="text-sm text-muted-foreground">Total Unpaid Commission</p>
+                             <p className="text-3xl font-bold text-primary">{formatCurrency(staffMember.totalCommission || 0)}</p>
                         </div>
-                    </div>
-                     <div className="space-y-2">
-                        <p className="text-sm font-medium">This action will:</p>
-                        <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
-                            <li>Reset the unpaid commission for {staffMember.name} to zero.</li>
-                            <li>Add this amount to their payout history.</li>
-                            <li>Create a corresponding "Expense" transaction in your financial ledger.</li>
-                        </ul>
-                    </div>
-                </CardContent>
-                <CardFooter>
-                     <Button className="w-full" onClick={handleConfirmPayout} disabled={(staffMember.totalCommission || 0) <= 0}>
-                        <Check className="mr-2 h-4 w-4" />
-                        Confirm and Record Payout
-                    </Button>
-                </CardFooter>
-             </Card>
+                    </CardHeader>
+                    <CardFooter>
+                         <Button className="w-full sm:w-auto ml-auto" onClick={handleConfirmPayout} disabled={(staffMember.totalCommission || 0) <= 0}>
+                            <Check className="mr-2 h-4 w-4" />
+                            Confirm and Record Payout
+                        </Button>
+                    </CardFooter>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Unpaid Commission Breakdown</CardTitle>
+                        <CardDescription>A list of all sales and events contributing to the unpaid balance.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                         <DataTable
+                            columns={commissionBreakdownColumns(staffMember.currency || 'UGX')}
+                            data={unpaidCommissionableOrders}
+                            isLoading={isLoading}
+                            emptyState={{
+                                icon: DollarSign,
+                                title: 'No Unpaid Commissions',
+                                description: "This member has no pending commissions to be paid out.",
+                            }}
+                         />
+                    </CardContent>
+                </Card>
+
+                 <Card>
+                    <CardHeader>
+                        <CardTitle>Payout History</CardTitle>
+                        <CardDescription>A record of all past payouts made to {staffMember.name}.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <DataTable
+                            columns={payoutHistoryColumns}
+                            data={staffMember.payoutHistory || []}
+                            isLoading={isLoading}
+                            emptyState={{
+                                icon: FileText,
+                                title: 'No Payout History',
+                                description: "No payouts have been recorded for this member yet.",
+                            }}
+                        />
+                    </CardContent>
+                </Card>
+            </div>
         </DashboardPageLayout>
     )
 }
