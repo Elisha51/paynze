@@ -6,10 +6,8 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, FileText, Bot } from 'lucide-react';
 import { TransactionsTable } from '@/components/dashboard/transactions-table';
 import { getTransactions, addTransaction } from '@/services/finances';
-import { CommissionReport } from '@/components/dashboard/commission-report';
 import { getStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
-import { getOrders } from '@/services/orders';
 import { DailySummary } from '@/components/dashboard/daily-summary';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
@@ -28,6 +26,7 @@ import { ReconciliationReport } from '@/components/dashboard/reconciliation-repo
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance-analytics-report';
+import { PayoutsReport } from '@/components/dashboard/payouts-report';
 
 
 type ActiveTab = 'transactions' | 'commissions' | 'summary' | 'reconciliation' | 'analytics';
@@ -36,7 +35,6 @@ export default function FinancesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [staff, setStaff] = useState<Staff[]>([]);
   const [roles, setRoles] = useState<Role[]>([]);
-  const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<ActiveTab>('transactions');
   const [isTxnDialogOpen, setIsTxnDialogOpen] = useState(false);
@@ -62,16 +60,14 @@ export default function FinancesPage() {
 
   const loadData = async () => {
     setIsLoading(true);
-    const [transactionsData, staffData, rolesData, ordersData] = await Promise.all([
+    const [transactionsData, staffData, rolesData] = await Promise.all([
       getTransactions(),
       getStaff(),
       getRoles(),
-      getOrders(),
     ]);
     setTransactions(transactionsData);
     setStaff(staffData);
     setRoles(rolesData);
-    setOrders(ordersData);
     setIsLoading(false);
   };
   
@@ -143,9 +139,6 @@ export default function FinancesPage() {
       setIsReconDialogOpen(false);
     }
   };
-
-  const staffWithCommission = staff.filter(s => s.role !== 'Affiliate');
-  const affiliates = staff.filter(s => s.role === 'Affiliate');
   
   const tabs: { value: ActiveTab, label: string }[] = [
     { value: 'transactions', label: 'All Transactions' },
@@ -193,28 +186,11 @@ export default function FinancesPage() {
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="commissions">
             <DashboardPageLayout.Content>
-                 <div className="space-y-6">
-                    <CommissionReport 
-                        type="staff"
-                        title="Staff Commissions"
-                        description="Track and manage commissions earned by your internal staff."
-                        staff={staffWithCommission}
-                        roles={roles}
-                        orders={orders}
-                        onPayout={() => {}}
-                        onAwardBonus={() => setIsBonusDialogOpen(true)}
-                    />
-                     <CommissionReport 
-                        type="affiliate"
-                        title="Affiliate Payouts"
-                        description="Review and manage payouts for your marketing affiliates."
-                        staff={affiliates}
-                        roles={roles}
-                        orders={orders}
-                        onPayout={() => {}}
-                        onAwardBonus={() => setIsBonusDialogOpen(true)}
-                    />
-                </div>
+                 <PayoutsReport 
+                    staff={staff} 
+                    roles={roles}
+                    onAwardBonus={() => setIsBonusDialogOpen(true)}
+                 />
             </DashboardPageLayout.Content>
         </DashboardPageLayout.TabContent>
         <DashboardPageLayout.TabContent value="reconciliation">

@@ -318,13 +318,6 @@ export type Supplier = {
   productsSupplied: string[]; // Array of product SKUs
 };
 
-export type PurchaseOrderItem = {
-  productId: string;
-  productName: string;
-  quantity: number;
-  cost: number; // Cost per item
-};
-
 export type PurchaseOrder = {
   id: string; // e.g., 'PO-001'
   supplierId: string;
@@ -447,6 +440,8 @@ export type Payout = {
     amount: number;
     currency: string;
     paidItemIds?: string[];
+    paidByStaffId?: string;
+    paidByStaffName?: string;
 };
 
 export type Bonus = {

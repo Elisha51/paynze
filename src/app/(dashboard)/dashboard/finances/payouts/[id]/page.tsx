@@ -1,5 +1,4 @@
 
-
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -23,6 +22,7 @@ import { getInitials } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/dashboard/data-table';
 import { calculateCommissionForOrder } from '@/services/commissions';
+import { useAuth } from '@/context/auth-context';
 
 const payoutHistoryColumns: ColumnDef<Payout>[] = [
     {
@@ -78,6 +78,7 @@ export default function PayoutPage() {
     const router = useRouter();
     const { toast } = useToast();
     const id = params.id as string;
+    const { user: currentUser } = useAuth();
 
     const [staffMember, setStaffMember] = useState<Staff | null>(null);
     const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -128,13 +129,15 @@ export default function PayoutPage() {
     }, [staffMember, allOrders, roles, affiliateSettings]);
 
     const handleConfirmPayout = async () => {
-        if (!staffMember || totalUnpaidCommission <= 0) return;
+        if (!staffMember || totalUnpaidCommission <= 0 || !currentUser) return;
 
         const newPayout: Payout = {
             date: new Date().toISOString(),
             amount: totalUnpaidCommission,
             currency: staffMember.currency || 'UGX',
-            paidItemIds: unpaidCommissionableOrders.map(o => o.id)
+            paidItemIds: unpaidCommissionableOrders.map(o => o.id),
+            paidByStaffId: currentUser.id,
+            paidByStaffName: currentUser.name,
         };
 
         const updatedStaff: Staff = {

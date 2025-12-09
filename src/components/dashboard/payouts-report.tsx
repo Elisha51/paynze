@@ -1,50 +1,46 @@
-
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import type { Staff, Role, Order, OnboardingFormData, AffiliateProgramSettings } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import type { Staff, Role } from '@/lib/types';
+import { PayoutsTable } from './payouts-table';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Award, User, Users } from 'lucide-react';
+import { Award, User, Users, FileText } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
-import { PayoutsTable } from './payouts-table';
 
-
-type CommissionReportProps = {
-    type: 'staff' | 'affiliate';
-    title: string;
-    description: string;
+type PayoutsReportProps = {
     staff: Staff[];
     roles: Role[];
     onAwardBonus: () => void;
-    cta?: React.ReactNode;
 }
 
-export function CommissionReport({ type, title, description, staff, roles, onAwardBonus, cta }: CommissionReportProps) {
+export function PayoutsReport({ staff, roles, onAwardBonus }: PayoutsReportProps) {
     const { user } = useAuth();
     const canEditFinances = user?.permissions.finances.edit;
-    const Icon = type === 'staff' ? User : Users;
 
     return (
         <Card>
             <CardHeader className="flex-row items-start justify-between">
                 <div className="flex items-start gap-4">
                     <div className="bg-muted p-3 rounded-md">
-                        <Icon className="h-6 w-6 text-muted-foreground" />
+                        <Users className="h-6 w-6 text-muted-foreground" />
                     </div>
                     <div>
-                        <CardTitle>{title}</CardTitle>
-                        <CardDescription>{description}</CardDescription>
+                        <CardTitle>Commissions & Payouts</CardTitle>
+                        <CardDescription>Track, manage, and process payouts for your staff and affiliates.</CardDescription>
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    {cta}
-                    {canEditFinances && type === 'staff' && (
+                    {canEditFinances && (
                         <Button variant="outline" onClick={onAwardBonus}>
                             <Award className="mr-2 h-4 w-4" />
                             Award Bonus / Adjustment
                         </Button>
                     )}
+                    <Button variant="outline">
+                        <FileText className="mr-2 h-4 w-4" />
+                        Export Report
+                    </Button>
                 </div>
             </CardHeader>
             <CardContent>
