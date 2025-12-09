@@ -30,9 +30,9 @@ export function PromotionalCarousel({ campaigns }: PromotionalCarouselProps) {
   const defaultBannerImage = PlaceHolderImages.find(p => p.id === 'store-banner');
 
   const sizeClasses = {
-      standard: 'aspect-[3/1] md:aspect-[4/1] lg:aspect-[6/1]',
-      large: 'aspect-[2/1] md:aspect-[3/1] lg:aspect-[4/1]',
-      square: 'aspect-video',
+      standard: 'aspect-[3/1] md:aspect-[6/1]',
+      large: 'aspect-[2/1] md:aspect-[4/1]',
+      square: 'aspect-video md:aspect-[16/9]',
   };
 
   const contentVariants = {
@@ -66,18 +66,18 @@ export function PromotionalCarousel({ campaigns }: PromotionalCarouselProps) {
                       fill
                       className="object-cover"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/20" />
+                  <div className="absolute inset-0 bg-black/50" />
                   <motion.div 
-                    className="absolute inset-0 flex flex-col justify-end items-start p-6 md:p-10 text-white"
+                    className="absolute inset-0 flex flex-col justify-center items-center p-6 md:p-10 text-white text-center"
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true }}
                     variants={contentVariants}
                   >
-                      <h2 className="text-xl md:text-3xl font-bold tracking-tight">{campaign.banner?.title}</h2>
-                      <p className="mt-1 text-sm md:text-base max-w-lg">{campaign.banner?.description}</p>
+                      <h2 className="text-2xl md:text-4xl font-bold tracking-tight">{campaign.banner?.title}</h2>
+                      <p className="mt-2 text-sm md:text-lg max-w-2xl">{campaign.banner?.description}</p>
                       <motion.div whileHover={{ scale: 1.05 }} transition={{ type: "spring", stiffness: 400, damping: 10 }}>
-                        <Button asChild className="mt-4" size="lg">
+                        <Button asChild className="mt-6" size="lg">
                           <Link href={campaign.banner?.ctaLink || '#'}>{campaign.banner?.ctaText}</Link>
                         </Button>
                       </motion.div>
