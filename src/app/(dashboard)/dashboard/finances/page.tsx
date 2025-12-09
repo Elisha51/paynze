@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import type { Transaction, Role, Staff } from '@/lib/types';
@@ -11,6 +10,17 @@ import { getStaff } from '@/services/staff';
 import { getRoles } from '@/services/roles';
 import { DailySummary } from '@/components/dashboard/daily-summary';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -207,10 +217,23 @@ export default function FinancesPage() {
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
     : (
       <div className="flex gap-2">
-        <Button onClick={() => downloadCSV(transactions, 'transactions.csv')} variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            Export
-        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="outline"><Download className="mr-2 h-4 w-4" /> Export</Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+              <AlertDialogHeader>
+                  <AlertDialogTitle>Export Transactions</AlertDialogTitle>
+                  <AlertDialogDescription>
+                      This will download a CSV file of all {transactions.length} transactions.
+                  </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => downloadCSV(transactions, 'transactions.csv')}>Continue</AlertDialogAction>
+              </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <Button onClick={() => setIsReconDialogOpen(true)} variant="outline">
             <Bot className="mr-2 h-4 w-4" />
             AI Reconciliation

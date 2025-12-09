@@ -44,7 +44,7 @@ const ticketCategories = [
     { value: 'Technical', label: 'Technical' },
     { value: 'Design', label: 'Design' },
     { value: 'Integration', label: 'Integration' },
-    { value: 'General', label: 'General Inquiry' },
+    { value: 'General Inquiry', label: 'General Inquiry' },
 ];
 
 
@@ -97,7 +97,7 @@ const getColumns = (): ColumnDef<SupportTicket>[] => [
         cell: ({ row }) => {
             const ticket = row.original;
             return (
-                <div className="text-right">
+                 <AlertDialog>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -110,10 +110,24 @@ const getColumns = (): ColumnDef<SupportTicket>[] => [
                             <DropdownMenuItem>View Details</DropdownMenuItem>
                             <DropdownMenuItem>Mark as Resolved</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                             <DropdownMenuItem className="text-destructive focus:text-destructive">Delete Ticket</DropdownMenuItem>
+                             <AlertDialogTrigger asChild>
+                                <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete Ticket
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
                         </DropdownMenuContent>
                     </DropdownMenu>
-                </div>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>This will permanently delete ticket {ticket.id}.</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction className="bg-destructive hover:bg-destructive/90">Delete</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             )
         }
     }
