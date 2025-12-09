@@ -1,4 +1,3 @@
-
 'use client';
 import { useState, useEffect } from 'react';
 import type { Transaction, Role, Staff } from '@/lib/types';
@@ -256,7 +255,7 @@ export default function FinancesPage() {
             <div className="space-y-4 py-4">
                 <div className="space-y-2">
                     <Label htmlFor="desc">Description</Label>
-                    <Input id="desc" value={newTxn.description} onChange={(e) => setNewTxn({...newTxn, description: e.target.value})} placeholder="e.g. Purchase of office supplies" />
+                    <Input id="desc" value={newTxn.description} onChange={(e) => setNewTxn({...newTxn, description: e.target.value})} placeholder="e.g., Purchase of office supplies" />
                 </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">

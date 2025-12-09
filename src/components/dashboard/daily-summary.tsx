@@ -1,4 +1,3 @@
-
 'use client';
 import { useMemo, useState, useEffect } from 'react';
 import type { Transaction, OnboardingFormData } from '@/lib/types';
@@ -156,7 +155,7 @@ export function DailySummary({ transactions }: DailySummaryProps) {
                                                         </Badge>
                                                     </TableCell>
                                                     <TableCell>{t.category}</TableCell>
-                                                    <TableCell className={cn("text-right font-mono", t.type === 'Income' ? 'text-green-600' : 'text-red-600')}>
+                                                    <TableCell className={cn('text-right font-mono', t.type === 'Income' ? 'text-green-600' : 'text-red-600')}>
                                                         {formatCurrency(t.amount)}
                                                     </TableCell>
                                                 </TableRow>
