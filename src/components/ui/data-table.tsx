@@ -69,6 +69,7 @@ interface DataTableProps<TData, TValue> {
   rowSelection?: RowSelectionState;
   setRowSelection?: React.Dispatch<React.SetStateAction<RowSelectionState>>;
   toolbarActions?: (selectedRows: TData[]) => React.ReactNode;
+  toolbarTabs?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -83,6 +84,7 @@ export function DataTable<TData, TValue>({
   rowSelection: externalRowSelection,
   setRowSelection: setExternalRowSelection,
   toolbarActions,
+  toolbarTabs,
 }: DataTableProps<TData, TValue>) {
   const [internalRowSelection, setInternalRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -127,8 +129,8 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full space-y-4">
-       <div className="flex items-center justify-between">
-            <AnimatePresence>
+       <div className="flex flex-wrap items-center justify-between gap-4">
+            <AnimatePresence mode="wait">
               {selectedRows.length > 0 ? (
                   <motion.div
                       key="actions"
@@ -145,9 +147,10 @@ export function DataTable<TData, TValue>({
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: -10 }}
-                      className="flex w-full items-center gap-2"
+                      className="flex flex-wrap items-center gap-2"
                   >
-                     <div className="relative w-full sm:max-w-xs">
+                     {toolbarTabs}
+                     <div className="relative flex-1 min-w-[200px] sm:min-w-[250px]">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search table..."

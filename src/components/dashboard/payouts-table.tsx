@@ -192,15 +192,16 @@ export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
       .map(s => {
         const unpaid = s.totalCommission || 0;
         const paid = s.paidCommission || 0;
-        let status: PayoutRow['status'] | 'None' = 'None';
-        if (unpaid > 0) status = 'Unpaid';
-        if (unpaid === 0 && paid > 0) status = 'Paid';
         
-        // This check is important to filter out users with no commission activity
-        if (status === 'None') {
-          return null;
+        if (unpaid === 0 && paid === 0) {
+            return null;
         }
 
+        let status: PayoutRow['status'] = 'Paid';
+        if (unpaid > 0) {
+            status = 'Unpaid';
+        }
+        
         return {
             staffId: s.id,
             name: s.name,
@@ -208,10 +209,11 @@ export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
             unpaidCommission: unpaid,
             totalPaid: paid,
             currency: s.currency || currency,
-            status: status as PayoutRow['status'],
+            status: status,
         };
     }).filter((p): p is PayoutRow => p !== null);
   }, [staff, currency]);
+
 
   const filteredData = React.useMemo(() => {
     if (activeTab === 'all') return payoutData;
@@ -224,19 +226,23 @@ export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
 
   const roleOptions = roles.map(r => ({ value: r.name, label: r.name }));
 
+  const tabs = (
+    <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <TabsList>
+        <TabsTrigger value="all">All</TabsTrigger>
+        <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
+        <TabsTrigger value="paid">Paid</TabsTrigger>
+      </TabsList>
+    </Tabs>
+  );
+
   return (
     <div>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList>
-                <TabsTrigger value="all">All</TabsTrigger>
-                <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
-                <TabsTrigger value="paid">Paid</TabsTrigger>
-            </TabsList>
-        </Tabs>
         <DataTable
             columns={columns}
             data={filteredData}
             isLoading={!staff || !roles}
+            toolbarTabs={tabs}
             filters={[
                 {
                     columnId: 'role',
