@@ -127,7 +127,7 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full space-y-4">
-       <div className="flex flex-col sm:flex-row items-center gap-2">
+       <div className="flex items-center justify-between">
             <AnimatePresence>
               {selectedRows.length > 0 ? (
                   <motion.div
@@ -147,17 +147,17 @@ export function DataTable<TData, TValue>({
                       exit={{ opacity: 0, x: -10 }}
                       className="flex w-full items-center gap-2"
                   >
-                     <div className="relative w-full sm:flex-1">
+                     <div className="relative w-full sm:max-w-xs">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Search table..."
                             value={globalFilter ?? ''}
                             onChange={(event) => setGlobalFilter(String(event.target.value))}
-                            className="pl-8 w-full"
+                            className="pl-8"
                         />
                     </div>
                     {filters && filters.length > 0 && (
-                      <div className="flex w-full sm:w-auto items-center gap-2">
+                      <div className="flex items-center gap-2">
                           {filters.map(filter => {
                               const column = table.getColumn(filter.columnId);
                               return column ? (

@@ -1,3 +1,4 @@
+
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -28,7 +29,7 @@ type PayoutRow = {
   unpaidCommission: number;
   totalPaid: number;
   currency: string;
-  status: 'Unpaid' | 'Paid' | 'Requesting Payout' | 'None';
+  status: 'Unpaid' | 'Paid' | 'Requesting Payout';
 };
 
 const getColumns = (
@@ -170,7 +171,6 @@ const payoutStatuses = [
     { value: 'Unpaid', label: 'Unpaid' },
     { value: 'Paid', label: 'Paid' },
     { value: 'Requesting Payout', label: 'Requesting Payout' },
-    { value: 'None', label: 'None' },
 ];
 
 export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
@@ -187,13 +187,19 @@ export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
     }
   }, []);
   
-  const payoutData = React.useMemo(() => {
-    return staff.map(s => {
+  const payoutData: PayoutRow[] = React.useMemo(() => {
+    return staff
+      .map(s => {
         const unpaid = s.totalCommission || 0;
         const paid = s.paidCommission || 0;
-        let status: PayoutRow['status'] = 'None';
+        let status: PayoutRow['status'] | 'None' = 'None';
         if (unpaid > 0) status = 'Unpaid';
         if (unpaid === 0 && paid > 0) status = 'Paid';
+        
+        // This check is important to filter out users with no commission activity
+        if (status === 'None') {
+          return null;
+        }
 
         return {
             staffId: s.id,
@@ -202,9 +208,9 @@ export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
             unpaidCommission: unpaid,
             totalPaid: paid,
             currency: s.currency || currency,
-            status,
+            status: status as PayoutRow['status'],
         };
-    });
+    }).filter((p): p is PayoutRow => p !== null);
   }, [staff, currency]);
 
   const filteredData = React.useMemo(() => {
