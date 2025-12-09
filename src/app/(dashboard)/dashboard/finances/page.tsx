@@ -37,10 +37,21 @@ type ActiveTab = 'transactions' | 'commissions' | 'summary' | 'reconciliation' |
 
 function downloadCSV(data: any[], filename: string) {
     if (data.length === 0) return;
+
     const keys = Object.keys(data[0]);
+
+    const formatCell = (cellData: any) => {
+        let cell = cellData === null || cellData === undefined ? '' : String(cellData);
+        // If the cell contains a comma, a newline, or a double-quote, wrap it in double-quotes.
+        if (cell.search(/("|,|\n)/g) >= 0) {
+            cell = `"${cell.replace(/"/g, '""')}"`;
+        }
+        return cell;
+    };
+
     const csvContent = [
         keys.join(','),
-        ...data.map(row => keys.map(key => `"${row[key]}"`).join(','))
+        ...data.map(row => keys.map(key => formatCell(row[key])).join(','))
     ].join('\n');
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
