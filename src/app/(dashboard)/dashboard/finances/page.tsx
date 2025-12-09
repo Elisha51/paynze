@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import type { Transaction, Role, Staff } from '@/lib/types';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, FileText, Bot, HelpCircle } from 'lucide-react';
+import { PlusCircle, FileText, Bot, HelpCircle, Download } from 'lucide-react';
 import { TransactionsTable } from '@/components/dashboard/transactions-table';
 import { getTransactions, addTransaction } from '@/services/finances';
 import { getStaff } from '@/services/staff';
@@ -34,6 +34,28 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 
 type ActiveTab = 'transactions' | 'commissions' | 'summary' | 'reconciliation' | 'analytics';
+
+function downloadCSV(data: any[], filename: string) {
+    if (data.length === 0) return;
+    const keys = Object.keys(data[0]);
+    const csvContent = [
+        keys.join(','),
+        ...data.map(row => keys.map(key => `"${row[key]}"`).join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", filename);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
 
 export default function FinancesPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -174,6 +196,10 @@ export default function FinancesPage() {
     ? <DateRangePicker date={dateRange} setDate={setDateRange} />
     : (
       <div className="flex gap-2">
+        <Button onClick={() => downloadCSV(transactions, 'transactions.csv')} variant="outline">
+            <Download className="mr-2 h-4 w-4" />
+            Export
+        </Button>
         <Button onClick={() => setIsReconDialogOpen(true)} variant="outline">
             <Bot className="mr-2 h-4 w-4" />
             AI Reconciliation

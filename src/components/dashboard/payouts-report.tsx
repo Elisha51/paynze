@@ -6,7 +6,7 @@ import type { Staff, Role } from '@/lib/types';
 import { PayoutsTable } from './payouts-table';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Award, User, Users, FileText } from 'lucide-react';
+import { Award, User, Users, FileText, Download } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 
 type PayoutsReportProps = {
@@ -38,10 +38,6 @@ export function PayoutsReport({ staff, roles, onAwardBonus }: PayoutsReportProps
                             Award Bonus / Adjustment
                         </Button>
                     )}
-                    <Button variant="outline">
-                        <FileText className="mr-2 h-4 w-4" />
-                        Export Report
-                    </Button>
                 </div>
             </CardHeader>
             <CardContent>
