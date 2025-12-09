@@ -54,10 +54,10 @@ export function PromotionalCarousel({ campaigns }: PromotionalCarouselProps) {
                       className="object-cover"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/20" />
-                  <div className="absolute inset-0 flex flex-col justify-center items-start p-8 md:p-12 text-white">
-                      <h2 className="text-2xl md:text-4xl font-bold tracking-tight">{campaign.banner?.title}</h2>
-                      <p className="mt-2 text-md md:text-lg max-w-lg">{campaign.banner?.description}</p>
-                      <Button asChild className="mt-4" size="lg">
+                  <div className="absolute inset-0 flex flex-col justify-end items-start p-8 md:p-12 text-white">
+                      <h2 className="text-xl md:text-3xl font-bold tracking-tight">{campaign.banner?.title}</h2>
+                      <p className="mt-1 text-sm md:text-base max-w-lg">{campaign.banner?.description}</p>
+                      <Button asChild className="mt-3" size="lg">
                       <Link href={campaign.banner?.ctaLink || '#'}>{campaign.banner?.ctaText}</Link>
                       </Button>
                   </div>
