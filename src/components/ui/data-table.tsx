@@ -69,7 +69,6 @@ interface DataTableProps<TData, TValue> {
   rowSelection?: RowSelectionState;
   setRowSelection?: React.Dispatch<React.SetStateAction<RowSelectionState>>;
   toolbarActions?: (selectedRows: TData[]) => React.ReactNode;
-  toolbarTabs?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -84,7 +83,6 @@ export function DataTable<TData, TValue>({
   rowSelection: externalRowSelection,
   setRowSelection: setExternalRowSelection,
   toolbarActions,
-  toolbarTabs,
 }: DataTableProps<TData, TValue>) {
   const [internalRowSelection, setInternalRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -149,7 +147,6 @@ export function DataTable<TData, TValue>({
                       exit={{ opacity: 0, x: -10 }}
                       className="flex flex-wrap items-center gap-2"
                   >
-                     {toolbarTabs}
                      <div className="relative flex-1 min-w-[200px] sm:min-w-[250px]">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input

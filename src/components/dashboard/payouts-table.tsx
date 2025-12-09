@@ -19,7 +19,6 @@ import type { Staff, OnboardingFormData, Role } from '@/lib/types';
 import { DataTable } from './data-table';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/auth-context';
-import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import { getRoles } from '@/services/roles';
 
 type PayoutRow = {
@@ -178,7 +177,6 @@ export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
   const { user } = useAuth();
   const canEdit = user?.permissions.finances.edit;
   const currency = settings?.currency || 'UGX';
-  const [activeTab, setActiveTab] = React.useState('all');
 
   React.useEffect(() => {
     const data = localStorage.getItem('onboardingData');
@@ -213,36 +211,17 @@ export function PayoutsTable({ staff, roles }: PayoutsTableProps) {
         };
     }).filter((p): p is PayoutRow => p !== null);
   }, [staff, currency]);
-
-
-  const filteredData = React.useMemo(() => {
-    if (activeTab === 'all') return payoutData;
-    if (activeTab === 'unpaid') return payoutData.filter(p => p.status === 'Unpaid');
-    if (activeTab === 'paid') return payoutData.filter(p => p.status === 'Paid');
-    return [];
-  }, [payoutData, activeTab]);
   
   const columns = React.useMemo(() => getColumns(!!canEdit, currency), [canEdit, currency]);
 
   const roleOptions = roles.map(r => ({ value: r.name, label: r.name }));
 
-  const tabs = (
-    <Tabs value={activeTab} onValueChange={setActiveTab}>
-      <TabsList>
-        <TabsTrigger value="all">All</TabsTrigger>
-        <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
-        <TabsTrigger value="paid">Paid</TabsTrigger>
-      </TabsList>
-    </Tabs>
-  );
-
   return (
     <div>
         <DataTable
             columns={columns}
-            data={filteredData}
+            data={payoutData}
             isLoading={!staff || !roles}
-            toolbarTabs={tabs}
             filters={[
                 {
                     columnId: 'role',
