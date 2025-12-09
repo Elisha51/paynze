@@ -16,6 +16,7 @@ import {
   useReactTable,
   TableState,
   RowSelectionState,
+  Row,
 } from '@tanstack/react-table';
 import {
   Table,
@@ -38,6 +39,7 @@ import { DataTableFacetedFilter } from '../ui/data-table-faceted-filter';
 import { X, Search } from 'lucide-react';
 import { Skeleton } from '../ui/skeleton';
 import { Input } from '../ui/input';
+import { AnimatePresence, motion } from 'framer-motion';
 
 interface DataTableFilter {
   columnId: string;
@@ -66,6 +68,7 @@ interface DataTableProps<TData, TValue> {
   setColumnFilters?: React.Dispatch<React.SetStateAction<ColumnFiltersState>>;
   rowSelection?: RowSelectionState;
   setRowSelection?: React.Dispatch<React.SetStateAction<RowSelectionState>>;
+  toolbarActions?: (selectedRows: TData[]) => React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
@@ -79,6 +82,7 @@ export function DataTable<TData, TValue>({
   setColumnFilters: setExternalColumnFilters,
   rowSelection: externalRowSelection,
   setRowSelection: setExternalRowSelection,
+  toolbarActions,
 }: DataTableProps<TData, TValue>) {
   const [internalRowSelection, setInternalRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] =
@@ -119,44 +123,67 @@ export function DataTable<TData, TValue>({
   })
   
   const isFiltered = table.getState().columnFilters.length > 0;
+  const selectedRows = table.getFilteredSelectedRowModel().rows.map(row => row.original);
 
   return (
     <div className="w-full space-y-4">
        <div className="flex flex-col sm:flex-row items-center gap-2">
-           <div className="relative w-full sm:flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                  placeholder="Search table..."
-                  value={globalFilter ?? ''}
-                  onChange={(event) => setGlobalFilter(String(event.target.value))}
-                  className="pl-8 w-full"
-              />
-          </div>
-          {filters && filters.length > 0 && (
-            <div className="flex w-full sm:w-auto items-center gap-2">
-                {filters.map(filter => {
-                    const column = table.getColumn(filter.columnId);
-                    return column ? (
-                        <DataTableFacetedFilter
-                            key={filter.columnId}
-                            column={column}
-                            title={filter.title}
-                            options={filter.options}
+            <AnimatePresence>
+              {selectedRows.length > 0 ? (
+                  <motion.div
+                      key="actions"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      className="flex items-center gap-2"
+                  >
+                      {toolbarActions && toolbarActions(selectedRows)}
+                  </motion.div>
+              ) : (
+                  <motion.div
+                      key="filters"
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      className="flex w-full items-center gap-2"
+                  >
+                     <div className="relative w-full sm:flex-1">
+                        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                        <Input
+                            placeholder="Search table..."
+                            value={globalFilter ?? ''}
+                            onChange={(event) => setGlobalFilter(String(event.target.value))}
+                            className="pl-8 w-full"
                         />
-                    ) : null;
-                })}
-                {isFiltered && (
-                    <Button
-                        variant="ghost"
-                        onClick={() => table.resetColumnFilters()}
-                        className="h-8 px-2 lg:px-3"
-                    >
-                        Reset
-                        <X className="ml-2 h-4 w-4" />
-                    </Button>
-                )}
-            </div>
-          )}
+                    </div>
+                    {filters && filters.length > 0 && (
+                      <div className="flex w-full sm:w-auto items-center gap-2">
+                          {filters.map(filter => {
+                              const column = table.getColumn(filter.columnId);
+                              return column ? (
+                                  <DataTableFacetedFilter
+                                      key={filter.columnId}
+                                      column={column}
+                                      title={filter.title}
+                                      options={filter.options}
+                                  />
+                              ) : null;
+                          })}
+                          {isFiltered && (
+                              <Button
+                                  variant="ghost"
+                                  onClick={() => table.resetColumnFilters()}
+                                  className="h-8 px-2 lg:px-3"
+                              >
+                                  Reset
+                                  <X className="ml-2 h-4 w-4" />
+                              </Button>
+                          )}
+                      </div>
+                    )}
+                  </motion.div>
+              )}
+          </AnimatePresence>
         </div>
       <div className="rounded-md border">
         <Table>
