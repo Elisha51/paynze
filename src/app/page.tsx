@@ -1,13 +1,14 @@
 
 'use client';
 
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { ArrowRight, CheckCircle, Store, Truck, Wallet, ShoppingCart, Users, Megaphone, Landmark, FileText, Settings, BookCopy, BarChart, Zap, Layers } from 'lucide-react';
+import { ArrowRight, CheckCircle, Store, Truck, Wallet, ShoppingCart, Users, Megaphone, Landmark, FileText, Settings, BookCopy, BarChart, Zap, Layers, Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useState } from 'react';
 import { BookDemoDialog } from '@/components/book-demo-dialog';
 
 const integrations = [
@@ -87,9 +88,33 @@ const pricingPlans = [
     { name: 'Pro', price: '$60/mo', description: 'For wholesalers & enterprises.', features: ['Unlimited staff', 'Advanced automation', 'API access', 'Custom domains'] }
 ];
 
+function LoadingSpinner() {
+    return (
+        <div className="flex items-center justify-center min-h-screen">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    )
+}
+
 export default function LandingPage() {
     const heroImage = PlaceHolderImages.find(p => p.id === 'landing-hero');
     const [isDemoDialogOpen, setIsDemoDialogOpen] = useState(false);
+    const [isClient, setIsClient] = useState(false);
+    const router = useRouter();
+
+    useEffect(() => {
+        setIsClient(true);
+        if (typeof window !== 'undefined') {
+            const data = localStorage.getItem('onboardingData');
+            if (data) {
+                router.replace('/store');
+            }
+        }
+    }, [router]);
+
+    if (!isClient || (typeof window !== 'undefined' && localStorage.getItem('onboardingData'))) {
+        return <LoadingSpinner />;
+    }
 
     return (
     <>
@@ -333,3 +358,5 @@ export default function LandingPage() {
     </>
   );
 }
+
+    
