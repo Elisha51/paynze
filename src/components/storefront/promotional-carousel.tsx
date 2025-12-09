@@ -30,9 +30,9 @@ export function PromotionalCarousel({ campaigns }: PromotionalCarouselProps) {
   const defaultBannerImage = PlaceHolderImages.find(p => p.id === 'store-banner');
 
   const sizeClasses = {
-      standard: 'aspect-[6/1]',
-      large: 'aspect-[4/1]',
-      square: 'aspect-[16/9]',
+      standard: 'aspect-[3/1] md:aspect-[4/1] lg:aspect-[6/1]',
+      large: 'aspect-[2/1] md:aspect-[3/1] lg:aspect-[4/1]',
+      square: 'aspect-video',
   };
 
   const contentVariants = {
