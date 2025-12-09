@@ -1,9 +1,10 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import type { Transaction, Role, Staff } from '@/lib/types';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, FileText, Bot } from 'lucide-react';
+import { PlusCircle, FileText, Bot, HelpCircle } from 'lucide-react';
 import { TransactionsTable } from '@/components/dashboard/transactions-table';
 import { getTransactions, addTransaction } from '@/services/finances';
 import { getStaff } from '@/services/staff';
@@ -27,6 +28,8 @@ import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { DateRange } from 'react-day-picker';
 import { FinanceAnalyticsReport } from '@/components/dashboard/analytics/finance-analytics-report';
 import { PayoutsReport } from '@/components/dashboard/payouts-report';
+import { FileUploader } from '@/components/ui/file-uploader';
+import { ReconciliationGuide } from '@/components/dashboard/reconciliation-guide';
 
 
 type ActiveTab = 'transactions' | 'commissions' | 'summary' | 'reconciliation' | 'analytics';
@@ -40,6 +43,7 @@ export default function FinancesPage() {
   const [isTxnDialogOpen, setIsTxnDialogOpen] = useState(false);
   const [isBonusDialogOpen, setIsBonusDialogOpen] = useState(false);
   const [isReconDialogOpen, setIsReconDialogOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [newTxn, setNewTxn] = useState<Omit<Transaction, 'id' | 'currency'>>({
       date: new Date().toISOString().split('T')[0],
@@ -53,7 +57,7 @@ export default function FinancesPage() {
   const [bonusDetails, setBonusDetails] = useState({ staffId: '', amount: 0, reason: '' });
   const { toast } = useToast();
   
-  const [statement, setStatement] = useState('');
+  const [statementFile, setStatementFile] = useState<File[]>([]);
   const [reconResult, setReconResult] = useState<ReconciliationOutput | null>(null);
   const [isReconciling, setIsReconciling] = useState(false);
 
@@ -112,32 +116,47 @@ export default function FinancesPage() {
   }
   
   const handleRunReconciliation = async () => {
-    if (!statement.trim()) {
-      toast({ variant: 'destructive', title: 'Statement cannot be empty.' });
+    if (statementFile.length === 0) {
+      toast({ variant: 'destructive', title: 'Please upload a statement file.' });
       return;
     }
     setIsReconciling(true);
     setReconResult(null);
 
-    const input: ReconciliationInput = {
-      statement,
-      recordedTransactions: transactions,
+    const file = statementFile[0];
+    const reader = new FileReader();
+
+    reader.onload = async (event) => {
+        const fileContent = event.target?.result as string;
+
+        const input: ReconciliationInput = {
+            statement: fileContent,
+            recordedTransactions: transactions,
+        };
+
+        try {
+            const result = await reconcileTransactions(input);
+            setReconResult(result);
+            setStatementFile([]);
+        } catch (e) {
+            console.error(e);
+            toast({
+                variant: 'destructive',
+                title: 'Reconciliation Failed',
+                description: 'The AI model might be offline or there was an issue with your data.',
+            });
+        } finally {
+            setIsReconciling(false);
+            setIsReconDialogOpen(false);
+        }
+    };
+    
+    reader.onerror = () => {
+      toast({ variant: 'destructive', title: 'Failed to read file.' });
+      setIsReconciling(false);
     };
 
-    try {
-      const result = await reconcileTransactions(input);
-      setReconResult(result);
-    } catch (e) {
-      console.error(e);
-      toast({
-        variant: 'destructive',
-        title: 'Reconciliation Failed',
-        description: 'The AI model might be offline or there was an issue with your data.',
-      });
-    } finally {
-      setIsReconciling(false);
-      setIsReconDialogOpen(false);
-    }
+    reader.readAsText(file);
   };
   
   const tabs: { value: ActiveTab, label: string }[] = [
@@ -210,8 +229,12 @@ export default function FinancesPage() {
                   <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
                   <h3 className="mt-4 text-lg font-semibold">Ready to Reconcile</h3>
                   <p className="mt-1 text-sm text-muted-foreground max-w-md mx-auto">
-                    Click the "AI Reconciliation" button, paste your bank or mobile money statement, and let the AI do the heavy lifting.
+                    Click the "AI Reconciliation" button, upload your bank or mobile money statement, and let the AI do the heavy lifting.
                   </p>
+                   <Button variant="link" onClick={() => setIsGuideOpen(true)}>
+                        <HelpCircle className="mr-2 h-4 w-4" />
+                        How to prepare your file
+                    </Button>
                 </div>
               )}
             </DashboardPageLayout.Content>
@@ -313,26 +336,41 @@ export default function FinancesPage() {
         <DialogContent className="max-w-2xl">
             <DialogHeader>
                 <DialogTitle>AI Bank Reconciliation</DialogTitle>
-                <DialogDescription>Paste the full text of your bank or mobile money statement below. The AI will compare it against your recorded transactions.</DialogDescription>
+                <DialogDescription>Upload a CSV file of your bank or mobile money statement. The AI will compare it against your recorded transactions.</DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-                <Label htmlFor="statement">Statement Text</Label>
-                <Textarea 
-                    id="statement"
-                    value={statement}
-                    onChange={(e) => setStatement(e.target.value)}
-                    placeholder="Paste statement text here..."
-                    className="min-h-[250px] font-mono text-xs"
+            <div className="py-4 space-y-4">
+                <FileUploader
+                    files={statementFile}
+                    onFilesChange={setStatementFile}
+                    maxFiles={1}
+                    accept={{ 'text/csv': ['.csv'] }}
                 />
+                 <Button variant="link" onClick={() => setIsGuideOpen(true)} className="p-0 h-auto">
+                    <HelpCircle className="mr-2 h-4 w-4" />
+                    How to prepare your file
+                </Button>
             </div>
             <DialogFooter>
                 <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-                <Button onClick={handleRunReconciliation} disabled={isReconciling}>
+                <Button onClick={handleRunReconciliation} disabled={isReconciling || statementFile.length === 0}>
                     <Bot className="mr-2 h-4 w-4" />
                     {isReconciling ? 'Reconciling...' : 'Run Reconciliation'}
                 </Button>
             </DialogFooter>
         </DialogContent>
+      </Dialog>
+
+      <Dialog open={isGuideOpen} onOpenChange={setIsGuideOpen}>
+          <DialogContent className="max-w-2xl">
+             <DialogHeader>
+                <DialogTitle>Preparing Your Statement File</DialogTitle>
+                <DialogDescription>Follow these steps to ensure your file is processed correctly by the AI.</DialogDescription>
+            </DialogHeader>
+             <ReconciliationGuide />
+             <DialogFooter>
+                 <DialogClose asChild><Button>Got it</Button></DialogClose>
+             </DialogFooter>
+          </DialogContent>
       </Dialog>
     </>
   );
