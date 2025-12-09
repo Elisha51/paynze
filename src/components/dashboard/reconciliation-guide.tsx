@@ -8,30 +8,31 @@ export function ReconciliationGuide() {
     return (
         <div className="prose prose-sm max-w-none">
             <h4>1. Export as a CSV file</h4>
-            <p>From your banking app or Excel, export your statement as a <strong>CSV (Comma-Separated Values)</strong> file.</p>
+            <p>From your banking app, mobile money provider, or Excel, export your statement as a <strong>CSV (Comma-Separated Values)</strong> file.</p>
 
-            <h4>2. Format Your Columns</h4>
-            <p>The AI needs three specific columns to work. Make sure your CSV file has columns with these exact headers:</p>
+            <h4>2. Check Your File Content</h4>
+            <p>The AI is flexible, but for best results, make sure your CSV file includes columns that clearly represent:</p>
             <ul>
-                <li><code>Date</code>: The date of the transaction (e.g., 2024-07-28).</li>
-                <li><code>Description</code>: A short description of the transaction.</li>
-                <li><code>Amount</code>: The transaction amount.</li>
+                <li>The transaction <strong>date</strong>.</li>
+                <li>A <strong>description</strong> of the transaction.</li>
+                <li>The transaction <strong>amount</strong>.</li>
             </ul>
+            <p className="mt-2">Column names can vary (e.g., "Date", "Transaction Date", "Details", "Amount", "Value"). The AI will do its best to interpret the structure.</p>
 
             <h4>3. Handle Income and Expenses</h4>
-            <p>This is the most important step. To distinguish between money coming in and money going out, use positive and negative numbers:</p>
+            <p>This is the most important step. To distinguish between money coming in and money going out, use positive and negative numbers in your 'Amount' column:</p>
             <ul>
                 <li><strong className="text-green-600">Income / Credits:</strong> Use positive numbers (e.g., <code>50000</code>).</li>
                 <li><strong className="text-red-600">Expenses / Debits:</strong> Use negative numbers (e.g., <code>-15000</code>).</li>
             </ul>
 
-            <h4>Example CSV Structure:</h4>
+            <h4>Example of a Good CSV Structure:</h4>
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead>Transaction Date</TableHead>
+                        <TableHead>Details</TableHead>
+                        <TableHead className="text-right">Value</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
