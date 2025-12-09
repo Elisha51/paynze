@@ -140,6 +140,7 @@ export type Category = {
   id: string;
   name: string;
   parentId: string | null;
+  description?: string;
 };
 
 export type CustomerGroup = {
@@ -284,6 +285,12 @@ export type Customer = {
     source: 'Manual' | 'Online';
     createdById?: string;
     createdByName?: string;
+    shippingAddress?: {
+        street: string;
+        city: string;
+        postalCode: string;
+        country: string;
+    };
 };
 
 export type RecentSale = {

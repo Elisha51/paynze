@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -21,6 +22,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { ColumnDef } from '@tanstack/react-table';
 import { DataTable } from '@/components/dashboard/data-table';
+import { calculateCommissionForOrder } from '@/services/commissions';
 
 const payoutHistoryColumns: ColumnDef<Payout>[] = [
     {
@@ -104,59 +106,33 @@ export default function PayoutPage() {
         loadData();
     }, [id]);
 
-    const { unpaidCommissionableOrders } = useMemo(() => {
+    const { unpaidCommissionableOrders, totalUnpaidCommission } = useMemo(() => {
         if (!staffMember || allOrders.length === 0 || roles.length === 0) {
-            return { unpaidCommissionableOrders: [] };
+            return { unpaidCommissionableOrders: [], totalUnpaidCommission: 0 };
         }
-        
-        const staffRole = roles.find(r => r.name === staffMember.role);
-        
-        const paidOutOrderIds = (staffMember.payoutHistory || []).flatMap(p => p.paidItemIds || []);
-        
-        const commissionableOrders: CommissionableOrder[] = [];
 
-        for (const order of allOrders) {
-            let commission = 0;
-            const trigger = order.status === 'Delivered' || order.status === 'Picked Up' ? 'On Order Delivered' : 'On Order Paid';
-            const staffId = trigger === 'On Order Paid' ? order.salesAgentId : order.fulfilledByStaffId;
+        const paidOutOrderIds = new Set((staffMember.payoutHistory || []).flatMap(p => p.paidItemIds || []));
 
-            if (staffId !== staffMember.id) continue;
+        const commissionableOrders: CommissionableOrder[] = allOrders
+            .filter(order => !paidOutOrderIds.has(order.id)) // Filter out already paid orders
+            .map(order => {
+                const commission = calculateCommissionForOrder(order, staffMember, roles, affiliateSettings);
+                return commission > 0 ? { ...order, commission } : null;
+            })
+            .filter((o): o is CommissionableOrder => o !== null);
 
-             if (staffRole?.name === 'Affiliate' && trigger === 'On Order Paid' && affiliateSettings?.programStatus === 'Active') {
-                if (affiliateSettings.commissionType === 'Percentage') {
-                    commission = order.total * (affiliateSettings.commissionRate / 100);
-                } else {
-                    commission = affiliateSettings.commissionRate;
-                }
-            } else if (staffRole?.commissionRules) {
-                 staffRole.commissionRules.forEach(rule => {
-                    if (rule.trigger === trigger) {
-                         if (rule.type === 'Fixed Amount') {
-                            commission += rule.rate;
-                        } else if (rule.type === 'Percentage of Sale') {
-                            commission += order.total * (rule.rate / 100);
-                        }
-                    }
-                 });
-            }
-            
-            if (commission > 0) {
-                commissionableOrders.push({ ...order, commission });
-            }
-        }
-        
-        const unpaid = commissionableOrders.filter(o => !paidOutOrderIds.includes(o.id));
+        const total = commissionableOrders.reduce((sum, order) => sum + order.commission, 0);
 
-        return { unpaidCommissionableOrders: unpaid };
+        return { unpaidCommissionableOrders: commissionableOrders, totalUnpaidCommission: total };
 
     }, [staffMember, allOrders, roles, affiliateSettings]);
 
     const handleConfirmPayout = async () => {
-        if (!staffMember || !staffMember.totalCommission) return;
+        if (!staffMember || totalUnpaidCommission <= 0) return;
 
         const newPayout: Payout = {
             date: new Date().toISOString(),
-            amount: staffMember.totalCommission,
+            amount: totalUnpaidCommission,
             currency: staffMember.currency || 'UGX',
             paidItemIds: unpaidCommissionableOrders.map(o => o.id)
         };
@@ -164,7 +140,7 @@ export default function PayoutPage() {
         const updatedStaff: Staff = {
             ...staffMember,
             payoutHistory: [...(staffMember.payoutHistory || []), newPayout],
-            paidCommission: (staffMember.paidCommission || 0) + staffMember.totalCommission,
+            paidCommission: (staffMember.paidCommission || 0) + totalUnpaidCommission,
             totalCommission: 0 // Reset pending commission
         };
         await updateStaff(updatedStaff.id, updatedStaff);
@@ -172,7 +148,7 @@ export default function PayoutPage() {
         await addTransaction({
             date: new Date().toISOString(),
             description: `Payout to ${staffMember.name} for commission`,
-            amount: -staffMember.totalCommission,
+            amount: -totalUnpaidCommission,
             currency: staffMember.currency || 'UGX',
             type: 'Expense',
             category: 'Salaries',
@@ -182,7 +158,7 @@ export default function PayoutPage() {
 
         toast({
             title: 'Payout Successful',
-            description: `A payment of ${formatCurrency(staffMember.totalCommission)} has been recorded for ${staffMember.name}.`
+            description: `A payment of ${formatCurrency(totalUnpaidCommission)} has been recorded for ${staffMember.name}.`
         });
 
         router.push('/dashboard/finances?tab=commissions');
@@ -232,11 +208,11 @@ export default function PayoutPage() {
                         </div>
                         <div className="text-right">
                              <p className="text-sm text-muted-foreground">Total Unpaid Commission</p>
-                             <p className="text-3xl font-bold text-primary">{formatCurrency(staffMember.totalCommission || 0)}</p>
+                             <p className="text-3xl font-bold text-primary">{formatCurrency(totalUnpaidCommission)}</p>
                         </div>
                     </CardHeader>
                     <CardFooter>
-                         <Button className="w-full sm:w-auto ml-auto" onClick={handleConfirmPayout} disabled={(staffMember.totalCommission || 0) <= 0}>
+                         <Button className="w-full sm:w-auto ml-auto" onClick={handleConfirmPayout} disabled={totalUnpaidCommission <= 0}>
                             <Check className="mr-2 h-4 w-4" />
                             Confirm and Record Payout
                         </Button>

@@ -1,4 +1,5 @@
 
+
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -7,7 +8,7 @@ import { DataService } from './data-service';
 import { getAffiliates } from './affiliates';
 import { addNotification } from './notifications';
 import { addTransaction } from './finances';
-import { calculateCommissionForOrder } from './commissions';
+import { processOrderForCommission } from './commissions';
 import { addActivity } from './activities';
 
 function initializeMockOrders(): Order[] {
@@ -155,7 +156,7 @@ function initializeMockOrders(): Order[] {
             customerId: 'cust-02',
             customerName: 'Olivia Smith',
             customerEmail: 'olivia@example.com',
-            date: '2024-06-15T09:30:00Z', 
+            date: '2024-05-10T15:00:00Z', 
             status: 'Delivered', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 1, price: 25000, category: 'Accessories' }],
@@ -357,13 +358,11 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
   
     const updatedOrder = await orderService.update(orderId, finalUpdates);
 
-    // Handle commissions after the order is updated
-    if (isNewlyFulfilled) {
-        await calculateCommissionForOrder(updatedOrder, 'On Order Delivered');
+    // Trigger commission calculation after the order state is fully updated.
+    if (isNewlyPaid || isNewlyFulfilled) {
+        await processOrderForCommission(updatedOrder);
     }
-    if (isNewlyPaid) {
-        await calculateCommissionForOrder(updatedOrder, 'On Order Paid');
-    }
+    
 
     return updatedOrder;
 }
