@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { getPurchaseOrderById, receivePurchaseOrder, updatePurchaseOrder } from '@/services/procurement';
 import { addTransaction } from '@/services/finances';
 import { getLocations } from '@/services/locations';
-import type { PurchaseOrder, OnboardingFormData, Location } from '@/lib/types';
+import type { PurchaseOrder, OnboardingFormData, Location, PurchaseOrderItem } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -35,7 +35,6 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter as TableFooterComponent
 } from "@/components/ui/table"
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import {
@@ -57,13 +56,14 @@ import { Textarea } from '@/components/ui/textarea';
 
 function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
     const [location, setLocation] = useState<string>('');
+    const isDisabled = order.status === 'Received';
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" disabled={order.status === 'Received'}>
+                <Button variant="outline" size="sm" disabled={isDisabled}>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    {order.status === 'Received' ? 'Already Received' : 'Mark as Received'}
+                    {isDisabled ? 'Already Received' : 'Mark as Received'}
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -148,13 +148,13 @@ function SupplierChangesCard({ order, onApprove }: { order: PurchaseOrder; onApp
                             )
                         })}
                     </TableBody>
-                     <TableFooterComponent>
+                     <CardFooter className="flex justify-end gap-2">
                         <TableRow>
                             <TableCell>Total</TableCell>
                             <TableCell>{formatCurrency(originalTotal, order.currency)}</TableCell>
                             <TableCell className="font-bold text-amber-700">{formatCurrency(proposedTotal, order.currency)}</TableCell>
                         </TableRow>
-                    </TableFooterComponent>
+                    </CardFooter>
                 </Table>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
@@ -312,40 +312,46 @@ export default function ViewPurchaseOrderPage() {
   
   const currency = order.currency || settings.currency;
   
-  const cta = (
-    <div className="flex items-center gap-2">
-        {order.status === 'Sent' && (
-            <Button size="sm" onClick={handleMarkAsPaid}>
-                <DollarSign className="mr-2 h-4 w-4" />
-                Mark as Paid
-            </Button>
-        )}
-        <ReceiveStockDialog order={order} locations={locations} onConfirm={handleReceiveStock} />
-        <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="icon" className="h-9 w-9">
-                <MoreVertical className="h-4 w-4" />
-                <span className="sr-only">More</span>
-            </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                 <DropdownMenuItem asChild>
-                    <Link href={`/supplier/po-response/${order.id}`} target="_blank">
-                        <Send className="mr-2 h-4 w-4" />
-                        Send to Supplier
-                    </Link>
-                 </DropdownMenuItem>
-                <DropdownMenuItem>Edit PO</DropdownMenuItem>
-                <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-    </div>
-  );
+  const renderCTAs = () => {
+    if (order.status === 'Awaiting Approval') return null; // Actions are inside the proposal card
+    
+    return (
+        <div className="flex items-center gap-2">
+            {(order.status === 'Sent' || order.status === 'Accepted') && (
+                <Button size="sm" onClick={handleMarkAsPaid}>
+                    <DollarSign className="mr-2 h-4 w-4" />
+                    Mark as Paid
+                </Button>
+            )}
+            {order.status === 'Paid' && (
+                <ReceiveStockDialog order={order} locations={locations} onConfirm={handleReceiveStock} />
+            )}
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="h-9 w-9">
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">More</span>
+                </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                        <Link href={`/supplier/po-response/${order.id}`} target="_blank">
+                            <Send className="mr-2 h-4 w-4" />
+                            Send to Supplier
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Edit PO</DropdownMenuItem>
+                    <DropdownMenuItem>Export as PDF</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </div>
+    );
+  };
 
   return (
-    <DashboardPageLayout title={`Purchase Order #${order.id}`} cta={cta} backHref="/dashboard/procurement?tab=purchase-orders">
+    <DashboardPageLayout title={`Purchase Order #${order.id}`} cta={renderCTAs()} backHref="/dashboard/procurement?tab=purchase-orders">
       {order.status === 'Awaiting Approval' && <SupplierChangesCard order={order} onApprove={handleApproveChanges} />}
       <div className={cn("grid grid-cols-1 lg:grid-cols-3 gap-6", order.status === 'Awaiting Approval' && 'mt-6')}>
         <div className="lg:col-span-2 space-y-6">
@@ -373,12 +379,12 @@ export default function ViewPurchaseOrderPage() {
                                 </TableRow>
                             ))}
                         </TableBody>
-                        <TableFooterComponent>
+                        <CardFooter>
                             <TableRow>
                                 <TableCell colSpan={3} className="text-right font-semibold text-lg">Grand Total</TableCell>
                                 <TableCell className="text-right font-bold text-lg">{formatCurrency(order.totalCost, currency)}</TableCell>
                             </TableRow>
-                        </TableFooterComponent>
+                        </CardFooter>
                     </Table>
                 </CardContent>
             </Card>
