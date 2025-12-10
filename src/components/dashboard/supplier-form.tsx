@@ -20,7 +20,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import type { Product, Supplier } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/auth-context';
 
@@ -40,7 +40,6 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
   const [products, setProducts] = useState<Product[]>([]);
   const [countryCode, setCountryCode] = useState('+256');
   const [whatsappCountryCode, setWhatsappCountryCode] = useState('+256');
-  const { toast } = useToast();
   const router = useRouter();
   const { user } = useAuth();
   
