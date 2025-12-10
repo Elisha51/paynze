@@ -260,17 +260,7 @@ const getColumns = (
       }
 
       return (
-        <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
-            {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
-               <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                 <Button variant="outline" size="sm">Prepare for Delivery</Button>
-               </FulfillOrderDialog>
-            )}
-             {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
-                <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                    <Button variant="outline" size="sm">Ready for Pickup</Button>
-                </FulfillOrderDialog>
-            )}
+        <div className="relative bg-background text-right sticky right-0">
             <AlertDialog>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -297,6 +287,18 @@ const getColumns = (
                           <FulfillOrderDialog order={order} action="paid" onUpdate={onUpdate}>
                             <DropdownMenuItem onSelect={e => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
                           </FulfillOrderDialog>
+                        )}
+                        
+                        {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
+                           <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Prepare for Delivery</DropdownMenuItem>
+                           </FulfillOrderDialog>
+                        )}
+
+                         {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
+                            <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Ready for Pickup</DropdownMenuItem>
+                            </FulfillOrderDialog>
                         )}
                         
                         {canEdit && order.status === 'Ready for Pickup' && (
@@ -398,4 +400,3 @@ export function OrdersTable({ orders, staff, isLoading, columnFilters, setColumn
     />
   );
 }
-
