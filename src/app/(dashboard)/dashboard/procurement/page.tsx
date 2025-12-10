@@ -157,7 +157,7 @@ const getPurchaseOrderColumns = (): ColumnDef<PurchaseOrder>[] => [
     {
         accessorKey: 'status',
         header: 'Status',
-        cell: ({ row }) => <Badge variant={row.original.status === 'Received' ? 'default' : 'secondary'}>{row.original.status}</Badge>
+        cell: ({ row }) => <Badge variant={row.original.status === 'Completed' ? 'default' : 'secondary'}>{row.original.status}</Badge>
     },
     {
         accessorKey: 'totalCost',

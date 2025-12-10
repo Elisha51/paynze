@@ -40,7 +40,7 @@ const mockPurchaseOrders: PurchaseOrder[] = [
     id: 'PO-001',
     supplierId: 'SUP-001',
     supplierName: 'Kitenge Kings',
-    status: 'Received',
+    status: 'Completed',
     orderDate: '2024-05-01',
     expectedDelivery: '2024-05-15',
     totalCost: 1500000,
@@ -53,7 +53,7 @@ const mockPurchaseOrders: PurchaseOrder[] = [
     id: 'PO-002',
     supplierId: 'SUP-002',
     supplierName: 'Leather Artisans UG',
-    status: 'Sent',
+    status: 'Paid',
     orderDate: '2024-06-10',
     expectedDelivery: '2024-07-01',
     totalCost: 1300000,
@@ -134,7 +134,7 @@ export async function updatePurchaseOrder(id: string, updates: Partial<PurchaseO
 export async function receivePurchaseOrder(poId: string, locationName: string): Promise<PurchaseOrder> {
     const po = await poService.getById(poId);
     if (!po) throw new Error("Purchase order not found");
-    if (po.status === 'Received') throw new Error("This purchase order has already been received.");
+    if (po.status === 'Completed') throw new Error("This purchase order has already been received.");
 
     const products = await getProducts();
 
@@ -184,6 +184,6 @@ export async function receivePurchaseOrder(poId: string, locationName: string): 
         await updateProduct(productCopy);
     }
     
-    const updatedPO = await poService.update(poId, { status: 'Received' });
+    const updatedPO = await poService.update(poId, { status: 'Completed' });
     return updatedPO;
 }

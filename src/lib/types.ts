@@ -1,4 +1,5 @@
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -328,7 +329,7 @@ export type PurchaseOrder = {
   id: string; // e.g., 'PO-001'
   supplierId: string;
   supplierName: string;
-  status: 'Draft' | 'Sent' | 'Paid' | 'Received' | 'Partial' | 'Cancelled' | 'Accepted' | 'Rejected' | 'Awaiting Approval';
+  status: 'Draft' | 'Sent' | 'Awaiting Approval' | 'Approved' | 'Paid' | 'Completed' | 'Cancelled';
   items: PurchaseOrderItem[];
   orderDate: string;
   expectedDelivery: string;

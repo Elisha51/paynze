@@ -56,14 +56,14 @@ import { Textarea } from '@/components/ui/textarea';
 
 function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
     const [location, setLocation] = useState<string>('');
-    const isDisabled = order.status === 'Received';
+    const isDisabled = order.status === 'Completed';
 
     return (
         <Dialog>
             <DialogTrigger asChild>
                 <Button variant="outline" size="sm" disabled={isDisabled}>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    {isDisabled ? 'Already Received' : 'Mark as Received'}
+                    {isDisabled ? 'Already Completed' : 'Mark as Completed'}
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -251,7 +251,7 @@ export default function ViewPurchaseOrderPage() {
         items: order.supplierProposedChanges.items,
         totalCost: order.supplierProposedChanges.items.reduce((sum, item) => sum + item.cost * item.quantity, 0),
         expectedDelivery: order.supplierETA || order.expectedDelivery,
-        status: 'Accepted',
+        status: 'Approved',
         supplierProposedChanges: undefined, // Clear the proposed changes
     });
     setOrder(updatedOrder);
@@ -298,17 +298,15 @@ export default function ViewPurchaseOrderPage() {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
 
-  const statusVariant = {
-      Draft: 'secondary',
-      Sent: 'outline',
-      Accepted: 'default',
-      Rejected: 'destructive',
-      Paid: 'default',
-      Received: 'default',
-      Partial: 'outline',
-      Cancelled: 'destructive',
-      'Awaiting Approval': 'outline'
-  }[order.status] as "secondary" | "default" | "outline" | "destructive" | null;
+  const statusVariantMap: { [key in PurchaseOrder['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
+    Draft: 'secondary',
+    Sent: 'outline',
+    'Awaiting Approval': 'outline',
+    Approved: 'default',
+    Paid: 'default',
+    Completed: 'default',
+    Cancelled: 'destructive',
+  };
   
   const currency = order.currency || settings.currency;
   
@@ -317,7 +315,7 @@ export default function ViewPurchaseOrderPage() {
     
     return (
         <div className="flex items-center gap-2">
-            {(order.status === 'Sent' || order.status === 'Accepted') && (
+            {(order.status === 'Sent' || order.status === 'Approved') && (
                 <Button size="sm" onClick={handleMarkAsPaid}>
                     <DollarSign className="mr-2 h-4 w-4" />
                     Mark as Paid
@@ -415,7 +413,7 @@ export default function ViewPurchaseOrderPage() {
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Status</span>
-                        <Badge variant={statusVariant}>{order.status}</Badge>
+                        <Badge variant={statusVariantMap[order.status] || 'secondary'}>{order.status}</Badge>
                     </div>
                 </CardContent>
             </Card>
