@@ -67,7 +67,7 @@ function initializeMockOrders(): Order[] {
             customerName: 'Emma Brown', 
             customerEmail: 'emma@example.com', 
             date: '2024-07-24T09:00:00Z', 
-            status: 'Paid',
+            status: 'Ready for Delivery',
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
             total: 80000,
@@ -288,8 +288,16 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
 
     const isNewlyCancelled = updates.status === 'Cancelled' && originalOrder.status !== 'Cancelled';
     const isNewlyPaid = updates.payment?.status === 'completed' && originalOrder.payment.status !== 'completed';
-    const isNewlyShipped = updates.status === 'Shipped' && originalOrder.status !== 'Shipped';
     
+    let newStatusForReady = originalOrder.status;
+    if (updates.status === 'Ready for Delivery') {
+        newStatusForReady = 'Ready for Delivery';
+    } else if (updates.status === 'Ready for Pickup') {
+        newStatusForReady = 'Ready for Pickup';
+    }
+    const isNewlyReady = ['Ready for Delivery', 'Ready for Pickup'].includes(newStatusForReady) && originalOrder.status === 'Paid';
+
+
     // Automatically add staff name if only ID is provided
     if (updates.assignedStaffId && !updates.assignedStaffName) {
         const staffMember = await getStaff().then(staff => staff.find(s => s.id === updates.assignedStaffId));
@@ -297,7 +305,7 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
             updates.assignedStaffName = staffMember.name;
         }
     }
-
+    
     // Un-reserve stock if cancelled
     if (isNewlyCancelled) {
         for (const item of originalOrder.items) {
@@ -330,8 +338,8 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
         }
     }
     
-    if (isNewlyShipped && !updates.assignedStaffId && !originalOrder.assignedStaffId) {
-        throw new Error("Cannot mark order as Shipped without an assigned staff member.");
+    if (isNewlyReady) {
+        updates.status = newStatusForReady;
     }
 
     if (updates.status && updates.status !== originalOrder.status) {

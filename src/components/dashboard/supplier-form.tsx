@@ -29,6 +29,7 @@ const emptySupplier = {
     contactName: '',
     email: '',
     phone: '',
+    whatsapp: '',
     address: '',
     productsSupplied: [],
 }
@@ -38,6 +39,7 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [countryCode, setCountryCode] = useState('+256');
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState('+256');
   const { toast } = useToast();
   const router = useRouter();
   const { user } = useAuth();
@@ -129,20 +131,36 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
                   <Input id="email" type="email" placeholder="Enter contact email" value={supplier.email} onChange={handleInputChange} />
               </div>
           </div>
-           <div className="space-y-2">
-              <Label htmlFor="phone">Phone Number</Label>
-              <div className="flex items-center gap-2">
-                <Select value={countryCode} onValueChange={setCountryCode}>
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue placeholder="Code" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-                  </SelectContent>
-                </Select>
-                <Input id="phone" type="tel" placeholder="Enter phone number" value={supplier.phone} onChange={handleInputChange} />
-              </div>
-          </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+                <Label htmlFor="phone">Phone Number (for Calls/SMS)</Label>
+                <div className="flex items-center gap-2">
+                  <Select value={countryCode} onValueChange={setCountryCode}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input id="phone" type="tel" placeholder="Enter phone number" value={supplier.phone} onChange={handleInputChange} />
+                </div>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="whatsapp">WhatsApp Number</Label>
+                <div className="flex items-center gap-2">
+                  <Select value={whatsappCountryCode} onValueChange={setWhatsappCountryCode}>
+                    <SelectTrigger className="w-[120px]">
+                      <SelectValue placeholder="Code" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                  <Input id="whatsapp" type="tel" placeholder="Enter WhatsApp number" value={supplier.whatsapp || ''} onChange={handleInputChange} />
+                </div>
+            </div>
+           </div>
           <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
               <Textarea id="address" placeholder="Enter full physical address" value={supplier.address} onChange={handleInputChange} />

@@ -12,7 +12,7 @@ import type { Order, PaymentDetails, OnboardingFormData, ShippingZone, DeliveryM
 import { addOrder } from '@/services/orders';
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
-import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { AlertCircle, ArrowLeft, Phone } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Link from 'next/link';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -38,6 +38,7 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
   const [countryCode, setCountryCode] = useState('+256');
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState('+256');
   
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
@@ -116,6 +117,7 @@ export default function CheckoutPage() {
                 name: customer.name,
                 email: customer.email,
                 phone: `${countryCode}${customer.phone}`,
+                whatsapp: customer.whatsapp ? `${whatsappCountryCode}${customer.whatsapp}` : undefined,
                 customerGroup: 'default',
                 currency: currency,
             });
@@ -141,6 +143,7 @@ export default function CheckoutPage() {
             customerName: currentCustomer.name,
             customerEmail: currentCustomer.email,
             customerPhone: `${countryCode}${currentCustomer.phone}`,
+            customerWhatsapp: currentCustomer.whatsapp ? `${whatsappCountryCode}${currentCustomer.whatsapp}` : undefined,
             date: new Date().toISOString(),
             status: 'Awaiting Payment' as const,
             fulfillmentMethod: selectedShippingMethod?.type === 'Pickup' ? 'Pickup' : 'Delivery',
@@ -228,7 +231,7 @@ export default function CheckoutPage() {
                                 <Input id="email" type="email" value={customer?.email || ''} onChange={handleCustomerChange} placeholder="e.g. jane@example.com"/>
                             </div>
                              <div className="space-y-2">
-                                <Label htmlFor="phone">Phone Number</Label>
+                                <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground"/> Phone (Call/SMS)</Label>
                                 <div className="flex items-center gap-2">
                                     <Select value={countryCode} onValueChange={setCountryCode}>
                                       <SelectTrigger className="w-[120px]">
@@ -241,6 +244,20 @@ export default function CheckoutPage() {
                                     <Input id="phone" type="tel" value={customer?.phone || ''} onChange={handleCustomerChange} placeholder="772123456"/>
                                 </div>
                             </div>
+                        </div>
+                        <div className="space-y-2">
+                                <Label htmlFor="whatsapp" className="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp (Optional)</Label>
+                                <div className="flex items-center gap-2">
+                                    <Select value={whatsappCountryCode} onValueChange={setWhatsappCountryCode}>
+                                      <SelectTrigger className="w-[120px]">
+                                        <SelectValue placeholder="Code" />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                                      </SelectContent>
+                                    </Select>
+                                    <Input id="whatsapp" type="tel" value={customer?.whatsapp || ''} onChange={handleCustomerChange} placeholder="772123456"/>
+                                </div>
                         </div>
                          {!isLoggedIn && (
                             <div className="flex items-center space-x-2 pt-2">

@@ -1,6 +1,6 @@
 
 'use client';
-import { Save, ShieldAlert, ArrowLeft } from 'lucide-react';
+import { Save, ShieldAlert, ArrowLeft, Phone, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -30,6 +30,7 @@ const emptyCustomer: Partial<Customer> = {
     name: '',
     email: '',
     phone: '',
+    whatsapp: '',
     customerGroup: 'default',
     shippingAddress: {
         street: '',
@@ -45,6 +46,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
   const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
   const [countryCode, setCountryCode] = useState('+256');
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState('+256');
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useAuth();
@@ -68,11 +70,13 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
             const initialCountry = countryList.find(c => c.name === initialCustomer.shippingAddress?.country);
             if (initialCountry) {
                 setCountryCode(initialCountry.dialCode);
+                setWhatsappCountryCode(initialCountry.dialCode);
             }
         } else {
              const defaultCountry = countryList.find(c => c.name === 'Uganda');
              if (defaultCountry) {
                 setCountryCode(defaultCountry.dialCode);
+                setWhatsappCountryCode(defaultCountry.dialCode);
             }
         }
     }
@@ -159,24 +163,36 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
             <CardContent className="space-y-4">
               <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" placeholder="Enter customer's full name" value={customer.name} onChange={handleInputChange} />
+                  <Input id="name" placeholder="Enter customer's full name" value={customer.name || ''} onChange={handleInputChange} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="Enter email address" value={customer.email} onChange={handleInputChange}/>
+                <Input id="email" type="email" placeholder="Enter email address" value={customer.email || ''} onChange={handleInputChange}/>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                 <div className="flex items-center gap-2">
-                    <Select value={countryCode} onValueChange={(code) => setCountryCode(code)}>
-                    <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-                    </SelectContent>
-                    </Select>
-                    <Input id="phone" type="tel" placeholder="Enter phone number" value={customer.phone} onChange={handleInputChange}/>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <Label htmlFor="phone" className="flex items-center gap-2"><Phone className="h-4 w-4 text-muted-foreground"/> Phone Number (for Calls/SMS)</Label>
+                    <div className="flex items-center gap-2">
+                        <Select value={countryCode} onValueChange={setCountryCode}>
+                        <SelectTrigger className="w-[120px]"><SelectValue placeholder="Code" /></SelectTrigger>
+                        <SelectContent>
+                            {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                        </SelectContent>
+                        </Select>
+                        <Input id="phone" type="tel" placeholder="Enter phone number" value={customer.phone || ''} onChange={handleInputChange}/>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="whatsapp" className="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg> WhatsApp Number</Label>
+                    <div className="flex items-center gap-2">
+                        <Select value={whatsappCountryCode} onValueChange={setWhatsappCountryCode}>
+                        <SelectTrigger className="w-[120px]"><SelectValue placeholder="Code" /></SelectTrigger>
+                        <SelectContent>
+                            {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                        </SelectContent>
+                        </Select>
+                        <Input id="whatsapp" type="tel" placeholder="Enter WhatsApp number" value={customer.whatsapp || ''} onChange={handleInputChange}/>
+                    </div>
                 </div>
               </div>
             </CardContent>
@@ -189,12 +205,12 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
             <CardContent className="space-y-4">
                  <div className="space-y-2">
                     <Label htmlFor="street">Address</Label>
-                    <Input id="street" placeholder="e.g., 123 Main St" value={customer.shippingAddress?.street} onChange={handleAddressChange}/>
+                    <Input id="street" placeholder="e.g., 123 Main St" value={customer.shippingAddress?.street || ''} onChange={handleAddressChange}/>
                 </div>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                         <Label htmlFor="city">City</Label>
-                        <Input id="city" placeholder="e.g., Kampala" value={customer.shippingAddress?.city} onChange={handleAddressChange}/>
+                        <Input id="city" placeholder="e.g., Kampala" value={customer.shippingAddress?.city || ''} onChange={handleAddressChange}/>
                     </div>
                     <div className="space-y-2">
                        <Label htmlFor="country">Country</Label>

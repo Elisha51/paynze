@@ -231,6 +231,7 @@ export type Order = {
     customerName: string;
     customerEmail: string;
     customerPhone?: string;
+    customerWhatsapp?: string;
     date: string;
     status: 'Awaiting Payment' | 'Paid' | 'Ready for Pickup' | 'Ready for Delivery' | 'Shipped' | 'Attempted Delivery' | 'Delivered' | 'Picked Up' | 'Cancelled';
     fulfillmentMethod: 'Delivery' | 'Pickup';
@@ -273,6 +274,7 @@ export type Customer = {
     name: string;
     email: string;
     phone: string;
+    whatsapp?: string;
     customerGroup: string;
     lastOrderDate: string;
     totalSpend: number;
@@ -314,6 +316,7 @@ export type Supplier = {
   contactName: string;
   email: string;
   phone: string;
+  whatsapp?: string;
   address: string;
   productsSupplied: string[]; // Array of product SKUs
 };

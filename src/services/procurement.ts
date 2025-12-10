@@ -12,6 +12,7 @@ const mockSuppliers: Supplier[] = [
     contactName: 'Grace Nakato',
     email: 'grace@kitengekings.com',
     phone: '+256 772 111 222',
+    whatsapp: '+256 772 111 222',
     address: '123 Textile Road, Kampala',
     productsSupplied: ['KIT-001']
   },
@@ -30,6 +31,7 @@ const mockSuppliers: Supplier[] = [
     contactName: 'Sarah Kizza',
     email: 'sarah.k@rwenzoricoffee.org',
     phone: '+256 752 555 666',
+    whatsapp: '+256 752 999 888',
     address: '789 Mountain View Rd, Kasese',
     productsSupplied: ['COFF-01']
   }
@@ -125,6 +127,11 @@ export async function getPurchaseOrdersBySupplierId(supplierId: string): Promise
 
 export async function getPurchaseOrderById(id: string): Promise<PurchaseOrder | undefined> {
     return await poService.getById(id);
+}
+
+export async function addPurchaseOrder(po: Omit<PurchaseOrder, 'id'>): Promise<PurchaseOrder> {
+    const newPO = { ...po, id: `PO-${Date.now()}` };
+    return await poService.create(newPO);
 }
 
 export async function updatePurchaseOrder(id: string, updates: Partial<PurchaseOrder>): Promise<PurchaseOrder> {
