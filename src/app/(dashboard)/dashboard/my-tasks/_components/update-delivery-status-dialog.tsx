@@ -18,7 +18,6 @@ import { useToast } from '@/hooks/use-toast';
 import type { Order, DeliveryNote } from '@/lib/types';
 import { updateOrder } from '@/services/orders';
 import { FileUploader } from '@/components/ui/file-uploader';
-import { PenSquare } from 'lucide-react';
 import { useAuth } from '@/context/auth-context';
 
 type UpdateDeliveryStatusDialogProps = {
@@ -39,6 +38,15 @@ export function UpdateDeliveryStatusDialog({ order, onUpdate, children }: Update
 
   const handleUpdate = async () => {
     if (!user) return;
+
+    if (status === 'Delivered' && proof.length === 0) {
+        toast({
+            variant: 'destructive',
+            title: 'Proof of Delivery Required',
+            description: 'Please upload an image as proof of delivery.',
+        });
+        return;
+    }
 
     const updates: Partial<Order> = { status };
     
@@ -109,7 +117,7 @@ export function UpdateDeliveryStatusDialog({ order, onUpdate, children }: Update
           </div>
           {status === 'Delivered' && (
             <div className="space-y-2">
-                <Label>Proof of Delivery (Optional)</Label>
+                <Label>Proof of Delivery (Required)</Label>
                 <FileUploader
                     files={proof}
                     onFilesChange={setProof}
