@@ -58,6 +58,8 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { Calendar as CalendarIcon } from 'lucide-react';
+import { receivePurchaseOrder } from '@/services/procurement';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
@@ -207,7 +209,7 @@ export default function ViewPurchaseOrderPage() {
   const handleReceiveStock = async (locationName: string) => {
     if (!order) return;
     try {
-        const updatedOrder = await updatePurchaseOrder(order.id, { status: 'Completed' });
+        const updatedOrder = await receivePurchaseOrder(order.id, locationName);
         setOrder(updatedOrder);
         toast({
             title: 'Stock Received!',
@@ -324,7 +326,8 @@ export default function ViewPurchaseOrderPage() {
   const currency = order.currency || settings.currency;
   
   const renderCTAs = () => {
-    if (order.status === 'Draft' || order.status === 'Awaiting Approval' || order.status === 'Cancelled' || order.status === 'Completed') return null;
+    const isActionable = !['Awaiting Approval', 'Draft', 'Cancelled', 'Completed'].includes(order.status);
+    if (!isActionable) return null;
     
     return (
         <div className="flex items-center gap-2">
@@ -358,6 +361,8 @@ export default function ViewPurchaseOrderPage() {
       navigator.clipboard.writeText(poResponseLink);
       toast({ title: 'Link Copied!' });
   };
+  
+  const hasWhatsapp = !!supplier?.whatsapp;
 
   return (
     <DashboardPageLayout title={`Purchase Order #${order.id}`} cta={renderCTAs()} backHref="/dashboard/procurement?tab=purchase-orders">
@@ -417,15 +422,27 @@ export default function ViewPurchaseOrderPage() {
                                 <Mail className="mr-2 h-4 w-4" /> Email
                             </Button>
                         </a>
-                        <a
-                            href={`https://wa.me/${supplier?.whatsapp}?text=Hi ${supplier?.contactName}, here is our new purchase order: ${poResponseLink}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                        >
-                            <Button variant="outline" className="w-full">
-                                <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
-                            </Button>
-                        </a>
+                         <TooltipProvider>
+                           <Tooltip>
+                            <TooltipTrigger asChild>
+                                <a
+                                    href={hasWhatsapp ? `https://wa.me/${supplier?.whatsapp}?text=Hi ${supplier?.contactName}, here is our new purchase order: ${poResponseLink}` : '#'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={cn(!hasWhatsapp && "pointer-events-none")}
+                                >
+                                    <Button variant="outline" className="w-full" disabled={!hasWhatsapp}>
+                                        <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
+                                    </Button>
+                                </a>
+                            </TooltipTrigger>
+                            {!hasWhatsapp && (
+                               <TooltipContent>
+                                    <p>No WhatsApp number for this supplier.</p>
+                                </TooltipContent>
+                            )}
+                          </Tooltip>
+                        </TooltipProvider>
                     </div>
                 </CardContent>
             </Card>
