@@ -42,6 +42,17 @@ import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from '@/components/dashboard/assign-order-dialog';
 import { FulfillOrderDialog } from '@/components/dashboard/fulfill-order-dialog';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -259,7 +270,7 @@ export default function ViewOrderPage() {
                         )}
                         <DropdownMenuSeparator />
                         
-                        {canEdit && order.status === 'Awaiting Payment' && (
+                        {canEdit && order.status === 'Awaiting Payment' && order.payment.status === 'pending' && (
                           <FulfillOrderDialog order={order} action="paid" onUpdate={handleOrderUpdate}>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
                           </FulfillOrderDialog>
