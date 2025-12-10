@@ -5,9 +5,9 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, CheckCircle, Send, AlertTriangle, DollarSign, Mail, MessageSquare } from 'lucide-react';
+import { ArrowLeft, MoreVertical, CheckCircle, Send, AlertTriangle, DollarSign, Mail, MessageSquare, Copy } from 'lucide-react';
 import Link from 'next/link';
-import { getPurchaseOrderById, receivePurchaseOrder, updatePurchaseOrder, getSupplierById } from '@/services/procurement';
+import { getPurchaseOrderById, updatePurchaseOrder, getSupplierById } from '@/services/procurement';
 import { addTransaction } from '@/services/finances';
 import { getLocations } from '@/services/locations';
 import type { PurchaseOrder, OnboardingFormData, Location, PurchaseOrderItem, Supplier } from '@/lib/types';
@@ -54,17 +54,18 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
     const [location, setLocation] = useState<string>('');
-    const isDisabled = order.status !== 'Paid';
+    const isCompleted = order.status === 'Completed';
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button size="sm" disabled={isDisabled}>
+                <Button size="sm" disabled={isCompleted}>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    {order.status === 'Completed' ? 'Already Completed' : 'Mark as Completed'}
+                    {isCompleted ? 'Already Completed' : 'Mark as Completed'}
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -203,7 +204,7 @@ export default function ViewPurchaseOrderPage() {
   const handleReceiveStock = async (locationName: string) => {
     if (!order) return;
     try {
-        const updatedOrder = await receivePurchaseOrder(order.id, locationName);
+        const updatedOrder = await updatePurchaseOrder(order.id, { status: 'Completed' });
         setOrder(updatedOrder);
         toast({
             title: 'Stock Received!',
@@ -265,7 +266,7 @@ export default function ViewPurchaseOrderPage() {
     toast({ title: 'Changes Approved', description: 'The purchase order has been updated.' });
   }
   
-  const poResponseLink = `${window.location.origin}/supplier/po-response/${id}`;
+  const poResponseLink = typeof window !== 'undefined' ? `${window.location.origin}/supplier/po-response/${id}` : '';
 
   if (loading || !settings) {
     return (
@@ -320,8 +321,7 @@ export default function ViewPurchaseOrderPage() {
   const currency = order.currency || settings.currency;
   
   const renderCTAs = () => {
-    if (order.status === 'Awaiting Approval') return null; // Actions are inside the proposal card
-    if (order.status === 'Cancelled' || order.status === 'Completed') return null;
+    if (order.status === 'Awaiting Approval' || order.status === 'Cancelled' || order.status === 'Completed') return null;
     
     return (
         <div className="flex items-center gap-2">
@@ -342,24 +342,6 @@ export default function ViewPurchaseOrderPage() {
                 </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem>
-                        <a 
-                            href={`mailto:${supplier?.email}?subject=Purchase Order ${order.id} from ${settings.businessName}&body=Dear ${supplier?.contactName},%0D%0A%0D%0APlease find our purchase order at the link below:%0D%0A${poResponseLink}%0D%0A%0D%0AThank you,%0D%0A${settings.businessName}`}
-                            className="flex items-center"
-                        >
-                            <Mail className="mr-2 h-4 w-4" /> Send via Email
-                        </a>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                         <a
-                            href={`https://wa.me/${supplier?.whatsapp}?text=Hi ${supplier?.contactName}, here is our new purchase order: ${poResponseLink}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="flex items-center"
-                        >
-                            <MessageSquare className="mr-2 h-4 w-4" /> Send via WhatsApp
-                        </a>
-                    </DropdownMenuItem>
                     <DropdownMenuItem>Export as PDF</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
@@ -367,6 +349,11 @@ export default function ViewPurchaseOrderPage() {
             </DropdownMenu>
         </div>
     );
+  };
+  
+  const copyToClipboard = () => {
+      navigator.clipboard.writeText(poResponseLink);
+      toast({ title: 'Link Copied!' });
   };
 
   return (
@@ -409,6 +396,36 @@ export default function ViewPurchaseOrderPage() {
             </Card>
         </div>
         <div className="lg:col-span-1 space-y-6">
+             <Card>
+                <CardHeader>
+                    <CardTitle>Share with Supplier</CardTitle>
+                    <CardDescription>Send this link to your supplier for them to respond.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <Input readOnly value={poResponseLink} />
+                        <Button variant="outline" size="icon" onClick={copyToClipboard}><Copy className="h-4 w-4" /></Button>
+                    </div>
+                     <div className="grid grid-cols-2 gap-2">
+                        <a 
+                            href={`mailto:${supplier?.email}?subject=Purchase Order ${order.id} from ${settings.businessName}&body=Dear ${supplier?.contactName},%0D%0A%0D%0APlease find our purchase order at the link below:%0D%0A${poResponseLink}%0D%0A%0D%0AThank you,%0D%0A${settings.businessName}`}
+                        >
+                            <Button variant="outline" className="w-full">
+                                <Mail className="mr-2 h-4 w-4" /> Email
+                            </Button>
+                        </a>
+                        <a
+                            href={`https://wa.me/${supplier?.whatsapp}?text=Hi ${supplier?.contactName}, here is our new purchase order: ${poResponseLink}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            <Button variant="outline" className="w-full">
+                                <MessageSquare className="mr-2 h-4 w-4" /> WhatsApp
+                            </Button>
+                        </a>
+                    </div>
+                </CardContent>
+            </Card>
             <Card>
                 <CardHeader>
                     <CardTitle>Supplier</CardTitle>
