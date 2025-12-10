@@ -17,45 +17,60 @@ import { useAuth } from '@/context/auth-context';
 import type { Order } from '@/lib/types';
 
 
-export function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Order, action: 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
+export function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Order, action: 'paid' | 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
     const { user } = useAuth();
     const { toast } = useToast();
 
-    const titles = {
+    const titles: Record<typeof action, string> = {
+        paid: 'Mark as Paid',
         deliver: 'Mark as Delivered',
         pickup: 'Mark as Picked Up',
         ship: 'Mark as Shipped',
         ready: 'Mark as Ready for Pickup'
     };
 
-    const descriptions = {
+    const descriptions: Record<typeof action, string> = {
+        paid: `This will mark order #${order.id} as 'Paid'.`,
         deliver: `This will mark order #${order.id} as 'Delivered' and update inventory. This action cannot be undone.`,
         pickup: `This will mark order #${order.id} as 'Picked Up' and update inventory. This action cannot be undone.`,
         ship: `This will mark order #${order.id} as 'Shipped'. Inventory will not be adjusted until the order is delivered.`,
         ready: `This will mark order #${order.id} as 'Ready for Pickup'.`
     };
     
-    const newStatusMap = {
+    const newStatusMap: Record<typeof action, Order['status'] | null> = {
+        paid: 'Paid',
         deliver: 'Delivered',
         pickup: 'Picked Up',
         ship: 'Shipped',
         ready: 'Ready for Pickup',
-    } as const;
+    };
 
     const handleFulfill = async () => {
         if (!user) return;
+        
+        const updates: Partial<Order> = {};
         const newStatus = newStatusMap[action];
-        const updates: Partial<Order> = { status: newStatus };
+
+        if (newStatus) {
+            updates.status = newStatus;
+        }
+
+        if (action === 'paid') {
+            updates.payment = { ...order.payment, status: 'completed' };
+        }
 
         if (action === 'deliver' || action === 'pickup') {
             updates.fulfilledByStaffId = user.id;
             updates.fulfilledByStaffName = user.name;
         }
         
-        const updatedOrder = await updateOrder(order.id, updates);
-
-        onUpdate(updatedOrder);
-        toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${newStatus}.`});
+        try {
+            const updatedOrder = await updateOrder(order.id, updates);
+            onUpdate(updatedOrder);
+            toast({ title: `Order #${order.id} Updated`, description: `Status changed to ${updates.status || 'updated'}.`});
+        } catch (e) {
+            toast({ variant: 'destructive', title: "Update Failed", description: "There was an error updating the order." });
+        }
     }
 
     return (

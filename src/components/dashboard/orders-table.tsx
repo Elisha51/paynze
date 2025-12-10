@@ -272,47 +272,17 @@ const getColumns = (
     header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
       const order = row.original;
+      const isPendingPayment = order.payment?.status === 'pending';
       const isPaid = order.status === 'Paid';
       const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
       
       const handleCancel = async () => {
-        const updatedOrder = await updateOrder(order.id, { status: 'Cancelled' });
-        onUpdate(updatedOrder);
-      }
-      
-      const nextAction = () => {
-        if (!canEdit) return null;
-
-        switch (order.status) {
-            case 'Paid':
-                if (order.fulfillmentMethod === 'Pickup') {
-                    return (
-                        <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                           <Button size="sm">Mark Ready for Pickup</Button>
-                        </FulfillOrderDialog>
-                    );
-                }
-                return null; // Delivery assignment is now inline
-            case 'Ready for Pickup':
-                 return (
-                    <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
-                       <Button size="sm">Confirm Pickup</Button>
-                    </ConfirmPickupDialog>
-                 );
-            case 'Shipped':
-                return (
-                    <FulfillOrderDialog order={order} action="deliver" onUpdate={onUpdate}>
-                       <Button size="sm">Mark as Delivered</Button>
-                    </FulfillOrderDialog>
-                );
-            default:
-                return null;
-        }
+        await updateOrder(order.id, { status: 'Cancelled' });
+        onUpdate({ ...order, status: 'Cancelled' });
       }
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
-            {nextAction()}
             <AlertDialog>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -333,26 +303,36 @@ const getColumns = (
                             </DropdownMenuItem>
                         )}
 
-                        {canEdit && (
+                        <DropdownMenuSeparator />
+
+                        {canEdit && isPendingPayment && (
+                          <FulfillOrderDialog order={order} action="paid" onUpdate={onUpdate}>
+                            <DropdownMenuItem onSelect={e => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
+                          </FulfillOrderDialog>
+                        )}
+
+                        {canEdit && isPaid && order.fulfillmentMethod === 'Delivery' && (
+                            <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                    {order.assignedStaffId ? 'Re-assign Agent' : 'Assign Agent'}
+                                </DropdownMenuItem>
+                            </AssignOrderDialog>
+                        )}
+
+                        {canEdit && isPaid && order.fulfillmentMethod === 'Pickup' && (
+                           <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark Ready for Pickup</DropdownMenuItem>
+                           </FulfillOrderDialog>
+                        )}
+                        
+                        {canEdit && canBeCancelled && (
                           <>
-                            {isPaid && order.fulfillmentMethod === 'Delivery' && (
-                                <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                        {order.assignedStaffId ? 'Re-assign Agent' : 'Assign Agent'}
-                                    </DropdownMenuItem>
-                                </AssignOrderDialog>
-                            )}
-                            
-                            {canBeCancelled && (
-                              <>
-                                <DropdownMenuSeparator />
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
-                                        Cancel Order
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                              </>
-                            )}
+                            <DropdownMenuSeparator />
+                            <AlertDialogTrigger asChild>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">
+                                    Cancel Order
+                                </DropdownMenuItem>
+                            </AlertDialogTrigger>
                           </>
                         )}
                     </DropdownMenuContent>
