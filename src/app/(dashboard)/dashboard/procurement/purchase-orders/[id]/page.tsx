@@ -5,12 +5,12 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, CheckCircle, Send, AlertTriangle, DollarSign } from 'lucide-react';
+import { ArrowLeft, MoreVertical, CheckCircle, Send, AlertTriangle, DollarSign, Mail, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
-import { getPurchaseOrderById, receivePurchaseOrder, updatePurchaseOrder } from '@/services/procurement';
+import { getPurchaseOrderById, receivePurchaseOrder, updatePurchaseOrder, getSupplierById } from '@/services/procurement';
 import { addTransaction } from '@/services/finances';
 import { getLocations } from '@/services/locations';
-import type { PurchaseOrder, OnboardingFormData, Location, PurchaseOrderItem } from '@/lib/types';
+import type { PurchaseOrder, OnboardingFormData, Location, PurchaseOrderItem, Supplier } from '@/lib/types';
 import {
   Card,
   CardContent,
@@ -56,14 +56,14 @@ import { Textarea } from '@/components/ui/textarea';
 
 function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
     const [location, setLocation] = useState<string>('');
-    const isDisabled = order.status === 'Completed';
+    const isDisabled = order.status !== 'Paid';
 
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <Button variant="outline" size="sm" disabled={isDisabled}>
+                <Button size="sm" disabled={isDisabled}>
                     <CheckCircle className="mr-2 h-4 w-4" />
-                    {isDisabled ? 'Already Completed' : 'Mark as Completed'}
+                    {order.status === 'Completed' ? 'Already Completed' : 'Mark as Completed'}
                 </Button>
             </DialogTrigger>
             <DialogContent>
@@ -148,13 +148,12 @@ function SupplierChangesCard({ order, onApprove }: { order: PurchaseOrder; onApp
                             )
                         })}
                     </TableBody>
-                     <CardFooter className="flex justify-end gap-2">
+                    <TableFooter>
                         <TableRow>
-                            <TableCell>Total</TableCell>
-                            <TableCell>{formatCurrency(originalTotal, order.currency)}</TableCell>
+                            <TableCell colSpan={2} className="text-right font-semibold">Total</TableCell>
                             <TableCell className="font-bold text-amber-700">{formatCurrency(proposedTotal, order.currency)}</TableCell>
                         </TableRow>
-                    </CardFooter>
+                    </TableFooter>
                 </Table>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
@@ -169,6 +168,7 @@ export default function ViewPurchaseOrderPage() {
   const params = useParams();
   const id = params.id as string;
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
+  const [supplier, setSupplier] = useState<Supplier | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -176,12 +176,16 @@ export default function ViewPurchaseOrderPage() {
 
   const loadData = async (orderId: string) => {
       setLoading(true);
-      const [data, settingsData, locs] = await Promise.all([
+      const [orderData, settingsData, locs] = await Promise.all([
           getPurchaseOrderById(orderId),
           localStorage.getItem('onboardingData'),
           getLocations()
       ]);
-      setOrder(data || null);
+      setOrder(orderData || null);
+      if (orderData) {
+          const supplierData = await getSupplierById(orderData.supplierId);
+          setSupplier(supplierData || null);
+      }
       if (settingsData) {
           setSettings(JSON.parse(settingsData));
       }
@@ -253,10 +257,14 @@ export default function ViewPurchaseOrderPage() {
         expectedDelivery: order.supplierETA || order.expectedDelivery,
         status: 'Approved',
         supplierProposedChanges: undefined, // Clear the proposed changes
+        supplierETA: undefined,
+        supplierNotes: undefined,
     });
     setOrder(updatedOrder);
     toast({ title: 'Changes Approved', description: 'The purchase order has been updated.' });
   }
+  
+  const poResponseLink = `${window.location.origin}/supplier/po-response/${id}`;
 
   if (loading || !settings) {
     return (
@@ -312,10 +320,11 @@ export default function ViewPurchaseOrderPage() {
   
   const renderCTAs = () => {
     if (order.status === 'Awaiting Approval') return null; // Actions are inside the proposal card
+    if (order.status === 'Cancelled' || order.status === 'Completed') return null;
     
     return (
         <div className="flex items-center gap-2">
-            {(order.status === 'Sent' || order.status === 'Approved') && (
+            {order.status === 'Approved' && (
                 <Button size="sm" onClick={handleMarkAsPaid}>
                     <DollarSign className="mr-2 h-4 w-4" />
                     Mark as Paid
@@ -332,13 +341,24 @@ export default function ViewPurchaseOrderPage() {
                 </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                        <Link href={`/supplier/po-response/${order.id}`} target="_blank">
-                            <Send className="mr-2 h-4 w-4" />
-                            Send to Supplier
-                        </Link>
+                    <DropdownMenuItem>
+                        <a 
+                            href={`mailto:${supplier?.email}?subject=Purchase Order ${order.id} from ${settings.businessName}&body=Dear ${supplier?.contactName},%0D%0A%0D%0APlease find our purchase order at the link below:%0D%0A${poResponseLink}%0D%0A%0D%0AThank you,%0D%0A${settings.businessName}`}
+                            className="flex items-center"
+                        >
+                            <Mail className="mr-2 h-4 w-4" /> Send via Email
+                        </a>
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Edit PO</DropdownMenuItem>
+                    <DropdownMenuItem>
+                         <a
+                            href={`https://wa.me/${supplier?.whatsapp}?text=Hi ${supplier?.contactName}, here is our new purchase order: ${poResponseLink}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center"
+                        >
+                            <MessageSquare className="mr-2 h-4 w-4" /> Send via WhatsApp
+                        </a>
+                    </DropdownMenuItem>
                     <DropdownMenuItem>Export as PDF</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="text-destructive">Cancel PO</DropdownMenuItem>
@@ -377,12 +397,12 @@ export default function ViewPurchaseOrderPage() {
                                 </TableRow>
                             ))}
                         </TableBody>
-                        <CardFooter>
+                        <TableFooter>
                             <TableRow>
                                 <TableCell colSpan={3} className="text-right font-semibold text-lg">Grand Total</TableCell>
                                 <TableCell className="text-right font-bold text-lg">{formatCurrency(order.totalCost, currency)}</TableCell>
                             </TableRow>
-                        </CardFooter>
+                        </TableFooter>
                     </Table>
                 </CardContent>
             </Card>
@@ -405,11 +425,11 @@ export default function ViewPurchaseOrderPage() {
                 <CardContent className="space-y-4 text-sm">
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Order Date</span>
-                        <span>{order.orderDate}</span>
+                        <span>{format(new Date(order.orderDate), 'PPP')}</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-muted-foreground">Expected Delivery</span>
-                        <span>{order.expectedDelivery}</span>
+                        <span>{format(new Date(order.expectedDelivery), 'PPP')}</span>
                     </div>
                     <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Status</span>

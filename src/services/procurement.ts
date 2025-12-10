@@ -11,8 +11,8 @@ const mockSuppliers: Supplier[] = [
     name: 'Kitenge Kings',
     contactName: 'Grace Nakato',
     email: 'grace@kitengekings.com',
-    phone: '+256 772 111 222',
-    whatsapp: '+256 772 111 222',
+    phone: '+256772111222',
+    whatsapp: '256772111222',
     address: '123 Textile Road, Kampala',
     productsSupplied: ['KIT-001']
   },
@@ -21,7 +21,8 @@ const mockSuppliers: Supplier[] = [
     name: 'Leather Artisans UG',
     contactName: 'David Okello',
     email: 'david@leatherartisans.co.ug',
-    phone: '+256 782 333 444',
+    phone: '+256782333444',
+    whatsapp: '256782333444',
     address: '456 Craft Market, Jinja',
     productsSupplied: ['SHOE-002']
   },
@@ -30,8 +31,8 @@ const mockSuppliers: Supplier[] = [
     name: 'Rwenzori Coffee Co-op',
     contactName: 'Sarah Kizza',
     email: 'sarah.k@rwenzoricoffee.org',
-    phone: '+256 752 555 666',
-    whatsapp: '+256 752 999 888',
+    phone: '+256752555666',
+    whatsapp: '256752999888',
     address: '789 Mountain View Rd, Kasese',
     productsSupplied: ['COFF-01']
   }
