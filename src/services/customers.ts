@@ -15,10 +15,10 @@ async function initializeMockCustomers(): Promise<Customer[]> {
         { id: 'cust-02', name: 'Olivia Smith', email: 'olivia@example.com', phone: '+254723456789', whatsapp: '+254798765432', customerGroup: 'Retailer', lastOrderDate: '2023-02-10', totalSpend: 75000, currency: 'UGX', createdAt: '2023-01-20', source: 'Online' },
         { id: 'cust-03', name: 'Noah Williams', email: 'noah@example.com', phone: '+254734567890', customerGroup: 'default', lastOrderDate: '2023-03-05', totalSpend: 15000, currency: 'KES', createdAt: '2023-03-01', source: 'Online' },
         { id: 'cust-04', name: 'Emma Brown', email: 'emma@example.com', phone: '+254745678901', customerGroup: 'Retailer', lastOrderDate: '2023-03-15', totalSpend: 43000, currency: 'UGX', createdAt: '2023-03-10', source: 'Manual', createdById: 'staff-002', createdByName: 'Jane Smith' },
-        { id: 'cust-05', name: 'James Jones', email: 'james@example.com', phone: '+254756789012', customerGroup: 'default', lastOrderDate: '2023-03-20', totalSpend: 36000, currency: 'UGX', createdAt: '2023-03-18', source: 'Manual', createdById: 'staff-002', createdByName: 'Jane Smith' },
+        { id: 'cust-05', name: 'James Jones', email: 'james@example.com', phone: '+254756789012', whatsapp: '+254756789012', customerGroup: 'default', lastOrderDate: '2023-03-20', totalSpend: 36000, currency: 'UGX', createdAt: '2023-03-18', source: 'Manual', createdById: 'staff-002', createdByName: 'Jane Smith' },
         { id: 'cust-06', name: 'Sophia Miller', email: 'sophia@example.com', phone: '+254765432109', customerGroup: 'Retailer', lastOrderDate: '2024-07-22', totalSpend: 50000, currency: 'KES', createdAt: '2024-07-22', source: 'Online' },
         { id: 'cust-07', name: 'Ben Carter', email: 'ben@example.com', phone: '+256772998877', customerGroup: 'default', lastOrderDate: '2024-07-21', totalSpend: 50000, currency: 'UGX', createdAt: '2024-07-21', source: 'Online' },
-        { id: 'cust-08', name: 'Chloe Davis', email: 'chloe@example.com', phone: '+256772112233', customerGroup: 'default', lastOrderDate: '2024-07-20', totalSpend: 120000, currency: 'UGX', createdAt: '2024-07-20', source: 'Online' },
+        { id: 'cust-08', name: 'Chloe Davis', email: 'chloe@example.com', phone: '+256772112233', whatsapp: '+256772112233', customerGroup: 'default', lastOrderDate: '2024-07-20', totalSpend: 120000, currency: 'UGX', createdAt: '2024-07-20', source: 'Online' },
     ];
 
     return [...mockCustomers].map((customer, index) => {
