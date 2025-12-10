@@ -99,7 +99,11 @@ const ProductSelector = ({
                     <CommandEmpty>No products found.</CommandEmpty>
                     <CommandGroup>
                         {allProducts.map((product) => (
-                        <CommandItem key={product.sku} value={product.name} onSelect={() => onSelect(product.sku || '')}>
+                        <CommandItem
+                            key={product.sku}
+                            value={product.name}
+                            onSelect={() => onSelect(product.sku || '')}
+                        >
                             <Check className={cn("mr-2 h-4 w-4", selectedProductIds.includes(product.sku || '') ? "opacity-100" : "opacity-0")} />
                             {product.name}
                         </CommandItem>
