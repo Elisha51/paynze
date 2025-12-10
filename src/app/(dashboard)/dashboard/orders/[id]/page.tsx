@@ -45,6 +45,7 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { ConfirmPickupDialog } from '@/components/dashboard/confirm-pickup-dialog';
 
 
 function RevertStatusDialog({ order, onUpdate }: { order: Order, onUpdate: (updatedOrder: Order) => void }) {
@@ -214,11 +215,16 @@ export default function ViewOrderPage() {
   }[order.payment.status] as "secondary" | "default" | "outline" | "destructive" | null : 'secondary';
   
   const currency = order.currency || settings.currency;
-  const isPendingPayment = order.payment.status === 'pending';
   
   const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const taxes = order.taxes || 0;
   const shipping = order.shippingCost || 0;
+  const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
+  
+  const handleCancel = async () => {
+    await updateOrder(order.id, { status: 'Cancelled' });
+    handleOrderUpdate({ ...order, status: 'Cancelled' });
+  }
 
   return (
     <div className="space-y-6">
@@ -236,41 +242,72 @@ export default function ViewOrderPage() {
             {order.status}
         </Badge>
         <div className="ml-auto flex items-center gap-2">
-            {canEdit && order.channel === 'Manual' && (
-                <Button variant="outline" asChild>
-                    <Link href={`/dashboard/orders/${order.id}/edit`}>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit Order
-                    </Link>
-                </Button>
-            )}
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-9 w-9">
-                    <MoreVertical className="h-4 w-4" />
-                    <span className="sr-only">More</span>
-                </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {canEdit && isPendingPayment && (
-                      <FulfillOrderDialog order={order} action="paid" onUpdate={handleOrderUpdate}>
-                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
-                      </FulfillOrderDialog>
-                    )}
-                     {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
-                        <AssignOrderDialog order={order} staff={staff} onUpdate={handleOrderUpdate}>
-                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
-                        </AssignOrderDialog>
-                    )}
-                    {canEdit && ['Shipped', 'Delivered'].includes(order.status) && (
-                        <RevertStatusDialog order={order} onUpdate={handleOrderUpdate} />
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive">Cancel Order</DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
+            <AlertDialog>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" className="h-9 w-9">
+                        <MoreVertical className="h-4 w-4" />
+                        <span className="sr-only">More</span>
+                    </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        {canEdit && order.channel === 'Manual' && (
+                           <DropdownMenuItem asChild>
+                                <Link href={`/dashboard/orders/${order.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Order</Link>
+                           </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
+                        
+                        {canEdit && order.status === 'Awaiting Payment' && (
+                          <FulfillOrderDialog order={order} action="paid" onUpdate={handleOrderUpdate}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
+                          </FulfillOrderDialog>
+                        )}
+                        
+                         {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
+                            <AssignOrderDialog order={order} staff={staff} onUpdate={handleOrderUpdate}>
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
+                            </AssignOrderDialog>
+                        )}
+
+                        {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
+                           <FulfillOrderDialog order={order} action="ready" onUpdate={handleOrderUpdate}>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark Ready for Pickup</DropdownMenuItem>
+                           </FulfillOrderDialog>
+                        )}
+
+                         {canEdit && order.status === 'Ready for Pickup' && (
+                           <ConfirmPickupDialog order={order} onUpdate={handleOrderUpdate}>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Confirm Pickup</DropdownMenuItem>
+                           </ConfirmPickupDialog>
+                        )}
+                        
+                        {canEdit && ['Shipped', 'Delivered', 'Picked Up', 'Ready for Pickup'].includes(order.status) && (
+                           <RevertStatusDialog order={order} onUpdate={handleOrderUpdate} />
+                        )}
+                        
+                        {canEdit && canBeCancelled && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <AlertDialogTrigger asChild>
+                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>Cancel Order</DropdownMenuItem>
+                                </AlertDialogTrigger>
+                            </>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>This will cancel order #{order.id}. This action cannot be undone.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Back</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleCancel} className="bg-destructive hover:bg-destructive/90">Cancel Order</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
       </div>
 

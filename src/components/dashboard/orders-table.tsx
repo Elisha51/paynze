@@ -227,11 +227,14 @@ const getColumns = (
         const staffId = order.fulfilledByStaffId || order.assignedStaffId;
         
         if (!staffId || !staffName) {
-            return canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' ? (
-                 <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
-                    <Button variant="outline" size="sm">Assign Agent</Button>
-                </AssignOrderDialog>
-            ) : <span className="text-muted-foreground">—</span>;
+            if (canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery') {
+                return (
+                     <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                        <Button variant="outline" size="sm">Assign Agent</Button>
+                    </AssignOrderDialog>
+                );
+            }
+            return <span className="text-muted-foreground">—</span>;
         }
 
         return (
@@ -272,8 +275,6 @@ const getColumns = (
     header: () => <div className="text-right sticky right-0">Actions</div>,
     cell: ({ row }) => {
       const order = row.original;
-      const isPendingPayment = order.payment?.status === 'pending';
-      const isPaid = order.status === 'Paid';
       const canBeCancelled = order.status !== 'Cancelled' && order.status !== 'Delivered' && order.status !== 'Picked Up';
       
       const handleCancel = async () => {
@@ -305,13 +306,13 @@ const getColumns = (
 
                         <DropdownMenuSeparator />
 
-                        {canEdit && isPendingPayment && (
+                        {canEdit && order.status === 'Awaiting Payment' && (
                           <FulfillOrderDialog order={order} action="paid" onUpdate={onUpdate}>
                             <DropdownMenuItem onSelect={e => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
                           </FulfillOrderDialog>
                         )}
 
-                        {canEdit && isPaid && order.fulfillmentMethod === 'Delivery' && (
+                        {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
                             <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                     {order.assignedStaffId ? 'Re-assign Agent' : 'Assign Agent'}
@@ -319,10 +320,16 @@ const getColumns = (
                             </AssignOrderDialog>
                         )}
 
-                        {canEdit && isPaid && order.fulfillmentMethod === 'Pickup' && (
+                        {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
                            <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark Ready for Pickup</DropdownMenuItem>
                            </FulfillOrderDialog>
+                        )}
+
+                        {canEdit && order.status === 'Ready for Pickup' && (
+                           <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Confirm Pickup</DropdownMenuItem>
+                           </ConfirmPickupDialog>
                         )}
                         
                         {canEdit && canBeCancelled && (
