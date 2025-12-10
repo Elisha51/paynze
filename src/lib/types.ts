@@ -3,6 +3,7 @@
 
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -263,7 +264,7 @@ export type Order = {
 
 export type Communication = {
   id: string;
-  type: 'Note' | 'Phone' | 'Meeting' | 'Message';
+  type: 'Note' | 'Phone' | 'Meeting';
   content: string;
   date: string;
   staffId: string;
