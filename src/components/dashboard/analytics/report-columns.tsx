@@ -187,13 +187,19 @@ export const purchaseOrdersColumns: ColumnDef<PurchaseOrder>[] = [
   {
     accessorKey: 'status',
     header: 'Status',
-    cell: ({ row }) => (
-      <div className="whitespace-nowrap">
-        <Badge variant={row.getValue('status') === 'Sent' ? 'secondary' : row.getValue('status') === 'Cancelled' ? 'destructive' : 'default'}>
-          {row.getValue('status')}
-        </Badge>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const status = row.original.status as PurchaseOrder['status'];
+      const variantMap: { [key in PurchaseOrder['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
+        Draft: 'secondary',
+        Sent: 'outline',
+        'Awaiting Approval': 'outline',
+        Approved: 'default',
+        Paid: 'default',
+        Completed: 'default',
+        Cancelled: 'destructive',
+      };
+      return <Badge variant={variantMap[status] || 'secondary'}>{status}</Badge>;
+    }
   },
   {
     accessorKey: 'totalCost',
@@ -210,6 +216,59 @@ export const purchaseOrdersColumns: ColumnDef<PurchaseOrder>[] = [
       const amount = parseFloat(row.getValue('totalCost'));
       const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: settings?.currency || 'UGX' }).format(amount);
       return <div className="text-right font-medium">{formatted}</div>;
+    },
+  },
+  {
+    id: 'actions',
+    cell: ({ row }) => {
+      const po = row.original;
+      return (
+        <div className="text-right">
+          <AlertDialog>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem asChild>
+                  <Link href={`/dashboard/procurement/purchase-orders/${po.id}`}>View Details</Link>
+                </DropdownMenuItem>
+                {po.status === 'Draft' && (
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/procurement/purchase-orders/${po.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit</Link>
+                  </DropdownMenuItem>
+                )}
+                {po.status !== 'Completed' && po.status !== 'Cancelled' && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
+                        <Trash2 className="mr-2 h-4 w-4" /> Cancel PO
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will cancel Purchase Order "{po.id}". This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction className="bg-destructive hover:bg-destructive/90">Confirm</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      );
     },
   },
 ];
@@ -366,4 +425,3 @@ export const campaignColumns: ColumnDef<Campaign>[] = [
     },
   },
 ];
-

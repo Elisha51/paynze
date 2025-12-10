@@ -1,15 +1,16 @@
 
 'use client';
 import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { getPurchaseOrderById } from '@/services/procurement';
+import { useParams, useRouter } from 'next/navigation';
+import { getPurchaseOrderById, updatePurchaseOrder } from '@/services/procurement';
 import type { PurchaseOrder } from '@/lib/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
-import { OrderForm } from '@/components/dashboard/order-form'; // Assuming we can reuse a generic order form logic
+import { PurchaseOrderForm } from '@/components/dashboard/purchase-order-form'; // Re-using the form logic
 
 export default function EditPurchaseOrderPage() {
     const params = useParams();
+    const router = useRouter();
     const id = params.id as string;
     const [order, setOrder] = useState<PurchaseOrder | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -18,12 +19,20 @@ export default function EditPurchaseOrderPage() {
         if (id) {
             async function loadOrder() {
                 const fetchedOrder = await getPurchaseOrderById(id);
-                setOrder(fetchedOrder || null);
+                // Only allow editing of non-completed orders
+                if (fetchedOrder && fetchedOrder.status !== 'Completed' && fetchedOrder.status !== 'Cancelled') {
+                    setOrder(fetchedOrder);
+                } else {
+                    setOrder(null);
+                    if (fetchedOrder) {
+                        router.push(`/dashboard/procurement/purchase-orders/${id}`);
+                    }
+                }
                 setIsLoading(false);
             }
             loadOrder();
         }
-    }, [id]);
+    }, [id, router]);
 
     if (isLoading) {
         return (
@@ -43,15 +52,14 @@ export default function EditPurchaseOrderPage() {
     if (!order) {
         return (
              <DashboardPageLayout title="Error" backHref="/dashboard/procurement?tab=purchase-orders">
-                <p>Purchase Order not found.</p>
+                <p>Purchase Order not found or cannot be edited.</p>
              </DashboardPageLayout>
         )
     }
 
     return (
         <DashboardPageLayout title={`Edit PO #${order.id}`} backHref={`/dashboard/procurement/purchase-orders/${order.id}`}>
-            {/* A dedicated PO form would be ideal here. Reusing OrderForm would require significant adaptation. */}
-            <p>Editing functionality for Purchase Orders is not yet implemented.</p>
+            <PurchaseOrderForm initialPurchaseOrder={order} />
         </DashboardPageLayout>
     );
 }

@@ -1,5 +1,4 @@
 
-
 'use client';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import { Button } from '@/components/ui/button';
@@ -20,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
+import { purchaseOrdersColumns } from '@/components/dashboard/analytics/report-columns';
 
 const getSupplierColumns = (onDelete: (id: string) => void): ColumnDef<Supplier>[] => [
     {
@@ -114,104 +114,6 @@ const getSupplierColumns = (onDelete: (id: string) => void): ColumnDef<Supplier>
     }
 ];
 
-const getPurchaseOrderColumns = (): ColumnDef<PurchaseOrder>[] => [
-    {
-    id: 'select',
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && 'indeterminate')
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-    {
-        accessorKey: 'id',
-        header: ({ column }) => <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}>Order ID <ArrowUpDown className="ml-2 h-4 w-4" /></Button>,
-        cell: ({ row }) => (
-            <Link href={`/dashboard/procurement/purchase-orders/${row.original.id}`} className="font-medium hover:underline">
-                {row.original.id}
-            </Link>
-        )
-    },
-    {
-        accessorKey: 'supplierName',
-        header: 'Supplier',
-    },
-    {
-        accessorKey: 'orderDate',
-        header: 'Order Date',
-    },
-    {
-        accessorKey: 'status',
-        header: 'Status',
-        cell: ({ row }) => <Badge variant={row.original.status === 'Completed' ? 'default' : 'secondary'}>{row.original.status}</Badge>
-    },
-    {
-        accessorKey: 'totalCost',
-        header: 'Total',
-        cell: ({ row }) => {
-            const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: row.original.currency }).format(row.original.totalCost);
-            return <div className="text-right font-medium">{formatted}</div>
-        }
-    },
-     {
-        id: 'actions',
-        cell: ({ row }) => {
-            const po = row.original;
-            return (
-                <div className="text-right">
-                    <AlertDialog>
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                    <span className="sr-only">Open menu</span>
-                                    <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuItem asChild><Link href={`/dashboard/procurement/purchase-orders/${po.id}`}><Edit className="mr-2 h-4 w-4"/>View Details</Link></DropdownMenuItem>
-                                <DropdownMenuItem asChild><Link href={`/dashboard/procurement/purchase-orders/${po.id}/edit`}><Edit className="mr-2 h-4 w-4"/>Edit</Link></DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <AlertDialogTrigger asChild>
-                                    <DropdownMenuItem className="text-destructive focus:text-destructive" onSelect={(e) => e.preventDefault()}>
-                                        <Trash2 className="mr-2 h-4 w-4" /> Cancel PO
-                                    </DropdownMenuItem>
-                                </AlertDialogTrigger>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    This will cancel Purchase Order "{po.id}". This cannot be undone.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction className="bg-destructive hover:bg-destructive/90">Confirm</AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </div>
-            )
-        }
-    }
-];
-
 
 export default function ProcurementPage() {
     const [activeTab, setActiveTab] = useState('suppliers');
@@ -230,7 +132,7 @@ export default function ProcurementPage() {
             setIsLoading(true);
             const [suppliersData, poData] = await Promise.all([getSuppliers(), getPurchaseOrders()]);
             setSuppliers(suppliersData);
-            setPurchaseOrders(poData);
+            setPurchaseOrders(poData.sort((a,b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime()));
             setIsLoading(false);
         }
         loadData();
@@ -243,7 +145,7 @@ export default function ProcurementPage() {
     }
     
     const supplierColumns = useMemo(() => getSupplierColumns(handleDeleteSupplier), []);
-    const poColumns = useMemo(() => getPurchaseOrderColumns(), []);
+    const poColumns = useMemo(() => purchaseOrdersColumns, []);
     
     const getCta = () => {
         if (activeTab === 'analytics') {
