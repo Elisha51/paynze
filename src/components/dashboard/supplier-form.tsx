@@ -77,8 +77,17 @@ export function SupplierForm({ initialSupplier }: { initialSupplier?: Supplier |
   }
 
   const handleSave = () => {
+    const fullPhoneNumber = `${countryCode}${supplier.phone?.replace(countryCode, '')}`;
+    const fullWhatsappNumber = supplier.whatsapp ? `${whatsappCountryCode}${supplier.whatsapp.replace(whatsappCountryCode, '')}` : '';
+
+    const finalSupplierData = {
+        ...supplier,
+        phone: fullPhoneNumber,
+        whatsapp: fullWhatsappNumber,
+    };
+      
     // In a real app, this would call an API service
-    console.log("Saving supplier", supplier);
+    console.log("Saving supplier", finalSupplierData);
     toast({
         title: initialSupplier ? "Supplier Updated" : "Supplier Created",
         description: `${supplier.name} has been saved.`
