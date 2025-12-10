@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate, DeliveryNote } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -71,7 +66,7 @@ function initializeMockOrders(): Order[] {
             customerName: 'Emma Brown', 
             customerEmail: 'emma@example.com', 
             date: '2024-07-24T09:00:00Z', 
-            status: 'Paid', // Changed to Paid to make it assignable
+            status: 'Paid',
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
             total: 80000,
