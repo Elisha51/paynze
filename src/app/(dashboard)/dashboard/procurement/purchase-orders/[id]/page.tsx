@@ -35,6 +35,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableFooter,
 } from "@/components/ui/table"
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import {
