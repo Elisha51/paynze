@@ -36,7 +36,7 @@ export function FulfillOrderDialog({ order, action, onUpdate, children }: { orde
         deliver: `This will mark order #${order.id} as 'Delivered' and update inventory. This action cannot be undone.`,
         pickup: `This will mark order #${order.id} as 'Picked Up' and update inventory. This action cannot be undone.`,
         ready: isDelivery 
-            ? `This will mark order #${order.id} as 'Ready for Delivery'. It will then appear in the Deliveries tab.`
+            ? `This will mark order #${order.id} as 'Ready for Delivery'. It will then appear in the Deliveries tab for assignment.`
             : `This will mark order #${order.id} as 'Ready for Pickup'. The customer will be notified.`
     };
     
@@ -44,7 +44,7 @@ export function FulfillOrderDialog({ order, action, onUpdate, children }: { orde
         paid: 'Paid',
         deliver: 'Delivered',
         pickup: 'Picked Up',
-        ready: isDelivery ? 'Ready for Delivery' : 'Ready for Pickup',
+        ready: 'Ready for Delivery',
     };
 
     const handleFulfill = async () => {
