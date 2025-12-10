@@ -318,6 +318,13 @@ export type Supplier = {
   productsSupplied: string[]; // Array of product SKUs
 };
 
+export type PurchaseOrderItem = {
+    productId: string;
+    productName: string;
+    quantity: number;
+    cost: number;
+}
+
 export type PurchaseOrder = {
   id: string; // e.g., 'PO-001'
   supplierId: string;
@@ -571,15 +578,16 @@ export type Campaign = {
   id: string;
   name: string;
   status: 'Active' | 'Scheduled' | 'Draft' | 'Completed';
+  channel: 'Email' | 'SMS' | 'WhatsApp' | 'Push';
   audience: string;
+  sent?: number;
+  openRate?: string;
+  ctr?: string;
   startDate?: string;
   endDate?: string;
   scheduleType?: 'one-time' | 'recurring';
   recurring?: RecurringSchedule;
   content: CampaignContent;
-  sent?: number; // No longer required per-channel
-  openRate?: string;
-  ctr?: string;
   applicableProductIds?: string[];
   banner?: CampaignBanner;
   affiliateAccess: 'none' | 'all' | 'specific';
