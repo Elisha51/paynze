@@ -9,6 +9,7 @@ import { ThemeSelector } from '@/themes/theme-selector';
 import Step5Confirmation from '@/components/onboarding/step5-confirmation';
 import { OnboardingLayout } from '@/components/layout/onboarding-layout';
 import { Progress } from '@/components/ui/progress';
+import Step3CatalogUpload from '@/components/onboarding/step3-catalog-upload';
 
 function OnboardingWizard() {
   const { step } = useOnboarding();
@@ -19,8 +20,8 @@ function OnboardingWizard() {
     1: 'Business Information',
     2: 'Store Setup',
     3: 'Upload Your Catalog',
-    4: 'Configure Payments',
-    5: 'Set Up Delivery',
+    4: 'Configure Payments & Delivery',
+    5: 'Choose a Theme',
     6: 'Review & Launch',
   };
 
@@ -31,14 +32,11 @@ function OnboardingWizard() {
       case 2:
         return <Step2StoreSetup />;
       case 3:
-        // Placeholder for Catalog Upload
-        return <Step3Preferences />; // Temporarily reusing for structure
+        return <Step3CatalogUpload />;
       case 4:
-         // Placeholder for Payment Setup
-        return <Step3Preferences />; // Temporarily reusing for structure
+        return <Step3Preferences />; // This is now for Payments & Delivery
       case 5:
-        // Placeholder for Delivery Setup
-        return <ThemeSelector />; // Temporarily reusing for structure
+        return <ThemeSelector />;
       case 6:
         return <Step5Confirmation />;
       default:
