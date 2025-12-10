@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   const { cartItems, cartTotal, currency, clearCart } = useCart();
   const router = useRouter();
   const { toast } = useToast();
-  const [customer, setCustomer] = useState<Partial<Customer> | null>(null);
+  const [customer, setCustomer] = useState<Partial<Customer>>({});
   const [paymentMethod, setPaymentMethod] = useState<PaymentDetails['method']>('Cash on Delivery');
   const [isLoading, setIsLoading] = useState(false);
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
@@ -45,7 +45,7 @@ export default function CheckoutPage() {
   const [shippingZones, setShippingZones] = useState<ShippingZone[]>([]);
   const [selectedShippingMethod, setSelectedShippingMethod] = useState<DeliveryMethod | null>(null);
   const [createAccount, setCreateAccount] = useState(false);
-  const isLoggedIn = !!customer;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     async function loadInitialData() {
@@ -54,6 +54,7 @@ export default function CheckoutPage() {
             const custData = await getCustomerById(loggedInCustomerId);
             if (custData) {
                 setCustomer(custData);
+                setIsLoggedIn(true);
             }
         }
 
@@ -100,7 +101,7 @@ export default function CheckoutPage() {
 
   const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setCustomer(p => p ? {...p, [id]: value } : { [id]: value });
+    setCustomer(p => ({ ...p, [id]: value }));
   };
   
   const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,14 +115,15 @@ export default function CheckoutPage() {
     let currentCustomer = customer;
     if (!isLoggedIn && createAccount && customer?.email && customer.name) {
         try {
-            currentCustomer = await addCustomer({
+            const newCustomerData = {
                 name: customer.name,
                 email: customer.email,
                 phone: `${countryCode}${customer.phone}`,
                 whatsapp: customer.whatsapp ? `${whatsappCountryCode}${customer.whatsapp}` : undefined,
                 customerGroup: 'default',
                 currency: currency,
-            });
+            };
+            currentCustomer = await addCustomer(newCustomerData as Omit<Customer, 'id'|'lastOrderDate'|'totalSpend'>);
             localStorage.setItem('isCustomerLoggedIn', 'true');
             localStorage.setItem('loggedInCustomerId', currentCustomer.id);
         } catch(e) {

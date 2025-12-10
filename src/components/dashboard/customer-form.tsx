@@ -112,13 +112,19 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
         return;
     }
 
+    const finalCustomerData = {
+        ...customer,
+        phone: `${countryCode}${customer.phone?.replace(countryCode, '')}`,
+        whatsapp: customer.whatsapp ? `${whatsappCountryCode}${customer.whatsapp.replace(whatsappCountryCode, '')}` : undefined,
+    };
+
     try {
-        if (isEditing && customer.id) {
-            await updateCustomer(customer.id, customer as Customer);
+        if (isEditing && finalCustomerData.id) {
+            await updateCustomer(finalCustomerData.id, finalCustomerData as Customer);
         } else {
             if (!user) throw new Error("User not found");
             const newCustomerData = {
-                ...customer,
+                ...finalCustomerData,
                 source: 'Manual' as const,
                 createdById: user.id,
                 createdByName: user.name,
@@ -179,7 +185,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
                             {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                         </SelectContent>
                         </Select>
-                        <Input id="phone" type="tel" placeholder="Enter phone number" value={customer.phone || ''} onChange={handleInputChange}/>
+                        <Input id="phone" type="tel" placeholder="Enter phone number" value={customer.phone?.replace(countryCode, '') || ''} onChange={handleInputChange}/>
                     </div>
                 </div>
                 <div className="space-y-2">
@@ -191,7 +197,7 @@ export function CustomerForm({ initialCustomer }: { initialCustomer?: Customer |
                             {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                         </SelectContent>
                         </Select>
-                        <Input id="whatsapp" type="tel" placeholder="Enter WhatsApp number" value={customer.whatsapp || ''} onChange={handleInputChange}/>
+                        <Input id="whatsapp" type="tel" placeholder="Enter WhatsApp number" value={customer.whatsapp?.replace(whatsappCountryCode, '') || ''} onChange={handleInputChange}/>
                     </div>
                 </div>
               </div>

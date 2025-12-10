@@ -18,6 +18,7 @@ export default function AccountPage() {
   const { toast } = useToast();
   const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
   const [countryCode, setCountryCode] = useState('+256');
+  const [whatsappCountryCode, setWhatsappCountryCode] = useState('+256');
 
   useEffect(() => {
     async function loadData() {
@@ -35,6 +36,12 @@ export default function AccountPage() {
             const country = countryList.find(c => cust.phone.startsWith(c.dialCode));
             if (country) {
                 setCountryCode(country.dialCode);
+            }
+        }
+        if (cust?.whatsapp) {
+            const waCountry = countryList.find(c => cust.whatsapp!.startsWith(c.dialCode));
+            if (waCountry) {
+                setWhatsappCountryCode(waCountry.dialCode);
             }
         }
       }
@@ -56,7 +63,7 @@ export default function AccountPage() {
             shippingAddress: {
                 ...customer.shippingAddress,
                 [id]: value
-            }
+            } as any
         });
     }
   }
@@ -65,9 +72,15 @@ export default function AccountPage() {
     if (!customer) return;
     try {
         const phoneWithoutCode = customer.phone?.replace(countryCode, '');
-        const updatedCustomerData = { ...customer, phone: `${countryCode}${phoneWithoutCode}` };
+        const whatsappWithoutCode = customer.whatsapp?.replace(whatsappCountryCode, '');
 
-        const updated = await updateCustomer(updatedCustomerData);
+        const updatedCustomerData: Partial<Customer> = { 
+            ...customer, 
+            phone: `${countryCode}${phoneWithoutCode}`,
+            whatsapp: whatsappWithoutCode ? `${whatsappCountryCode}${whatsappWithoutCode}` : undefined
+        };
+
+        const updated = await updateCustomer(customer.id, updatedCustomerData);
         setCustomer(updated);
         toast({ title: "Profile Updated", description: "Your personal information has been saved." });
     } catch (e) {
@@ -93,7 +106,8 @@ export default function AccountPage() {
       )
   }
   
-  const phoneWithoutCode = customer.phone?.startsWith(countryCode) ? customer.phone.substring(countryCode.length) : customer.phone;
+  const phoneWithoutCode = customer.phone?.replace(countryCode, '') || '';
+  const whatsappWithoutCode = customer.whatsapp?.replace(whatsappCountryCode, '') || '';
 
   return (
     <div className="space-y-6">
@@ -122,7 +136,19 @@ export default function AccountPage() {
                         {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
                       </SelectContent>
                     </Select>
-                    <Input id="phone" type="tel" value={phoneWithoutCode} onChange={handleInputChange} placeholder="772123456"/>
+                    <Input id="phone" type="tel" value={phoneWithoutCode || ''} onChange={handleInputChange} placeholder="772123456"/>
+                </div>
+            </div>
+            <div className="space-y-2">
+                <Label htmlFor="whatsapp">WhatsApp (Optional)</Label>
+                <div className="flex items-center gap-2">
+                    <Select value={whatsappCountryCode} onValueChange={setWhatsappCountryCode}>
+                        <SelectTrigger className="w-[120px]"><SelectValue placeholder="Code" /></SelectTrigger>
+                        <SelectContent>
+                            {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
+                        </SelectContent>
+                    </Select>
+                    <Input id="whatsapp" type="tel" value={whatsappWithoutCode || ''} onChange={handleInputChange} placeholder="772123456"/>
                 </div>
             </div>
             <Button onClick={handleSaveChanges}>Save Changes</Button>
