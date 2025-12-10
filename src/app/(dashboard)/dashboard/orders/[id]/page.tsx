@@ -40,6 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from '@/components/dashboard/assign-order-dialog';
+import { FulfillOrderDialog } from '../fulfill-order-dialog';
 
 
 export default function ViewOrderPage() {
@@ -142,6 +143,7 @@ export default function ViewOrderPage() {
   }[order.payment.status] as "secondary" | "default" | "outline" | "destructive" | null : 'secondary';
   
   const currency = order.currency || settings.currency;
+  const isPendingPayment = order.payment.status === 'pending';
   
   const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const taxes = order.taxes || 0;
@@ -180,7 +182,12 @@ export default function ViewOrderPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem>Mark as Paid</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    {canEdit && isPendingPayment && (
+                      <FulfillOrderDialog order={order} action="paid" onUpdate={handleOrderUpdate}>
+                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
+                      </FulfillOrderDialog>
+                    )}
                      {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
                         <AssignOrderDialog order={order} staff={staff} onUpdate={handleOrderUpdate}>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign for Delivery</DropdownMenuItem>
