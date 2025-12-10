@@ -1,3 +1,4 @@
+
 // src/context/onboarding-context.tsx
 'use client';
 
@@ -78,13 +79,13 @@ const initialFormData: OnboardingFormData = {
   }
 };
 
-export function OnboardingProvider({ children }: { children: React.ReactNode }) {
+export function OnboardingProvider({ children }: { children: ReactNode }) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<OnboardingFormData>(initialFormData);
 
   useEffect(() => {
     // Autosave simulation
-    if (step > 1 && step < 6) { // Now 6 steps with confirmation
+    if (step > 1 && step < 7) { // Now 6 steps with confirmation
         const timer = setTimeout(() => {
             localStorage.setItem('onboardingDraft', JSON.stringify(formData));
         }, 3000);

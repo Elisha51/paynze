@@ -1,3 +1,4 @@
+
 // src/app/get-started/page.tsx
 'use client';
 import { OnboardingProvider, useOnboarding } from '@/context/onboarding-context';
@@ -11,15 +12,38 @@ import { Progress } from '@/components/ui/progress';
 
 function OnboardingWizard() {
   const { step } = useOnboarding();
-  const totalSteps = 5;
+  const totalSteps = 6;
   const progress = (step / totalSteps) * 100;
 
   const titles: { [key: number]: string } = {
     1: 'Business Information',
     2: 'Store Setup',
-    3: 'Payments & Delivery',
-    4: 'Choose a Theme',
-    5: 'Review & Launch',
+    3: 'Upload Your Catalog',
+    4: 'Configure Payments',
+    5: 'Set Up Delivery',
+    6: 'Review & Launch',
+  };
+
+  const renderStep = () => {
+    switch (step) {
+      case 1:
+        return <Step1BusinessInfo />;
+      case 2:
+        return <Step2StoreSetup />;
+      case 3:
+        // Placeholder for Catalog Upload
+        return <Step3Preferences />; // Temporarily reusing for structure
+      case 4:
+         // Placeholder for Payment Setup
+        return <Step3Preferences />; // Temporarily reusing for structure
+      case 5:
+        // Placeholder for Delivery Setup
+        return <ThemeSelector />; // Temporarily reusing for structure
+      case 6:
+        return <Step5Confirmation />;
+      default:
+        return <Step1BusinessInfo />;
+    }
   };
 
   return (
@@ -32,11 +56,7 @@ function OnboardingWizard() {
         </div>
         
         <div className="flex items-start justify-center">
-            {step === 1 && <Step1BusinessInfo />}
-            {step === 2 && <Step2StoreSetup />}
-            {step === 3 && <Step3Preferences />}
-            {step === 4 && <ThemeSelector />}
-            {step === 5 && <Step5Confirmation />}
+            {renderStep()}
         </div>
 
       </div>
