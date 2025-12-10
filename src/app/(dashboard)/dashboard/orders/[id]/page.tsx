@@ -40,7 +40,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from '@/components/dashboard/assign-order-dialog';
-import { FulfillOrderDialog } from '../fulfill-order-dialog';
+import { FulfillOrderDialog } from '@/components/dashboard/fulfill-order-dialog';
 
 
 export default function ViewOrderPage() {
