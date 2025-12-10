@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -64,7 +63,7 @@ export default function PurchaseOrderResponsePage() {
         if (!order) return;
         setIsLoading(true);
         
-        let updates: Partial<PurchaseOrder> = { status: status === 'Changes Proposed' ? 'Awaiting Approval' : status };
+        let updates: Partial<PurchaseOrder> = { status: status === 'Changes Proposed' ? 'Awaiting Approval' : status === 'Accepted' ? 'Approved' : 'Cancelled' };
 
         if (status === 'Changes Proposed') {
             updates.supplierProposedChanges = { items: editedItems };
