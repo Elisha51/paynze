@@ -1,3 +1,4 @@
+
 // src/components/onboarding/step1-business-info.tsx
 'use client';
 import { useOnboarding } from '@/context/onboarding-context';
@@ -9,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEffect, useState } from 'react';
 import { getCountryList } from '@/services/countries';
+import { cn } from '@/lib/utils';
 
 export default function Step1BusinessInfo() {
   const { formData, setFormData, nextStep } = useOnboarding();
@@ -75,19 +77,19 @@ export default function Step1BusinessInfo() {
 
         <div className="space-y-3">
           <Label>Business Type</Label>
-          <RadioGroup value={formData.businessType} onValueChange={handleRadioChange} className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Label htmlFor="wholesaler" className="border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted data-[state=checked]:border-primary">
-                <RadioGroupItem value="Wholesaler" id="wholesaler" className="sr-only" />
-                <span>Wholesaler</span>
-            </Label>
-            <Label htmlFor="retailer" className="border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted data-[state=checked]:border-primary">
-                <RadioGroupItem value="Retailer" id="retailer" className="sr-only" />
-                <span>Retailer</span>
-            </Label>
-             <Label htmlFor="stockist" className="border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted data-[state=checked]:border-primary">
-                <RadioGroupItem value="Stockist" id="stockist" className="sr-only" />
-                <span>Stockist</span>
-            </Label>
+           <RadioGroup value={formData.businessType} onValueChange={handleRadioChange} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Label htmlFor="wholesaler" className={cn("border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted", formData.businessType === 'Wholesaler' && 'border-primary ring-2 ring-primary')}>
+                    <RadioGroupItem value="Wholesaler" id="wholesaler" className="sr-only" />
+                    <span>Wholesaler</span>
+                </Label>
+                <Label htmlFor="retailer" className={cn("border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted", formData.businessType === 'Retailer' && 'border-primary ring-2 ring-primary')}>
+                    <RadioGroupItem value="Retailer" id="retailer" className="sr-only" />
+                    <span>Retailer</span>
+                </Label>
+                <Label htmlFor="stockist" className={cn("border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted", formData.businessType === 'Stockist' && 'border-primary ring-2 ring-primary')}>
+                    <RadioGroupItem value="Stockist" id="stockist" className="sr-only" />
+                    <span>Stockist</span>
+                </Label>
           </RadioGroup>
         </div>
         
