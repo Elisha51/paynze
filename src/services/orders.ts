@@ -1,6 +1,7 @@
 
 
 
+
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate, DeliveryNote } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -56,13 +57,11 @@ function initializeMockOrders(): Order[] {
             customerName: 'Noah Williams', 
             customerEmail: 'noah@example.com', 
             date: '2024-07-24T14:00:00Z', 
-            status: 'Shipped', 
+            status: 'Paid', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
             total: 10000,
             shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
-            assignedStaffId: 'staff-001', // Assigned to Admin
-            assignedStaffName: 'John Doe',
         },
         { 
             id: 'ORD-004', 
@@ -146,11 +145,13 @@ function initializeMockOrders(): Order[] {
             customerName: 'Olivia Smith',
             customerEmail: 'olivia@example.com',
             date: '2024-07-20T11:00:00Z', 
-            status: 'Paid', 
+            status: 'Shipped', 
             fulfillmentMethod: 'Delivery',
             items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
             total: 80000,
             shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
+            assignedStaffId: 'staff-003',
+            assignedStaffName: 'Peter Jones',
         },
         { 
             id: 'ORD-010', 
