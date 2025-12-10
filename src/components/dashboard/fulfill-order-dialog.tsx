@@ -26,7 +26,7 @@ export function FulfillOrderDialog({ order, action, onUpdate, children }: { orde
         deliver: 'Mark as Delivered',
         pickup: 'Mark as Picked Up',
         ship: 'Mark as Shipped',
-        ready: 'Mark as Ready for Pickup'
+        ready: 'Prepare for Delivery'
     };
 
     const descriptions: Record<typeof action, string> = {
@@ -34,7 +34,7 @@ export function FulfillOrderDialog({ order, action, onUpdate, children }: { orde
         deliver: `This will mark order #${order.id} as 'Delivered' and update inventory. This action cannot be undone.`,
         pickup: `This will mark order #${order.id} as 'Picked Up' and update inventory. This action cannot be undone.`,
         ship: `This will mark order #${order.id} as 'Shipped'. Inventory will not be adjusted until the order is delivered.`,
-        ready: `This will mark order #${order.id} as 'Ready for Pickup'.`
+        ready: `This will mark order #${order.id} as ready to be fulfilled. It will now appear in the Deliveries/Pickups tab.`
     };
     
     const newStatusMap: Record<typeof action, Order['status'] | null> = {
