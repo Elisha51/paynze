@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
@@ -200,9 +201,12 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
 
   const deliveryWorklist = data
     .filter(o => {
-        return o.fulfillmentMethod === 'Delivery' && ['Shipped', 'Attempted Delivery', 'Delivered'].includes(o.status);
+        return o.fulfillmentMethod === 'Delivery' && ['Paid', 'Shipped', 'Attempted Delivery', 'Delivered'].includes(o.status);
     })
-    .sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    .sort((a,b) => {
+        const statusOrder = { 'Paid': 0, 'Shipped': 1, 'Attempted Delivery': 2, 'Delivered': 3 };
+        return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99) || new Date(b.date).getTime() - new Date(a.date).getTime();
+    });
 
   const staffOptions = React.useMemo(() => {
     const assignedStaff = new Set(deliveryWorklist.map(o => o.assignedStaffName).filter(Boolean));
@@ -220,7 +224,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     <Card>
         <CardHeader>
             <CardTitle>Delivery Worklist</CardTitle>
-            <CardDescription>A summary of orders currently in transit for delivery.</CardDescription>
+            <CardDescription>A summary of orders currently being prepared for or in transit for delivery.</CardDescription>
         </CardHeader>
         <CardContent>
              <DataTable
@@ -242,7 +246,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                 emptyState={{
                     icon: Truck,
                     title: "No Active Deliveries",
-                    description: "There are no orders currently in transit. Assign a paid order for delivery to get started."
+                    description: "There are no orders currently being delivered. Assign a paid order for delivery to get started."
                 }}
             />
         </CardContent>

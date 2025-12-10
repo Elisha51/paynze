@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Edit, RotateCcw } from 'lucide-react';
+import { ArrowLeft, MoreVertical, ChevronLeft, Truck, Edit, RotateCcw, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { getOrderById, updateOrder } from '@/services/orders';
 import { getStaff } from '@/services/staff';
@@ -57,6 +58,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { ConfirmPickupDialog } from '@/components/dashboard/confirm-pickup-dialog';
+import { format } from 'date-fns';
 
 
 function RevertStatusDialog({ order, onUpdate }: { order: Order, onUpdate: (updatedOrder: Order) => void }) {
@@ -178,6 +180,7 @@ export default function ViewOrderPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             <Skeleton className="h-80 w-full" />
+            <Skeleton className="h-48 w-full" />
           </div>
           <div className="lg:col-span-1 space-y-6">
             <Skeleton className="h-48 w-full" />
@@ -369,6 +372,38 @@ export default function ViewOrderPage() {
                     </Table>
                 </CardContent>
             </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-muted-foreground" />
+                        Timeline
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                     {order.deliveryNotes && order.deliveryNotes.length > 0 ? (
+                        <div className="space-y-4">
+                            {order.deliveryNotes.map((note, index) => (
+                                <div key={note.id} className="flex items-start gap-4">
+                                    <Avatar className="h-8 w-8">
+                                        <AvatarImage src={`https://picsum.photos/seed/${note.staffId}/32/32`} />
+                                        <AvatarFallback>{getInitials(note.staffName)}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <p className="text-sm">{note.note}</p>
+                                        <p className="text-xs text-muted-foreground">
+                                            {note.staffName} &middot; {format(new Date(note.date), 'PP p')}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground text-center py-4">No activity logged for this order yet.</p>
+                    )}
+                </CardContent>
+             </Card>
+
         </div>
         <div className="lg:col-span-1 space-y-6">
             <Card>

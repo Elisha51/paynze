@@ -1,6 +1,7 @@
 
 
-import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate } from '@/lib/types';
+
+import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate, DeliveryNote } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
@@ -338,6 +339,15 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
          // This is a mock implementation. Real apps would get the logged in user from a session context.
         const allStaff = await getStaff();
         const loggedInUser = allStaff[0]; // Assuming Admin
+        const newNote: DeliveryNote = {
+            id: `note-${Date.now()}`,
+            staffId: loggedInUser.id,
+            staffName: loggedInUser.name,
+            note: `Status updated to "${updates.status}".`,
+            date: new Date().toISOString(),
+        };
+        updates.deliveryNotes = [...(originalOrder.deliveryNotes || []), newNote];
+
         await addActivity({
             staffId: loggedInUser.id,
             staffName: loggedInUser.name,

@@ -1,4 +1,5 @@
 
+
 'use client';
 import { useState } from 'react';
 import {
@@ -39,7 +40,7 @@ export function UpdateDeliveryStatusDialog({ order, onUpdate, children }: Update
   const handleUpdate = async () => {
     if (!user) return;
 
-    if (status === 'Delivered' && proof.length === 0) {
+    if (status === 'Delivered' && proof.length === 0 && !order.proofOfDeliveryUrl) {
         toast({
             variant: 'destructive',
             title: 'Proof of Delivery Required',
@@ -50,14 +51,17 @@ export function UpdateDeliveryStatusDialog({ order, onUpdate, children }: Update
 
     const updates: Partial<Order> = { status };
     
-    const newNote: DeliveryNote = {
-        id: `note-${Date.now()}`,
-        staffId: user.id,
-        staffName: user.name,
-        note: `Status updated to "${status}". ${notes.trim()}`.trim(),
-        date: new Date().toISOString(),
-    };
-    updates.deliveryNotes = [...(order.deliveryNotes || []), newNote];
+    // Only add a new note if there's actual text content
+    if (notes.trim()) {
+        const newNote: DeliveryNote = {
+            id: `note-${Date.now()}`,
+            staffId: user.id,
+            staffName: user.name,
+            note: notes.trim(),
+            date: new Date().toISOString(),
+        };
+        updates.deliveryNotes = [...(order.deliveryNotes || []), newNote];
+    }
     
     if (status === 'Delivered') {
         updates.fulfilledByStaffId = user.id;
