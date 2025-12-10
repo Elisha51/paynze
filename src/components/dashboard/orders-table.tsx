@@ -41,6 +41,7 @@ import { AssignOrderDialog } from './assign-order-dialog';
 import { FulfillOrderDialog } from './fulfill-order-dialog';
 import { ConfirmPickupDialog } from './confirm-pickup-dialog';
 import { format } from 'date-fns';
+import { RevertStatusDialog } from './revert-status-dialog';
 
 const statusVariantMap: { [key in Order['status']]: 'default' | 'secondary' | 'outline' | 'destructive' } = {
   'Awaiting Payment': 'secondary',
@@ -280,9 +281,9 @@ const getColumns = (
                                 <Link href={`/dashboard/orders/${order.id}/edit`}><Edit className="mr-2 h-4 w-4" /> Edit Order</Link>
                             </DropdownMenuItem>
                         )}
-
-                        <DropdownMenuSeparator />
-
+                        
+                        {canEdit && <DropdownMenuSeparator />}
+                        
                         {canEdit && order.status === 'Awaiting Payment' && (
                           <FulfillOrderDialog order={order} action="paid" onUpdate={onUpdate}>
                             <DropdownMenuItem onSelect={e => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
@@ -290,21 +291,31 @@ const getColumns = (
                         )}
                         
                         {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
-                           <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Prepare for Delivery</DropdownMenuItem>
+                           <FulfillOrderDialog order={order} action="ship" onUpdate={onUpdate}>
+                             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark as Shipped</DropdownMenuItem>
                            </FulfillOrderDialog>
                         )}
 
-                         {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
-                            <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Ready for Pickup</DropdownMenuItem>
-                            </FulfillOrderDialog>
+                        {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
+                           <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Ready for Pickup</DropdownMenuItem>
+                           </FulfillOrderDialog>
                         )}
                         
+                        {canEdit && order.status === 'Shipped' && (
+                          <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Assign Agent</DropdownMenuItem>
+                          </AssignOrderDialog>
+                        )}
+
                         {canEdit && order.status === 'Ready for Pickup' && (
                            <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Confirm Pickup</DropdownMenuItem>
                            </ConfirmPickupDialog>
+                        )}
+
+                        {canEdit && ['Shipped', 'Delivered', 'Picked Up', 'Ready for Pickup'].includes(order.status) && (
+                           <RevertStatusDialog order={order} onUpdate={onUpdate} />
                         )}
                         
                         {canEdit && canBeCancelled && (

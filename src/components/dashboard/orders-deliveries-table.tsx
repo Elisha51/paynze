@@ -103,14 +103,14 @@ const getColumns = (
         const staffId = order.fulfilledByStaffId || order.assignedStaffId;
         
         if (!staffId || !staffName) {
-             if (canEdit) {
+             if (canEdit && order.status === 'Shipped') {
                 return (
                      <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
                         <Button variant="outline" size="sm">Assign Agent</Button>
                     </AssignOrderDialog>
                 );
             }
-            return <Badge variant="destructive">Unassigned</Badge>
+            return <Badge variant="secondary">Unassigned</Badge>
         }
         return (
             <Link href={`/dashboard/staff/${staffId}`} className="flex items-center gap-2 hover:underline">
@@ -190,7 +190,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
 
   const deliveryWorklist = data
     .filter(o => {
-        return o.fulfillmentMethod === 'Delivery' && ['Paid', 'Shipped', 'Attempted Delivery', 'Delivered'].includes(o.status);
+        return o.fulfillmentMethod === 'Delivery' && ['Shipped', 'Attempted Delivery', 'Delivered'].includes(o.status);
     })
     .sort((a,b) => {
         const statusOrder = { 'Paid': 0, 'Shipped': 1, 'Attempted Delivery': 2, 'Delivered': 3 };
