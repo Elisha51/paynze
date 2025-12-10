@@ -9,6 +9,11 @@ import { Download } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Step3MappingInterface } from './step3-mapping-interface';
 
+const csvTemplate = `name,description,price,sku,stock,category
+"Classic T-Shirt","A comfortable 100% cotton t-shirt.","35000","TSHIRT-BLK-M","50","Apparel"
+"Handmade Leather Wallet","A durable wallet made from genuine leather.","75000","WALLET-LTHR-BRN","25","Accessories"
+`;
+
 export default function Step3CatalogUpload() {
   const { nextStep, prevStep } = useOnboarding();
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
@@ -24,6 +29,20 @@ export default function Step3CatalogUpload() {
   const onMappingComplete = () => {
     // This will eventually trigger the import process
     nextStep();
+  };
+  
+  const handleDownloadTemplate = () => {
+    const blob = new Blob([csvTemplate], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "product_template.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
   };
 
   return (
@@ -45,7 +64,7 @@ export default function Step3CatalogUpload() {
                   <AlertTitle>Download Template</AlertTitle>
                   <AlertDescription>
                     For best results, download our CSV template to ensure your file is formatted correctly.
-                    <Button variant="link" className="p-0 h-auto ml-1 font-semibold">Download Template</Button>
+                    <Button variant="link" onClick={handleDownloadTemplate} className="p-0 h-auto ml-1 font-semibold">Download Template</Button>
                   </AlertDescription>
                 </Alert>
                 <FileUploader 
