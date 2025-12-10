@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import type { Order, OnboardingFormData, Staff } from '@/lib/types';
-import { DataTable } from './data-table';
+import { DataTable } from '../ui/data-table';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -284,7 +284,7 @@ const getColumns = (
                         
                         {canEdit && <DropdownMenuSeparator />}
                         
-                        {canEdit && order.status === 'Awaiting Payment' && (
+                        {canEdit && order.status === 'Awaiting Payment' && order.payment.status === 'pending' && (
                           <FulfillOrderDialog order={order} action="paid" onUpdate={onUpdate}>
                             <DropdownMenuItem onSelect={e => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
                           </FulfillOrderDialog>

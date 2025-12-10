@@ -3,6 +3,7 @@
 
 
 
+
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate, DeliveryNote } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -332,11 +333,11 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
             updates.payment.status = 'completed';
         }
     }
-
+    
     if (isNewlyShipped && !updates.assignedStaffId && !originalOrder.assignedStaffId) {
         throw new Error("Cannot mark order as Shipped without an assigned staff member.");
     }
-    
+
     if (updates.status && updates.status !== originalOrder.status) {
          // This is a mock implementation. Real apps would get the logged in user from a session context.
         const allStaff = await getStaff();

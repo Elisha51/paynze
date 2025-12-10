@@ -3,7 +3,7 @@
 'use client';
 import * as React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreHorizontal, Truck, Store, User, ArrowUpDown } from 'lucide-react';
+import { MoreHorizontal, Truck, Store, User, ArrowUpDown, PackageCheck } from 'lucide-react';
 import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
@@ -25,9 +25,10 @@ import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from './assign-order-dialog';
 import { EmptyState } from '../ui/empty-state';
 import { format } from 'date-fns';
+import { FulfillOrderDialog } from './fulfill-order-dialog';
 
 const deliveryStatusMap: { [key: string]: { label: string; color: string; } } = {
-  'Paid': { label: 'Ready to Fulfill', color: 'bg-blue-100 text-blue-800' },
+  'Ready for Delivery': { label: 'Ready for Delivery', color: 'bg-blue-100 text-blue-800' },
   'Shipped': { label: 'In Transit', color: 'bg-yellow-100 text-yellow-800' },
   'Attempted Delivery': { label: 'Attempted', color: 'bg-orange-100 text-orange-800' },
   'Delivered': { label: 'Delivered', color: 'bg-green-100 text-green-800' },
@@ -103,7 +104,7 @@ const getColumns = (
         const staffId = order.fulfilledByStaffId || order.assignedStaffId;
         
         if (!staffId || !staffName) {
-             if (canEdit && order.status === 'Shipped') {
+             if (canEdit && order.status === 'Ready for Delivery') {
                 return (
                      <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
                         <Button variant="outline" size="sm">Assign Agent</Button>
@@ -190,10 +191,10 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
 
   const deliveryWorklist = data
     .filter(o => {
-        return o.fulfillmentMethod === 'Delivery' && ['Shipped', 'Attempted Delivery', 'Delivered'].includes(o.status);
+        return o.fulfillmentMethod === 'Delivery' && ['Ready for Delivery', 'Shipped', 'Attempted Delivery', 'Delivered'].includes(o.status);
     })
     .sort((a,b) => {
-        const statusOrder = { 'Paid': 0, 'Shipped': 1, 'Attempted Delivery': 2, 'Delivered': 3 };
+        const statusOrder = { 'Ready for Delivery': 0, 'Shipped': 1, 'Attempted Delivery': 2, 'Delivered': 3 };
         return (statusOrder[a.status] || 99) - (statusOrder[b.status] || 99) || new Date(b.date).getTime() - new Date(a.date).getTime();
     });
 
@@ -209,7 +210,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
   }, [deliveryWorklist]);
 
     const deliveryStatusOptions = [
-        { value: 'Paid', label: 'Ready to Fulfill' },
+        { value: 'Ready for Delivery', label: 'Ready for Delivery' },
         { value: 'Shipped', label: 'In Transit' },
         { value: 'Attempted Delivery', label: 'Attempted' },
         { value: 'Delivered', label: 'Delivered' },
@@ -242,7 +243,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                 emptyState={{
                     icon: Truck,
                     title: "No Active Deliveries",
-                    description: "There are no orders currently being delivered. Assign a paid order for delivery to get started."
+                    description: "There are no orders currently being delivered. Prepare a paid order for delivery to get started."
                 }}
             />
         </CardContent>

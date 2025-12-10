@@ -17,37 +17,34 @@ import { useAuth } from '@/context/auth-context';
 import type { Order } from '@/lib/types';
 
 
-export function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Order, action: 'paid' | 'deliver' | 'pickup' | 'ship' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
+export function FulfillOrderDialog({ order, action, onUpdate, children }: { order: Order, action: 'paid' | 'deliver' | 'pickup' | 'ready', onUpdate: (updatedOrder: Order) => void, children: React.ReactNode }) {
     const { user } = useAuth();
     const { toast } = useToast();
+
+    const isDelivery = order.fulfillmentMethod === 'Delivery';
 
     const titles: Record<typeof action, string> = {
         paid: 'Mark as Paid',
         deliver: 'Mark as Delivered',
         pickup: 'Mark as Picked Up',
-        ship: 'Mark as Shipped',
-        ready: 'Prepare for Pickup'
+        ready: isDelivery ? 'Prepare for Delivery' : 'Ready for Pickup',
     };
     
-    if (action === 'ship') {
-      titles.ship = 'Mark as Shipped';
-    }
-
 
     const descriptions: Record<typeof action, string> = {
         paid: `This will mark order #${order.id} as 'Paid'.`,
         deliver: `This will mark order #${order.id} as 'Delivered' and update inventory. This action cannot be undone.`,
         pickup: `This will mark order #${order.id} as 'Picked Up' and update inventory. This action cannot be undone.`,
-        ship: `This will mark order #${order.id} as 'Shipped'. It can now be assigned to a delivery agent.`,
-        ready: `This will mark order #${order.id} as 'Ready for Pickup'. The customer will be notified.`
+        ready: isDelivery 
+            ? `This will mark order #${order.id} as 'Ready for Delivery'. It will then appear in the Deliveries tab.`
+            : `This will mark order #${order.id} as 'Ready for Pickup'. The customer will be notified.`
     };
     
     const newStatusMap: Record<typeof action, Order['status'] | null> = {
         paid: 'Paid',
         deliver: 'Delivered',
         pickup: 'Picked Up',
-        ship: 'Shipped',
-        ready: 'Ready for Pickup',
+        ready: isDelivery ? 'Ready for Delivery' : 'Ready for Pickup',
     };
 
     const handleFulfill = async () => {
