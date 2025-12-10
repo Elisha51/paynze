@@ -41,7 +41,7 @@ import { getInitials } from '@/lib/utils';
 import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from '@/components/dashboard/assign-order-dialog';
 import { FulfillOrderDialog } from '@/components/dashboard/fulfill-order-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
@@ -57,7 +57,7 @@ function RevertStatusDialog({ order, onUpdate }: { order: Order, onUpdate: (upda
         if (order.status === 'Shipped') return 'Paid';
         if (order.status === 'Ready for Pickup') return 'Paid';
         if (order.status === 'Picked Up') return 'Ready for Pickup';
-        return originalOrder.status; // Fallback
+        return order.status; // Fallback
     }
 
     const handleRevert = async () => {
