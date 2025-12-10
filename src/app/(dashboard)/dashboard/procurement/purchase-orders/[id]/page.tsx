@@ -50,11 +50,15 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { Calendar as CalendarIcon } from 'lucide-react';
+
 
 function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOrder, locations: Location[], onConfirm: (locationName: string) => void }) {
     const [location, setLocation] = useState<string>('');
@@ -174,8 +178,7 @@ export default function ViewPurchaseOrderPage() {
   const [locations, setLocations] = useState<Location[]>([]);
   const [loading, setLoading] = useState(true);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
-  const { toast } = useToast();
-
+  
   const loadData = async (orderId: string) => {
       setLoading(true);
       const [orderData, settingsData, locs] = await Promise.all([
@@ -321,7 +324,7 @@ export default function ViewPurchaseOrderPage() {
   const currency = order.currency || settings.currency;
   
   const renderCTAs = () => {
-    if (order.status === 'Awaiting Approval' || order.status === 'Cancelled' || order.status === 'Completed') return null;
+    if (order.status === 'Draft' || order.status === 'Awaiting Approval' || order.status === 'Cancelled' || order.status === 'Completed') return null;
     
     return (
         <div className="flex items-center gap-2">
