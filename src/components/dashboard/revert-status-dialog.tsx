@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
@@ -19,7 +20,8 @@ export function RevertStatusDialog({ order, onUpdate }: { order: Order; onUpdate
     const getPreviousStatus = (): Order['status'] => {
         if (order.status === 'Delivered') return 'Shipped';
         if (order.status === 'Picked Up') return 'Ready for Pickup';
-        if (order.status === 'Shipped') return 'Paid';
+        if (order.status === 'Shipped') return 'Ready for Delivery';
+        if (order.status === 'Ready for Delivery') return 'Paid';
         if (order.status === 'Ready for Pickup') return 'Paid';
         return order.status; // Fallback
     };
