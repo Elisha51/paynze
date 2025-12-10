@@ -1,5 +1,4 @@
 
-
 'use client';
 import * as React from 'react';
 import {
@@ -166,6 +165,15 @@ const getColumns = (
         )
     }
   },
+   {
+    accessorKey: 'channel',
+    header: 'Channel',
+    cell: ({ row }) => {
+      const channel = row.getValue('channel') as string;
+      return <Badge variant="outline">{channel}</Badge>;
+    },
+    filterFn: (row, id, value) => value.includes(row.getValue(id)),
+  },
   {
     id: 'paymentMethod',
     accessorFn: row => row.payment.method,
@@ -253,15 +261,15 @@ const getColumns = (
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
-            {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
+            {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
                <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                 <Button variant="outline" size="sm">Ready for Pickup</Button>
+                 <Button variant="outline" size="sm">Prepare for Delivery</Button>
                </FulfillOrderDialog>
             )}
-             {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
-                <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
-                    <Button variant="outline" size="sm">Prepare for Delivery</Button>
-                </AssignOrderDialog>
+             {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
+                <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                    <Button variant="outline" size="sm">Ready for Pickup</Button>
+                </FulfillOrderDialog>
             )}
             <AlertDialog>
                 <DropdownMenu>
