@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Banknote, Truck } from 'lucide-react';
+import { Separator } from '../ui/separator';
 
 export default function Step3Preferences() {
   const { formData, setFormData, nextStep, prevStep } = useOnboarding();
@@ -33,6 +34,16 @@ export default function Step3Preferences() {
         ...prev,
         delivery: { ...prev.delivery, [id]: value }
       }));
+  };
+
+  const handlePayoutAccountChange = (provider: 'mtn' | 'airtel', value: string) => {
+    setFormData(prev => ({
+        ...prev,
+        payoutAccounts: {
+            ...(prev.payoutAccounts || { mtn: '', airtel: ''}),
+            [provider]: value,
+        }
+    }))
   };
 
   return (
@@ -65,6 +76,22 @@ export default function Step3Preferences() {
                     </Label>
                     <Switch id="mobileMoney" checked={formData.paymentOptions.mobileMoney} onCheckedChange={(c) => handleSwitchChange('mobileMoney', c)} />
                 </div>
+                {formData.paymentOptions.mobileMoney && (
+                    <div className="space-y-4 pt-4 border-t">
+                        <h4 className="font-semibold text-sm">Your Payout Accounts</h4>
+                        <p className="text-xs text-muted-foreground">This is where we will send your money from mobile money sales.</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="mtn">MTN Mobile Money Number</Label>
+                                <Input id="mtn" type="tel" value={formData.payoutAccounts?.mtn || ''} onChange={(e) => handlePayoutAccountChange('mtn', e.target.value)} placeholder="e.g. 0772123456" />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="airtel">Airtel Money Number</Label>
+                                <Input id="airtel" type="tel" value={formData.payoutAccounts?.airtel || ''} onChange={(e) => handlePayoutAccountChange('airtel', e.target.value)} placeholder="e.g. 0752123456" />
+                            </div>
+                        </div>
+                    </div>
+                )}
             </CardContent>
         </Card>
 
