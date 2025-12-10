@@ -16,7 +16,8 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription
+  CardDescription,
+  CardFooter,
 } from "@/components/ui/card"
 import {
   DropdownMenu,
@@ -34,7 +35,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableFooter
+  TableFooter as TableFooterComponent
 } from "@/components/ui/table"
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
 import {
@@ -43,7 +44,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
+  DialogFooter as DialogFooterComponent,
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
@@ -85,12 +86,12 @@ function ReceiveStockDialog({ order, locations, onConfirm }: { order: PurchaseOr
                         </SelectContent>
                     </Select>
                 </div>
-                <DialogFooter>
+                <DialogFooterComponent>
                     <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
                     <DialogClose asChild>
                         <Button onClick={() => onConfirm(location)} disabled={!location}>Confirm & Add to Inventory</Button>
                     </DialogClose>
-                </DialogFooter>
+                </DialogFooterComponent>
             </DialogContent>
         </Dialog>
     )
@@ -147,13 +148,13 @@ function SupplierChangesCard({ order, onApprove }: { order: PurchaseOrder; onApp
                             )
                         })}
                     </TableBody>
-                     <TableFooter>
+                     <TableFooterComponent>
                         <TableRow>
                             <TableCell>Total</TableCell>
                             <TableCell>{formatCurrency(originalTotal, order.currency)}</TableCell>
                             <TableCell className="font-bold text-amber-700">{formatCurrency(proposedTotal, order.currency)}</TableCell>
                         </TableRow>
-                    </TableFooter>
+                    </TableFooterComponent>
                 </Table>
             </CardContent>
             <CardFooter className="flex justify-end gap-2">
@@ -372,12 +373,12 @@ export default function ViewPurchaseOrderPage() {
                                 </TableRow>
                             ))}
                         </TableBody>
-                        <TableFooter>
+                        <TableFooterComponent>
                             <TableRow>
                                 <TableCell colSpan={3} className="text-right font-semibold text-lg">Grand Total</TableCell>
                                 <TableCell className="text-right font-bold text-lg">{formatCurrency(order.totalCost, currency)}</TableCell>
                             </TableRow>
-                        </TableFooter>
+                        </TableFooterComponent>
                     </Table>
                 </CardContent>
             </Card>
