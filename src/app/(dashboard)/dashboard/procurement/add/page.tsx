@@ -1,6 +1,6 @@
 
 'use client';
-import { Save, PlusCircle, Trash2 } from 'lucide-react';
+import { Save, PlusCircle, Trash2, Check, ChevronsUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -11,13 +11,6 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
@@ -27,9 +20,11 @@ import { getSuppliers } from '@/services/procurement';
 import { format } from 'date-fns';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '@/components/ui/command';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DashboardPageLayout } from '@/components/layout/dashboard-page-layout';
+import { addPurchaseOrder } from '@/services/procurement';
 
 export default function AddPurchaseOrderPage() {
     const [supplierId, setSupplierId] = useState('');
@@ -80,9 +75,27 @@ export default function AddPurchaseOrderPage() {
     const total = items.reduce((sum, item) => sum + (item.cost * item.quantity), 0);
     const currency = settings?.currency || 'UGX';
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        const selectedSupplier = suppliers.find(s => s.id === supplierId);
+        if (!selectedSupplier) {
+            toast({ variant: 'destructive', title: 'Please select a supplier.' });
+            return;
+        }
+
+        const newPO = {
+            supplierId: selectedSupplier.id,
+            supplierName: selectedSupplier.name,
+            status: 'Draft',
+            items: items.filter(i => i.productId), // only include items with a selected product
+            orderDate: format(orderDate, 'yyyy-MM-dd'),
+            expectedDelivery: expectedDelivery ? format(expectedDelivery, 'yyyy-MM-dd') : '',
+            totalCost: total,
+            currency: currency,
+        };
+
+        await addPurchaseOrder(newPO);
         toast({ title: "Purchase Order Created", description: "The new PO has been saved as a draft." });
-        router.push('/dashboard/procurement');
+        router.push('/dashboard/procurement?tab=purchase-orders');
     }
     
     const cta = (
@@ -91,6 +104,8 @@ export default function AddPurchaseOrderPage() {
             Save as Draft
         </Button>
     );
+    
+    const selectedSupplier = suppliers.find(s => s.id === supplierId);
 
     return (
         <DashboardPageLayout title="Create Purchase Order" cta={cta} backHref="/dashboard/procurement?tab=purchase-orders">
@@ -105,12 +120,32 @@ export default function AddPurchaseOrderPage() {
                                 <div key={index} className="flex items-end gap-2 p-2 border rounded-md">
                                     <div className="flex-1 space-y-2">
                                         <Label>Product</Label>
-                                         <Select onValueChange={(v) => handleItemChange(index, 'productId', v)}>
-                                            <SelectTrigger><SelectValue placeholder="Select product..."/></SelectTrigger>
-                                            <SelectContent>
-                                                {products.map(p => <SelectItem key={p.sku} value={p.sku || ''}>{p.name}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
+                                         <Popover>
+                                            <PopoverTrigger asChild>
+                                                <Button variant="outline" role="combobox" className="w-full justify-between">
+                                                    {item.productName || "Select product..."}
+                                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                                <Command>
+                                                    <CommandInput placeholder="Search products..." />
+                                                    <CommandEmpty>No products found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                        {products.map(product => (
+                                                            <CommandItem
+                                                                key={product.sku}
+                                                                value={product.name}
+                                                                onSelect={() => handleItemChange(index, 'productId', product.sku || '')}
+                                                            >
+                                                                <Check className={cn("mr-2 h-4 w-4", item.productId === product.sku ? "opacity-100" : "opacity-0")} />
+                                                                {product.name}
+                                                            </CommandItem>
+                                                        ))}
+                                                    </CommandGroup>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
                                     </div>
                                     <div className="space-y-2 w-24">
                                         <Label>Quantity</Label>
@@ -138,12 +173,32 @@ export default function AddPurchaseOrderPage() {
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
                                 <Label>Supplier</Label>
-                                <Select onValueChange={setSupplierId}>
-                                    <SelectTrigger><SelectValue placeholder="Select a supplier..."/></SelectTrigger>
-                                    <SelectContent>
-                                        {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" role="combobox" className="w-full justify-between">
+                                            {selectedSupplier?.name || "Select a supplier..."}
+                                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                        <Command>
+                                            <CommandInput placeholder="Search suppliers..." />
+                                            <CommandEmpty>No suppliers found.</CommandEmpty>
+                                            <CommandGroup>
+                                                {suppliers.map(s => (
+                                                    <CommandItem
+                                                        key={s.id}
+                                                        value={s.name}
+                                                        onSelect={() => setSupplierId(s.id)}
+                                                    >
+                                                        <Check className={cn("mr-2 h-4 w-4", supplierId === s.id ? "opacity-100" : "opacity-0")} />
+                                                        {s.name}
+                                                    </CommandItem>
+                                                ))}
+                                            </CommandGroup>
+                                        </Command>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                             <div className="space-y-2">
                                 <Label>Order Date</Label>
