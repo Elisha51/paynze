@@ -1,4 +1,5 @@
 
+
 'use client';
 import * as React from 'react';
 import {
@@ -65,8 +66,8 @@ const orderStatuses = [
 ];
 
 const fulfillmentMethods = [
-    { value: 'Delivery', label: 'Delivery' },
-    { value: 'Pickup', label: 'Pickup' },
+    { value: 'Delivery', label: 'Delivery', icon: Truck },
+    { value: 'Pickup', label: 'Pickup', icon: Store },
 ];
 
 const paymentMethods = [
@@ -184,19 +185,17 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'channel',
-    header: 'Channel',
-    cell: ({ row }) => {
-        const channel = row.getValue('channel') as string;
-        return <Badge variant="outline">{channel}</Badge>
-    },
-    filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id))
-    },
-  },
-  {
     accessorKey: 'fulfillmentMethod',
     header: 'Fulfillment',
+    cell: ({ row }) => {
+        const MethodIcon = row.original.fulfillmentMethod === 'Delivery' ? Truck : Store;
+        return (
+            <div className="flex items-center gap-2">
+                <MethodIcon className="h-4 w-4 text-muted-foreground" />
+                {row.original.fulfillmentMethod}
+            </div>
+        )
+    },
     filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
     },
@@ -217,36 +216,6 @@ const getColumns = (
     filterFn: (row, id, value) => {
         return value.includes(row.getValue(id))
     },
-  },
-    {
-    accessorKey: 'assignedStaffName',
-    header: 'Assigned To',
-    cell: ({ row }) => {
-        const order = row.original;
-        const staffName = order.fulfilledByStaffName || order.assignedStaffName;
-        const staffId = order.fulfilledByStaffId || order.assignedStaffId;
-        
-        if (!staffId || !staffName) {
-            if (canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery') {
-                return (
-                     <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
-                        <Button variant="outline" size="sm">Assign Agent</Button>
-                    </AssignOrderDialog>
-                );
-            }
-            return <span className="text-muted-foreground">—</span>;
-        }
-
-        return (
-            <Link href={`/dashboard/staff/${staffId}`} className="flex items-center gap-2 hover:underline">
-                <Avatar className="h-6 w-6">
-                    <AvatarImage src={`https://picsum.photos/seed/${staffId}/24/24`} />
-                    <AvatarFallback>{getInitials(staffName)}</AvatarFallback>
-                </Avatar>
-                <span className="font-medium text-xs">{staffName}</span>
-            </Link>
-        )
-    }
   },
   {
     accessorKey: 'total',
@@ -284,6 +253,16 @@ const getColumns = (
 
       return (
         <div className="relative bg-background text-right sticky right-0 flex items-center justify-end gap-2">
+            {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
+               <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
+                 <Button variant="outline" size="sm">Ready for Pickup</Button>
+               </FulfillOrderDialog>
+            )}
+             {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
+                <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                    <Button variant="outline" size="sm">Prepare for Delivery</Button>
+                </AssignOrderDialog>
+            )}
             <AlertDialog>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -311,21 +290,7 @@ const getColumns = (
                             <DropdownMenuItem onSelect={e => e.preventDefault()}>Mark as Paid</DropdownMenuItem>
                           </FulfillOrderDialog>
                         )}
-
-                        {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Delivery' && (
-                            <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                    {order.assignedStaffId ? 'Re-assign Agent' : 'Assign Agent'}
-                                </DropdownMenuItem>
-                            </AssignOrderDialog>
-                        )}
-
-                        {canEdit && order.status === 'Paid' && order.fulfillmentMethod === 'Pickup' && (
-                           <FulfillOrderDialog order={order} action="ready" onUpdate={onUpdate}>
-                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Mark Ready for Pickup</DropdownMenuItem>
-                           </FulfillOrderDialog>
-                        )}
-
+                        
                         {canEdit && order.status === 'Ready for Pickup' && (
                            <ConfirmPickupDialog order={order} onUpdate={onUpdate}>
                               <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Confirm Pickup</DropdownMenuItem>
@@ -395,16 +360,10 @@ export function OrdersTable({ orders, staff, isLoading, columnFilters, setColumn
   };
   
   const columns = React.useMemo(() => getColumns(handleUpdate, settings?.currency || 'UGX', staff, !!canEdit), [handleUpdate, settings?.currency, staff, canEdit]);
-  
-  const columnVisibility = React.useMemo(() => {
-    const hasAnyAssignments = data.some(o => !!o.assignedStaffName || !!o.fulfilledByStaffName);
-    return { assignedStaffName: hasAnyAssignments };
-  }, [data]);
 
   return (
     <DataTable
       columns={columns}
-      initialState={{ columnVisibility }}
       data={data}
       isLoading={isLoading}
       columnFilters={columnFilters}
@@ -431,3 +390,4 @@ export function OrdersTable({ orders, staff, isLoading, columnFilters, setColumn
     />
   );
 }
+

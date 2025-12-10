@@ -8,6 +8,7 @@ import Link from 'next/link';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,32 +23,16 @@ import { getInitials } from '@/lib/utils';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '../ui/card';
 import { useAuth } from '@/context/auth-context';
 import { AssignOrderDialog } from './assign-order-dialog';
-import { Checkbox } from '../ui/checkbox';
 import { EmptyState } from '../ui/empty-state';
 import { format } from 'date-fns';
-import { FulfillOrderDialog } from './fulfill-order-dialog';
 
-const deliveryStatusMap: { [key in Order['status']]: { label: string; color: string; } } = {
-  'Awaiting Payment': { label: 'Pending', color: 'bg-gray-100 text-gray-800' },
+const deliveryStatusMap: { [key: string]: { label: string; color: string; } } = {
   'Paid': { label: 'Ready to Fulfill', color: 'bg-blue-100 text-blue-800' },
-  'Ready for Pickup': { label: 'In Store', color: 'bg-blue-100 text-blue-800' },
   'Shipped': { label: 'In Transit', color: 'bg-yellow-100 text-yellow-800' },
   'Attempted Delivery': { label: 'Attempted', color: 'bg-orange-100 text-orange-800' },
   'Delivered': { label: 'Delivered', color: 'bg-green-100 text-green-800' },
-  'Picked Up': { label: 'Completed', color: 'bg-green-100 text-green-800' },
-  'Cancelled': { label: 'Cancelled', color: 'bg-red-100 text-red-800' },
 };
 
-const paymentMethods = [
-    { value: 'Mobile Money', label: 'Mobile Money' },
-    { value: 'Cash on Delivery', label: 'Cash on Delivery' },
-];
-
-const deliveryStatuses = [
-    { value: 'Shipped', label: 'In Transit' },
-    { value: 'Attempted Delivery', label: 'Attempted' },
-    { value: 'Delivered', label: 'Delivered' },
-];
 
 const getColumns = (
   onUpdate: (updatedOrder: Order) => void,
@@ -104,6 +89,7 @@ const getColumns = (
     header: 'Fulfillment Status',
     cell: ({ row }) => {
       const statusInfo = deliveryStatusMap[row.original.status];
+      if (!statusInfo) return <Badge variant="outline">{row.original.status}</Badge>;
       return <Badge className={statusInfo.color}>{statusInfo.label}</Badge>;
     },
     filterFn: (row, id, value) => (value as string[]).includes(row.getValue(id)),
@@ -116,11 +102,14 @@ const getColumns = (
         const staffName = order.fulfilledByStaffName || order.assignedStaffName;
         const staffId = order.fulfilledByStaffId || order.assignedStaffId;
         
-        if (order.status === 'Cancelled') {
-            return <span className="text-muted-foreground">—</span>;
-        }
-
         if (!staffId || !staffName) {
+             if (canEdit) {
+                return (
+                     <AssignOrderDialog order={order} staff={staff} onUpdate={onUpdate}>
+                        <Button variant="outline" size="sm">Assign Agent</Button>
+                    </AssignOrderDialog>
+                );
+            }
             return <Badge variant="destructive">Unassigned</Badge>
         }
         return (
@@ -219,6 +208,13 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
     return options;
   }, [deliveryWorklist]);
 
+    const deliveryStatusOptions = [
+        { value: 'Paid', label: 'Ready to Fulfill' },
+        { value: 'Shipped', label: 'In Transit' },
+        { value: 'Attempted Delivery', label: 'Attempted' },
+        { value: 'Delivered', label: 'Delivered' },
+    ];
+
 
   return (
     <Card>
@@ -240,7 +236,7 @@ export function OrdersDeliveriesTable({ orders, staff }: OrdersDeliveriesTablePr
                     {
                         columnId: 'status',
                         title: 'Status',
-                        options: deliveryStatuses,
+                        options: deliveryStatusOptions,
                     },
                 ]}
                 emptyState={{

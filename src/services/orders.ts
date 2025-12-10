@@ -2,6 +2,7 @@
 
 
 
+
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate, DeliveryNote } from '@/lib/types';
 import { getProducts, updateProduct } from './products';
 import { getStaff, updateStaff } from './staff';
@@ -418,6 +419,7 @@ export async function updateProductStock(
     switch (type) {
         case 'Sale':
             stock.onHand -= quantityChange;
+            stock.reserved -= quantityChange; // Also decrease reserved stock
             stock.sold += quantityChange;
             adjustmentQuantity = -quantityChange;
             break;
