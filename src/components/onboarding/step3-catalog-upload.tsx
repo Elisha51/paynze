@@ -5,13 +5,14 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { FileUploader } from '../ui/file-uploader';
-import { Download } from 'lucide-react';
+import { Download, Info } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Step3MappingInterface } from './step3-mapping-interface';
 
-const csvTemplate = `name,description,price,sku,stock,category
-"Classic T-Shirt","A comfortable 100% cotton t-shirt.","35000","TSHIRT-BLK-M","50","Apparel"
-"Handmade Leather Wallet","A durable wallet made from genuine leather.","75000","WALLET-LTHR-BRN","25","Accessories"
+const csvTemplate = `name,description,price,sku,stock,category,compareAtPrice,costPerItem,isTaxable,tags,imageUrl,hasVariants,option1_name,option1_value,option2_name,option2_value
+"Classic T-Shirt","A comfortable 100% cotton t-shirt.","35000","TSHIRT-BLK-M","50","Apparel","40000","20000","TRUE","tshirt, casual, cotton","https://picsum.photos/seed/tshirt/400/400",TRUE,"Size","M","Color","Black"
+"Classic T-Shirt","A comfortable 100% cotton t-shirt.","35000","TSHIRT-BLK-L","30","Apparel","40000","20000","TRUE","tshirt, casual, cotton","https://picsum.photos/seed/tshirt/400/400",TRUE,"Size","L","Color","Black"
+"Handmade Wallet","A durable wallet made from genuine leather.","75000","WALLET-LTHR-BRN","25","Accessories","","50000","FALSE","leather, wallet, handmade","https://picsum.photos/seed/wallet/400/400",FALSE,"","","",""
 `;
 
 export default function Step3CatalogUpload() {
@@ -61,11 +62,18 @@ export default function Step3CatalogUpload() {
             <>
                 <Alert>
                   <Download className="h-4 w-4" />
-                  <AlertTitle>Download Template</AlertTitle>
+                  <AlertTitle>Download our CSV template</AlertTitle>
                   <AlertDescription>
-                    For best results, download our CSV template to ensure your file is formatted correctly.
+                    For best results, download our CSV template to ensure your file is formatted correctly. 
                     <Button variant="link" onClick={handleDownloadTemplate} className="p-0 h-auto ml-1 font-semibold">Download Template</Button>
                   </AlertDescription>
+                </Alert>
+                 <Alert variant="default" className="bg-blue-50 border-blue-200">
+                    <Info className="h-4 w-4 text-blue-700" />
+                    <AlertTitle className="text-blue-800">How to Add Images</AlertTitle>
+                    <AlertDescription className="text-blue-700">
+                        In the <code className="font-semibold bg-blue-100 px-1 rounded">imageUrl</code> column, paste a public URL for each product image. You can host your images on a site like Dropbox, Imgur, or your own web storage. You can add more images later.
+                    </AlertDescription>
                 </Alert>
                 <FileUploader 
                     files={uploadedFiles}
@@ -73,6 +81,7 @@ export default function Step3CatalogUpload() {
                     maxFiles={1}
                     accept={{ 'text/csv': ['.csv'] }}
                 />
+                 <p className="text-sm text-muted-foreground">Required fields are <code className="bg-muted px-1 py-0.5 rounded">name</code> and <code className="bg-muted px-1 py-0.5 rounded">price</code>. All other fields are optional.</p>
             </>
         ) : (
             <Step3MappingInterface file={uploadedFiles[0]} onMappingComplete={onMappingComplete} />
