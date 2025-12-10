@@ -5,9 +5,10 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, MoreVertical, CheckCircle, Send, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, MoreVertical, CheckCircle, Send, AlertTriangle, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 import { getPurchaseOrderById, receivePurchaseOrder, updatePurchaseOrder } from '@/services/procurement';
+import { addTransaction } from '@/services/finances';
 import { getLocations } from '@/services/locations';
 import type { PurchaseOrder, OnboardingFormData, Location } from '@/lib/types';
 import {
@@ -211,6 +212,37 @@ export default function ViewPurchaseOrderPage() {
         });
     }
   }
+  
+  const handleMarkAsPaid = async () => {
+    if (!order) return;
+    try {
+        await addTransaction({
+            date: new Date().toISOString(),
+            description: `Payment for Purchase Order #${order.id}`,
+            amount: -order.totalCost,
+            currency: order.currency,
+            type: 'Expense',
+            category: 'Inventory',
+            status: 'Cleared',
+            paymentMethod: 'Bank Transfer' // Assumption for mock
+        });
+
+        const updatedOrder = await updatePurchaseOrder(order.id, { status: 'Paid' });
+        setOrder(updatedOrder);
+        toast({
+            title: 'PO Marked as Paid',
+            description: `An expense of ${formatCurrency(order.totalCost, order.currency)} has been recorded.`
+        });
+
+    } catch (e) {
+        console.error(e);
+        toast({
+            variant: 'destructive',
+            title: 'Failed to Mark as Paid',
+            description: 'There was an error creating the expense transaction.'
+        });
+    }
+  }
 
   const handleApproveChanges = async () => {
     if (!order || !order.supplierProposedChanges) return;
@@ -270,6 +302,7 @@ export default function ViewPurchaseOrderPage() {
       Sent: 'outline',
       Accepted: 'default',
       Rejected: 'destructive',
+      Paid: 'default',
       Received: 'default',
       Partial: 'outline',
       Cancelled: 'destructive',
@@ -280,12 +313,10 @@ export default function ViewPurchaseOrderPage() {
   
   const cta = (
     <div className="flex items-center gap-2">
-        {order.status === 'Draft' && (
-            <Button asChild>
-                <Link href={`/supplier/po-response/${order.id}`} target="_blank">
-                    <Send className="mr-2 h-4 w-4" />
-                    Send to Supplier
-                </Link>
+        {order.status === 'Sent' && (
+            <Button size="sm" onClick={handleMarkAsPaid}>
+                <DollarSign className="mr-2 h-4 w-4" />
+                Mark as Paid
             </Button>
         )}
         <ReceiveStockDialog order={order} locations={locations} onConfirm={handleReceiveStock} />
@@ -297,6 +328,12 @@ export default function ViewPurchaseOrderPage() {
             </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+                 <DropdownMenuItem asChild>
+                    <Link href={`/supplier/po-response/${order.id}`} target="_blank">
+                        <Send className="mr-2 h-4 w-4" />
+                        Send to Supplier
+                    </Link>
+                 </DropdownMenuItem>
                 <DropdownMenuItem>Edit PO</DropdownMenuItem>
                 <DropdownMenuItem>Export as PDF</DropdownMenuItem>
                 <DropdownMenuSeparator />

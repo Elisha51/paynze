@@ -328,7 +328,7 @@ export type PurchaseOrder = {
   id: string; // e.g., 'PO-001'
   supplierId: string;
   supplierName: string;
-  status: 'Draft' | 'Sent' | 'Received' | 'Partial' | 'Cancelled' | 'Accepted' | 'Rejected' | 'Awaiting Approval';
+  status: 'Draft' | 'Sent' | 'Paid' | 'Received' | 'Partial' | 'Cancelled' | 'Accepted' | 'Rejected' | 'Awaiting Approval';
   items: PurchaseOrderItem[];
   orderDate: string;
   expectedDelivery: string;
