@@ -1,4 +1,3 @@
-
 // src/components/onboarding/step1-business-info.tsx
 'use client';
 import { useOnboarding } from '@/context/onboarding-context';
@@ -76,19 +75,19 @@ export default function Step1BusinessInfo() {
 
         <div className="space-y-3">
           <Label>Business Type</Label>
-          <RadioGroup value={formData.businessType} onValueChange={handleRadioChange} className="flex space-x-4">
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Wholesaler" id="wholesaler" />
-              <Label htmlFor="wholesaler">Wholesaler</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Retailer" id="retailer" />
-              <Label htmlFor="retailer">Retailer</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Stockist" id="stockist" />
-              <Label htmlFor="stockist">Stockist</Label>
-            </div>
+          <RadioGroup value={formData.businessType} onValueChange={handleRadioChange} className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Label htmlFor="wholesaler" className="border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted data-[state=checked]:border-primary">
+                <RadioGroupItem value="Wholesaler" id="wholesaler" className="sr-only" />
+                <span>Wholesaler</span>
+            </Label>
+            <Label htmlFor="retailer" className="border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted data-[state=checked]:border-primary">
+                <RadioGroupItem value="Retailer" id="retailer" className="sr-only" />
+                <span>Retailer</span>
+            </Label>
+             <Label htmlFor="stockist" className="border rounded-md p-4 flex items-center justify-center cursor-pointer hover:bg-muted data-[state=checked]:border-primary">
+                <RadioGroupItem value="Stockist" id="stockist" className="sr-only" />
+                <span>Stockist</span>
+            </Label>
           </RadioGroup>
         </div>
         

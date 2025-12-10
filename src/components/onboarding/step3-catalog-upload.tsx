@@ -19,10 +19,6 @@ export default function Step3CatalogUpload() {
   const { nextStep, prevStep } = useOnboarding();
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
-  const handleSkip = () => {
-    nextStep();
-  };
-
   const handleFilesChange = (files: File[]) => {
     setUploadedFiles(files);
   };
@@ -52,7 +48,7 @@ export default function Step3CatalogUpload() {
         <CardTitle className="text-2xl font-headline">Upload Your Product Catalog</CardTitle>
         <CardDescription>
           {uploadedFiles.length === 0 
-            ? "Save time by uploading your products using a CSV file. You can also skip this and add products manually later."
+            ? "This step is optional. Save time by uploading a CSV file, or skip to add products manually later."
             : "Match your file's columns to the required product fields."
           }
         </CardDescription>
@@ -90,10 +86,7 @@ export default function Step3CatalogUpload() {
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={prevStep} disabled={uploadedFiles.length > 0}>Back</Button>
         {uploadedFiles.length === 0 && (
-            <div className="flex gap-2">
-                <Button variant="secondary" onClick={handleSkip}>Skip for Now</Button>
-                <Button onClick={nextStep} disabled>Continue</Button>
-            </div>
+            <Button variant="secondary" onClick={nextStep}>Skip for Now</Button>
         )}
       </CardFooter>
     </Card>
