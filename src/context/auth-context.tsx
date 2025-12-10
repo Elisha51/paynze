@@ -1,3 +1,4 @@
+
 'use client';
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 import type { Staff, Role, OnboardingFormData } from '@/lib/types';
@@ -29,21 +30,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const roles = await getRoles();
     const userRole = roles.find(r => r.name === staffMember.role);
     
-    // Fallback to default tenant if no onboarding data is found
     const onboardingDataRaw = localStorage.getItem('onboardingData');
     const plan = onboardingDataRaw ? (JSON.parse(onboardingDataRaw) as OnboardingFormData).plan || 'Growth' : 'Growth';
 
     if (userRole) {
       setUser({ ...staffMember, permissions: userRole.permissions, plan });
     } else {
-      // This is a fallback and should ideally not be hit if data is clean
       const defaultRole = roles.find(r => r.name === 'Sales Agent');
       setUser({ ...staffMember, permissions: defaultRole!.permissions, plan });
     }
   }, []);
 
   useEffect(() => {
-    // This effect runs only once on the client to check for a logged-in user
     const checkUserOnMount = async () => {
       setIsLoading(true);
       if (typeof window !== 'undefined') {
@@ -54,7 +52,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (loggedInUser) {
             await fetchUserPermissions(loggedInUser);
           } else {
-            // Clear invalid user ID from storage
             localStorage.removeItem('loggedInUserId');
           }
         }
@@ -68,8 +65,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('loggedInUserId', userToLogin.id);
     await fetchUserPermissions(userToLogin);
     
-    const onboardingComplete = localStorage.getItem('onboardingComplete');
-    if (onboardingComplete === 'true') {
+    // Check if onboarding data exists. If not, user must complete onboarding.
+    const onboardingData = localStorage.getItem('onboardingData');
+    
+    if (onboardingData) {
         router.push('/dashboard');
     } else {
         router.push('/get-started');
@@ -78,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('loggedInUserId');
-    localStorage.removeItem('onboardingComplete');
+    // We intentionally don't clear onboardingData so the store can still function
     setUser(null);
     router.push('/login');
   }, [router]);

@@ -48,6 +48,11 @@ export default function SignupPage() {
             status: 'Active',
         });
         
+        // Clear any old onboarding state before logging in the new user
+        localStorage.removeItem('onboardingComplete');
+        localStorage.removeItem('onboardingData');
+        localStorage.removeItem('onboardingDraft');
+        
         // After creating the user, call the robust login function
         // which will handle redirection to onboarding.
         login(newUser);
