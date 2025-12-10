@@ -42,14 +42,18 @@ export function RevertStatusDialog({ order, onUpdate }: { order: Order; onUpdate
             date: new Date().toISOString(),
         };
 
-        const updatedOrder = await updateOrder(order.id, {
-            status: previousStatus,
-            deliveryNotes: [...(order.deliveryNotes || []), newNote]
-        });
-        
-        toast({ title: 'Status Reverted', description: `Order status has been changed back to "${previousStatus}".`});
-        onUpdate(updatedOrder);
-        setReason('');
+        try {
+            const updatedOrder = await updateOrder(order.id, {
+                status: previousStatus,
+                deliveryNotes: [...(order.deliveryNotes || []), newNote]
+            });
+            
+            toast({ title: 'Status Reverted', description: `Order status has been changed back to "${previousStatus}".`});
+            onUpdate(updatedOrder);
+            setReason('');
+        } catch (error) {
+             toast({ variant: 'destructive', title: 'Update Failed', description: 'There was an error reverting the order status.'});
+        }
     };
 
     return (
