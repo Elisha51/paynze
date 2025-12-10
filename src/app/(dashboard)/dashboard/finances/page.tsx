@@ -1,3 +1,4 @@
+
 'use client';
 import { useState, useEffect } from 'react';
 import type { Transaction, Role, Staff } from '@/lib/types';

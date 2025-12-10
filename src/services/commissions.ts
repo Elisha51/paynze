@@ -1,4 +1,5 @@
 
+'use client';
 
 import type { Order, Staff, Role, CommissionRuleCondition, AffiliateProgramSettings, Affiliate } from '@/lib/types';
 

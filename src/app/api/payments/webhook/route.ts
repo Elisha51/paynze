@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { updateOrder } from '@/services/orders';
 import { getOrderById } from '@/services/orders';
 import { addTransaction } from '@/services/finances';
+import { processOrderForCommission } from '@/services/commissions';
 
 export async function POST(req: NextRequest) {
   try {
@@ -44,6 +45,9 @@ export async function POST(req: NextRequest) {
           status: 'Cleared',
           paymentMethod: order.payment.method,
       });
+
+      // After successful payment, process commissions
+      await processOrderForCommission(updatedOrder);
       
       console.log(`Webhook: Order ${orderId} successfully updated to Paid and transaction recorded.`);
       return NextResponse.json(updatedOrder);
