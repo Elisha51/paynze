@@ -118,7 +118,9 @@ export default function AppHeader({ onboardingData, isDevMode }: AppHeaderProps)
             <DropdownMenuItem asChild><Link href="/dashboard/my-profile">My Profile</Link></DropdownMenuItem>
             <DropdownMenuItem asChild><Link href="/dashboard/my-tasks">My Tasks</Link></DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
+            {user?.permissions.settings.view && (
+                <DropdownMenuItem asChild><Link href="/dashboard/settings">Settings</Link></DropdownMenuItem>
+            )}
             <DropdownMenuItem>Support</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
