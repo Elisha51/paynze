@@ -2,86 +2,63 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { getCustomerById, updateCustomer } from '@/services/customers';
-import type { Customer } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import type { Customer, Order } from '@/lib/types';
+import { getCustomerById } from '@/services/customers';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getCountryList } from '@/services/countries';
+import { ArrowRight, Package, User } from 'lucide-react';
+import Link from 'next/link';
+import { format, formatDistanceToNow } from 'date-fns';
+import { Badge } from '@/components/ui/badge';
+import { useRouter } from 'next/navigation';
 
-export default function AccountPage() {
+const StatCard = ({ title, value, icon }: { title: string, value: string | number, icon: React.ElementType }) => {
+    const Icon = icon;
+    return (
+        <Card>
+            <CardHeader className="flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium">{title}</CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{value}</div>
+            </CardContent>
+        </Card>
+    )
+};
+
+export default function AccountOverviewPage() {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
-  const [countries, setCountries] = useState<{name: string, code: string, dialCode: string}[]>([]);
-  const [countryCode, setCountryCode] = useState('+256');
+  const router = useRouter();
 
   useEffect(() => {
     async function loadData() {
-      const [countryList, loggedInCustomerId] = await Promise.all([
-          getCountryList(),
-          localStorage.getItem('loggedInCustomerId')
-      ]);
-      
-      setCountries(countryList);
-
-      if (loggedInCustomerId) {
-        const cust = await getCustomerById(loggedInCustomerId);
-        setCustomer(cust || null);
-        if (cust?.phone) {
-            const country = countryList.find(c => cust.phone.startsWith(c.dialCode));
-            if (country) {
-                setCountryCode(country.dialCode);
-            }
-        }
+      const loggedInCustomerId = localStorage.getItem('loggedInCustomerId');
+      if (!loggedInCustomerId) {
+        setLoading(false);
+        router.push('/store/login');
+        return;
       }
+      
+      const cust = await getCustomerById(loggedInCustomerId);
+      setCustomer(cust || null);
       setLoading(false);
     }
     loadData();
-  }, []);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setCustomer(prev => prev ? ({ ...prev, [id]: value }) : null);
-  };
+  }, [router]);
   
-  const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    if (customer) {
-        setCustomer({
-            ...customer,
-            shippingAddress: {
-                ...customer.shippingAddress,
-                [id]: value
-            }
-        });
-    }
-  }
-
-  const handleSaveChanges = async () => {
-    if (!customer) return;
-    try {
-        const phoneWithoutCode = customer.phone?.replace(countryCode, '');
-        const updatedCustomerData = { ...customer, phone: `${countryCode}${phoneWithoutCode}` };
-
-        const updated = await updateCustomer(updatedCustomerData.id, updatedCustomerData);
-        setCustomer(updated);
-        toast({ title: "Profile Updated", description: "Your personal information has been saved." });
-    } catch (e) {
-        toast({ variant: 'destructive', title: "Update Failed", description: "Could not save your changes." });
-    }
-  }
-
   if (loading) {
     return (
         <div className="space-y-6">
+            <Skeleton className="h-12 w-1/2" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <Skeleton className="h-24 w-full" />
+                <Skeleton className="h-24 w-full" />
+            </div>
             <Skeleton className="h-48 w-full" />
-            <Skeleton className="h-64 w-full" />
         </div>
-    )
+    );
   }
 
   if (!customer) {
@@ -92,65 +69,67 @@ export default function AccountPage() {
           </Card>
       )
   }
-  
-  const phoneWithoutCode = customer.phone?.startsWith(countryCode) ? customer.phone.substring(countryCode.length) : customer.phone;
+
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  }
+
+  const recentOrder = customer.orders && customer.orders.length > 0
+    ? [...customer.orders].sort((a,b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0]
+    : null;
 
   return (
     <div className="space-y-6">
-        <Card>
-        <CardHeader>
-            <CardTitle>My Profile</CardTitle>
-            <CardDescription>Update your personal information.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-             <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" value={customer.name} onChange={handleInputChange} placeholder="John Doe"/>
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={customer.email} disabled />
-            </div>
-             <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <div className="flex items-center gap-2">
-                    <Select value={countryCode} onValueChange={setCountryCode}>
-                      <SelectTrigger className="w-[120px]">
-                        <SelectValue placeholder="Code" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {countries.map(c => <SelectItem key={c.code} value={c.dialCode}>{c.code} ({c.dialCode})</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                    <Input id="phone" type="tel" value={phoneWithoutCode || ''} onChange={handleInputChange} placeholder="772123456"/>
-                </div>
-            </div>
-            <Button onClick={handleSaveChanges}>Save Changes</Button>
-        </CardContent>
-        </Card>
-        <Card>
-        <CardHeader>
-            <CardTitle>Shipping Address</CardTitle>
-            <CardDescription>Your default shipping address.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-             <div className="space-y-2">
-                <Label htmlFor="street">Address</Label>
-                <Input id="street" value={customer.shippingAddress?.street || ''} onChange={handleAddressChange} placeholder="1234 Makerere Hill Rd"/>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="city">City</Label>
-                    <Input id="city" value={customer.shippingAddress?.city || ''} onChange={handleAddressChange} placeholder="Kampala"/>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="country">Country</Label>
-                    <Input id="country" value={customer.shippingAddress?.country || ''} onChange={handleAddressChange} placeholder="Uganda"/>
-                </div>
-            </div>
-            <Button onClick={handleSaveChanges}>Save Address</Button>
-        </CardContent>
-        </Card>
+      <div>
+        <h1 className="text-3xl font-bold">Welcome back, {customer.name.split(' ')[0]}!</h1>
+        <p className="text-muted-foreground">Here's a quick overview of your account.</p>
+      </div>
+
+       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <StatCard title="Lifetime Spend" value={formatCurrency(customer.totalSpend, customer.currency)} icon={Package} />
+            <StatCard title="Total Orders" value={customer.orders?.length || 0} icon={User} />
+        </div>
+        
+        {recentOrder ? (
+            <Card>
+                <CardHeader>
+                    <CardTitle>Most Recent Order</CardTitle>
+                    <CardDescription>
+                        Order #{recentOrder.id} &middot; Placed {formatDistanceToNow(new Date(recentOrder.date), { addSuffix: true })}
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-semibold">{recentOrder.items.length} item(s)</p>
+                            <p className="text-muted-foreground">{formatCurrency(recentOrder.total, recentOrder.currency)}</p>
+                        </div>
+                        <Badge>{recentOrder.status}</Badge>
+                    </div>
+                </CardContent>
+                <CardFooter>
+                    <Button asChild variant="outline" className="ml-auto">
+                        <Link href={`/store/account/orders/${recentOrder.id}`}>
+                            View Details <ArrowRight className="ml-2 h-4 w-4" />
+                        </Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+        ) : (
+             <Card>
+                <CardHeader>
+                    <CardTitle>No Orders Yet</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">You haven't placed any orders yet. Start shopping to see your order history here.</p>
+                </CardContent>
+                <CardFooter>
+                     <Button asChild>
+                        <Link href="/store">Start Shopping</Link>
+                    </Button>
+                </CardFooter>
+            </Card>
+        )}
     </div>
   );
 }

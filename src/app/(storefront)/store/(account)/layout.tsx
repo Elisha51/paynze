@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import {
@@ -12,13 +11,14 @@ import {
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, Package, User, LogOut, Bell, Heart, Ticket } from 'lucide-react';
+import { LayoutDashboard, Package, User, LogOut, Bell, Heart, Ticket } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useEffect, useState } from 'react';
 
 const navItems = [
-  { href: '/store/account', label: 'My Profile', icon: User },
+  { href: '/store/account', label: 'Account Overview', icon: LayoutDashboard },
+  { href: '/store/account/profile', label: 'My Profile', icon: User },
   { href: '/store/account/orders', label: 'My Orders', icon: Package },
   { href: '/store/account/wishlist', label: 'My Wishlist', icon: Heart },
   { href: '/store/account/discounts', label: 'My Vouchers', icon: Ticket },
