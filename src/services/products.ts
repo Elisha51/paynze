@@ -14,7 +14,7 @@ const initializeMockProducts: () => Product[] = () => [
     sku: 'KIT-001',
     barcode: '1234567890123',
     inventoryTracking: 'Track Quantity',
-    unitOfMeasure: 'm',
+    unitsOfMeasure: [{ name: 'Meter', isBaseUnit: true, contains: 1, price: 35000, sku: 'KIT-MTR' }],
     lowStockThreshold: 10,
     requiresShipping: true,
     weight: 0.5,
@@ -76,6 +76,35 @@ const initializeMockProducts: () => Product[] = () => [
     ],
   },
   {
+    productType: 'Physical',
+    name: 'Scented Candle Set',
+    sku: 'CNDL-SET',
+    shortDescription: 'Aromatic scented candles available individually, in packs, or by the box.',
+    longDescription: '<p>Our high-quality scented candles are perfect for creating a relaxing ambiance. Made with natural soy wax and essential oils.</p>',
+    status: 'published',
+    images: [{ id: 'img-candle', url: 'https://picsum.photos/seed/candle/400/400' }],
+    inventoryTracking: 'Track Quantity',
+    unitsOfMeasure: [
+        { name: 'Piece', isBaseUnit: true, contains: 1, price: 15000, sku: 'CNDL-PCE' },
+        { name: 'Packet', contains: 6, price: 80000, sku: 'CNDL-PCK' },
+        { name: 'Box', contains: 24, price: 1800000, sku: 'CNDL-BOX' }
+    ],
+    requiresShipping: true,
+    weight: 0.2, // Weight of the base unit (Piece)
+    retailPrice: 15000, // Price of the base unit
+    currency: 'UGX',
+    isTaxable: true,
+    hasVariants: false,
+    options: [],
+    variants: [
+        { id: 'default-candle-variant', optionValues: {}, status: 'In Stock', stockByLocation: [
+            { locationName: 'Main Warehouse', stock: { onHand: 500, available: 500, reserved: 0, damaged: 0, sold: 0 } }
+        ]}
+    ],
+    productVisibility: ['Online Store', 'POS'],
+    category: 'Home Goods',
+  },
+  {
     productType: 'Digital',
     name: 'E-commerce Business Guide',
     sku: 'EBOOK-001',
@@ -91,6 +120,7 @@ const initializeMockProducts: () => Product[] = () => [
     hasVariants: false,
     options: [],
     variants: [],
+    unitsOfMeasure: [{ name: 'Download', isBaseUnit: true, contains: 1 }],
     inventoryTracking: 'Don\'t Track',
     requiresShipping: false,
     productVisibility: ['Online Store'],
@@ -104,7 +134,7 @@ const initializeMockProducts: () => Product[] = () => [
     status: 'published',
     images: [{ id: 'img3', url: `https://picsum.photos/seed/SHOE-002/400/400` }],
     inventoryTracking: 'Track with Serial Numbers',
-    unitOfMeasure: 'pair',
+    unitsOfMeasure: [{ name: 'Pair', isBaseUnit: true, contains: 1, price: 75000, sku: 'SHOE-PAIR' }],
     requiresShipping: true,
     weight: 1.2,
     retailPrice: 75000,
@@ -157,6 +187,7 @@ const initializeMockProducts: () => Product[] = () => [
     hasVariants: false,
     options: [],
     variants: [],
+    unitsOfMeasure: [{ name: 'Session', isBaseUnit: true, contains: 1 }],
     inventoryTracking: 'Don\'t Track',
     productVisibility: ['Online Store'],
     requiresShipping: false,
@@ -170,7 +201,7 @@ const initializeMockProducts: () => Product[] = () => [
     status: 'published',
     images: [{ id: 'img5', url: 'https://picsum.photos/seed/COFF-01/400/400' }],
     inventoryTracking: 'Track Quantity',
-    unitOfMeasure: 'kg',
+    unitsOfMeasure: [{ name: 'kg', isBaseUnit: true, contains: 1, price: 40000, sku: 'COFF-KG' }],
     requiresShipping: true,
     weight: 1,
     retailPrice: 40000,
@@ -194,6 +225,7 @@ const initializeMockProducts: () => Product[] = () => [
     status: 'draft',
     images: [{ id: 'img6', url: 'https://picsum.photos/seed/JEWEL-01/400/400' }],
     inventoryTracking: 'Track Quantity',
+    unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, price: 25000, sku: 'JEWEL-PCE' }],
     requiresShipping: true,
     weight: 0.2,
     retailPrice: 25000,
