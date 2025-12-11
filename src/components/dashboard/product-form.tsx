@@ -130,6 +130,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [showComparePrice, setShowComparePrice] = useState(!!initialProduct?.compareAtPrice);
+  const [hasSpecialPackaging, setHasSpecialPackaging] = useState((initialProduct?.unitsOfMeasure?.length || 0) > 1);
   const { toast } = useToast();
   const router = useRouter();
 
@@ -138,6 +139,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     // When initialProduct changes, reset the form state
     setProduct(prev => ({ ...emptyProduct, ...prev, ...initialProduct }));
     setShowComparePrice(!!initialProduct?.compareAtPrice);
+    setHasSpecialPackaging((initialProduct?.unitsOfMeasure?.length || 0) > 1);
 
     const data = localStorage.getItem('onboardingData');
     if (data) {
@@ -197,6 +199,12 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         return { ...prevProduct, variants: updatedSkuVariants };
     });
 }, [product.options, product.hasVariants, product.sku]);
+
+  useEffect(() => {
+    if (!hasSpecialPackaging && (product.unitsOfMeasure?.length || 0) > 1) {
+        setProduct(prev => ({...prev, unitsOfMeasure: [(prev.unitsOfMeasure || [])[0]]}));
+    }
+  }, [hasSpecialPackaging, product.unitsOfMeasure]);
 
 
   const handleInputChange = (
@@ -540,15 +548,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     return { mainCategories: main, subCategoriesByParent: sub };
   }, [categories]);
 
-  const [hasSpecialPackaging, setHasSpecialPackaging] = useState((product.unitsOfMeasure?.length || 0) > 1);
-
-  useEffect(() => {
-    if (!hasSpecialPackaging && (product.unitsOfMeasure?.length || 0) > 1) {
-        setProduct(prev => ({...prev, unitsOfMeasure: [prev.unitsOfMeasure[0]]}));
-    }
-  }, [hasSpecialPackaging, product.unitsOfMeasure]);
-  
-
   return (
     <div className="space-y-6">
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -673,7 +672,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             </Card>
           )}
 
-
           <Card>
             <CardHeader>
                 <CardTitle>Pricing</CardTitle>
@@ -765,6 +763,78 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             <>
             <Card>
                 <CardHeader>
+                    <CardTitle>Inventory &amp; Shipping</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                     <div className="space-y-2">
+                        <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
+                        <Select value={product.inventoryTracking} onValueChange={(v) => handleSelectChange('inventoryTracking', v)}>
+                            <SelectTrigger id="inventoryTracking">
+                                <SelectValue placeholder="Select tracking method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Don't Track">Don't Track</SelectItem>
+                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
+                                <SelectItem value="Track with Serial Numbers">Track with Serial Numbers</SelectItem>
+                            </SelectContent>
+                        </Select>
+                     </div>
+
+                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && product.variants.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="onHand">On Hand Quantity (Base Units)</Label>
+                                <Input id="onHand" type="number" value={singleVariantOnHand} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
+                                <p className="text-xs text-muted-foreground">Total physical stock of the smallest unit.</p>
+                            </div>
+                            {settings?.inventory?.enableLowStockAlerts && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold (Base Units)</Label>
+                                    <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
+                                </div>
+                            )}
+                        </div>
+                     )}
+
+                     <div className="flex items-center space-x-2">
+                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} disabled={product.productType !== 'Physical'}/>
+                        <Label htmlFor="requiresShipping">This is a physical product that requires shipping</Label>
+                     </div>
+                      {product.requiresShipping && (
+                        <div className="pl-6 space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="weight">Weight (kg)</Label>
+                                <Input id="weight" type="number" value={product.weight || ''} onChange={handleNumberChange} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label>Dimensions (cm)</Label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                     <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Length</Label>
+                                        <Input type="number" placeholder="Length" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
+                                     </div>
+                                      <Input type="number" placeholder="Length" className="hidden sm:block" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
+
+                                      <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Width</Label>
+                                        <Input type="number" placeholder="Width" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
+                                     </div>
+                                     <Input type="number" placeholder="Width" className="hidden sm:block" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
+
+                                     <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Height</Label>
+                                        <Input type="number" placeholder="Height" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
+                                     </div>
+                                     <Input type="number" placeholder="Height" className="hidden sm:block" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
+                                </div>
+                            </div>
+                        </div>
+                     )}
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
                     <CardTitle>Variants</CardTitle>
                     <CardDescription>Define different product versions (e.g., size, color).</CardDescription>
                 </CardHeader>
@@ -819,139 +889,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             )}
                         </div>
                     )}
-                </CardContent>
-            </Card>
-            
-            <Card>
-                <CardHeader>
-                    <CardTitle>Inventory & Shipping</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                     <div className="space-y-2">
-                        <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
-                        <Select value={product.inventoryTracking} onValueChange={(v) => handleSelectChange('inventoryTracking', v)}>
-                            <SelectTrigger id="inventoryTracking">
-                                <SelectValue placeholder="Select tracking method" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Don't Track">Don't Track</SelectItem>
-                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
-                                <SelectItem value="Track with Serial Numbers">Track with Serial Numbers</SelectItem>
-                            </SelectContent>
-                        </Select>
-                     </div>
-
-                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && product.variants.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
-                            <div className="space-y-2">
-                                <Label htmlFor="onHand">On Hand Quantity (Base Units)</Label>
-                                <Input id="onHand" type="number" value={singleVariantOnHand} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
-                                <p className="text-xs text-muted-foreground">Total physical stock of the smallest unit.</p>
-                            </div>
-                            {settings?.inventory?.enableLowStockAlerts && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold (Base Units)</Label>
-                                    <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
-                                </div>
-                            )}
-                        </div>
-                     )}
-                    
-                     <Card>
-                        <CardHeader className="p-4 flex flex-row items-center justify-between">
-                            <div>
-                                <CardTitle className="text-base flex items-center gap-2"><Boxes className="h-4 w-4"/>Units of Measure</CardTitle>
-                                <CardDescription className="text-xs">Define how this product is sold, from single pieces to boxes.</CardDescription>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <Switch id="hasSpecialPackaging" checked={hasSpecialPackaging} onCheckedChange={setHasSpecialPackaging} />
-                                <Label htmlFor="hasSpecialPackaging">Special Packaging</Label>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-4 pt-0 space-y-3">
-                            <div className="p-3 border rounded-md">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Base Unit Name</Label>
-                                        <Input value={product.unitsOfMeasure[0]?.name || 'Piece'} onChange={e => handleUnitOfMeasureChange(0, 'name', e.target.value)} placeholder="e.g., Piece"/>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-xs">Base Unit SKU</Label>
-                                        <Input value={product.unitsOfMeasure[0]?.sku || ''} onChange={e => handleUnitOfMeasureChange(0, 'sku', e.target.value)} placeholder="Optional SKU for base unit"/>
-                                    </div>
-                                </div>
-                            </div>
-                           
-                            {hasSpecialPackaging && (
-                                <div className="space-y-3 pt-3">
-                                {product.unitsOfMeasure.slice(1).map((unit, index) => {
-                                    const actualIndex = index + 1;
-                                    return (
-                                        <div key={actualIndex} className="p-3 border rounded-md">
-                                            <div className="flex items-end gap-2">
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
-                                                    <div className="space-y-1">
-                                                        <Label className="text-xs">Unit Name</Label>
-                                                        <Input value={unit.name} onChange={e => handleUnitOfMeasureChange(actualIndex, 'name', e.target.value)} placeholder={actualIndex === 1 ? 'e.g., Packet' : 'e.g., Box'}/>
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <Label className="text-xs">Contains</Label>
-                                                        <Input type="number" value={unit.contains || ''} onChange={e => handleUnitOfMeasureChange(actualIndex, 'contains', Number(e.target.value))} placeholder={`e.g., 6 ${product.unitsOfMeasure[actualIndex - 1].name}s`} />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <Label className="text-xs">Price</Label>
-                                                        <Input type="number" value={unit.price || ''} onChange={e => handleUnitOfMeasureChange(actualIndex, 'price', Number(e.target.value))} placeholder="Optional override" />
-                                                    </div>
-                                                    <div className="space-y-1">
-                                                        <Label className="text-xs">SKU</Label>
-                                                        <Input value={unit.sku || ''} onChange={e => handleUnitOfMeasureChange(actualIndex, 'sku', e.target.value)} placeholder="Optional SKU"/>
-                                                    </div>
-                                                </div>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeUnitOfMeasure(actualIndex)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                            </div>
-                                        </div>
-                                    )
-                                })}
-                                <Button variant="outline" size="sm" onClick={addUnitOfMeasure} className="mt-2"><PlusCircle className="mr-2 h-4 w-4" /> Add Larger Unit</Button>
-                                </div>
-                            )}
-                        </CardContent>
-                     </Card>
-
-                     <div className="flex items-center space-x-2">
-                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} disabled={product.productType !== 'Physical'}/>
-                        <Label htmlFor="requiresShipping">This is a physical product that requires shipping</Label>
-                     </div>
-                      {product.requiresShipping && (
-                        <div className="pl-6 space-y-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="weight">Weight (kg)</Label>
-                                <Input id="weight" type="number" value={product.weight || ''} onChange={handleNumberChange} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label>Dimensions (cm)</Label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                     <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Length</Label>
-                                        <Input type="number" placeholder="Length" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
-                                     </div>
-                                      <Input type="number" placeholder="Length" className="hidden sm:block" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
-
-                                      <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Width</Label>
-                                        <Input type="number" placeholder="Width" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
-                                     </div>
-                                     <Input type="number" placeholder="Width" className="hidden sm:block" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
-
-                                     <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Height</Label>
-                                        <Input type="number" placeholder="Height" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
-                                     </div>
-                                     <Input type="number" placeholder="Height" className="hidden sm:block" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
-                                </div>
-                            </div>
-                        </div>
-                     )}
                 </CardContent>
             </Card>
             
@@ -1248,3 +1185,5 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
+
+    
