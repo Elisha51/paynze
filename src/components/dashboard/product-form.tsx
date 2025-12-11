@@ -60,6 +60,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '
 import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import { Switch } from '../ui/switch';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -236,7 +237,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             productType: value as Product['productType'],
             requiresShipping: isPhysical,
             inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
-            hasVariants: isPhysical ? prev.hasVariants : false,
         }));
     } else {
         setProduct(prev => ({ ...prev, [id]: value }));
@@ -539,6 +539,14 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }
     return { mainCategories: main, subCategoriesByParent: sub };
   }, [categories]);
+
+  const [hasSpecialPackaging, setHasSpecialPackaging] = useState((product.unitsOfMeasure?.length || 0) > 1);
+
+  useEffect(() => {
+    if (!hasSpecialPackaging && (product.unitsOfMeasure?.length || 0) > 1) {
+        setProduct(prev => ({...prev, unitsOfMeasure: [prev.unitsOfMeasure[0]]}));
+    }
+  }, [hasSpecialPackaging, product.unitsOfMeasure]);
   
 
   return (
@@ -757,8 +765,8 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             <>
             <Card>
                 <CardHeader>
-                    <CardTitle>Variants & Packaging</CardTitle>
-                    <CardDescription>Define different product versions (e.g., size, color) or packaging units (e.g., piece, box).</CardDescription>
+                    <CardTitle>Variants</CardTitle>
+                    <CardDescription>Define different product versions (e.g., size, color).</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                     <div className="flex items-start space-x-3">
@@ -848,41 +856,65 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             )}
                         </div>
                      )}
-
+                    
                      <Card>
-                        <CardHeader className="p-4">
-                            <CardTitle className="text-base flex items-center gap-2"><Boxes className="h-4 w-4"/>Units of Measure</CardTitle>
-                            <CardDescription className="text-xs">Define how this product is sold, from single pieces to boxes.</CardDescription>
+                        <CardHeader className="p-4 flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle className="text-base flex items-center gap-2"><Boxes className="h-4 w-4"/>Units of Measure</CardTitle>
+                                <CardDescription className="text-xs">Define how this product is sold, from single pieces to boxes.</CardDescription>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <Switch id="hasSpecialPackaging" checked={hasSpecialPackaging} onCheckedChange={setHasSpecialPackaging} />
+                                <Label htmlFor="hasSpecialPackaging">Special Packaging</Label>
+                            </div>
                         </CardHeader>
                         <CardContent className="p-4 pt-0 space-y-3">
-                            {product.unitsOfMeasure.map((unit, index) => (
-                                <div key={index} className="p-3 border rounded-md">
-                                    <div className="flex items-end gap-2">
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
-                                            <div className="space-y-1">
-                                                <Label className="text-xs">Unit Name</Label>
-                                                <Input value={unit.name} onChange={e => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? 'e.g., Piece' : index === 1 ? 'e.g., Packet' : 'e.g., Box'}/>
-                                            </div>
-                                             <div className="space-y-1">
-                                                <Label className="text-xs">Contains</Label>
-                                                <Input type="number" value={unit.contains || ''} onChange={e => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} disabled={index === 0} placeholder={index > 0 ? `e.g., 6 ${product.unitsOfMeasure[index - 1].name}s` : ''} />
-                                            </div>
-                                             <div className="space-y-1">
-                                                <Label className="text-xs">Price</Label>
-                                                <Input type="number" value={unit.price || ''} onChange={e => handleUnitOfMeasureChange(index, 'price', Number(e.target.value))} placeholder={index === 0 ? 'Base price' : 'Optional override'} />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label className="text-xs">SKU</Label>
-                                                <Input value={unit.sku || ''} onChange={e => handleUnitOfMeasureChange(index, 'sku', e.target.value)} placeholder="Optional SKU"/>
-                                            </div>
-                                        </div>
-                                         {index > 0 && (
-                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeUnitOfMeasure(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
-                                         )}
+                            <div className="p-3 border rounded-md">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 flex-1">
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Base Unit Name</Label>
+                                        <Input value={product.unitsOfMeasure[0]?.name || 'Piece'} onChange={e => handleUnitOfMeasureChange(0, 'name', e.target.value)} placeholder="e.g., Piece"/>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs">Base Unit SKU</Label>
+                                        <Input value={product.unitsOfMeasure[0]?.sku || ''} onChange={e => handleUnitOfMeasureChange(0, 'sku', e.target.value)} placeholder="Optional SKU for base unit"/>
                                     </div>
                                 </div>
-                            ))}
-                            <Button variant="outline" size="sm" onClick={addUnitOfMeasure} className="mt-2"><PlusCircle className="mr-2 h-4 w-4" /> Add Larger Unit</Button>
+                            </div>
+                           
+                            {hasSpecialPackaging && (
+                                <div className="space-y-3 pt-3">
+                                {product.unitsOfMeasure.slice(1).map((unit, index) => {
+                                    const actualIndex = index + 1;
+                                    return (
+                                        <div key={actualIndex} className="p-3 border rounded-md">
+                                            <div className="flex items-end gap-2">
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
+                                                    <div className="space-y-1">
+                                                        <Label className="text-xs">Unit Name</Label>
+                                                        <Input value={unit.name} onChange={e => handleUnitOfMeasureChange(actualIndex, 'name', e.target.value)} placeholder={actualIndex === 1 ? 'e.g., Packet' : 'e.g., Box'}/>
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-xs">Contains</Label>
+                                                        <Input type="number" value={unit.contains || ''} onChange={e => handleUnitOfMeasureChange(actualIndex, 'contains', Number(e.target.value))} placeholder={`e.g., 6 ${product.unitsOfMeasure[actualIndex - 1].name}s`} />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-xs">Price</Label>
+                                                        <Input type="number" value={unit.price || ''} onChange={e => handleUnitOfMeasureChange(actualIndex, 'price', Number(e.target.value))} placeholder="Optional override" />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <Label className="text-xs">SKU</Label>
+                                                        <Input value={unit.sku || ''} onChange={e => handleUnitOfMeasureChange(actualIndex, 'sku', e.target.value)} placeholder="Optional SKU"/>
+                                                    </div>
+                                                </div>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeUnitOfMeasure(actualIndex)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                                <Button variant="outline" size="sm" onClick={addUnitOfMeasure} className="mt-2"><PlusCircle className="mr-2 h-4 w-4" /> Add Larger Unit</Button>
+                                </div>
+                            )}
                         </CardContent>
                      </Card>
 
@@ -1046,32 +1078,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     </CardContent>
                 </Card>
             )}
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Search Engine Optimization</CardTitle>
-                <CardDescription>Customize how your product appears in search engine results.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="seo-pageTitle">SEO Page Title</Label>
-                    <Input id="seo-pageTitle" value={product.seo?.pageTitle || ''} onChange={handleSeoChange} />
-                    <p className="text-xs text-muted-foreground">Defaults to product name if empty.</p>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="seo-metaDescription">Meta Description</Label>
-                    <Textarea id="seo-metaDescription" value={product.seo?.metaDescription || ''} onChange={handleSeoChange} maxLength={320} />
-                    <p className="text-xs text-muted-foreground text-right">{product.seo?.metaDescription?.length || 0} / 320</p>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="seo-urlHandle">URL Handle</Label>
-                    <div className="flex items-center">
-                        <span className="text-sm text-muted-foreground p-2 rounded-l-md border border-r-0 bg-muted">/store/product/</span>
-                        <Input id="seo-urlHandle" value={product.seo?.urlHandle || ''} onChange={handleSeoChange} className="rounded-l-none" />
-                    </div>
-                </div>
-              </CardContent>
-            </Card>
             </>
           )}
         </div>
