@@ -19,11 +19,11 @@ export default function AffiliateLoginPage() {
 
   const handleLogin = async () => {
     // This is a simulation. A real app would verify credentials.
-    // We'll find the affiliate by email and check their status.
+    // We'll find an affiliate by email/contact info.
     const allAffiliates = await getAffiliates();
-    const affiliate = allAffiliates.find(a => a.contact.includes('123456')); // Simulate finding by contact/email
+    const affiliate = allAffiliates.find(a => a.contact.includes(email) || a.uniqueId.toLowerCase() === email.toLowerCase());
 
-    if (affiliate) {
+    if (affiliate && affiliate.status === 'Active') {
         // Store a mock session identifier
         localStorage.setItem('loggedInAffiliateId', affiliate.id);
         router.push('/affiliate/dashboard');
@@ -31,7 +31,7 @@ export default function AffiliateLoginPage() {
         toast({
             variant: 'destructive',
             title: 'Login Failed',
-            description: 'Invalid credentials. Please try again.',
+            description: 'Invalid credentials or affiliate not active. Please try again.',
         });
     }
   };
@@ -51,8 +51,8 @@ export default function AffiliateLoginPage() {
               <Label htmlFor="email">Email or Contact</Label>
               <Input
                 id="email"
-                type="email"
-                placeholder="0772123456"
+                type="text"
+                placeholder="0772123456 or affiliate_code"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required

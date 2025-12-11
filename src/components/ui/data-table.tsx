@@ -248,13 +248,15 @@ export function DataTable<TData, TValue>({
                       title="No Results Found"
                       description="No records match your current search query or filters. Try adjusting them to find what you're looking for."
                     />
-                  ) : (emptyState && (
+                  ) : (emptyState ? (
                     <EmptyState 
                       icon={React.createElement(emptyState.icon, { className: "h-12 w-12 text-primary" })}
                       title={emptyState.title}
                       description={emptyState.description}
                       cta={emptyState.cta}
                     />
+                  ) : (
+                     <div className="text-center p-8">No data available.</div>
                   ))}
                 </TableCell>
               </TableRow>

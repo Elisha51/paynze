@@ -14,16 +14,27 @@ import { Label } from '@/components/ui/label';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { getCustomerById } from '@/services/customers';
+import { getCustomerById, getCustomers } from '@/services/customers';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function StoreLoginPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const redirectUrl = searchParams.get('redirect');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const { toast } = useToast();
 
     const handleLogin = async () => {
-        // Simulate successful customer login by finding a test user.
-        const customer = await getCustomerById('cust-02'); // Specifically log in as Olivia Smith
+        if (!email) {
+            toast({ variant: 'destructive', title: 'Please enter an email address.' });
+            return;
+        }
+
+        // Simulate successful customer login by finding a user by email.
+        const allCustomers = await getCustomers();
+        const customer = allCustomers.find(c => c.email.toLowerCase() === email.toLowerCase());
 
         if (customer) {
             localStorage.setItem('isCustomerLoggedIn', 'true');
@@ -31,7 +42,19 @@ export default function StoreLoginPage() {
             // Redirect to the intended page, or back to the store account.
             router.push(redirectUrl || '/store/account');
         } else {
-             console.error("Test customer 'cust-02' (Olivia Smith) not found.");
+             toast({ variant: 'destructive', title: 'Login Failed', description: 'No customer found with that email address.'});
+        }
+    }
+    
+    const handleTestLogin = async () => {
+        // Specifically log in as Olivia Smith for demo purposes
+        const customer = await getCustomerById('cust-02');
+        if (customer) {
+            localStorage.setItem('isCustomerLoggedIn', 'true');
+            localStorage.setItem('loggedInCustomerId', customer.id);
+            router.push(redirectUrl || '/store/account');
+        } else {
+            toast({ variant: 'destructive', title: 'Demo Login Failed', description: 'Test customer not found.'});
         }
     }
 
@@ -53,6 +76,8 @@ export default function StoreLoginPage() {
                         type="email"
                         placeholder="m@example.com"
                         required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         />
                     </div>
                     <div className="grid gap-2">
@@ -62,7 +87,7 @@ export default function StoreLoginPage() {
                             Forgot your password?
                         </Link>
                         </div>
-                        <Input id="password" type="password" required />
+                        <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
                     </div>
                     <Button type="submit" className="w-full" onClick={handleLogin}>
                         Login
@@ -75,7 +100,7 @@ export default function StoreLoginPage() {
                         <h4 className="font-semibold">For Testing Purposes</h4>
                     </div>
                     <p className="text-sm text-muted-foreground">Click below to bypass login and view the populated customer dashboard.</p>
-                     <Button variant="secondary" className="w-full" onClick={handleLogin}>
+                     <Button variant="secondary" className="w-full" onClick={handleTestLogin}>
                         Log in as Olivia Smith (Test User)
                     </Button>
                 </div>

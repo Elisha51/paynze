@@ -230,7 +230,7 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
                                 </TableHeader>
                                 <TableBody>
                                     {stocks.map(s => (
-                                        <TableRow key={s.variantName}>
+                                        <TableRow key={`${locationName}-${s.variantName}`}>
                                             <TableCell className="font-medium">{s.variantName}</TableCell>
                                             <TableCell className="text-right">{s.onHand}</TableCell>
                                             <TableCell className="text-right text-green-600 font-bold">{s.available}</TableCell>
