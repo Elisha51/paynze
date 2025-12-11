@@ -210,7 +210,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
             </CardContent>
         </Card>
 
-        {product.hasVariants && product.variants && product.variants.length > 0 && !hasMultipleUnits && (
+        {product.hasVariants && product.variants && product.variants.length > 0 && (
             <Card>
                 <CardHeader>
                     <CardTitle>Variants</CardTitle>
