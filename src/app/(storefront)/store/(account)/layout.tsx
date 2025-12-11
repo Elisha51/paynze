@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/store/account', label: 'Account Overview', icon: LayoutDashboard },
+  { href: '/store/account/profile', label: 'My Profile', icon: User },
   { href: '/store/account/orders', label: 'My Orders', icon: Package },
   { href: '/store/account/wishlist', label: 'My Wishlist', icon: Heart },
   { href: '/store/account/discounts', label: 'My Vouchers', icon: Ticket },
