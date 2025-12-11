@@ -1,56 +1,51 @@
-// This page is now a Server Component to allow for metadata generation.
-// Client-side interactivity is handled by a child component.
 
+'use client';
+// This page must be a Client Component because its data fetching
+// relies on a service that uses localStorage.
+
+import { useState, useEffect } from 'react';
+import { notFound, useParams } from 'next/navigation';
 import { getPurchaseOrderById } from '@/services/procurement';
 import { PurchaseOrderResponseForm } from '@/components/supplier/purchase-order-response-form';
-import { notFound } from 'next/navigation';
-import type { Metadata } from 'next';
-import { OnboardingFormData } from '@/lib/types';
-import * as fs from 'fs/promises';
+import type { OnboardingFormData, PurchaseOrder } from '@/lib/types';
 import { getMockOnboardingData } from '@/services/mock';
 
 
-type Props = {
-    params: { id: string };
-};
+export default function PurchaseOrderResponsePage() {
+    const params = useParams();
+    const id = params.id as string;
+    const [order, setOrder] = useState<PurchaseOrder | null>(null);
+    const [settings, setSettings] = useState<OnboardingFormData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
-// This function generates dynamic metadata for the page.
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const order = await getPurchaseOrderById(params.id);
-  const settings = await getMockOnboardingData(); // Simulate fetching tenant data
+    useEffect(() => {
+        if (!id) {
+            setIsLoading(false);
+            return;
+        };
 
-  if (!order || !settings) {
-    return {
-      title: 'Purchase Order Not Found',
-    };
-  }
+        async function loadData() {
+            const [orderData, settingsData] = await Promise.all([
+                getPurchaseOrderById(id),
+                getMockOnboardingData()
+            ]);
 
-  const ogTitle = `Purchase Order #${order.id} from ${settings.businessName}`;
-  const ogDescription = `Review and respond to a purchase order for ${order.items.length} item(s).`;
-  
-  return {
-    title: ogTitle,
-    description: ogDescription,
-    openGraph: {
-      title: ogTitle,
-      description: ogDescription,
-      images: [
-        {
-          url: settings.logoUrl || '/icon-512x512.png',
-          width: 512,
-          height: 512,
-          alt: `${settings.businessName} Logo`,
-        },
-      ],
-      siteName: settings.businessName,
-    },
-  };
-}
+            if (!orderData || !settingsData) {
+                // Handle not found case
+            } else {
+                setOrder(orderData);
+                setSettings(settingsData);
+            }
+            setIsLoading(false);
+        }
 
+        loadData();
+    }, [id]);
 
-export default async function PurchaseOrderResponsePage({ params }: Props) {
-    const order = await getPurchaseOrderById(params.id);
-    const settings = await getMockOnboardingData();
+    if (isLoading) {
+        // You can return a loading skeleton here
+        return <div>Loading...</div>;
+    }
 
     if (!order || !settings) {
         notFound();
