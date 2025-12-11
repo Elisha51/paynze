@@ -1,3 +1,4 @@
+
 'use client';
 
 import React from 'react';
@@ -17,22 +18,43 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import Image from 'next/image';
-import type { Product, Supplier, ProductVariant } from '@/lib/types';
+import type { Product, Supplier, ProductVariant, BundleItem } from '@/lib/types';
 import { Remarkable } from 'remarkable';
 import { Laptop, Store, PackageCheck, ShoppingBasket } from 'lucide-react';
-import { useMemo } from 'react';
+import { useMemo, useEffect } from 'react';
 import { getSuppliers } from '@/services/procurement';
 import Link from 'next/link';
 
 const md = new Remarkable();
 
-const getAvailableStock = (product: Product) => {
+const getAvailableStockForVariant = (variant: ProductVariant) => {
+    return variant.stockByLocation?.reduce((sum, loc) => sum + loc.stock.available, 0) || 0;
+};
+
+const getAvailableStock = (product: Product, allProducts: Product[]) => {
+    if (product.productType === 'Bundle') {
+        if (!product.bundleItems || product.bundleItems.length === 0) return 0;
+
+        const availableBundles = product.bundleItems.map(item => {
+            const componentProduct = allProducts.find(p => p.sku === item.sku);
+            if (!componentProduct) return 0;
+            
+            const componentVariant = componentProduct.variants[0]; // Assuming bundles use single-variant products for simplicity
+            if (!componentVariant) return 0;
+
+            const componentStock = getAvailableStockForVariant(componentVariant);
+            return Math.floor(componentStock / item.quantity);
+        });
+
+        return Math.min(...availableBundles);
+    }
+    
     if (product.inventoryTracking === "Don't Track") return Infinity;
-    return product.variants.reduce((sum, v) => 
-        sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.available, 0) || 0), 0);
+    return product.variants.reduce((sum, v) => sum + getAvailableStockForVariant(v), 0);
 }
 
 const getOnHandStock = (product: Product) => {
+    if (product.productType === 'Bundle') return 0; // On-hand isn't tracked for bundles
     if (product.inventoryTracking === "Don't Track") return Infinity;
     return product.variants.reduce((sum, v) => 
         sum + (v.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.onHand, 0) || 0), 0);
@@ -41,13 +63,18 @@ const getOnHandStock = (product: Product) => {
 
 export function ProductDetailsOverview({ product }: { product: Product }) {
   const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
+  const [allProducts, setAllProducts] = React.useState<Product[]>([]);
 
   React.useEffect(() => {
-    async function loadSuppliers() {
-      const fetchedSuppliers = await getSuppliers();
+    async function loadData() {
+      const [fetchedSuppliers, fetchedProducts] = await Promise.all([
+          getSuppliers(),
+          getProducts()
+      ]);
       setSuppliers(fetchedSuppliers);
+      setAllProducts(fetchedProducts);
     }
-    loadSuppliers();
+    loadData();
   }, []);
 
   const productSuppliers = useMemo(() => {
@@ -72,11 +99,11 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
     }
   }
 
-  const totalAvailableStock = (variant: Product['variants'][0]) => {
+  const totalAvailableStockForVariant = (variant: Product['variants'][0]) => {
       return variant.stockByLocation?.reduce((sum, loc) => sum + loc.stock.available, 0) || 0;
   }
-  const totalOnHandStock = (variant: Product['variants'][0]) => {
-      return variant.stockByLocation?.reduce((sum, loc) => sum + loc.stock.onHand, 0) || 0;
+  const totalOnHandStockForVariant = (variant: Product['variants'][0]) => {
+      return variant.stockByLocation?.reduce((sum, loc) => locSum + loc.stock.onHand, 0) || 0;
   }
 
   return (
@@ -104,6 +131,35 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                 </div>
             </CardContent>
         </Card>
+
+        {product.productType === 'Bundle' && product.bundleItems && product.bundleItems.length > 0 && (
+             <Card>
+                <CardHeader>
+                    <CardTitle>Bundle Components</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Component Product</TableHead>
+                                <TableHead className="text-right">Quantity in Bundle</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {product.bundleItems.map(item => {
+                                const component = allProducts.find(p => p.sku === item.sku);
+                                return (
+                                    <TableRow key={item.sku}>
+                                        <TableCell className="font-medium">{component?.name || item.sku}</TableCell>
+                                        <TableCell className="text-right">{item.quantity}</TableCell>
+                                    </TableRow>
+                                )
+                            })}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        )}
 
         <Card>
             <CardHeader>
@@ -205,10 +261,10 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                                         {variant.sku || '-'}
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {totalOnHandStock(variant)}
+                                        {totalOnHandStockForVariant(variant)}
                                     </TableCell>
                                     <TableCell className="text-right text-primary font-bold">
-                                        {totalAvailableStock(variant)}
+                                        {totalAvailableStockForVariant(variant)}
                                     </TableCell>
                                 </TableRow>
                             ))}
@@ -258,7 +314,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                              <ShoppingBasket className="h-5 w-5" />
                             <span>Available</span>
                         </div>
-                        <span className="font-bold text-green-600">{getAvailableStock(product)}</span>
+                        <span className="font-bold text-green-600">{getAvailableStock(product, allProducts)}</span>
                      </div>
                 </CardContent>
             </Card>
@@ -313,7 +369,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                     {product.inventoryTracking !== 'Don\'t Track' && product.variants.length > 0 && !product.hasVariants && (
                         <div>
                             <h3 className="font-medium text-sm text-muted-foreground">Stock On Hand</h3>
-                            <p>{totalOnHandStock(product.variants[0])} {product.unitOfMeasure || 'units'}</p>
+                            <p>{totalOnHandStockForVariant(product.variants[0])} {product.unitOfMeasure || 'units'}</p>
                         </div>
                     )}
                     {product.requiresShipping && (

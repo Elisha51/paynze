@@ -1,7 +1,7 @@
 
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,7 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category, Supplier } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category, Supplier, BundleItem } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -53,7 +53,7 @@ import { Separator } from '../ui/separator';
 import type { OnboardingFormData } from '@/context/onboarding-context';
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { getCategories } from '@/services/categories';
-import { addProduct, updateProduct } from '@/services/products';
+import { addProduct, updateProduct, getProducts } from '@/services/products';
 import { getSuppliers } from '@/services/procurement';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
@@ -78,6 +78,7 @@ const emptyProduct: Product = {
   variants: [
     { id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: 0 }
   ],
+  bundleItems: [],
   wholesalePricing: [],
   productVisibility: ['Online Store'],
   supplierIds: [],
@@ -125,6 +126,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [showComparePrice, setShowComparePrice] = useState(!!initialProduct?.compareAtPrice);
   const { toast } = useToast();
   const router = useRouter();
@@ -141,12 +143,14 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }
 
     async function loadData() {
-        const [fetchedCategories, fetchedSuppliers] = await Promise.all([
+        const [fetchedCategories, fetchedSuppliers, fetchedProducts] = await Promise.all([
             getCategories(),
             getSuppliers(),
+            getProducts(),
         ]);
         setCategories(fetchedCategories);
         setSuppliers(fetchedSuppliers);
+        setAllProducts(fetchedProducts.filter(p => p.productType !== 'Bundle')); // Bundles can't contain other bundles
     }
     loadData();
   }, [initialProduct]);
@@ -226,12 +230,13 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const handleSelectChange = (id: keyof Product, value: string) => {
     if (id === 'productType') {
         const isPhysical = value === 'Physical';
+        const isBundle = value === 'Bundle';
         setProduct(prev => ({ 
             ...prev, 
             productType: value as Product['productType'],
-            requiresShipping: isPhysical,
-            inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
-            hasVariants: isPhysical ? prev.hasVariants : false,
+            requiresShipping: isPhysical || isBundle,
+            inventoryTracking: isBundle ? 'Don\'t Track' : isPhysical ? 'Track Quantity' : 'Don\'t Track',
+            hasVariants: (isPhysical || isBundle) ? prev.hasVariants : false,
         }));
     } else {
         setProduct(prev => ({ ...prev, [id]: value }));
@@ -460,6 +465,26 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         seo: { ...(prev.seo || {}), [field]: value }
     }));
   }
+
+   const handleBundleItemChange = (index: number, field: keyof BundleItem, value: string | number) => {
+        const newItems = [...(product.bundleItems || [])];
+        const currentItem = { ...newItems[index] };
+        if (field === 'quantity') {
+            currentItem.quantity = Number(value) || 1;
+        } else {
+            currentItem.sku = value as string;
+        }
+        newItems[index] = currentItem;
+        setProduct(prev => ({ ...prev, bundleItems: newItems }));
+    };
+
+    const addBundleItem = () => {
+        setProduct(prev => ({ ...prev, bundleItems: [...(prev.bundleItems || []), { sku: '', quantity: 1 }] }));
+    };
+
+    const removeBundleItem = (index: number) => {
+        setProduct(prev => ({ ...prev, bundleItems: (prev.bundleItems || []).filter((_, i) => i !== index) }));
+    };
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
 
@@ -544,6 +569,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             <SelectItem value="Physical"><div className="flex items-center gap-2"><Package className="h-4 w-4"/> Physical</div></SelectItem>
                             <SelectItem value="Digital"><div className="flex items-center gap-2"><Download className="h-4 w-4"/> Digital</div></SelectItem>
                             <SelectItem value="Service"><div className="flex items-center gap-2"><Clock className="h-4 w-4"/> Service</div></SelectItem>
+                            <SelectItem value="Bundle"><div className="flex items-center gap-2"><Layers className="h-4 w-4"/> Bundle</div></SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -583,6 +609,40 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
               </div>
             </CardContent>
           </Card>
+
+          {product.productType === 'Bundle' && (
+             <Card>
+                <CardHeader>
+                  <CardTitle>Bundle Items</CardTitle>
+                  <CardDescription>Select the products and quantities that make up this bundle.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {(product.bundleItems || []).map((item, index) => (
+                      <div key={index} className="flex items-end gap-2 p-2 border rounded-md">
+                          <div className="flex-1 space-y-2">
+                              <Label>Component Product</Label>
+                                <Select onValueChange={(v) => handleBundleItemChange(index, 'sku', v)} value={item.sku}>
+                                  <SelectTrigger><SelectValue placeholder="Select product..."/></SelectTrigger>
+                                  <SelectContent>
+                                      {allProducts.map(p => (
+                                          <SelectItem key={p.sku} value={p.sku || ''}>{p.name}</SelectItem>
+                                      ))}
+                                  </SelectContent>
+                              </Select>
+                          </div>
+                          <div className="space-y-2 w-24">
+                              <Label>Quantity</Label>
+                              <Input type="number" value={item.quantity} onChange={(e) => handleBundleItemChange(index, 'quantity', e.target.value)} placeholder="1" min={1} />
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => removeBundleItem(index)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                      </div>
+                  ))}
+                  <Button variant="outline" onClick={addBundleItem}><PlusCircle className="mr-2 h-4 w-4" /> Add Component</Button>
+                </CardContent>
+              </Card>
+          )}
 
           <Card>
              <CardHeader>

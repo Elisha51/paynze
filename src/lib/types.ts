@@ -76,10 +76,15 @@ export type PreorderSettings = {
   depositAmount?: number; // Can be percentage or fixed amount
 };
 
+export type BundleItem = {
+  sku: string; // SKU of the component product/variant
+  quantity: number; // How many of this SKU are in the bundle
+};
+
 
 export type Product = {
   // I. Core Identity & Media
-  productType: 'Physical' | 'Digital' | 'Service';
+  productType: 'Physical' | 'Digital' | 'Service' | 'Bundle';
   name: string;
   shortDescription?: string;
   longDescription?: string; // Rich text
@@ -126,10 +131,11 @@ export type Product = {
     urlHandle?: string;
   };
 
-  // V. Variants
+  // V. Variants & Bundles
   hasVariants: boolean;
   options: ProductOption[];
   variants: ProductVariant[];
+  bundleItems?: BundleItem[]; // For 'Bundle' productType
 
   // VI. Configuration & Customization
   templateId?: string; // ID of a saved product template
