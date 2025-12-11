@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import React from 'react';
@@ -86,11 +85,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
       return variant.stockByLocation?.reduce((locSum, loc) => locSum + loc.stock.onHand, 0) || 0;
   }
   
-  const getUnitDisplayName = (uom: UnitOfMeasure, index: number) => {
-    if (index === 0) return uom.name; // Base unit
-    return `${uom.name} (${uom.contains} ${product.unitsOfMeasure[index - 1].name}s)`;
-  };
-
+  const hasMultipleUnits = (product.unitsOfMeasure?.length || 0) > 1;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -118,7 +113,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
             </CardContent>
         </Card>
 
-        {product.unitsOfMeasure && product.unitsOfMeasure.length > 1 && (
+        {hasMultipleUnits && (
              <Card>
                 <CardHeader>
                     <CardTitle>Packaging Units</CardTitle>
@@ -215,7 +210,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
             </CardContent>
         </Card>
 
-        {product.hasVariants && product.variants && product.variants.length > 0 && (
+        {product.hasVariants && product.variants && product.variants.length > 0 && !hasMultipleUnits && (
             <Card>
                 <CardHeader>
                     <CardTitle>Variants</CardTitle>
