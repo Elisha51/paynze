@@ -1,7 +1,8 @@
 
+
 'use client';
 
-import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers } from 'lucide-react';
+import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers, Boxes } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -16,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category, Supplier, BundleItem } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category, Supplier, UnitOfMeasure } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -69,6 +70,7 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
+  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, price: 0, sku: '' }],
   requiresShipping: true,
   retailPrice: 0,
   currency: 'UGX',
@@ -78,7 +80,6 @@ const emptyProduct: Product = {
   variants: [
     { id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: 0 }
   ],
-  bundleItems: [],
   wholesalePricing: [],
   productVisibility: ['Online Store'],
   supplierIds: [],
@@ -150,7 +151,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         ]);
         setCategories(fetchedCategories);
         setSuppliers(fetchedSuppliers);
-        setAllProducts(fetchedProducts.filter(p => p.productType !== 'Bundle')); // Bundles can't contain other bundles
+        setAllProducts(fetchedProducts);
     }
     loadData();
   }, [initialProduct]);
@@ -230,13 +231,12 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const handleSelectChange = (id: keyof Product, value: string) => {
     if (id === 'productType') {
         const isPhysical = value === 'Physical';
-        const isBundle = value === 'Bundle';
         setProduct(prev => ({ 
             ...prev, 
             productType: value as Product['productType'],
-            requiresShipping: isPhysical || isBundle,
-            inventoryTracking: isBundle ? 'Don\'t Track' : isPhysical ? 'Track Quantity' : 'Don\'t Track',
-            hasVariants: (isPhysical || isBundle) ? prev.hasVariants : false,
+            requiresShipping: isPhysical,
+            inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
+            hasVariants: isPhysical ? prev.hasVariants : false,
         }));
     } else {
         setProduct(prev => ({ ...prev, [id]: value }));
@@ -466,25 +466,21 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }));
   }
 
-   const handleBundleItemChange = (index: number, field: keyof BundleItem, value: string | number) => {
-        const newItems = [...(product.bundleItems || [])];
-        const currentItem = { ...newItems[index] };
-        if (field === 'quantity') {
-            currentItem.quantity = Number(value) || 1;
-        } else {
-            currentItem.sku = value as string;
-        }
-        newItems[index] = currentItem;
-        setProduct(prev => ({ ...prev, bundleItems: newItems }));
-    };
+  const handleUnitOfMeasureChange = (index: number, field: keyof UnitOfMeasure, value: string | number) => {
+      const newUnits = [...(product.unitsOfMeasure || [])];
+      (newUnits[index] as any)[field] = value;
+      setProduct(prev => ({ ...prev, unitsOfMeasure: newUnits }));
+  }
 
-    const addBundleItem = () => {
-        setProduct(prev => ({ ...prev, bundleItems: [...(prev.bundleItems || []), { sku: '', quantity: 1 }] }));
-    };
+  const addUnitOfMeasure = () => {
+      const newUnit = { name: '', contains: 1, price: 0, sku: '' };
+      setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
+  }
 
-    const removeBundleItem = (index: number) => {
-        setProduct(prev => ({ ...prev, bundleItems: (prev.bundleItems || []).filter((_, i) => i !== index) }));
-    };
+  const removeUnitOfMeasure = (index: number) => {
+      if (index === 0) return; // Cannot remove base unit
+      setProduct(prev => ({...prev, unitsOfMeasure: (prev.unitsOfMeasure || []).filter((_, i) => i !== index)}));
+  }
   
   const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
 
@@ -569,7 +565,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             <SelectItem value="Physical"><div className="flex items-center gap-2"><Package className="h-4 w-4"/> Physical</div></SelectItem>
                             <SelectItem value="Digital"><div className="flex items-center gap-2"><Download className="h-4 w-4"/> Digital</div></SelectItem>
                             <SelectItem value="Service"><div className="flex items-center gap-2"><Clock className="h-4 w-4"/> Service</div></SelectItem>
-                            <SelectItem value="Bundle"><div className="flex items-center gap-2"><Layers className="h-4 w-4"/> Bundle</div></SelectItem>
                         </SelectContent>
                     </Select>
                 </div>
@@ -609,40 +604,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
               </div>
             </CardContent>
           </Card>
-
-          {product.productType === 'Bundle' && (
-             <Card>
-                <CardHeader>
-                  <CardTitle>Bundle Items</CardTitle>
-                  <CardDescription>Select the products and quantities that make up this bundle.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {(product.bundleItems || []).map((item, index) => (
-                      <div key={index} className="flex items-end gap-2 p-2 border rounded-md">
-                          <div className="flex-1 space-y-2">
-                              <Label>Component Product</Label>
-                                <Select onValueChange={(v) => handleBundleItemChange(index, 'sku', v)} value={item.sku}>
-                                  <SelectTrigger><SelectValue placeholder="Select product..."/></SelectTrigger>
-                                  <SelectContent>
-                                      {allProducts.map(p => (
-                                          <SelectItem key={p.sku} value={p.sku || ''}>{p.name}</SelectItem>
-                                      ))}
-                                  </SelectContent>
-                              </Select>
-                          </div>
-                          <div className="space-y-2 w-24">
-                              <Label>Quantity</Label>
-                              <Input type="number" value={item.quantity} onChange={(e) => handleBundleItemChange(index, 'quantity', e.target.value)} placeholder="1" min={1} />
-                          </div>
-                          <Button variant="ghost" size="icon" onClick={() => removeBundleItem(index)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                      </div>
-                  ))}
-                  <Button variant="outline" onClick={addBundleItem}><PlusCircle className="mr-2 h-4 w-4" /> Add Component</Button>
-                </CardContent>
-              </Card>
-          )}
 
           <Card>
              <CardHeader>
@@ -713,8 +674,9 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             <CardContent className="space-y-6">
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                        <Label htmlFor="retailPrice">Retail Price ({product.currency})</Label>
+                        <Label htmlFor="retailPrice">Base Unit Price ({product.currency})</Label>
                         <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
+                        <p className="text-xs text-muted-foreground">This is the price for one base unit (e.g., one candle).</p>
                     </div>
                     <div className="space-y-2">
                         <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')}>
@@ -742,7 +704,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         <div className="space-y-2">
                             {product.wholesalePricing.map((tier, index) => (
                                 <Card key={index} className="p-3">
-                                    <div className="flex justify-between items-start">
+                                    <div className="flex justify-between items-start gap-4">
                                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 flex-1">
                                             <div className="space-y-1">
                                                 <Label htmlFor={`ws-group-${index}`} className="text-xs">Customer Group</Label>
@@ -980,16 +942,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     <CardTitle>Inventory & Shipping</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="sku">SKU (Stock Keeping Unit)</Label>
-                            <Input id="sku" value={product.sku || ''} onChange={handleInputChange}/>
-                        </div>
-                        <div className="space-y-2">
-                            <Label htmlFor="barcode">Barcode (GTIN, UPC, etc.)</Label>
-                            <Input id="barcode" value={product.barcode || ''} onChange={handleInputChange}/>
-                        </div>
-                    </div>
                      <div className="space-y-2">
                         <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
                         <Select value={product.inventoryTracking} onValueChange={(v) => handleSelectChange('inventoryTracking', v)}>
@@ -1004,23 +956,56 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         </Select>
                      </div>
 
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-base flex items-center gap-2"><Boxes className="h-4 w-4"/>Units of Measure</CardTitle>
+                            <CardDescription className="text-xs">Define how this product is sold, from single pieces to boxes.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {product.unitsOfMeasure.map((unit, index) => (
+                                <div key={index} className="p-3 border rounded-md">
+                                    <div className="flex items-end gap-2">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">Unit Name</Label>
+                                                <Input value={unit.name} onChange={e => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? 'e.g., Piece' : index === 1 ? 'e.g., Packet' : 'e.g., Box'}/>
+                                            </div>
+                                             <div className="space-y-1">
+                                                <Label className="text-xs">Contains</Label>
+                                                <Input type="number" value={unit.contains || ''} onChange={e => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} disabled={index === 0} placeholder={index > 0 ? `e.g., 6 ${product.unitsOfMeasure[index - 1].name}s` : ''} />
+                                            </div>
+                                             <div className="space-y-1">
+                                                <Label className="text-xs">Price</Label>
+                                                <Input type="number" value={unit.price || ''} onChange={e => handleUnitOfMeasureChange(index, 'price', Number(e.target.value))} placeholder={index === 0 ? 'Base price' : 'Optional override'} />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <Label className="text-xs">SKU</Label>
+                                                <Input value={unit.sku || ''} onChange={e => handleUnitOfMeasureChange(index, 'sku', e.target.value)} placeholder="Optional SKU"/>
+                                            </div>
+                                        </div>
+                                         {index > 0 && (
+                                            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => removeUnitOfMeasure(index)}><Trash2 className="h-4 w-4 text-destructive"/></Button>
+                                         )}
+                                    </div>
+                                </div>
+                            ))}
+                            <Button variant="outline" size="sm" onClick={addUnitOfMeasure} className="mt-2"><PlusCircle className="mr-2 h-4 w-4" /> Add Larger Unit</Button>
+                        </CardContent>
+                    </Card>
+
                      {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && product.variants.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
                             <div className="space-y-2">
-                                <Label htmlFor="onHand">On Hand Quantity</Label>
+                                <Label htmlFor="onHand">On Hand Quantity (Base Units)</Label>
                                 <Input id="onHand" type="number" value={singleVariantOnHand} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
-                                <p className="text-xs text-muted-foreground">Total physical stock.</p>
+                                <p className="text-xs text-muted-foreground">Total physical stock of the smallest unit.</p>
                             </div>
                             {settings?.inventory?.enableLowStockAlerts && (
                                 <div className="space-y-2">
-                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold</Label>
+                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold (Base Units)</Label>
                                     <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
                                 </div>
                             )}
-                             <div className="space-y-2">
-                                <Label htmlFor="unitOfMeasure">Unit of Measure</Label>
-                                <Input id="unitOfMeasure" value={product.unitOfMeasure || 'unit'} onChange={handleInputChange} placeholder="e.g. kg, m, unit"/>
-                            </div>
                         </div>
                      )}
                      <div className="flex items-center space-x-2">
@@ -1243,6 +1228,13 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </CardContent>
             </Card>
         </div>
+      </div>
+       <div className="flex justify-end gap-2 mt-6">
+            <Button variant="outline" onClick={handleBack}>Cancel</Button>
+            <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isSaving ? 'Saving...' : 'Save Product'}
+            </Button>
       </div>
     </div>
   );

@@ -76,15 +76,17 @@ export type PreorderSettings = {
   depositAmount?: number; // Can be percentage or fixed amount
 };
 
-export type BundleItem = {
-  sku: string; // SKU of the component product/variant
-  quantity: number; // How many of this SKU are in the bundle
+export type UnitOfMeasure = {
+  name: string; // e.g., 'Piece', 'Packet', 'Box'
+  isBaseUnit?: boolean;
+  contains?: number; // How many of the *next smaller* unit this one contains. e.g., a Packet `contains` 6 Pieces.
+  price?: number;
+  sku?: string;
 };
-
 
 export type Product = {
   // I. Core Identity & Media
-  productType: 'Physical' | 'Digital' | 'Service' | 'Bundle';
+  productType: 'Physical' | 'Digital' | 'Service';
   name: string;
   shortDescription?: string;
   longDescription?: string; // Rich text
@@ -96,10 +98,10 @@ export type Product = {
   sku?: string;
   barcode?: string; // GTIN, EAN, UPC
   inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | 'Don\'t Track';
-  unitOfMeasure?: string;
-  lowStockThreshold?: number; // overall threshold
+  unitsOfMeasure: UnitOfMeasure[]; // e.g. [{name: 'Piece', isBase: true}, {name: 'Packet', contains: 6}, {name: 'Box', contains: 24}]
+  lowStockThreshold?: number; // For the base unit
   requiresShipping: boolean;
-  weight?: number; // in kg
+  weight?: number; // in kg, for the base unit
   dimensions?: {
     length: number;
     width: number;
@@ -110,13 +112,13 @@ export type Product = {
   serviceDuration?: string; // For service products, e.g., "1 hour", "Per Session"
 
   // III. Pricing & Taxation
-  retailPrice: number;
+  retailPrice: number; // The price of the base unit
   currency: string;
   compareAtPrice?: number;
   wholesalePricing: WholesalePrice[];
   isTaxable: boolean;
   taxClass?: string;
-  costPerItem?: number; // For profit tracking
+  costPerItem?: number; // Cost of the base unit
   preorderSettings?: PreorderSettings;
 
   // IV. Organization & Discovery
@@ -124,18 +126,17 @@ export type Product = {
   tags?: string[];
   supplierIds?: string[];
   collections?: string[];
-  productVisibility?: ('Online Store' | 'POS')[]; // e.g., ['Online Store', 'POS']
+  productVisibility?: ('Online Store' | 'POS')[];
   seo?: {
     pageTitle?: string;
     metaDescription?: string;
     urlHandle?: string;
   };
 
-  // V. Variants & Bundles
+  // V. Variants
   hasVariants: boolean;
   options: ProductOption[];
   variants: ProductVariant[];
-  bundleItems?: BundleItem[]; // For 'Bundle' productType
 
   // VI. Configuration & Customization
   templateId?: string; // ID of a saved product template
