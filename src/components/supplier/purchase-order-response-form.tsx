@@ -99,7 +99,7 @@ export function PurchaseOrderResponseForm({ initialOrder, settings }: PurchaseOr
                          </div>
                     </div>
                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Powered by</p>
+                        <p className="text-xs text-muted-foreground">Powered by</p>
                         <p className="font-bold text-lg text-primary">Paynze</p>
                      </div>
                 </div>
@@ -160,7 +160,7 @@ export function PurchaseOrderResponseForm({ initialOrder, settings }: PurchaseOr
                             Grand Total: {formatCurrency(totalCost, order.currency)}
                         </div>
                         
-                        <div className="grid md:grid-cols-2 gap-6 pt-6 border-t">
+                        <div className="space-y-4 pt-6 border-t">
                             <div className="space-y-2">
                                 <Label htmlFor="eta" className="flex items-center gap-2">
                                     <CalendarIcon className="h-4 w-4"/>
@@ -168,7 +168,7 @@ export function PurchaseOrderResponseForm({ initialOrder, settings }: PurchaseOr
                                 </Label>
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !supplierETA && "text-muted-foreground")}>
+                                        <Button variant="outline" className={cn("w-full md:w-[280px] justify-start text-left font-normal", !supplierETA && "text-muted-foreground")}>
                                             <CalendarIcon className="mr-2 h-4 w-4" />
                                             {supplierETA ? format(supplierETA, 'PPP') : <span>Pick a date</span>}
                                         </Button>
