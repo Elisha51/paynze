@@ -247,7 +247,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             inventoryTracking: value as Product['inventoryTracking'],
             lowStockThreshold: undefined, 
             variants: prev.variants.map(v => ({...v, stockByLocation: []})),
-            hasVariants: false, // Can't have variants if not tracking inventory
         }));
     }
   }
@@ -541,7 +540,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     return { mainCategories: main, subCategoriesByParent: sub };
   }, [categories]);
   
-  const hasMultipleUnits = (product.unitsOfMeasure?.length || 0) > 1;
 
   return (
     <div className="space-y-6">
@@ -763,79 +761,100 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     <CardDescription>Define different product versions (e.g., size, color) or packaging units (e.g., piece, box).</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {hasMultipleUnits && product.hasVariants && (
-                        <Alert variant="destructive">
-                            <Info className="h-4 w-4" />
-                            <AlertTitle>Configuration Conflict</AlertTitle>
-                            <AlertDescription>
-                                A product cannot have both variants and multiple units of measure. Please choose one method for organizing this product.
-                            </AlertDescription>
-                        </Alert>
-                    )}
-                    
-                    {/* Variants Section */}
-                    <fieldset disabled={hasMultipleUnits}>
-                        <div className="flex items-start space-x-3">
-                            <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)} disabled={product.inventoryTracking === "Don't Track" || hasMultipleUnits}/>
-                            <div className="grid gap-1.5 leading-none">
-                                <Label htmlFor="hasVariants" className={cn(hasMultipleUnits && "text-muted-foreground")}>This product has variants</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    Offer different versions of this product, like sizes or colors.
-                                </p>
-                            </div>
+                    <div className="flex items-start space-x-3">
+                        <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)} disabled={product.inventoryTracking === "Don't Track"}/>
+                        <div className="grid gap-1.5 leading-none">
+                            <Label htmlFor="hasVariants">This product has variants</Label>
+                            <p className="text-sm text-muted-foreground">
+                                Offer different versions of this product, like sizes or colors.
+                            </p>
                         </div>
+                    </div>
 
-                        {product.hasVariants && (
-                            <div className="space-y-4 pl-8 border-l">
-                                <h4 className="font-medium">Options</h4>
-                                {product.options.map((option, index) => (
-                                    <Card key={index} className="p-4">
-                                        <div className="flex justify-between items-start gap-4">
-                                            <div className="flex-1 space-y-2">
-                                                <div className="space-y-1">
-                                                    <Label htmlFor={`option-name-${index}`}>Option Name</Label>
-                                                    <Input
-                                                        id={`option-name-${index}`}
-                                                        value={option.name}
-                                                        onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
-                                                        placeholder="e.g., Size"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <Label htmlFor={`option-values-${index}`}>Option Values</Label>
-                                                    <Input
-                                                        id={`option-values-${index}`}
-                                                        value={option.values.join(', ')}
-                                                        onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
-                                                        placeholder="e.g., Small, Medium, Large"
-                                                    />
-                                                    <p className="text-xs text-muted-foreground">Separate values with a comma.</p>
-                                                </div>
+                    {product.hasVariants && (
+                        <div className="space-y-4 pl-8 border-l">
+                            <h4 className="font-medium">Options</h4>
+                            {product.options.map((option, index) => (
+                                <Card key={index} className="p-4">
+                                    <div className="flex justify-between items-start gap-4">
+                                        <div className="flex-1 space-y-2">
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`option-name-${index}`}>Option Name</Label>
+                                                <Input
+                                                    id={`option-name-${index}`}
+                                                    value={option.name}
+                                                    onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
+                                                    placeholder="e.g., Size"
+                                                />
                                             </div>
-                                            <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6">
-                                                <X className="h-4 w-4 text-destructive" />
-                                            </Button>
+                                            <div className="space-y-1">
+                                                <Label htmlFor={`option-values-${index}`}>Option Values</Label>
+                                                <Input
+                                                    id={`option-values-${index}`}
+                                                    value={option.values.join(', ')}
+                                                    onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
+                                                    placeholder="e.g., Small, Medium, Large"
+                                                />
+                                                <p className="text-xs text-muted-foreground">Separate values with a comma.</p>
+                                            </div>
                                         </div>
-                                    </Card>
-                                ))}
-                                {product.options.length < 3 && (
-                                    <Button variant="outline" size="sm" onClick={addOption}>
-                                        <PlusCircle className="mr-2 h-4 w-4" /> Add another option
-                                    </Button>
-                                )}
+                                        <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6">
+                                            <X className="h-4 w-4 text-destructive" />
+                                        </Button>
+                                    </div>
+                                </Card>
+                            ))}
+                            {product.options.length < 3 && (
+                                <Button variant="outline" size="sm" onClick={addOption}>
+                                    <PlusCircle className="mr-2 h-4 w-4" /> Add another option
+                                </Button>
+                            )}
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+            
+            <Card>
+                <CardHeader>
+                    <CardTitle>Inventory & Shipping</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                     <div className="space-y-2">
+                        <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
+                        <Select value={product.inventoryTracking} onValueChange={(v) => handleSelectChange('inventoryTracking', v)}>
+                            <SelectTrigger id="inventoryTracking">
+                                <SelectValue placeholder="Select tracking method" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Don't Track">Don't Track</SelectItem>
+                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
+                                <SelectItem value="Track with Serial Numbers">Track with Serial Numbers</SelectItem>
+                            </SelectContent>
+                        </Select>
+                     </div>
+
+                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && product.variants.length > 0 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
+                            <div className="space-y-2">
+                                <Label htmlFor="onHand">On Hand Quantity (Base Units)</Label>
+                                <Input id="onHand" type="number" value={singleVariantOnHand} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
+                                <p className="text-xs text-muted-foreground">Total physical stock of the smallest unit.</p>
                             </div>
-                        )}
-                    </fieldset>
+                            {settings?.inventory?.enableLowStockAlerts && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold (Base Units)</Label>
+                                    <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
+                                </div>
+                            )}
+                        </div>
+                     )}
 
-                    <Separator />
-
-                    {/* Units of Measure Section */}
-                     <fieldset disabled={product.hasVariants}>
-                        <CardHeader className="p-0 mb-4">
-                            <CardTitle className={cn("text-base flex items-center gap-2", product.hasVariants && "text-muted-foreground")}><Boxes className="h-4 w-4"/>Units of Measure</CardTitle>
-                            <CardDescription className="text-xs">Define how this product is sold, from single pieces to boxes. Disabled if variants are active.</CardDescription>
+                     <Card>
+                        <CardHeader className="p-4">
+                            <CardTitle className="text-base flex items-center gap-2"><Boxes className="h-4 w-4"/>Units of Measure</CardTitle>
+                            <CardDescription className="text-xs">Define how this product is sold, from single pieces to boxes.</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0 space-y-3">
+                        <CardContent className="p-4 pt-0 space-y-3">
                             {product.unitsOfMeasure.map((unit, index) => (
                                 <div key={index} className="p-3 border rounded-md">
                                     <div className="flex items-end gap-2">
@@ -865,7 +884,42 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             ))}
                             <Button variant="outline" size="sm" onClick={addUnitOfMeasure} className="mt-2"><PlusCircle className="mr-2 h-4 w-4" /> Add Larger Unit</Button>
                         </CardContent>
-                     </fieldset>
+                     </Card>
+
+                     <div className="flex items-center space-x-2">
+                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} disabled={product.productType !== 'Physical'}/>
+                        <Label htmlFor="requiresShipping">This is a physical product that requires shipping</Label>
+                     </div>
+                      {product.requiresShipping && (
+                        <div className="pl-6 space-y-4">
+                             <div className="space-y-2">
+                                <Label htmlFor="weight">Weight (kg)</Label>
+                                <Input id="weight" type="number" value={product.weight || ''} onChange={handleNumberChange} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label>Dimensions (cm)</Label>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                     <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Length</Label>
+                                        <Input type="number" placeholder="Length" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
+                                     </div>
+                                      <Input type="number" placeholder="Length" className="hidden sm:block" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
+
+                                      <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Width</Label>
+                                        <Input type="number" placeholder="Width" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
+                                     </div>
+                                     <Input type="number" placeholder="Width" className="hidden sm:block" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
+
+                                     <div className="space-y-1 sm:hidden">
+                                        <Label className="text-xs">Height</Label>
+                                        <Input type="number" placeholder="Height" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
+                                     </div>
+                                     <Input type="number" placeholder="Height" className="hidden sm:block" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
+                                </div>
+                            </div>
+                        </div>
+                     )}
                 </CardContent>
             </Card>
             
@@ -993,76 +1047,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </Card>
             )}
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Inventory & Shipping</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                     <div className="space-y-2">
-                        <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
-                        <Select value={product.inventoryTracking} onValueChange={(v) => handleSelectChange('inventoryTracking', v)}>
-                            <SelectTrigger id="inventoryTracking">
-                                <SelectValue placeholder="Select tracking method" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Don't Track">Don't Track</SelectItem>
-                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
-                                <SelectItem value="Track with Serial Numbers">Track with Serial Numbers</SelectItem>
-                            </SelectContent>
-                        </Select>
-                     </div>
-
-                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && product.variants.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
-                            <div className="space-y-2">
-                                <Label htmlFor="onHand">On Hand Quantity (Base Units)</Label>
-                                <Input id="onHand" type="number" value={singleVariantOnHand} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
-                                <p className="text-xs text-muted-foreground">Total physical stock of the smallest unit.</p>
-                            </div>
-                            {settings?.inventory?.enableLowStockAlerts && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold (Base Units)</Label>
-                                    <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
-                                </div>
-                            )}
-                        </div>
-                     )}
-                     <div className="flex items-center space-x-2">
-                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} disabled={product.productType !== 'Physical'}/>
-                        <Label htmlFor="requiresShipping">This is a physical product that requires shipping</Label>
-                     </div>
-                      {product.requiresShipping && (
-                        <div className="pl-6 space-y-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="weight">Weight (kg)</Label>
-                                <Input id="weight" type="number" value={product.weight || ''} onChange={handleNumberChange} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label>Dimensions (cm)</Label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                     <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Length</Label>
-                                        <Input type="number" placeholder="Length" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
-                                     </div>
-                                      <Input type="number" placeholder="Length" className="hidden sm:block" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
-
-                                      <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Width</Label>
-                                        <Input type="number" placeholder="Width" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
-                                     </div>
-                                     <Input type="number" placeholder="Width" className="hidden sm:block" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
-
-                                     <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Height</Label>
-                                        <Input type="number" placeholder="Height" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
-                                     </div>
-                                     <Input type="number" placeholder="Height" className="hidden sm:block" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
-                                </div>
-                            </div>
-                        </div>
-                     )}
-                </CardContent>
-            </Card>
             <Card>
               <CardHeader>
                 <CardTitle>Search Engine Optimization</CardTitle>
