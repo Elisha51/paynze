@@ -213,6 +213,9 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const handleUnitOfMeasureChange = (index: number, field: keyof UnitOfMeasure, value: string | number) => {
     const newUnits = [...(product.unitsOfMeasure || [])];
     (newUnits[index] as any)[field] = value;
+    if (field === 'retailPrice') {
+      newUnits[index]['price'] = value as number;
+    }
     setProduct(prev => ({ ...prev, unitsOfMeasure: newUnits }));
   }
 
@@ -373,29 +376,21 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     </Label>
                                     <Input id={`uom-name-${index}`} value={uom.name} onChange={(e) => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? "e.g., Piece" : "e.g., Pack of 6"} />
                                 </div>
+                                {index > 0 && (
                                 <div className="flex items-end gap-2">
                                     <div className="space-y-2 flex-1">
                                         <Label htmlFor={`uom-contains-${index}`} className="flex items-center gap-1.5">
-                                            {index === 0 ? 'Contains' : `Contains (${product.unitsOfMeasure?.[0]?.name || 'base units'})`}
+                                            Contains ({product.unitsOfMeasure?.[0]?.name || 'base units'})
                                             <Tooltip>
                                                 <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
                                                 <TooltipContent><p className="max-w-xs">How many base units are in this package.</p></TooltipContent>
                                             </Tooltip>
                                         </Label>
-                                        <Input id={`uom-contains-${index}`} type="number" value={uom.contains} onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} disabled={index === 0}/>
+                                        <Input id={`uom-contains-${index}`} type="number" value={uom.contains} onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} />
                                     </div>
-                                    {index > 0 && (<Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)} type="button"><Trash2 className="h-4 w-4 text-destructive" /></Button>)}
+                                    <Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)} type="button"><Trash2 className="h-4 w-4 text-destructive" /></Button>
                                 </div>
-                            </div>
-                            <div className="space-y-2 mt-4">
-                               <Label htmlFor={`uom-sku-${index}`} className="flex items-center gap-1.5">
-                                    SKU (Stock Keeping Unit)
-                                    <Tooltip>
-                                        <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
-                                        <TooltipContent><p>A unique code to track this specific unit.</p></TooltipContent>
-                                    </Tooltip>
-                                </Label>
-                                <Input id={`uom-sku-${index}`} value={uom.sku} onChange={(e) => handleUnitOfMeasureChange(index, 'sku', e.target.value)} placeholder="e.g., TSHIRT-BLK-M"/>
+                                )}
                             </div>
                         </Card>
                     ))}
@@ -455,10 +450,26 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Variant</TableHead>
-                                <TableHead><div className="flex items-center gap-1.5">SKU <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Unique code to track this specific item.</TooltipContent></Tooltip></div></TableHead>
-                                <TableHead><div className="flex items-center gap-1.5">Cost per item <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Your cost for the item. Used for profit calculation.</TooltipContent></Tooltip></div></TableHead>
-                                <TableHead><div className="flex items-center gap-1.5">Retail Price ({settings?.currency || 'UGX'}) <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>The standard price for this item.</TooltipContent></Tooltip></div></TableHead>
-                                <TableHead><div className="flex items-center gap-1.5">Compare At Price <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>An optional higher price to show a sale.</TooltipContent></Tooltip></div></TableHead>
+                                <TableHead>
+                                  <div className="flex items-center gap-1.5">SKU 
+                                    <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Unique code to track this specific item.</TooltipContent></Tooltip>
+                                  </div>
+                                </TableHead>
+                                <TableHead>
+                                  <div className="flex items-center gap-1.5">Cost per item 
+                                      <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Your cost for the item. Used for profit calculation.</TooltipContent></Tooltip>
+                                  </div>
+                                </TableHead>
+                                <TableHead>
+                                  <div className="flex items-center gap-1.5">Retail Price ({settings?.currency || 'UGX'})
+                                      <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>The standard price for this item.</TooltipContent></Tooltip>
+                                  </div>
+                                </TableHead>
+                                <TableHead>
+                                  <div className="flex items-center gap-1.5">Compare At Price
+                                      <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>An optional higher price to show a sale.</TooltipContent></Tooltip>
+                                  </div>
+                                </TableHead>
                                 <TableHead className="text-right">Stock</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -512,7 +523,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                      <TableCell className="text-right">
                                         <Input
                                             type="number"
-                                            value={matchingProductVariant.stockByLocation[0].stock.onHand || ''}
+                                            value={matchingProductVariant.stockByLocation?.[0]?.stock.onHand || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'stockByLocation', [{ locationName: 'Main Warehouse', stock: { ...defaultStock, onHand: Number(e.target.value), available: Number(e.target.value) }}])}
                                             className="w-20 ml-auto"
                                             disabled={product.inventoryTracking === "Don't Track"}
@@ -552,7 +563,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                         <SelectTrigger><SelectValue placeholder="Select one..."/></SelectTrigger>
                                         <SelectContent>
                                             {allSellableUnits.filter(u => u.sku).map(unit => (
-                                                <SelectItem key={unit.sku} value={unit.sku || ''}>
+                                                <SelectItem key={unit.sku} value={unit.sku!}>
                                                     {Object.values(unit.optionValues).join(' / ') || product.name} ({unit.unitOfMeasure})
                                                 </SelectItem>
                                             ))}
@@ -670,5 +681,3 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </TooltipProvider>
   );
 }
-
-    
