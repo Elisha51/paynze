@@ -50,7 +50,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Switch } from '../ui/switch';
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 import { Separator } from '../ui/separator';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
@@ -64,7 +64,7 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
-  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '', retailPrice: 0 }],
+  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '', retailPrice: 0, costPerItem: 0, compareAtPrice: 0 }],
   requiresShipping: true,
   currency: 'UGX',
   isTaxable: false,
@@ -167,11 +167,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const handleDescriptionChange = (value: string) => {
     setProduct(prev => ({ ...prev, longDescription: value }));
   };
-
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { id, value } = e.target;
-    setProduct((prev) => ({ ...prev, [id]: Number(value) || 0 }));
-  };
   
   const handleProductChange = (field: keyof Product, value: any) => {
     let productUpdates: Partial<Product> = { [field]: value };
@@ -213,14 +208,11 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const handleUnitOfMeasureChange = (index: number, field: keyof UnitOfMeasure, value: string | number) => {
     const newUnits = [...(product.unitsOfMeasure || [])];
     (newUnits[index] as any)[field] = value;
-    if (field === 'retailPrice') {
-      newUnits[index]['price'] = value as number;
-    }
     setProduct(prev => ({ ...prev, unitsOfMeasure: newUnits }));
   }
 
   const addUnitOfMeasure = () => {
-    const newUnit: UnitOfMeasure = { name: '', contains: 1, sku: '', retailPrice: 0 };
+    const newUnit: UnitOfMeasure = { name: '', contains: 1, sku: '', retailPrice: 0, costPerItem: 0, compareAtPrice: 0 };
     setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
   }
 
@@ -359,7 +351,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Packaging & Pricing</CardTitle>
+                    <CardTitle>Packaging &amp; Pricing</CardTitle>
                     <CardDescription>Define how this product is sold (e.g., pieces, packs) and set its base price.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -442,7 +434,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
              <Card>
                 <CardHeader>
-                    <CardTitle>Variants & Pricing</CardTitle>
+                    <CardTitle>Variants &amp; Pricing</CardTitle>
                     <CardDescription>Manage SKU, price, and stock for each sellable unit of this product.</CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
@@ -544,7 +536,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                  <CardContent className="space-y-4">
                     {(product.wholesalePricing || []).map((tier, index) => (
                         <Card key={tier.id} className="p-4 relative">
-                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={()={() => removeWholesaleTier(index)}}>
+                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeWholesaleTier(index)}>
                                 <X className="h-4 w-4 text-destructive" />
                             </Button>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
