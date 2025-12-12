@@ -733,7 +733,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                               type="number" 
                                               value={uom.contains} 
                                               onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} 
-                                              disabled={index === 0}
                                               placeholder={index > 0 ? `of ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}
                                             />
                                           </TableCell>
@@ -1238,5 +1237,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
+
+    
 
     
