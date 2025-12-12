@@ -17,7 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category, Supplier, UnitOfMeasure } from '@/lib/types';
+import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, Category, Supplier, UnitOfMeasure, CustomerGroup } from '@/lib/types';
 import { FileUploader } from '@/components/ui/file-uploader';
 import {
   Select,
@@ -44,6 +44,7 @@ import { RadioGroup, RadioGroupItem } from '../ui/radio-group';
 import { getCategories } from '@/services/categories';
 import { addProduct, updateProduct, getProducts } from '@/services/products';
 import { getSuppliers } from '@/services/procurement';
+import { getCustomerGroups } from '@/services/customer-groups';
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem } from '../ui/command';
 import { cn } from '@/lib/utils';
@@ -104,6 +105,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
   const [showComparePrice, setShowComparePrice] = useState(!!initialProduct?.compareAtPrice);
   const { toast } = useToast();
   const router = useRouter();
@@ -117,12 +119,14 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         setSettings(JSON.parse(data));
     }
     async function loadData() {
-        const [fetchedCategories, fetchedSuppliers] = await Promise.all([
+        const [fetchedCategories, fetchedSuppliers, fetchedCustomerGroups] = await Promise.all([
             getCategories(),
             getSuppliers(),
+            getCustomerGroups(),
         ]);
         setCategories(fetchedCategories);
         setSuppliers(fetchedSuppliers);
+        setCustomerGroups(fetchedCustomerGroups.filter(g => g.name !== 'default'));
     }
     loadData();
   }, [initialProduct]);
@@ -258,6 +262,27 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }
     setProduct(prev => ({ ...prev, variants: newVariants }));
   };
+
+  const addWholesaleTier = () => {
+      const newTier: WholesalePrice = {
+          id: `ws-${Date.now()}`,
+          customerGroup: customerGroups[0]?.name || '',
+          variantSku: allSellableUnits[0]?.sku || '',
+          minOrderQuantity: 1,
+          price: 0,
+      };
+      setProduct(prev => ({...prev, wholesalePricing: [...(prev.wholesalePricing || []), newTier]}));
+  };
+
+  const updateWholesaleTier = (index: number, field: keyof WholesalePrice, value: string | number) => {
+      const newTiers = [...(product.wholesalePricing || [])];
+      (newTiers[index] as any)[field] = value;
+      setProduct(prev => ({...prev, wholesalePricing: newTiers}));
+  };
+
+  const removeWholesaleTier = (index: number) => {
+      setProduct(prev => ({...prev, wholesalePricing: (prev.wholesalePricing || []).filter((_, i) => i !== index)}));
+  };
   
   const handleSave = async () => {
     if (onSave) {
@@ -333,7 +358,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Packaging</CardTitle>
+                    <CardTitle>Packaging & Pricing</CardTitle>
                     <CardDescription>Define how this product is sold (e.g., pieces, packs) and set prices for each.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -344,7 +369,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     <Label htmlFor={`uom-name-${index}`} className="flex items-center gap-1.5">
                                         {index === 0 ? 'Base Unit Name' : 'Unit Name'}
                                         <Tooltip>
-                                            <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                            <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
                                             <TooltipContent><p className="max-w-xs">{index === 0 ? "The name of the smallest individual item you sell, e.g., 'Piece', 'Can', 'Bottle'." : "The name for this package, e.g., 'Pack of 6'."}</p></TooltipContent>
                                         </Tooltip>
                                     </Label>
@@ -355,20 +380,20 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                         <Label htmlFor={`uom-contains-${index}`} className="flex items-center gap-1.5">
                                             {index === 0 ? 'Contains' : `Contains (${product.unitsOfMeasure?.[0]?.name || 'base units'})`}
                                             <Tooltip>
-                                                <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                                <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
                                                 <TooltipContent><p className="max-w-xs">How many base units are in this package.</p></TooltipContent>
                                             </Tooltip>
                                         </Label>
                                         <Input id={`uom-contains-${index}`} type="number" value={uom.contains} onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} disabled={index === 0}/>
                                     </div>
-                                    {index > 0 && (<Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>)}
+                                    {index > 0 && (<Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)} type="button"><Trash2 className="h-4 w-4 text-destructive" /></Button>)}
                                 </div>
                             </div>
                             <div className="space-y-2 mt-4">
                                <Label htmlFor={`uom-sku-${index}`} className="flex items-center gap-1.5">
                                     SKU (Stock Keeping Unit)
                                     <Tooltip>
-                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                        <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
                                         <TooltipContent><p>A unique code to track this specific unit.</p></TooltipContent>
                                     </Tooltip>
                                 </Label>
@@ -376,7 +401,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             </div>
                         </Card>
                     ))}
-                    <Button variant="outline" size="sm" onClick={addUnitOfMeasure}><PlusCircle className="mr-2 h-4 w-4" /> Add Packaging Unit</Button>
+                    <Button variant="outline" size="sm" onClick={addUnitOfMeasure} type="button"><PlusCircle className="mr-2 h-4 w-4" /> Add Packaging Unit</Button>
                 </CardContent>
             </Card>
             
@@ -396,7 +421,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                   <div className="grid gap-1.5 leading-none">
                     <Label htmlFor="hasVariants" className="flex items-center gap-1.5">This product has variants
                         <Tooltip>
-                            <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                            <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
                             <TooltipContent><p className="max-w-xs">Offer different versions of this product, like sizes, colors, or materials.</p></TooltipContent>
                         </Tooltip>
                     </Label>
@@ -412,11 +437,11 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             <div className="space-y-1"><Label htmlFor={`option-name-${index}`}>Option Name</Label><Input id={`option-name-${index}`} value={option.name} onChange={(e) => handleOptionChange(index, 'name', e.target.value)} placeholder="e.g., Size"/></div>
                             <div className="space-y-1"><Label htmlFor={`option-values-${index}`}>Option Values</Label><Input id={`option-values-${index}`} value={option.values.join(', ')} onChange={(e) => handleOptionChange(index, 'value', e.target.value)} placeholder="e.g., Small, Medium, Large"/><p className="text-xs text-muted-foreground">Separate values with a comma.</p></div>
                           </div>
-                          <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6"><X className="h-4 w-4 text-destructive" /></Button>
+                          <Button variant="ghost" size="icon" onClick={() => removeOption(index)} type="button" className="mt-6"><X className="h-4 w-4 text-destructive" /></Button>
                         </div>
                       </Card>
                     ))}
-                    {(product.options || []).length < 3 && (<Button variant="outline" size="sm" onClick={addOption}><PlusCircle className="mr-2 h-4 w-4" /> Add another option</Button>)}
+                    {(product.options || []).length < 3 && (<Button variant="outline" size="sm" onClick={addOption} type="button"><PlusCircle className="mr-2 h-4 w-4" /> Add another option</Button>)}
                   </div>
                 )}
               </CardContent>
@@ -425,20 +450,23 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
              <Card>
                 <CardHeader>
                     <CardTitle>Variants & Pricing</CardTitle>
-                    <CardDescription>Manage price, SKU, and stock for each sellable unit of this product.</CardDescription>
+                    <CardDescription>Manage SKU, price, and stock for each sellable unit of this product.</CardDescription>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Variant</TableHead>
+                                <TableHead>SKU</TableHead>
                                 <TableHead>Retail Price ({settings?.currency || 'UGX'})</TableHead>
                                 <TableHead>Cost per item</TableHead>
                                 <TableHead className="text-right">Stock</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {allSellableUnits.map(variant => (
+                            {allSellableUnits.map(variant => {
+                                const matchingProductVariant = product.variants.find(v => v.id === variant.id) || variant;
+                                return (
                                 <TableRow key={variant.id}>
                                     <TableCell className="font-medium">
                                         <div className="flex flex-col">
@@ -450,8 +478,17 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     </TableCell>
                                     <TableCell>
                                         <Input
+                                            type="text"
+                                            value={matchingProductVariant.sku}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'sku', e.target.value)}
+                                            className="w-32"
+                                            placeholder="SKU-123"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input
                                             type="number"
-                                            value={variant.retailPrice || ''}
+                                            value={matchingProductVariant.retailPrice || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'retailPrice', Number(e.target.value))}
                                             className="w-28"
                                         />
@@ -459,7 +496,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     <TableCell>
                                         <Input
                                             type="number"
-                                            value={variant.costPerItem || ''}
+                                            value={matchingProductVariant.costPerItem || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'costPerItem', Number(e.target.value))}
                                             className="w-28"
                                             placeholder="e.g., 20000"
@@ -468,18 +505,68 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                      <TableCell className="text-right">
                                         <Input
                                             type="number"
-                                            value={variant.stockByLocation[0].stock.onHand || ''}
+                                            value={matchingProductVariant.stockByLocation[0].stock.onHand || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'stockByLocation', [{ locationName: 'Main Warehouse', stock: { ...defaultStock, onHand: Number(e.target.value), available: Number(e.target.value) }}])}
                                             className="w-20 ml-auto"
                                             disabled={product.inventoryTracking === "Don't Track"}
                                         />
                                     </TableCell>
                                 </TableRow>
-                            ))}
+                            )})}
                         </TableBody>
                     </Table>
                 </CardContent>
             </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Wholesale Pricing</CardTitle>
+                    <CardDescription>Offer different prices to different customer groups for specific products and quantities.</CardDescription>
+                </CardHeader>
+                 <CardContent className="space-y-4">
+                    {(product.wholesalePricing || []).map((tier, index) => (
+                        <Card key={tier.id} className="p-4 relative">
+                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeWholesaleTier(index)}>
+                                <X className="h-4 w-4 text-destructive" />
+                            </Button>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Customer Group</Label>
+                                    <Select value={tier.customerGroup} onValueChange={(v) => updateWholesaleTier(index, 'customerGroup', v)}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {customerGroups.map(cg => <SelectItem key={cg.id} value={cg.name}>{cg.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                 <div className="space-y-2">
+                                    <Label>Product/Variant</Label>
+                                    <Select value={tier.variantSku} onValueChange={(v) => updateWholesaleTier(index, 'variantSku', v)}>
+                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectContent>
+                                            {allSellableUnits.map(unit => (
+                                                <SelectItem key={unit.sku} value={unit.sku}>{Object.values(unit.optionValues).join(' / ') || product.name} ({unit.unitOfMeasure})</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Min. Quantity</Label>
+                                    <Input type="number" value={tier.minOrderQuantity} onChange={(e) => updateWholesaleTier(index, 'minOrderQuantity', Number(e.target.value))} />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Price per unit</Label>
+                                    <Input type="number" value={tier.price} onChange={(e) => updateWholesaleTier(index, 'price', Number(e.target.value))} />
+                                </div>
+                            </div>
+                        </Card>
+                    ))}
+                    <Button variant="outline" onClick={addWholesaleTier} type="button">
+                        <PlusCircle className="mr-2 h-4 w-4" /> Add Pricing Tier
+                    </Button>
+                </CardContent>
+             </Card>
+
           </div>
 
           <div className="lg:col-span-2 space-y-6">
@@ -491,7 +578,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label htmlFor="status" className="flex items-center gap-1.5">Status
-                                <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p>"Published" is visible to customers, "Draft" is hidden.</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent><p>"Published" is visible to customers, "Draft" is hidden.</p></TooltipContent></Tooltip>
                             </Label>
                             <Select value={product.status} onValueChange={(v) => handleProductChange('status', v as Product['status'])}>
                                 <SelectTrigger id="status"><SelectValue /></SelectTrigger>
@@ -500,7 +587,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="productType" className="flex items-center gap-1.5">Product Type
-                                <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p>Physical (shipped), Digital (downloadable), or Service (non-shippable).</p></TooltipContent></Tooltip>
+                                <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent><p>Physical (shipped), Digital (downloadable), or Service (non-shippable).</p></TooltipContent></Tooltip>
                             </Label>
                             <Select value={product.productType} onValueChange={(v) => handleProductChange('productType', v)}>
                                 <SelectTrigger id="productType"><SelectValue placeholder="Select product type" /></SelectTrigger>
@@ -523,7 +610,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     </div>
                      <div className="space-y-2">
                          <Label className="flex items-center gap-1.5">Product Visibility
-                            <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p>Where this product can be sold.</p></TooltipContent></Tooltip>
+                            <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent><p>Where this product can be sold.</p></TooltipContent></Tooltip>
                          </Label>
                          <div className="flex flex-col sm:flex-row gap-4">
                             <div className="flex items-center space-x-2"><Checkbox id="vis-online" checked={product.productVisibility?.includes('Online Store')} /><Label htmlFor="vis-online" className="font-normal flex items-center gap-2"><Laptop/> Online Store</Label></div>
@@ -540,7 +627,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1.5">Inventory Tracking
-                    <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p className="max-w-xs">"Track Quantity" enables stock management. "Don't Track" sets inventory to unlimited.</p></TooltipContent></Tooltip>
+                    <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent><p className="max-w-xs">"Track Quantity" enables stock management. "Don't Track" sets inventory to unlimited.</p></TooltipContent></Tooltip>
                   </Label>
                   <Select value={product.inventoryTracking} onValueChange={(v) => handleProductChange('inventoryTracking', v)}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
@@ -553,7 +640,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                  <div className="space-y-2">
                     <Label className="flex items-center gap-1.5" htmlFor="compareAtPrice">Compare-at price
                         <Tooltip>
-                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                        <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
                         <TooltipContent><p className="max-w-xs">To show a sale, enter a price higher than your product's price.</p></TooltipContent>
                         </Tooltip>
                     </Label>
@@ -566,21 +653,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
               </CardContent>
             </Card>
 
-             <Card>
-                <CardHeader>
-                    <CardTitle>Wholesale Pricing</CardTitle>
-                    <CardDescription>Offer different prices to different customer groups.</CardDescription>
-                </CardHeader>
-                 <CardContent>
-                    <Alert>
-                        <Info className="h-4 w-4" />
-                        <AlertTitle>Feature Coming Soon</AlertTitle>
-                        <AlertDescription>
-                            This interface is for demonstration purposes. Full functionality for wholesale pricing tiers will be enabled in a future update.
-                        </AlertDescription>
-                    </Alert>
-                </CardContent>
-             </Card>
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-6">
@@ -596,3 +668,4 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 }
 
     
+

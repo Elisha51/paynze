@@ -10,9 +10,11 @@ export type ProductImage = {
 };
 
 export type WholesalePrice = {
+  id: string;
   customerGroup: string;
+  variantSku: string;
+  minOrderQuantity: number;
   price: number;
-  minOrderQuantity?: number;
 }
 
 export type InventoryLocationStock = {
