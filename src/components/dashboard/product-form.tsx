@@ -50,13 +50,13 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Switch } from '../ui/switch';
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 import { Separator } from '../ui/separator';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
 
-const emptyProduct: Product = {
+const emptyProduct: Omit<Product, 'retailPrice' | 'costPerItem' | 'compareAtPrice' > & { retailPrice?: number, costPerItem?: number, compareAtPrice?: number} = {
   productType: 'Physical',
   name: '',
   shortDescription: '',
@@ -64,7 +64,7 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
-  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '', retailPrice: 0, costPerItem: 0, compareAtPrice: 0 }],
+  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '' }],
   requiresShipping: true,
   currency: 'UGX',
   isTaxable: false,
@@ -98,7 +98,7 @@ const generateVariantCombinations = (options: ProductOption[]): Record<string, s
 };
 
 export function ProductForm({ initialProduct, onSave }: { initialProduct?: Partial<Product> | null, onSave?: (product: Product) => void }) {
-  const [product, setProduct] = useState<Product>({ ...emptyProduct, ...initialProduct });
+  const [product, setProduct] = useState<Partial<Product>>({ ...emptyProduct, ...initialProduct });
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
@@ -129,7 +129,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }, [initialProduct]);
 
   const allSellableUnits = useMemo(() => {
-    const variantCombos = product.hasVariants ? generateVariantCombinations(product.options) : [{}];
+    const variantCombos = product.hasVariants ? generateVariantCombinations(product.options || []) : [{}];
     const units = product.unitsOfMeasure || [];
     const results: ProductVariant[] = [];
 
@@ -141,7 +141,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         const variantIdentifierParts = [...Object.values(combo), unit.name];
         const variantIdentifier = variantIdentifierParts.join('-').replace(/\s+/g, '-').toLowerCase();
         
-        const existingVariant = product.variants.find(v => v.id === `var-${variantIdentifier}`);
+        const existingVariant = product.variants?.find(v => v.id === `var-${variantIdentifier}`);
         
         results.push({
           id: existingVariant?.id || `var-${variantIdentifier}`,
@@ -212,7 +212,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }
 
   const addUnitOfMeasure = () => {
-    const newUnit: UnitOfMeasure = { name: '', contains: 1, sku: '', retailPrice: 0, costPerItem: 0, compareAtPrice: 0 };
+    const newUnit: UnitOfMeasure = { name: '', contains: 1, sku: '' };
     setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
   }
 
@@ -242,12 +242,12 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   };
 
   const handleVariantTableChange = (variantId: string, field: keyof ProductVariant, value: any) => {
-    const newVariants = product.variants.map(v => 
-        v.id === variantId ? { ...v, [field]: value } : v
-    );
-    const variantExists = newVariants.some(v => v.id === variantId);
+    const newVariants = [...(product.variants || [])];
+    const variantIndex = newVariants.findIndex(v => v.id === variantId);
 
-    if (!variantExists) {
+    if (variantIndex !== -1) {
+        (newVariants[variantIndex] as any)[field] = value;
+    } else {
         const sourceVariant = allSellableUnits.find(u => u.id === variantId);
         if (sourceVariant) {
             newVariants.push({ ...sourceVariant, [field]: value });
@@ -467,7 +467,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         </TableHeader>
                         <TableBody>
                             {allSellableUnits.map(variant => {
-                                const matchingProductVariant = product.variants.find(v => v.id === variant.id) || variant;
+                                const matchingProductVariant = product.variants?.find(v => v.id === variant.id) || variant;
                                 return (
                                 <TableRow key={variant.id}>
                                     <TableCell className="font-medium">
@@ -487,7 +487,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                             placeholder="SKU-123"
                                         />
                                     </TableCell>
-                                    <TableCell>
+                                     <TableCell>
                                         <Input
                                             type="number"
                                             value={matchingProductVariant.costPerItem || ''}
@@ -636,28 +636,34 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </CardContent>
             </Card>
              <Card>
-              <CardHeader>
-                  <CardTitle>Inventory</CardTitle>
-                  <CardDescription>Configure stock tracking for this product.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-1.5">Inventory Tracking
-                    <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent><p className="max-w-xs">"Track Quantity" enables stock management. "Don't Track" sets inventory to unlimited.</p></TooltipContent></Tooltip>
-                  </Label>
-                  <Select value={product.inventoryTracking} onValueChange={(v) => handleProductChange('inventoryTracking', v)}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Track Quantity">Track Quantity</SelectItem>
-                      <SelectItem value="Don't Track">Don't Track</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                 <div className="flex items-center space-x-2">
-                    <Checkbox id="isTaxable" checked={product.isTaxable} onCheckedChange={(c) => handleProductChange('isTaxable', !!c)} />
-                    <Label htmlFor="isTaxable">Charge tax on this product</Label>
-                </div>
-              </CardContent>
+                <CardHeader>
+                    <CardTitle>Inventory</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5">Inventory Tracking
+                      <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent><p className="max-w-xs">"Track Quantity" enables stock management. "Don't Track" sets inventory to unlimited.</p></TooltipContent></Tooltip>
+                    </Label>
+                    <Select value={product.inventoryTracking} onValueChange={(v) => handleProductChange('inventoryTracking', v)}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Track Quantity">Track Quantity</SelectItem>
+                        <SelectItem value="Don't Track">Don't Track</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </CardContent>
+            </Card>
+             <Card>
+                <CardHeader>
+                    <CardTitle>Taxation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                   <div className="flex items-center space-x-2">
+                      <Checkbox id="isTaxable" checked={product.isTaxable} onCheckedChange={(c) => handleProductChange('isTaxable', !!c)} />
+                      <Label htmlFor="isTaxable">Charge tax on this product</Label>
+                  </div>
+                </CardContent>
             </Card>
 
           </div>
