@@ -17,19 +17,18 @@ const initializeMockProducts: () => Product[] = () => [
     status: 'published',
     images: [{ id: 'img-laptop', url: `https://picsum.photos/seed/laptop/600/600` }],
     inventoryTracking: 'Track Quantity',
-    unitsOfMeasure: [{ name: 'Unit', isBaseUnit: true, contains: 1 }],
+    unitsOfMeasure: [{ name: 'Unit', isBaseUnit: true, contains: 1, sku: 'LP-PRO-14-UNIT' }],
     requiresShipping: true,
-    retailPrice: 8500000,
     currency: 'UGX',
     isTaxable: true,
-    costPerItem: 6000000,
     hasVariants: false,
     options: [],
     variants: [{ 
       id: 'var-laptop-pro-14-unit', 
       optionValues: {}, 
       unitOfMeasure: 'Unit', 
-      price: 8500000,
+      retailPrice: 8500000,
+      costPerItem: 6000000,
       sku: 'LP-PRO-14-UNIT',
       status: 'In Stock', 
       stockByLocation: defaultStock(25) 
@@ -50,22 +49,20 @@ const initializeMockProducts: () => Product[] = () => [
     status: 'published',
     images: [{ id: 'img1', url: `https://picsum.photos/seed/TSHIRT-CLASSIC/600/600` }],
     inventoryTracking: 'Track Quantity',
-    unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1 }],
+    unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '' }],
     requiresShipping: true,
-    retailPrice: 35000,
     currency: 'UGX',
     isTaxable: true,
-    costPerItem: 20000,
     hasVariants: true,
     options: [
         { name: 'Size', values: ['M', 'L'] },
         { name: 'Color', values: ['Black', 'White'] }
     ],
     variants: [
-      { id: 'var-M-B-p', optionValues: { Size: 'M', Color: 'Black' }, unitOfMeasure: 'Piece', price: 35000, sku: 'TSHIRT-M-BLK-P', status: 'In Stock', stockByLocation: defaultStock(50)},
-      { id: 'var-L-B-p', optionValues: { Size: 'L', Color: 'Black' }, unitOfMeasure: 'Piece', price: 35000, sku: 'TSHIRT-L-BLK-P', status: 'In Stock', stockByLocation: defaultStock(50)},
-      { id: 'var-M-W-p', optionValues: { Size: 'M', Color: 'White' }, unitOfMeasure: 'Piece', price: 35000, sku: 'TSHIRT-M-WHT-P', status: 'In Stock', stockByLocation: defaultStock(60)},
-      { id: 'var-L-W-p', optionValues: { Size: 'L', Color: 'White' }, unitOfMeasure: 'Piece', price: 35000, sku: 'TSHIRT-L-WHT-P', status: 'In Stock', stockByLocation: defaultStock(60)},
+      { id: 'var-M-B-p', optionValues: { Size: 'M', Color: 'Black' }, unitOfMeasure: 'Piece', retailPrice: 35000, costPerItem: 20000, sku: 'TSHIRT-M-BLK-P', status: 'In Stock', stockByLocation: defaultStock(50)},
+      { id: 'var-L-B-p', optionValues: { Size: 'L', Color: 'Black' }, unitOfMeasure: 'Piece', retailPrice: 35000, costPerItem: 20000, sku: 'TSHIRT-L-BLK-P', status: 'In Stock', stockByLocation: defaultStock(50)},
+      { id: 'var-M-W-p', optionValues: { Size: 'M', Color: 'White' }, unitOfMeasure: 'Piece', retailPrice: 35000, costPerItem: 20000, sku: 'TSHIRT-M-WHT-P', status: 'In Stock', stockByLocation: defaultStock(60)},
+      { id: 'var-L-W-p', optionValues: { Size: 'L', Color: 'White' }, unitOfMeasure: 'Piece', retailPrice: 35000, costPerItem: 20000, sku: 'TSHIRT-L-WHT-P', status: 'In Stock', stockByLocation: defaultStock(60)},
     ],
     productVisibility: ['Online Store', 'POS'],
     category: 'Apparel',
@@ -84,19 +81,17 @@ const initializeMockProducts: () => Product[] = () => [
     images: [{ id: 'img-candle', url: 'https://picsum.photos/seed/candle/600/600' }],
     inventoryTracking: 'Track Quantity',
     unitsOfMeasure: [
-      { name: 'Piece', isBaseUnit: true, contains: 1 },
-      { name: 'Gift Box', contains: 4 }
+      { name: 'Piece', isBaseUnit: true, contains: 1, sku: 'CNDL-PCE' },
+      { name: 'Gift Box', contains: 4, sku: 'CNDL-BOX' }
     ],
     requiresShipping: true,
-    retailPrice: 15000,
     currency: 'UGX',
     isTaxable: true,
-    costPerItem: 8000,
     hasVariants: false,
     options: [],
     variants: [
-      { id: 'var-cndl-pce', unitOfMeasure: 'Piece', optionValues: {}, status: 'In Stock', sku: 'CNDL-PCE', price: 15000, stockByLocation: defaultStock(500) },
-      { id: 'var-cndl-box', unitOfMeasure: 'Gift Box', optionValues: {}, status: 'In Stock', sku: 'CNDL-BOX', price: 55000, stockByLocation: emptyStock() }
+      { id: 'var-cndl-pce', unitOfMeasure: 'Piece', optionValues: {}, status: 'In Stock', sku: 'CNDL-PCE', retailPrice: 15000, costPerItem: 8000, stockByLocation: defaultStock(500) },
+      { id: 'var-cndl-box', unitOfMeasure: 'Gift Box', optionValues: {}, status: 'In Stock', sku: 'CNDL-BOX', retailPrice: 55000, costPerItem: 30000, stockByLocation: emptyStock() }
     ],
     productVisibility: ['Online Store', 'POS'],
     category: 'Home Goods',
@@ -114,25 +109,23 @@ const initializeMockProducts: () => Product[] = () => [
     images: [{ id: 'img-ankara', url: 'https://picsum.photos/seed/ankara/600/600' }],
     inventoryTracking: 'Track Quantity',
     unitsOfMeasure: [
-      { name: 'Yard', isBaseUnit: true, contains: 1 },
-      { name: 'Full Roll', contains: 12 }
+      { name: 'Yard', isBaseUnit: true, contains: 1, sku: '' },
+      { name: 'Full Roll', contains: 12, sku: '' }
     ],
     requiresShipping: true,
-    retailPrice: 25000,
     currency: 'UGX',
     isTaxable: true,
-    costPerItem: 15000,
     hasVariants: true,
     options: [
       { name: 'Pattern', values: ['Geometric', 'Floral'] }
     ],
     variants: [
       // Geometric Pattern Variants
-      { id: 'var-geo-yard', optionValues: { Pattern: 'Geometric' }, unitOfMeasure: 'Yard', price: 25000, sku: 'ANK-GEO-YD', status: 'In Stock', stockByLocation: defaultStock(200) },
-      { id: 'var-geo-roll', optionValues: { Pattern: 'Geometric' }, unitOfMeasure: 'Full Roll', price: 275000, sku: 'ANK-GEO-ROLL', status: 'In Stock', stockByLocation: emptyStock() },
+      { id: 'var-geo-yard', optionValues: { Pattern: 'Geometric' }, unitOfMeasure: 'Yard', retailPrice: 25000, costPerItem: 15000, sku: 'ANK-GEO-YD', status: 'In Stock', stockByLocation: defaultStock(200) },
+      { id: 'var-geo-roll', optionValues: { Pattern: 'Geometric' }, unitOfMeasure: 'Full Roll', retailPrice: 275000, costPerItem: 165000, sku: 'ANK-GEO-ROLL', status: 'In Stock', stockByLocation: emptyStock() },
       // Floral Pattern Variants
-      { id: 'var-flo-yard', optionValues: { Pattern: 'Floral' }, unitOfMeasure: 'Yard', price: 25000, sku: 'ANK-FLO-YD', status: 'In Stock', stockByLocation: defaultStock(150) },
-      { id: 'var-flo-roll', optionValues: { Pattern: 'Floral' }, unitOfMeasure: 'Full Roll', price: 275000, sku: 'ANK-FLO-ROLL', status: 'In Stock', stockByLocation: emptyStock() },
+      { id: 'var-flo-yard', optionValues: { Pattern: 'Floral' }, unitOfMeasure: 'Yard', retailPrice: 25000, costPerItem: 15000, sku: 'ANK-FLO-YD', status: 'In Stock', stockByLocation: defaultStock(150) },
+      { id: 'var-flo-roll', optionValues: { Pattern: 'Floral' }, unitOfMeasure: 'Full Roll', retailPrice: 275000, costPerItem: 165000, sku: 'ANK-FLO-ROLL', status: 'In Stock', stockByLocation: emptyStock() },
     ],
     productVisibility: ['Online Store'],
     category: 'Fabrics',
@@ -150,19 +143,18 @@ const initializeMockProducts: () => Product[] = () => [
     status: 'published',
     images: [{ id: 'img-ebook', url: 'https://picsum.photos/seed/ebook/600/600' }],
     inventoryTracking: "Don't Track",
-    unitsOfMeasure: [{ name: 'Download', isBaseUnit: true, contains: 1 }],
+    unitsOfMeasure: [{ name: 'Download', isBaseUnit: true, contains: 1, sku: 'EBOOK-ACC-01-DL' }],
     requiresShipping: false,
-    retailPrice: 45000,
     currency: 'UGX',
     isTaxable: false,
-    costPerItem: 5000,
     hasVariants: false,
     options: [],
     variants: [{ 
       id: 'var-ebook-download', 
       optionValues: {}, 
       unitOfMeasure: 'Download',
-      price: 45000,
+      retailPrice: 45000,
+      costPerItem: 5000,
       sku: 'EBOOK-ACC-01-DL',
       status: 'In Stock',
       stockByLocation: [] 
