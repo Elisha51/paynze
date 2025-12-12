@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers, Boxes, Loader2, Info, PackageCheck } from 'lucide-react';
@@ -63,7 +64,7 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
-  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, price: 0, sku: '' }],
+  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '' }],
   requiresShipping: true,
   currency: 'UGX',
   isTaxable: false,
@@ -73,7 +74,6 @@ const emptyProduct: Product = {
   wholesalePricing: [],
   productVisibility: ['Online Store'],
   supplierIds: [],
-  retailPrice: 0, // Obsolete but kept for safety with old data structures
 };
 
 const generateVariantCombinations = (options: ProductOption[]): Record<string, string>[] => {
@@ -129,7 +129,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
   const allSellableUnits = useMemo(() => {
     const variantCombos = product.hasVariants ? generateVariantCombinations(product.options) : [{}];
-    const units = product.unitsOfMeasure;
+    const units = product.unitsOfMeasure || [];
     const results: ProductVariant[] = [];
 
     const baseUnit = units.find(u => u.isBaseUnit);
@@ -146,8 +146,9 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
           id: existingVariant?.id || `var-${variantIdentifier}`,
           optionValues: combo,
           unitOfMeasure: unit.name,
-          price: existingVariant?.price ?? (unit.price || 0),
-          sku: existingVariant?.sku ?? '',
+          retailPrice: existingVariant?.retailPrice ?? 0,
+          costPerItem: existingVariant?.costPerItem ?? 0,
+          sku: existingVariant?.sku ?? unit.sku,
           status: existingVariant?.status ?? 'In Stock',
           stockByLocation: existingVariant?.stockByLocation ?? defaultStockByLocation,
         });
@@ -214,7 +215,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }
 
   const addUnitOfMeasure = () => {
-    const newUnit: UnitOfMeasure = { name: '', contains: 1, price: 0, sku: '' };
+    const newUnit: UnitOfMeasure = { name: '', contains: 1, sku: '' };
     setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
   }
 
@@ -332,7 +333,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Packaging & Pricing</CardTitle>
+                    <CardTitle>Packaging</CardTitle>
                     <CardDescription>Define how this product is sold (e.g., pieces, packs) and set prices for each.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -363,36 +364,19 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     {index > 0 && (<Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>)}
                                 </div>
                             </div>
+                            <div className="space-y-2 mt-4">
+                               <Label htmlFor={`uom-sku-${index}`} className="flex items-center gap-1.5">
+                                    SKU (Stock Keeping Unit)
+                                    <Tooltip>
+                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                        <TooltipContent><p>A unique code to track this specific unit.</p></TooltipContent>
+                                    </Tooltip>
+                                </Label>
+                                <Input id={`uom-sku-${index}`} value={uom.sku} onChange={(e) => handleUnitOfMeasureChange(index, 'sku', e.target.value)} placeholder="e.g., TSHIRT-BLK-M"/>
+                            </div>
                         </Card>
                     ))}
                     <Button variant="outline" size="sm" onClick={addUnitOfMeasure}><PlusCircle className="mr-2 h-4 w-4" /> Add Packaging Unit</Button>
-                    <Separator />
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                           <div className="space-y-2">
-                                <Label className="flex items-center gap-1.5" htmlFor="costPerItem">Cost per item ({product.unitsOfMeasure[0]?.name || 'Base Unit'})
-                                    <Tooltip>
-                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
-                                        <TooltipContent><p className="max-w-xs">Your cost to acquire one base unit. Used for profit calculation and not shown to customers.</p></TooltipContent>
-                                    </Tooltip>
-                                </Label>
-                                <Input id="costPerItem" type="number" value={product.costPerItem || ''} onChange={handleNumberChange} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label className="flex items-center gap-1.5" htmlFor="compareAtPrice">Compare-at price
-                                     <Tooltip>
-                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
-                                        <TooltipContent><p className="max-w-xs">To show a sale, enter a price higher than your product's price.</p></TooltipContent>
-                                    </Tooltip>
-                                </Label>
-                                <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} />
-                            </div>
-                        </div>
-                         <div className="flex items-center space-x-2">
-                            <Checkbox id="isTaxable" checked={product.isTaxable} onCheckedChange={(c) => handleProductChange('isTaxable', !!c)} />
-                            <Label htmlFor="isTaxable">Charge tax on this product</Label>
-                        </div>
-                    </div>
                 </CardContent>
             </Card>
             
@@ -448,8 +432,8 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Variant</TableHead>
-                                <TableHead>Price ({settings?.currency || 'UGX'})</TableHead>
-                                <TableHead>SKU</TableHead>
+                                <TableHead>Retail Price ({settings?.currency || 'UGX'})</TableHead>
+                                <TableHead>Cost per item</TableHead>
                                 <TableHead className="text-right">Stock</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -467,17 +451,18 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     <TableCell>
                                         <Input
                                             type="number"
-                                            value={variant.price || ''}
-                                            onChange={(e) => handleVariantTableChange(variant.id, 'price', Number(e.target.value))}
+                                            value={variant.retailPrice || ''}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'retailPrice', Number(e.target.value))}
                                             className="w-28"
                                         />
                                     </TableCell>
                                     <TableCell>
                                         <Input
-                                            value={variant.sku || ''}
-                                            onChange={(e) => handleVariantTableChange(variant.id, 'sku', e.target.value)}
-                                            className="w-32"
-                                            placeholder="e.g. TSHIRT-M-BLK"
+                                            type="number"
+                                            value={variant.costPerItem || ''}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'costPerItem', Number(e.target.value))}
+                                            className="w-28"
+                                            placeholder="e.g., 20000"
                                         />
                                     </TableCell>
                                      <TableCell className="text-right">
@@ -565,8 +550,37 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     </SelectContent>
                   </Select>
                 </div>
+                 <div className="space-y-2">
+                    <Label className="flex items-center gap-1.5" htmlFor="compareAtPrice">Compare-at price
+                        <Tooltip>
+                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                        <TooltipContent><p className="max-w-xs">To show a sale, enter a price higher than your product's price.</p></TooltipContent>
+                        </Tooltip>
+                    </Label>
+                    <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} />
+                </div>
+                 <div className="flex items-center space-x-2">
+                    <Checkbox id="isTaxable" checked={product.isTaxable} onCheckedChange={(c) => handleProductChange('isTaxable', !!c)} />
+                    <Label htmlFor="isTaxable">Charge tax on this product</Label>
+                </div>
               </CardContent>
             </Card>
+
+             <Card>
+                <CardHeader>
+                    <CardTitle>Wholesale Pricing</CardTitle>
+                    <CardDescription>Offer different prices to different customer groups.</CardDescription>
+                </CardHeader>
+                 <CardContent>
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertTitle>Feature Coming Soon</AlertTitle>
+                        <AlertDescription>
+                            This interface is for demonstration purposes. Full functionality for wholesale pricing tiers will be enabled in a future update.
+                        </AlertDescription>
+                    </Alert>
+                </CardContent>
+             </Card>
           </div>
         </div>
         <div className="flex justify-end gap-2 mt-6">

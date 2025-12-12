@@ -1,6 +1,5 @@
 
 
-
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -55,14 +54,20 @@ export type UnitOfMeasure = {
   name: string;
   isBaseUnit?: boolean;
   contains: number; // How many base units this package contains.
-  price: number;
   sku: string;
 };
 
 export type ProductVariant = {
   id: string; // e.g., 'var-sm-red-piece'
   optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
-  // All other details are now on the packaging unit or main product
+  unitOfMeasure: string;
+  retailPrice: number;
+  costPerItem?: number;
+  sku: string;
+  status: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
+  stockByLocation: InventoryLocationStock[]; 
+  stockAdjustments?: StockAdjustment[];
+  inventoryItems?: InventoryItem[];
 };
 
 export type PreorderSettings = {
@@ -98,13 +103,11 @@ export type Product = {
   serviceDuration?: string; // For service products, e.g., "1 hour", "Per Session"
 
   // III. Pricing & Taxation
-  retailPrice: number; // DEPRECATED - now on unitOfMeasure
   currency: string;
   compareAtPrice?: number;
   wholesalePricing: WholesalePrice[];
   isTaxable: boolean;
   taxClass?: string;
-  costPerItem?: number; // Cost of the base unit
   preorderSettings?: PreorderSettings;
 
   // IV. Organization & Discovery
@@ -123,7 +126,7 @@ export type Product = {
   hasVariants: boolean;
   options: ProductOption[];
   unitsOfMeasure: UnitOfMeasure[]; // Defines packaging and pricing
-  variants: ProductVariant[]; // Represents non-packaging variations like size/color
+  variants: ProductVariant[]; // Represents all sellable units (combinations of options and unitsOfMeasure)
 
   // VI. Configuration & Customization
   templateId?: string; // ID of a saved product template
