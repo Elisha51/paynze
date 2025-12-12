@@ -64,7 +64,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   }
   
-  const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File));
+  const uploadedImages = (product.images || []).filter(img => ('url' in img && img.url) || (img instanceof File));
 
   const getVariantStatusBadge = (status: ProductVariant['status']) => {
     switch (status) {
@@ -130,12 +130,12 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {product.unitsOfMeasure.map((uom, index) => {
+                            {(product.unitsOfMeasure || []).map((uom, index) => {
                                 const variantForUnit = product.variants.find(v => v.unitOfMeasure === uom.name);
                                 return (
                                     <TableRow key={uom.name}>
                                         <TableCell className="font-medium">{uom.name}</TableCell>
-                                        <TableCell>{index > 0 ? `${uom.contains} ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}</TableCell>
+                                        <TableCell>{index > 0 ? `${uom.contains} ${product.unitsOfMeasure?.[index-1].name}s` : 'Base Unit'}</TableCell>
                                         <TableCell>{variantForUnit?.sku || '-'}</TableCell>
                                         <TableCell className="text-right">{formatCurrency(variantForUnit?.retailPrice || 0, product.currency)}</TableCell>
                                     </TableRow>
@@ -265,7 +265,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                     <div>
                         <h3 className="font-medium text-sm text-muted-foreground">Channels</h3>
                         <div className="flex flex-wrap gap-2 mt-2">
-                            {product.productVisibility?.includes('Online Store') && <Badge variant="outline" className="flex items-center gap-2"><Laptop /> Online Store</Badge>}
+                            {product.productVisibility?.includes('Online Store') && <Badge variant="outline" className="flex items-center gap-2"><Laptop/> Online Store</Badge>}
                             {product.productVisibility?.includes('POS') && <Badge variant="outline" className="flex items-center gap-2"><Store /> Point of Sale</Badge>}
                         </div>
                     </div>

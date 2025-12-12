@@ -52,6 +52,7 @@ import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Switch } from '../ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '../ui/tooltip';
 import { Separator } from '../ui/separator';
+import Image from 'next/image';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -95,6 +96,61 @@ const generateVariantCombinations = (options: ProductOption[]): Record<string, s
         combinations = newCombinations;
     }
     return combinations;
+};
+
+const ImageSelectionPopover = ({
+  allImages,
+  selectedImageIds,
+  onImageSelect,
+}: {
+  allImages: (File | ProductImage)[],
+  selectedImageIds: string[],
+  onImageSelect: (imageId: string) => void,
+}) => {
+  const selectedImages = allImages.filter(img => 'id' in img && selectedImageIds.includes(img.id));
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-auto py-1">
+          {selectedImages.length > 0 ? (
+            <div className="flex items-center gap-1">
+              {selectedImages.slice(0, 2).map(img => (
+                <Image key={img.id} src={img.url} alt="selected" width={24} height={24} className="h-6 w-6 rounded-sm object-cover" />
+              ))}
+              {selectedImages.length > 2 && <span className="text-xs ml-1">+{selectedImages.length - 2}</span>}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <ImageIcon className="h-4 w-4" />
+              <span>Link</span>
+            </div>
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent>
+        <div className="grid grid-cols-4 gap-2">
+          {allImages.filter(img => 'id' in img).map((image) => {
+            const imgWithId = image as ProductImage;
+            const isSelected = selectedImageIds.includes(imgWithId.id);
+            return (
+              <button
+                key={imgWithId.id}
+                onClick={() => onImageSelect(imgWithId.id)}
+                className={cn(
+                  "relative aspect-square rounded-md overflow-hidden border-2",
+                  isSelected ? "border-primary" : "border-transparent"
+                )}
+              >
+                <Image src={imgWithId.url} alt="product image" fill className="object-cover" />
+                {isSelected && <div className="absolute inset-0 bg-primary/50 flex items-center justify-center"><Check className="h-5 w-5 text-primary-foreground" /></div>}
+              </button>
+            )
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
 };
 
 export function ProductForm({ initialProduct, onSave }: { initialProduct?: Partial<Product> | null, onSave?: (product: Product) => void }) {
@@ -152,6 +208,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
           costPerItem: existingVariant?.costPerItem,
           sku: existingVariant?.sku ?? unit.sku,
           status: existingVariant?.status ?? 'In Stock',
+          imageIds: existingVariant?.imageIds || [],
           stockByLocation: existingVariant?.stockByLocation ?? defaultStockByLocation,
         });
       }
@@ -346,7 +403,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
             <Card>
               <CardHeader><CardTitle>Media</CardTitle></CardHeader>
-              <CardContent className="space-y-4"><div className="space-y-2"><Label>Images</Label><FileUploader files={[]} onFilesChange={() => {}} /></div></CardContent>
+              <CardContent className="space-y-4"><div className="space-y-2"><Label>Images</Label><FileUploader files={product.images || []} onFilesChange={(f) => handleProductChange('images', f)} /></div></CardContent>
             </Card>
             
             <Card>
@@ -463,6 +520,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                   </div>
                                 </TableHead>
                                 <TableHead className="text-right">Stock</TableHead>
+                                <TableHead className="text-right">Images</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -521,6 +579,19 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                             disabled={product.inventoryTracking === "Don't Track"}
                                         />
                                     </TableCell>
+                                    <TableCell className="text-right">
+                                      <ImageSelectionPopover 
+                                        allImages={product.images || []}
+                                        selectedImageIds={matchingProductVariant.imageIds || []}
+                                        onImageSelect={(imageId) => {
+                                          const currentIds = matchingProductVariant.imageIds || [];
+                                          const newIds = currentIds.includes(imageId)
+                                            ? currentIds.filter(id => id !== imageId)
+                                            : [...currentIds, imageId];
+                                          handleVariantTableChange(variant.id, 'imageIds', newIds);
+                                        }}
+                                      />
+                                    </TableCell>
                                 </TableRow>
                             )})}
                         </TableBody>
@@ -535,7 +606,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </CardHeader>
                  <CardContent className="space-y-4">
                     {(product.wholesalePricing || []).map((tier, index) => (
-                        <Card key={tier.id || index} className="p-4 relative">
+                        <Card key={index} className="p-4 relative">
                             <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeWholesaleTier(index)}>
                                 <X className="h-4 w-4 text-destructive" />
                             </Button>

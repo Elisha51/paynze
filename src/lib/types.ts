@@ -68,6 +68,7 @@ export type ProductVariant = {
   costPerItem?: number;
   sku?: string;
   status?: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
+  imageIds?: string[];
   stockByLocation: InventoryLocationStock[]; 
   stockAdjustments?: StockAdjustment[];
   inventoryItems?: InventoryItem[];
