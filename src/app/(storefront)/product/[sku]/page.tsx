@@ -125,7 +125,7 @@ export default function ProductDetailPage() {
             : [...currentWishlist, product.sku];
         
         const updatedCustomerData: Partial<Customer> = { id: customer.id, wishlist: newWishlist };
-        const updatedCustomer = await updateCustomer(updatedCustomerData as Customer);
+        const updatedCustomer = await updateCustomer(customer.id, updatedCustomerData);
         setCustomer(updatedCustomer);
 
         toast({
@@ -172,7 +172,8 @@ export default function ProductDetailPage() {
     return <div>Product not found</div>;
   }
   
-  const price = selectedVariant?.price ?? product.retailPrice;
+  const price = selectedVariant?.retailPrice ?? product.variants[0]?.retailPrice ?? 0;
+  const compareAtPrice = selectedVariant?.compareAtPrice ?? product.variants[0]?.compareAtPrice;
   const isAvailable = selectedVariant ? selectedVariant.status === 'In Stock' || selectedVariant.status === 'Low Stock' : product.variants.length > 0;
 
   return (
@@ -192,9 +193,9 @@ export default function ProductDetailPage() {
               <p className="text-2xl lg:text-3xl font-semibold mt-2 text-primary">
                   {formatCurrency(price, product.currency)}
               </p>
-              {product.compareAtPrice && product.compareAtPrice > price && (
+              {compareAtPrice && compareAtPrice > price && (
                   <p className="text-lg text-muted-foreground line-through mt-1">
-                      {formatCurrency(product.compareAtPrice, product.currency)}
+                      {formatCurrency(compareAtPrice, product.currency)}
                   </p>
               )}
             </div>

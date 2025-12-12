@@ -86,6 +86,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
   }
   
   const hasMultipleUnits = (product.unitsOfMeasure?.length || 0) > 1;
+  const baseVariant = product.variants.find(v => v.unitOfMeasure === product.unitsOfMeasure.find(u => u.isBaseUnit)?.name);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -129,14 +130,17 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {product.unitsOfMeasure.map((uom, index) => (
-                                <TableRow key={uom.name}>
-                                    <TableCell className="font-medium">{uom.name}</TableCell>
-                                    <TableCell>{index > 0 ? `${uom.contains} ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}</TableCell>
-                                    <TableCell>{uom.sku || '-'}</TableCell>
-                                    <TableCell className="text-right">{formatCurrency(uom.price || (index === 0 ? product.retailPrice : 0), product.currency)}</TableCell>
-                                </TableRow>
-                            ))}
+                            {product.unitsOfMeasure.map((uom, index) => {
+                                const variantForUnit = product.variants.find(v => v.unitOfMeasure === uom.name);
+                                return (
+                                    <TableRow key={uom.name}>
+                                        <TableCell className="font-medium">{uom.name}</TableCell>
+                                        <TableCell>{index > 0 ? `${uom.contains} ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}</TableCell>
+                                        <TableCell>{variantForUnit?.sku || '-'}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(variantForUnit?.retailPrice || 0, product.currency)}</TableCell>
+                                    </TableRow>
+                                );
+                            })}
                         </TableBody>
                     </Table>
                 </CardContent>
@@ -172,18 +176,6 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                 <CardTitle>Pricing</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <h3 className="font-medium text-sm text-muted-foreground">Base Unit Price</h3>
-                        <p>{formatCurrency(product.retailPrice, product.currency)}</p>
-                    </div>
-                    {product.compareAtPrice && (
-                        <div>
-                            <h3 className="font-medium text-sm text-muted-foreground">Compare At Price</h3>
-                            <p className="line-through">{formatCurrency(product.compareAtPrice, product.currency)}</p>
-                        </div>
-                    )}
-                </div>
                 {product.wholesalePricing && product.wholesalePricing.length > 0 && (
                     <div>
                         <h3 className="font-medium text-sm text-muted-foreground mb-2">Wholesale Pricing</h3>
@@ -237,7 +229,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                                         {getVariantStatusBadge(variant.status)}
                                     </TableCell>
                                     <TableCell>
-                                    {variant.price ? formatCurrency(variant.price, product.currency) : '-'}
+                                    {variant.retailPrice ? formatCurrency(variant.retailPrice, product.currency) : '-'}
                                     </TableCell>
                                     <TableCell>
                                         {variant.sku || '-'}
@@ -374,4 +366,3 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
     </div>
   );
 }
-

@@ -144,7 +144,7 @@ const getColumns = (
     },
   },
   {
-    accessorKey: 'retailPrice',
+    id: 'retailPrice',
     header: ({ column }) => {
         return (
             <div className="text-right">
@@ -159,9 +159,13 @@ const getColumns = (
         );
       },
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue('retailPrice'));
-      const currency = row.original.currency;
-      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+      const product = row.original;
+      const baseVariant = product.variants.find(v => v.unitOfMeasure === product.unitsOfMeasure.find(u => u.isBaseUnit)?.name);
+      const price = baseVariant?.retailPrice;
+      if (price === undefined) {
+        return <div className="text-right text-muted-foreground">-</div>;
+      }
+      const formatted = new Intl.NumberFormat('en-US', { style: 'currency', currency: product.currency }).format(price);
       return <div className="text-right font-medium">{formatted}</div>;
     },
   },
