@@ -258,7 +258,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
   const addWholesaleTier = () => {
       const newTier: WholesalePrice = {
-          id: `ws-${Date.now()}`,
+          id: `ws-${Date.now()}-${(product.wholesalePricing || []).length}`,
           customerGroup: customerGroups[0]?.name || '',
           variantSku: allSellableUnits.find(u => u.sku)?.sku || '',
           minOrderQuantity: 1,
@@ -654,7 +654,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                   </div>
                 </CardContent>
             </Card>
-             <Card>
+            <Card>
                 <CardHeader>
                     <CardTitle>Taxation</CardTitle>
                 </CardHeader>
