@@ -85,7 +85,7 @@ export default function CheckoutPage() {
     }
     
     const fee = selectedShippingMethod?.price || 0;
-    const taxRate = (settings?.taxRate || 0) / 100;
+    const taxRate = (applicableZone?.taxRate || 0) / 100;
     const taxableAmount = cartItems.filter(item => item.isTaxable).reduce((sum, item) => sum + item.price * item.quantity, 0);
     const tax = taxableAmount * taxRate;
     
@@ -97,7 +97,7 @@ export default function CheckoutPage() {
         shippingFee: fee,
         total: finalTotal,
     };
-  }, [shippingZones, customer, cartItems, cartTotal, settings, selectedShippingMethod]);
+  }, [shippingZones, customer, cartItems, cartTotal, selectedShippingMethod]);
 
   const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;

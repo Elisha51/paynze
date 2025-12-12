@@ -35,10 +35,6 @@ export function GeneralSettings() {
         setSettings(prev => ({...prev, [e.target.id]: e.target.value}));
     };
     
-    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSettings(prev => ({...prev, [e.target.id]: Number(e.target.value) || 0}));
-    };
-
     const handleSelectChange = (id: 'currency' | 'country', value: string) => {
         setSettings(prev => ({...prev, [id]: value}));
     };
@@ -124,12 +120,6 @@ export function GeneralSettings() {
                             <SelectItem value="TZS">TZS</SelectItem>
                         </SelectContent>
                     </Select>
-                </div>
-                <Separator />
-                <div className="space-y-2">
-                    <Label htmlFor="taxRate">Default Tax Rate (%)</Label>
-                    <Input id="taxRate" type="number" value={settings.taxRate || ''} onChange={handleNumberChange} className="w-[180px]" placeholder="e.g. 18"/>
-                    <p className="text-sm text-muted-foreground">This rate will be applied to products marked as taxable.</p>
                 </div>
             </CardContent>
             <CardFooter>

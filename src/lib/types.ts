@@ -57,7 +57,6 @@ export type UnitOfMeasure = {
   isBaseUnit?: boolean;
   contains: number; // How many base units this package contains.
   sku: string;
-  retailPrice: number;
 };
 
 export type ProductVariant = {
@@ -369,6 +368,7 @@ export type ShippingZone = {
   name: string;
   countries: string[];
   deliveryMethods: DeliveryMethod[];
+  taxRate?: number;
 };
 
 

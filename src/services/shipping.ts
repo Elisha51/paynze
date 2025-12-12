@@ -1,4 +1,5 @@
 
+
 import type { ShippingZone } from '@/lib/types';
 import { DataService } from './data-service';
 
@@ -7,6 +8,7 @@ const initializeMockShippingZones = (): ShippingZone[] => [
         id: 'zone-1',
         name: 'Domestic (Uganda)',
         countries: ['Uganda'],
+        taxRate: 18,
         deliveryMethods: [
             { id: 'method-1', name: 'Standard Shipping', description: '3-5 business days', type: 'Fixed', price: 10000 },
             { id: 'method-2', name: 'Express Shipping', description: '1-2 business days', type: 'Fixed', price: 25000 },
@@ -17,6 +19,7 @@ const initializeMockShippingZones = (): ShippingZone[] => [
         id: 'zone-2',
         name: 'East Africa',
         countries: ['Kenya', 'Tanzania, United Republic of', 'Rwanda'],
+        taxRate: 0,
         deliveryMethods: [
             { id: 'method-4', name: 'EAC Standard', description: '5-10 business days', type: 'Fixed', price: 50000 },
         ]

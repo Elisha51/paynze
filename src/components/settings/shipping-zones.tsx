@@ -61,6 +61,7 @@ const emptyZone: Omit<ShippingZone, 'id'> = {
   name: '',
   countries: [],
   deliveryMethods: [],
+  taxRate: 0,
 };
 
 const emptyMethod: Omit<DeliveryMethod, 'id'> = {
@@ -131,6 +132,11 @@ function ZoneForm({
                         </Command>
                     </PopoverContent>
                 </Popover>
+            </div>
+             <div className="space-y-2">
+                <Label htmlFor="taxRate">Tax Rate (%)</Label>
+                <Input id="taxRate" type="number" placeholder="e.g., 18" value={zone.taxRate || ''} onChange={(e) => onZoneChange({ taxRate: Number(e.target.value) })} />
+                <p className="text-xs text-muted-foreground">This tax rate will apply to all customers shipping to countries in this zone.</p>
             </div>
         </div>
     )
@@ -268,7 +274,7 @@ export function ShippingZones({ zones, setZones }: ShippingZonesProps) {
           <div>
             <CardTitle>Shipping Zones</CardTitle>
             <CardDescription>
-              Group regions to offer different shipping rates.
+              Group regions to offer different shipping rates and tax rules.
             </CardDescription>
           </div>
           <Button onClick={() => openZoneDialog('add')}>
@@ -283,7 +289,10 @@ export function ShippingZones({ zones, setZones }: ShippingZonesProps) {
                     <div className="flex justify-between items-center w-full hover:bg-muted/50 rounded-md">
                         <AccordionTrigger className="flex-1 py-4 px-4 hover:no-underline">
                              <div className="text-left">
-                                <p className="font-semibold text-base">{zone.name}</p>
+                                <p className="font-semibold text-base flex items-center gap-2">
+                                    {zone.name}
+                                    {zone.taxRate && <Badge variant="secondary">{zone.taxRate}% Tax</Badge>}
+                                </p>
                                 <p className="text-sm text-muted-foreground">{zone.countries.join(', ')}</p>
                             </div>
                         </AccordionTrigger>
