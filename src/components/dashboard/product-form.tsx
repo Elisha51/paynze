@@ -56,7 +56,7 @@ import { Separator } from '../ui/separator';
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
 
-const emptyProduct: Omit<Product, 'retailPrice' | 'costPerItem' | 'compareAtPrice' > & { retailPrice?: number, costPerItem?: number, compareAtPrice?: number} = {
+const emptyProduct: Omit<Product, 'compareAtPrice' > & { compareAtPrice?: number} = {
   productType: 'Physical',
   name: '',
   shortDescription: '',
@@ -535,7 +535,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </CardHeader>
                  <CardContent className="space-y-4">
                     {(product.wholesalePricing || []).map((tier, index) => (
-                        <Card key={tier.id} className="p-4 relative">
+                        <Card key={tier.id || index} className="p-4 relative">
                             <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeWholesaleTier(index)}>
                                 <X className="h-4 w-4 text-destructive" />
                             </Button>
