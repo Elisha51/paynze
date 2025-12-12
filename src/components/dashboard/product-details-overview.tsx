@@ -351,7 +351,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
                     {product.inventoryTracking !== 'Don\'t Track' && product.variants.length > 0 && !product.hasVariants && (
                         <div>
                             <h3 className="font-medium text-sm text-muted-foreground">Stock On Hand</h3>
-                            <p>{totalOnHandStockForVariant(product.variants[0])} {product.unitsOfMeasure[0]?.name || 'units'}</p>
+                            <p>{totalOnHandStockForVariant(product.variants[0])} {product.unitsOfMeasure && product.unitsOfMeasure.length > 0 ? product.unitsOfMeasure[0].name : 'units'}</p>
                         </div>
                     )}
                     {product.requiresShipping && (
@@ -374,3 +374,4 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
     </div>
   );
 }
+
