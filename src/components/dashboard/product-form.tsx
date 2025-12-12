@@ -50,6 +50,7 @@ import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Switch } from '../ui/switch';
 import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { Separator } from '../ui/separator';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -437,6 +438,63 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
               </CardContent>
             </Card>
 
+             <Card>
+                <CardHeader>
+                    <CardTitle>Variants & Pricing</CardTitle>
+                    <CardDescription>Manage price, SKU, and stock for each sellable unit of this product.</CardDescription>
+                </CardHeader>
+                <CardContent className="overflow-x-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Variant</TableHead>
+                                <TableHead>Price ({settings?.currency || 'UGX'})</TableHead>
+                                <TableHead>SKU</TableHead>
+                                <TableHead className="text-right">Stock</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {allSellableUnits.map(variant => (
+                                <TableRow key={variant.id}>
+                                    <TableCell className="font-medium">
+                                        <div className="flex flex-col">
+                                            <span>
+                                                {Object.values(variant.optionValues).join(' / ') || product.name}
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">{variant.unitOfMeasure}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input
+                                            type="number"
+                                            value={variant.price || ''}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'price', Number(e.target.value))}
+                                            className="w-28"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input
+                                            value={variant.sku || ''}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'sku', e.target.value)}
+                                            className="w-32"
+                                            placeholder="e.g. TSHIRT-M-BLK"
+                                        />
+                                    </TableCell>
+                                     <TableCell className="text-right">
+                                        <Input
+                                            type="number"
+                                            value={variant.stockByLocation[0].stock.onHand || ''}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'stockByLocation', [{ locationName: 'Main Warehouse', stock: { ...defaultStock, onHand: Number(e.target.value), available: Number(e.target.value) }}])}
+                                            className="w-20 ml-auto"
+                                            disabled={product.inventoryTracking === "Don't Track"}
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
           </div>
 
           <div className="lg:col-span-2 space-y-6">
@@ -522,3 +580,5 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </TooltipProvider>
   );
 }
+
+    
