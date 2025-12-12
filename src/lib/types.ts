@@ -1,4 +1,5 @@
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -50,21 +51,14 @@ export type ProductOption = {
 };
 
 export type ProductVariant = {
-  id: string; // e.g., 'variant-sm-red'
+  id: string; // e.g., 'variant-sm-red-piece'
   optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
   unitOfMeasure: string; // e.g., "Piece", "Pack"
-  price?: number; // Overrides the main product price
-  sku?: string; // e.g., 'TSHIRT-RED-SM'
+  price?: number; // The price for this specific variant/packaging combination
+  sku?: string; // The unique SKU for this specific variant/packaging combination
   barcode?: string;
-  weight?: number; // Overrides main product weight
-  dimensions?: {
-    length: number;
-    width: number;
-    height: number;
-  };
-  imageIds?: string[]; // IDs of the primary images for this variant
   
-  // Inventory details
+  // Inventory details are only tracked for the base unit
   status: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
   stockByLocation: InventoryLocationStock[];
   inventoryItems?: InventoryItem[]; // For serialized tracking
@@ -93,10 +87,10 @@ export type Product = {
   videoUrl?: string;
 
   // II. Inventory & Logistics
-  sku?: string;
-  barcode?: string; // GTIN, EAN, UPC
+  sku?: string; // Base unit SKU
+  barcode?: string; // GTIN, EAN, UPC for base unit
   inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | 'Don\'t Track';
-  unitsOfMeasure: UnitOfMeasure[]; // e.g. [{name: 'Piece', isBase: true}, {name: 'Packet', contains: 6}, {name: 'Box', contains: 24}]
+  unitsOfMeasure: UnitOfMeasure[]; // Defines the packaging hierarchy
   lowStockThreshold?: number; // For the base unit
   requiresShipping: boolean;
   weight?: number; // in kg, for the base unit
@@ -131,10 +125,10 @@ export type Product = {
     urlHandle?: string;
   };
 
-  // V. Variants
+  // V. Variants & Sellable Units
   hasVariants: boolean;
   options: ProductOption[];
-  variants: ProductVariant[];
+  variants: ProductVariant[]; // Represents every unique sellable combination
 
   // VI. Configuration & Customization
   templateId?: string; // ID of a saved product template
