@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers, Boxes, Loader2, Info } from 'lucide-react';
@@ -64,13 +65,13 @@ const emptyProduct: Product = {
   inventoryTracking: 'Track Quantity',
   unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, price: 0, sku: '' }],
   requiresShipping: true,
-  retailPrice: 0,
+  retailPrice: 0, // This is deprecated but kept for type safety.
   currency: 'UGX',
   isTaxable: false,
   hasVariants: false,
   options: [{ name: '', values: [] }],
   variants: [
-    { id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: 0, sku: '' }
+    { id: 'default-variant', optionValues: {} }
   ],
   wholesalePricing: [],
   productVisibility: ['Online Store'],
@@ -78,44 +79,29 @@ const emptyProduct: Product = {
 };
 
 
-// Helper function to generate variants from options and units
-const generateVariants = (options: ProductOption[], units: UnitOfMeasure[]): ProductVariant[] => {
+// Helper function to generate variant combinations from options
+const generateVariantCombinations = (options: ProductOption[]): Record<string, string>[] => {
+    if (options.every(opt => !opt.name || opt.values.length === 0)) {
+        return [{}]; // Return a single empty object for simple products
+    }
+
     let combinations: Record<string, string>[] = [{}];
 
-    // First, generate combinations from product options (size, color, etc.)
-    const activeOptions = options.filter(opt => opt.name && opt.values.length > 0);
-    if (activeOptions.length > 0) {
-        for (const option of activeOptions) {
-            const newCombinations: Record<string, string>[] = [];
-            for (const combination of combinations) {
-                for (const value of option.values) {
-                    newCombinations.push({
-                        ...combination,
-                        [option.name]: value,
-                    });
-                }
+    for (const option of options) {
+        if (!option.name || option.values.length === 0) continue;
+        const newCombinations: Record<string, string>[] = [];
+        for (const combination of combinations) {
+            for (const value of option.values) {
+                newCombinations.push({
+                    ...combination,
+                    [option.name]: value,
+                });
             }
-            combinations = newCombinations;
         }
-    }
-    
-    // Now, cross-product with units of measure
-    let finalVariants: ProductVariant[] = [];
-    for (const combo of combinations) {
-        for (const unit of units) {
-            const idParts = [...Object.values(combo), unit.name].join('-').replace(/\s+/g, '-').toLowerCase();
-            finalVariants.push({
-                id: `var-${idParts}-${Date.now() % 1000}`,
-                optionValues: combo,
-                status: 'In Stock',
-                stockByLocation: [],
-                price: unit.price, // Use price from unit
-                sku: unit.sku
-            });
-        }
+        combinations = newCombinations;
     }
 
-    return finalVariants;
+    return combinations;
 };
 
 
@@ -150,40 +136,26 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }
     loadData();
   }, [initialProduct]);
+
+  const allSellableUnits = useMemo(() => {
+      const variantCombos = generateVariantCombinations(product.options);
+      const units = product.unitsOfMeasure;
+      
+      const results: (ProductVariant & { unit: UnitOfMeasure })[] = [];
+
+      for (const combo of variantCombos) {
+          for (const unit of units) {
+              const idParts = [...Object.values(combo), unit.name].join('-').replace(/\s+/g, '-').toLowerCase();
+              results.push({
+                  id: `var-${idParts}`,
+                  optionValues: combo,
+                  unit,
+              });
+          }
+      }
+      return results;
+  }, [product.options, product.unitsOfMeasure]);
   
-  // Auto-update variants when options or units change
-  useEffect(() => {
-    if (!product.hasVariants && (product.unitsOfMeasure?.length || 0) <= 1) {
-        // Simple product, ensure one variant exists for the base unit
-        const baseUnit = product.unitsOfMeasure?.[0];
-        if (!baseUnit) return;
-
-        const updatedVariant = { 
-            ...emptyProduct.variants[0], 
-            price: baseUnit.price, 
-            sku: baseUnit.sku
-        };
-
-        if (product.variants.length === 0 || JSON.stringify(product.variants[0]) !== JSON.stringify(updatedVariant)) {
-            setProduct(prev => ({ ...prev, variants: [updatedVariant] }));
-        }
-        return;
-    }
-    
-    const currentVariants = product.variants || [];
-    const newVariantDefs = generateVariants(product.options || [], product.unitsOfMeasure || []);
-    
-    // Preserve existing data for variants that are still valid
-    const updatedVariants = newVariantDefs.map(newVar => {
-      const existing = currentVariants.find(oldVar => 
-        oldVar.sku === newVar.sku
-      );
-      return existing ? { ...newVar, ...existing, id: existing.id } : newVar;
-    });
-
-    setProduct(prev => ({...prev, variants: updatedVariants}));
-
-  }, [product.hasVariants, product.options, product.unitsOfMeasure]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -200,10 +172,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     const { id, value } = e.target;
     setProduct((prev) => ({ ...prev, [id]: Number(value) || 0 }));
   };
-
-  const handleSelectChange = (id: keyof Product, value: string) => {
-    setProduct(prev => ({ ...prev, [id]: value }));
-  }
   
   const handleProductChange = (field: keyof Product, value: any) => {
      let productUpdates: Partial<Product> = { [field]: value };
@@ -248,24 +216,21 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     setProduct(prev => ({ ...prev, options: updatedOptions }));
   };
 
+  const handleUnitOfMeasureChange = (index: number, field: keyof UnitOfMeasure, value: string | number) => {
+      const newUnits = [...(product.unitsOfMeasure || [])];
+      (newUnits[index] as any)[field] = value;
+      setProduct(prev => ({ ...prev, unitsOfMeasure: newUnits }));
+  }
 
-  const handleVariantChange = (variantId: string, field: keyof ProductVariant, value: string | number) => {
-    setProduct(prev => ({
-        ...prev,
-        variants: prev.variants.map(v => {
-            if (v.id === variantId) {
-                const updatedVariant = { ...v };
-                if (field === 'price') {
-                    updatedVariant[field] = Number(value);
-                } else {
-                    (updatedVariant as any)[field] = value;
-                }
-                return updatedVariant;
-            }
-            return v;
-        })
-    }));
-  };
+  const addUnitOfMeasure = () => {
+      const newUnit: UnitOfMeasure = { name: '', contains: 1, price: 0, sku: '' };
+      setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
+  }
+
+  const removeUnitOfMeasure = (index: number) => {
+      if (index === 0) return; // Cannot remove base unit
+      setProduct(prev => ({...prev, unitsOfMeasure: (prev.unitsOfMeasure || []).filter((_, i) => i !== index)}));
+  }
   
   const handleGenerateDescription = async () => {
     if (!product.name || !product.category) {
@@ -300,22 +265,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         setIsGenerating(false);
     }
   };
-
-  const handleUnitOfMeasureChange = (index: number, field: keyof UnitOfMeasure, value: string | number) => {
-      const newUnits = [...(product.unitsOfMeasure || [])];
-      (newUnits[index] as any)[field] = value;
-      setProduct(prev => ({ ...prev, unitsOfMeasure: newUnits }));
-  }
-
-  const addUnitOfMeasure = () => {
-      const newUnit = { name: '', contains: 1, price: 0, sku: '' };
-      setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
-  }
-
-  const removeUnitOfMeasure = (index: number) => {
-      if (index === 0) return; // Cannot remove base unit
-      setProduct(prev => ({...prev, unitsOfMeasure: (prev.unitsOfMeasure || []).filter((_, i) => i !== index)}));
-  }
   
   const handleSave = async () => {
     if (onSave) {
@@ -421,11 +370,11 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             </CardContent>
           </Card>
 
-          <Card>
+           <Card>
             <CardHeader>
                 <CardTitle>Variants</CardTitle>
                 <CardDescription>
-                    Define product variations like size or color.
+                    Define product variations like size or color. The table below will update automatically.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -466,11 +415,11 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 )}
             </CardContent>
           </Card>
-           
+
           <Card>
             <CardHeader>
-                <CardTitle>Packaging</CardTitle>
-                <CardDescription>Define how this product is sold (e.g., pieces, packs, boxes).</CardDescription>
+                <CardTitle>Packaging &amp; Pricing</CardTitle>
+                <CardDescription>Define how this product is sold (e.g., pieces, packs) and set the price for each.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-3">
@@ -483,13 +432,13 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                 </div>
                                 <div className="flex items-end gap-2">
                                   <div className="space-y-2 flex-1">
-                                      <Label htmlFor={`uom-contains-${index}`}>{index === 0 ? 'Contains' : `Contains (${product.unitsOfMeasure?.[index - 1]?.name || 'base units'})`}</Label>
+                                      <Label htmlFor={`uom-contains-${index}`}>{index === 0 ? 'Contains' : `Contains (${product.unitsOfMeasure?.[0]?.name || 'base units'})`}</Label>
                                       <Input 
                                         id={`uom-contains-${index}`} 
                                         type="number" 
                                         value={uom.contains} 
                                         onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} 
-                                        placeholder={index > 0 ? `of ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}
+                                        placeholder={index > 0 ? `of ${product.unitsOfMeasure[0].name}s` : 'Base Unit'}
                                         disabled={index === 0}
                                       />
                                   </div>
@@ -500,7 +449,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     )}
                                 </div>
                                  <div className="space-y-2">
-                                    <Label htmlFor={`uom-price-${index}`}>Price</Label>
+                                    <Label htmlFor={`uom-price-${index}`}>Price ({product.currency})</Label>
                                     <Input id={`uom-price-${index}`} type="number" value={uom.price || ''} onChange={(e) => handleUnitOfMeasureChange(index, 'price', Number(e.target.value))} />
                                 </div>
                                  <div className="space-y-2">
@@ -517,77 +466,79 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         </div>
 
         <div className="lg:col-span-2 space-y-6">
-          <Card>
+            <Card>
                 <CardHeader>
-                    <CardTitle>Pricing</CardTitle>
-                    <CardDescription>Manage your retail and wholesale pricing tiers.</CardDescription>
+                    <CardTitle>Sellable Units</CardTitle>
+                    <CardDescription>Manage the price and SKU for every combination of variants and packaging.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                     <div className="space-y-2">
-                        <div className="flex items-center space-x-2">
-                            <Switch
-                                id="showComparePrice"
-                                checked={showComparePrice}
-                                onCheckedChange={setShowComparePrice}
-                            />
-                            <Label htmlFor="showComparePrice">Add a "Compare at" price</Label>
-                        </div>
-                         {showComparePrice && (
-                            <div className="flex items-center pl-8">
-                                <span className="p-2 border border-r-0 rounded-l-md bg-muted text-muted-foreground">{product.currency}</span>
-                                <Input
-                                    id="compareAtPrice"
-                                    type="number"
-                                    value={product.compareAtPrice || ''}
-                                    onChange={handleNumberChange}
-                                    placeholder="e.g. 40000"
-                                    className="rounded-l-none"
-                                />
-                            </div>
-                         )}
-                    </div>
+                <CardContent className="overflow-x-auto">
+                <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Variant</TableHead>
+                                <TableHead>Unit</TableHead>
+                                <TableHead>SKU</TableHead>
+                                <TableHead className="text-right">Price</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                             {allSellableUnits.map((item, index) => {
+                                const variantName = product.hasVariants ? Object.values(item.optionValues).join(' / ') : product.name;
+                                return (
+                                    <TableRow key={index}>
+                                        <TableCell className="font-medium">{variantName}</TableCell>
+                                        <TableCell>{item.unit.name}</TableCell>
+                                        <TableCell>
+                                            <Input
+                                                value={item.unit.sku || ''}
+                                                onChange={(e) => handleUnitOfMeasureChange(product.unitsOfMeasure.findIndex(u => u.name === item.unit.name), 'sku', e.target.value)}
+                                                className="h-8"
+                                                placeholder="Enter SKU"
+                                            />
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                             <Input
+                                                type="number"
+                                                value={item.unit.price || ''}
+                                                onChange={(e) => handleUnitOfMeasureChange(product.unitsOfMeasure.findIndex(u => u.name === item.unit.name), 'price', Number(e.target.value))}
+                                                className="h-8 w-32 text-right"
+                                                placeholder="0.00"
+                                            />
+                                        </TableCell>
+                                    </TableRow>
+                                );
+                            })}
+                        </TableBody>
+                </Table>
                 </CardContent>
             </Card>
-            
-           <Card>
-            <CardHeader>
-                <CardTitle>Wholesale Pricing</CardTitle>
-                <Alert>
-                    <Info className="h-4 w-4" />
-                    <AlertDescription>
-                        Wholesale tiers apply to the total quantity of the base unit (e.g., 'Pieces') in the cart, regardless of packaging.
-                    </AlertDescription>
-                </Alert>
-            </CardHeader>
-          </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Wholesale Pricing</CardTitle>
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                            Wholesale tiers apply to the total quantity of the base unit (e.g., 'Pieces') in the cart, regardless of packaging.
+                        </AlertDescription>
+                    </Alert>
+                </CardHeader>
+            </Card>
            
           <Card>
             <CardHeader>
-                <CardTitle>Inventory & Shipping</CardTitle>
+                <CardTitle>Inventory &amp; Shipping</CardTitle>
             </CardHeader>
              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                    <Label htmlFor="sku">Base SKU (Stock Keeping Unit)</Label>
-                    <Input id="sku" value={product.sku || ''} onChange={handleInputChange} placeholder="e.g., TSHIRT-BLK-M" />
+                    <Label>Inventory</Label>
+                    <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                            Stock is now managed in the "Inventory" tab on the main product details page after saving.
+                        </AlertDescription>
+                    </Alert>
                 </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="barcode">Barcode (ISBN, UPC, GTIN, etc.)</Label>
-                    <Input id="barcode" value={product.barcode || ''} onChange={handleInputChange} />
-                </div>
-                {product.hasVariants === false && (
-                    <>
-                    <Separator/>
-                     <div className="space-y-2">
-                        <Label>Inventory</Label>
-                        <Alert>
-                            <Info className="h-4 w-4" />
-                            <AlertDescription>
-                                Stock is managed in the Variants table below. For simple products, this table will have a single row.
-                            </AlertDescription>
-                        </Alert>
-                     </div>
-                    </>
-                )}
             </CardContent>
           </Card>
             
@@ -636,4 +587,3 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
-

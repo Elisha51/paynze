@@ -1,5 +1,6 @@
 
 
+
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -50,19 +51,18 @@ export type ProductOption = {
   values: string[];
 };
 
+export type UnitOfMeasure = {
+  name: string;
+  isBaseUnit?: boolean;
+  contains: number; // How many base units this package contains.
+  price: number;
+  sku: string;
+};
+
 export type ProductVariant = {
-  id: string; // e.g., 'variant-sm-red-piece'
+  id: string; // e.g., 'var-sm-red-piece'
   optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
-  unitOfMeasure: string; // e.g., "Piece", "Pack"
-  price?: number; // The price for this specific variant/packaging combination
-  sku?: string; // The unique SKU for this specific variant/packaging combination
-  barcode?: string;
-  
-  // Inventory details are only tracked for the base unit
-  status: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
-  stockByLocation: InventoryLocationStock[];
-  inventoryItems?: InventoryItem[]; // For serialized tracking
-  stockAdjustments?: StockAdjustment[]; // For history tracking
+  // All other details are now on the packaging unit or main product
 };
 
 export type PreorderSettings = {
@@ -70,11 +70,6 @@ export type PreorderSettings = {
   depositAmount?: number; // Can be percentage or fixed amount
 };
 
-export type UnitOfMeasure = {
-  name: string; // e.g., 'Piece', 'Packet', 'Box'
-  isBaseUnit?: boolean;
-  contains: number; // How many of the *next smaller* unit this one contains. e.g., a Packet `contains` 6 Pieces.
-};
 
 export type Product = {
   // I. Core Identity & Media
@@ -87,10 +82,9 @@ export type Product = {
   videoUrl?: string;
 
   // II. Inventory & Logistics
-  sku?: string; // Base unit SKU
-  barcode?: string; // GTIN, EAN, UPC for base unit
-  inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | 'Don\'t Track';
-  unitsOfMeasure: UnitOfMeasure[]; // Defines the packaging hierarchy
+  sku?: string; // Base product SKU (optional, can be on unit level)
+  barcode?: string; // GTIN, EAN, UPC for base product
+  inventoryTracking: 'Track Quantity' | 'Track with Serial Numbers' | "Don't Track";
   lowStockThreshold?: number; // For the base unit
   requiresShipping: boolean;
   weight?: number; // in kg, for the base unit
@@ -104,7 +98,7 @@ export type Product = {
   serviceDuration?: string; // For service products, e.g., "1 hour", "Per Session"
 
   // III. Pricing & Taxation
-  retailPrice: number; // The price of the base unit
+  retailPrice: number; // DEPRECATED - now on unitOfMeasure
   currency: string;
   compareAtPrice?: number;
   wholesalePricing: WholesalePrice[];
@@ -128,12 +122,14 @@ export type Product = {
   // V. Variants & Sellable Units
   hasVariants: boolean;
   options: ProductOption[];
-  variants: ProductVariant[]; // Represents every unique sellable combination
+  unitsOfMeasure: UnitOfMeasure[]; // Defines packaging and pricing
+  variants: ProductVariant[]; // Represents non-packaging variations like size/color
 
   // VI. Configuration & Customization
   templateId?: string; // ID of a saved product template
   customFields?: { [key: string]: any };
 };
+
 
 export type Category = {
   id: string;
