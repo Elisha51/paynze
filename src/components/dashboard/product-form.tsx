@@ -204,7 +204,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     if (!hasSpecialPackaging && (product.unitsOfMeasure?.length || 0) > 1) {
         setProduct(prev => ({...prev, unitsOfMeasure: [(prev.unitsOfMeasure || [])[0]]}));
     }
-  }, [hasSpecialPackaging, product.unitsOfMeasure]);
+  }, [hasSpecialPackaging]);
 
 
   const handleInputChange = (
@@ -254,6 +254,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             ...prev, 
             inventoryTracking: value as Product['inventoryTracking'],
             lowStockThreshold: undefined, 
+            hasVariants: false,
             variants: prev.variants.map(v => ({...v, stockByLocation: []})),
         }));
     }
@@ -704,6 +705,65 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                          <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>
                     </div>
                 )}
+                <Separator />
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                      <Switch id="hasSpecialPackaging" checked={hasSpecialPackaging} onCheckedChange={setHasSpecialPackaging} disabled={product.hasVariants} />
+                      <Label htmlFor="hasSpecialPackaging">This product has multiple packaging units (e.g., sold in packs or boxes)</Label>
+                  </div>
+                  {product.hasVariants && (
+                      <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800">
+                          <Info className="h-4 w-4 !text-blue-800" />
+                          <AlertDescription>Multiple packaging units cannot be configured for products with variants like size or color.</AlertDescription>
+                      </Alert>
+                  )}
+
+                  {hasSpecialPackaging && !product.hasVariants && (
+                     <div className="space-y-2 pl-8 border-l">
+                          <Label>Packaging Units</Label>
+                          <Table>
+                              <TableHeader>
+                                  <TableRow>
+                                      <TableHead>Unit Name</TableHead>
+                                      <TableHead>Contains</TableHead>
+                                      <TableHead>Price</TableHead>
+                                      <TableHead>SKU</TableHead>
+                                      <TableHead />
+                                  </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                  {product.unitsOfMeasure.map((uom, index) => (
+                                      <TableRow key={index}>
+                                          <TableCell><Input value={uom.name} onChange={(e) => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? "e.g., Piece" : "e.g., Packet"} /></TableCell>
+                                          <TableCell>
+                                            <Input 
+                                              type="number" 
+                                              value={uom.contains} 
+                                              onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} 
+                                              disabled={index === 0} 
+                                              placeholder={index > 0 ? `of ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}
+                                            />
+                                          </TableCell>
+                                          <TableCell><Input type="number" value={uom.price} onChange={(e) => handleUnitOfMeasureChange(index, 'price', Number(e.target.value))} placeholder="e.g. 80000" /></TableCell>
+                                          <TableCell><Input value={uom.sku} onChange={(e) => handleUnitOfMeasureChange(index, 'sku', e.target.value)} placeholder="e.g., CNDL-PCK" /></TableCell>
+                                           <TableCell>
+                                            {index > 0 && (
+                                                <Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)}>
+                                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                                </Button>
+                                            )}
+                                        </TableCell>
+                                      </TableRow>
+                                  ))}
+                              </TableBody>
+                          </Table>
+                          <Button variant="outline" size="sm" onClick={addUnitOfMeasure}>
+                            <PlusCircle className="mr-2 h-4 w-4" /> Add Unit
+                          </Button>
+                     </div>
+                  )}
+                </div>
+                <Separator />
                 <div className="space-y-4">
                     <h4 className="font-medium text-sm">Wholesale Pricing</h4>
                     {product.wholesalePricing && product.wholesalePricing.length > 0 && (
@@ -1185,5 +1245,3 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
-
-    
