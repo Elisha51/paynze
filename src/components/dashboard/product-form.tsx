@@ -13,7 +13,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import type { Product, WholesalePrice, ProductVariant, ProductImage, ProductOption, PreorderSettings, Category, Supplier, UnitOfMeasure } from '@/lib/types';
@@ -27,7 +27,6 @@ import {
   SelectGroup,
   SelectLabel,
 } from '../ui/select';
-import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -36,15 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-  DialogClose,
-} from '@/components/ui/dialog';
 import Image from 'next/image';
 import { Checkbox } from '../ui/checkbox';
 import { RichTextEditor } from '../ui/rich-text-editor';
@@ -71,7 +61,7 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
-  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, price: 0, sku: '' }],
+  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1 }],
   requiresShipping: true,
   retailPrice: 0,
   currency: 'UGX',
@@ -79,45 +69,53 @@ const emptyProduct: Product = {
   hasVariants: false,
   options: [{ name: '', values: [] }],
   variants: [
-    { id: 'default-variant', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: 0 }
+    { id: 'default-variant', unitOfMeasure: 'Piece', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: 0 }
   ],
   wholesalePricing: [],
   productVisibility: ['Online Store'],
   supplierIds: [],
 };
 
-// Helper function to generate variants from options
-const generateVariants = (options: ProductOption[]): ProductVariant[] => {
-    if (options.length === 0 || options.every(opt => opt.values.length === 0)) {
-        return [];
-    }
 
-    let variants: Record<string, string>[] = [{}];
+// Helper function to generate variants from options and units
+const generateVariants = (options: ProductOption[], units: UnitOfMeasure[]): ProductVariant[] => {
+    let combinations: Record<string, string>[] = [{}];
 
-    for (const option of options) {
-        if(option.name && option.values.length > 0) {
-            const newVariants: Record<string, string>[] = [];
-            for (const variant of variants) {
-                for (const value of option.values) {
-                    newVariants.push({
-                        ...variant,
-                        [option.name]: value,
-                    });
+    // First, generate combinations from product options (size, color, etc.)
+    if (options.length > 0 && options.some(opt => opt.values.length > 0)) {
+        for (const option of options) {
+            if(option.name && option.values.length > 0) {
+                const newCombinations: Record<string, string>[] = [];
+                for (const combination of combinations) {
+                    for (const value of option.values) {
+                        newCombinations.push({
+                            ...combination,
+                            [option.name]: value,
+                        });
+                    }
                 }
+                combinations = newCombinations;
             }
-            variants = newVariants;
         }
     }
     
-    return variants.map((optionValues, index) => ({
-        id: `variant-${Date.now()}-${index}`,
-        optionValues,
-        status: 'In Stock',
-        price: undefined,
-        sku: '',
-        imageIds: [],
-        stockByLocation: defaultStockByLocation,
-    }));
+    // Now, cross-product with units of measure
+    let finalVariants: ProductVariant[] = [];
+    for (const combo of combinations) {
+        for (const unit of units) {
+            finalVariants.push({
+                id: `variant-${Object.values(combo).join('-')}-${unit.name}-${Date.now()}`.replace(/ /g, ''),
+                optionValues: combo,
+                unitOfMeasure: unit.name,
+                status: 'In Stock',
+                price: undefined, // Price will be set by user
+                sku: '',
+                stockByLocation: defaultStockByLocation,
+            });
+        }
+    }
+
+    return finalVariants;
 };
 
 
@@ -128,7 +126,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const [settings, setSettings] = useState<OnboardingFormData | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [showComparePrice, setShowComparePrice] = useState(!!initialProduct?.compareAtPrice);
   const [hasSpecialPackaging, setHasSpecialPackaging] = useState((initialProduct?.unitsOfMeasure?.length || 0) > 1);
   const { toast } = useToast();
@@ -136,7 +133,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
 
   useEffect(() => {
-    // When initialProduct changes, reset the form state
     setProduct(prev => ({ ...emptyProduct, ...prev, ...initialProduct }));
     setShowComparePrice(!!initialProduct?.compareAtPrice);
     setHasSpecialPackaging((initialProduct?.unitsOfMeasure?.length || 0) > 1);
@@ -147,23 +143,35 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }
 
     async function loadData() {
-        const [fetchedCategories, fetchedSuppliers, fetchedProducts] = await Promise.all([
+        const [fetchedCategories, fetchedSuppliers] = await Promise.all([
             getCategories(),
             getSuppliers(),
-            getProducts(),
         ]);
         setCategories(fetchedCategories);
         setSuppliers(fetchedSuppliers);
-        setAllProducts(fetchedProducts);
     }
     loadData();
   }, [initialProduct]);
   
   useEffect(() => {
     if (!hasSpecialPackaging && (product.unitsOfMeasure?.length || 0) > 1) {
-        setProduct(prev => ({...prev, unitsOfMeasure: [(prev.unitsOfMeasure || [])[0]]}));
+        const baseUnit = product.unitsOfMeasure.find(u => u.isBaseUnit) || { name: 'Piece', isBaseUnit: true, contains: 1 };
+        setProduct(prev => ({...prev, unitsOfMeasure: [baseUnit]}));
     }
   }, [hasSpecialPackaging, product.unitsOfMeasure]);
+  
+  // Auto-update variants when options or units change
+  useEffect(() => {
+    if (product.hasVariants || product.unitsOfMeasure.length > 1) {
+      const newVariants = generateVariants(product.options, product.unitsOfMeasure);
+      setProduct(prev => ({...prev, variants: newVariants}));
+    } else {
+      // Revert to a single default variant
+      setProduct(prev => ({...prev, variants: [
+        { id: 'default-variant', unitOfMeasure: 'Piece', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: prev.retailPrice }
+      ]}));
+    }
+  }, [product.hasVariants, product.options, product.unitsOfMeasure]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -171,10 +179,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     const { id, value } = e.target;
     setProduct((prev) => ({ ...prev, [id]: value }));
   };
-
-  const handleCheckboxChange = (id: keyof Product, checked: boolean) => {
-    setProduct((prev) => ({...prev, [id]: checked }));
-  }
   
   const handleDescriptionChange = (value: string) => {
     setProduct(prev => ({ ...prev, longDescription: value }));
@@ -185,112 +189,10 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     setProduct((prev) => ({ ...prev, [id]: Number(value) || 0 }));
   };
 
-  const handleDimensionChange = (dimension: 'length' | 'width' | 'height', value: string) => {
-      setProduct(prev => ({
-          ...prev,
-          dimensions: {
-              ...(prev.dimensions || { length: 0, width: 0, height: 0 }),
-              [dimension]: Number(value) || 0,
-          }
-      }));
-  }
-  
   const handleSelectChange = (id: keyof Product, value: string) => {
-    if (id === 'productType') {
-        const isPhysical = value === 'Physical';
-        setProduct(prev => ({ 
-            ...prev, 
-            productType: value as Product['productType'],
-            requiresShipping: isPhysical,
-            inventoryTracking: isPhysical ? 'Track Quantity' : 'Don\'t Track',
-        }));
-    } else {
-        setProduct(prev => ({ ...prev, [id]: value }));
-    }
-     if (id === 'inventoryTracking' && value === "Don't Track") {
-        setProduct(prev => ({ 
-            ...prev, 
-            inventoryTracking: value as Product['inventoryTracking'],
-            lowStockThreshold: undefined,
-            variants: prev.variants.map(v => ({...v, stockByLocation: []})),
-        }));
-    }
+    setProduct(prev => ({ ...prev, [id]: value }));
   }
   
-  const handleVisibilityChange = (channel: 'Online Store' | 'POS', checked: boolean) => {
-    let currentVisibility = product.productVisibility || [];
-    if (checked) {
-        if (!currentVisibility.includes(channel)) {
-            currentVisibility.push(channel);
-        }
-    } else {
-        currentVisibility = currentVisibility.filter(c => c !== channel);
-    }
-    setProduct(prev => ({ ...prev, productVisibility: currentVisibility }));
-  };
-
-
-  const handleStatusChange = (value: Product['status']) => {
-    setProduct((prev) => ({ ...prev, status: value }));
-  };
-  
-  const handlePreorderPaymentChange = (field: keyof PreorderSettings, value: string | number) => {
-    setProduct(prev => ({
-      ...prev,
-      preorderSettings: {
-        ...(prev.preorderSettings || { paymentType: 'full' }),
-        [field]: value
-      }
-    }));
-  };
-
-  const handleFilesChange = (newFiles: (File | ProductImage)[]) => {
-    const processedFiles = newFiles.map(file => {
-      if (file instanceof File && !(file as any).id) {
-        const newFileWithId = file as any;
-        newFileWithId.id = `new-${Math.random().toString(36).substr(2, 9)}`;
-        return newFileWithId;
-      }
-      return file;
-    });
-    setProduct({ ...product, images: processedFiles as (ProductImage | File)[] });
-  };
-
-  const handleDigitalFileChange = (files: File[]) => {
-      if (files.length > 0) {
-          setProduct(prev => ({ ...prev, digitalFile: files[0] }));
-      } else {
-          setProduct(prev => ({ ...prev, digitalFile: undefined }));
-      }
-  };
-  
-  const handleAddWholesalePrice = () => {
-    setProduct(prev => ({
-        ...prev,
-        wholesalePricing: [...(prev.wholesalePricing || []), { customerGroup: '', price: 0, minOrderQuantity: 10 }]
-    }))
-  }
-
-  const handleWholesalePriceChange = (index: number, field: keyof WholesalePrice, value: string | number) => {
-    const updatedPricing = [...(product.wholesalePricing || [])];
-    const tier = { ...updatedPricing[index] };
-
-    if (field === 'price' || field === 'minOrderQuantity') {
-        tier[field] = Number(value);
-    } else {
-        tier[field] = value as string;
-    }
-    updatedPricing[index] = tier;
-    setProduct(prev => ({ ...prev, wholesalePricing: updatedPricing }));
-  };
-
-  const handleRemoveWholesalePrice = (index: number) => {
-     setProduct(prev => ({
-        ...prev,
-        wholesalePricing: (prev.wholesalePricing || []).filter((_, i) => i !== index)
-    }))
-  }
-
   const handleOptionChange = (optionIndex: number, field: 'name' | 'value', value: string) => {
       const updatedOptions = [...product.options];
       if (field === 'name') {
@@ -313,31 +215,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   };
 
 
-  const handleVariantStockChange = (variantId: string, locationName: string, value: string) => {
-    setProduct(prev => ({
-        ...prev,
-        variants: prev.variants.map(v => {
-            if (v.id === variantId) {
-                const newStockByLocation = [...v.stockByLocation];
-                const locIndex = newStockByLocation.findIndex(loc => loc.locationName === locationName);
-                
-                if (locIndex !== -1) {
-                    const newStock = { ...newStockByLocation[locIndex].stock, onHand: Number(value) || 0 };
-                    newStock.available = newStock.onHand - newStock.reserved - newStock.damaged;
-                    newStockByLocation[locIndex] = { ...newStockByLocation[locIndex], stock: newStock };
-                } else {
-                    const newStock = { ...defaultStock, onHand: Number(value) || 0 };
-                    newStock.available = newStock.onHand;
-                    newStockByLocation.push({ locationName, stock: newStock });
-                }
-
-                return { ...v, stockByLocation: newStockByLocation };
-            }
-            return v;
-        })
-    }));
-  };
-
   const handleVariantChange = (variantId: string, field: keyof Omit<ProductVariant, 'stockByLocation'>, value: string | number) => {
     setProduct(prev => ({
         ...prev,
@@ -356,24 +233,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }));
   };
   
-  const handleVariantImageSelect = (variantId: string, imageId: string, isSelected: boolean) => {
-    setProduct(prev => ({
-        ...prev,
-        variants: prev.variants.map(v => {
-            if (v.id === variantId) {
-                const imageIds = v.imageIds || [];
-                if (isSelected) {
-                    return { ...v, imageIds: [...imageIds, imageId] };
-                } else {
-                    return { ...v, imageIds: imageIds.filter(id => id !== imageId) };
-                }
-            }
-            return v;
-        })
-    }));
-  };
-  
-  const handleGenerateDescription = async (field: 'short' | 'long') => {
+  const handleGenerateDescription = async () => {
     if (!product.name || !product.category) {
         toast({
             variant: "destructive",
@@ -389,11 +249,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             category: product.category,
         });
         if (result.description) {
-            if (field === 'short') {
-                setProduct(prev => ({...prev, shortDescription: result.description}));
-            } else {
-                setProduct(prev => ({...prev, longDescription: result.description}));
-            }
+            setProduct(prev => ({...prev, longDescription: result.description}));
             toast({
                 title: "Description Generated",
                 description: "The AI-powered description has been added.",
@@ -411,25 +267,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     }
   };
 
-  const handleSupplierSelect = (supplierId: string) => {
-    setProduct(prev => {
-        const currentIds = prev.supplierIds || [];
-        const newIds = currentIds.includes(supplierId) 
-            ? currentIds.filter(id => id !== supplierId)
-            : [...currentIds, supplierId];
-        return { ...prev, supplierIds: newIds };
-    });
-  }
-  
-  const handleSeoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { id, value } = e.target;
-    const field = id.replace('seo-', '');
-    setProduct(prev => ({
-        ...prev,
-        seo: { ...(prev.seo || {}), [field]: value }
-    }));
-  }
-
   const handleUnitOfMeasureChange = (index: number, field: keyof UnitOfMeasure, value: string | number) => {
       const newUnits = [...(product.unitsOfMeasure || [])];
       (newUnits[index] as any)[field] = value;
@@ -437,7 +274,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }
 
   const addUnitOfMeasure = () => {
-      const newUnit = { name: '', contains: 1, price: 0, sku: '' };
+      const newUnit = { name: '', contains: 1 };
       setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
   }
 
@@ -446,12 +283,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
       setProduct(prev => ({...prev, unitsOfMeasure: (prev.unitsOfMeasure || []).filter((_, i) => i !== index)}));
   }
   
-  const uploadedImages = product.images.filter(img => ('url' in img && img.url) || (img instanceof File)) as (ProductImage | File & { id: string, url?: string })[];
-
-  const handleBack = () => {
-      router.back();
-  }
-
   const handleSave = async () => {
     if (onSave) {
         onSave(product as Product);
@@ -507,53 +338,19 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     <div className="space-y-6">
        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* General Information */}
           <Card>
             <CardHeader>
               <CardTitle>General Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                    <Label htmlFor="name">Product Name</Label>
-                    <Input id="name" value={product.name} onChange={handleInputChange} placeholder="e.g., Kitenge Fabric"/>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="productType">Product Type</Label>
-                    <Select value={product.productType} onValueChange={(v) => handleSelectChange('productType', v)}>
-                        <SelectTrigger id="productType">
-                            <SelectValue placeholder="Select product type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Physical"><div className="flex items-center gap-2"><Package className="h-4 w-4"/> Physical</div></SelectItem>
-                            <SelectItem value="Digital"><div className="flex items-center gap-2"><Download className="h-4 w-4"/> Digital</div></SelectItem>
-                            <SelectItem value="Service"><div className="flex items-center gap-2"><Clock className="h-4 w-4"/> Service</div></SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-              </div>
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                    <Label htmlFor="shortDescription">Short Description (max 160 characters)</Label>
-                    <Button variant="ghost" size="sm" onClick={() => handleGenerateDescription('short')} disabled={isGenerating}>
-                        <Sparkles className="h-4 w-4 mr-2" />
-                        {isGenerating ? 'Generating...' : 'Generate'}
-                    </Button>
-                </div>
-                <Textarea 
-                  id="shortDescription" 
-                  value={product.shortDescription || ''} 
-                  onChange={handleInputChange} 
-                  placeholder="A brief summary for search results and category pages." 
-                  maxLength={160}
-                  className="min-h-[60px]"
-                />
-                 <p className="text-xs text-muted-foreground text-right">{product.shortDescription?.length || 0} / 160</p>
+                  <Label htmlFor="name">Product Name</Label>
+                  <Input id="name" value={product.name} onChange={handleInputChange} placeholder="e.g., Kitenge Fabric"/>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
                     <Label htmlFor="longDescription">Detailed Description</Label>
-                     <Button variant="ghost" size="sm" onClick={() => handleGenerateDescription('long')} disabled={isGenerating}>
+                     <Button variant="ghost" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
                         <Sparkles className="h-4 w-4 mr-2" />
                         {isGenerating ? 'Generating...' : 'Generate'}
                     </Button>
@@ -568,7 +365,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             </CardContent>
           </Card>
 
-          {/* Media */}
           <Card>
              <CardHeader>
               <CardTitle>Media</CardTitle>
@@ -576,21 +372,11 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             <CardContent className="space-y-4">
                 <div className="space-y-2">
                     <Label>Images</Label>
-                    <FileUploader
-                        files={product.images}
-                        onFilesChange={handleFilesChange}
-                        maxFiles={15}
-                    />
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="videoUrl">Video URL (Optional)</Label>
-                    <Input id="videoUrl" value={product.videoUrl || ''} onChange={handleInputChange} placeholder="e.g., https://www.youtube.com/watch?v=..."/>
-                    <p className="text-xs text-muted-foreground">Embed a single video from YouTube or Vimeo.</p>
+                    <FileUploader files={[]} onFilesChange={() => {}} />
                 </div>
             </CardContent>
           </Card>
-          
-          {/* Variants */}
+
           <Card>
             <CardHeader>
                 <CardTitle>Variants</CardTitle>
@@ -598,15 +384,12 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="flex items-start space-x-3">
-                    <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)} disabled={product.inventoryTracking === "Don't Track"}/>
+                    <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => setProduct(p => ({...p, hasVariants: !!c}))}/>
                     <div className="grid gap-1.5 leading-none">
                         <Label htmlFor="hasVariants">This product has variants</Label>
-                        <p className="text-sm text-muted-foreground">
-                            Offer different versions of this product, like sizes or colors.
-                        </p>
+                        <p className="text-sm text-muted-foreground">Offer different versions of this product, like sizes or colors.</p>
                     </div>
                 </div>
-
                 {product.hasVariants && (
                     <div className="space-y-4 pl-8 border-l">
                         <h4 className="font-medium">Options</h4>
@@ -616,21 +399,11 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     <div className="flex-1 space-y-2">
                                         <div className="space-y-1">
                                             <Label htmlFor={`option-name-${index}`}>Option Name</Label>
-                                            <Input
-                                                id={`option-name-${index}`}
-                                                value={option.name}
-                                                onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
-                                                placeholder="e.g., Size"
-                                            />
+                                            <Input id={`option-name-${index}`} value={option.name} onChange={(e) => handleOptionChange(index, 'name', e.target.value)} placeholder="e.g., Size"/>
                                         </div>
                                         <div className="space-y-1">
                                             <Label htmlFor={`option-values-${index}`}>Option Values</Label>
-                                            <Input
-                                                id={`option-values-${index}`}
-                                                value={option.values.join(', ')}
-                                                onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
-                                                placeholder="e.g., Small, Medium, Large"
-                                            />
+                                            <Input id={`option-values-${index}`} value={option.values.join(', ')} onChange={(e) => handleOptionChange(index, 'value', e.target.value)} placeholder="e.g., Small, Medium, Large"/>
                                             <p className="text-xs text-muted-foreground">Separate values with a comma.</p>
                                         </div>
                                     </div>
@@ -641,17 +414,14 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             </Card>
                         ))}
                         {product.options.length < 3 && (
-                            <Button variant="outline" size="sm" onClick={addOption}>
-                                <PlusCircle className="mr-2 h-4 w-4" /> Add another option
-                            </Button>
+                            <Button variant="outline" size="sm" onClick={addOption}><PlusCircle className="mr-2 h-4 w-4" /> Add another option</Button>
                         )}
                     </div>
                 )}
             </CardContent>
           </Card>
-
-          {/* Packaging */}
-          <Card>
+          
+           <Card>
             <CardHeader>
               <CardTitle>Packaging</CardTitle>
               <CardDescription>Define how this product is packaged and sold.</CardDescription>
@@ -662,385 +432,164 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     <Switch id="hasSpecialPackaging" checked={hasSpecialPackaging} onCheckedChange={setHasSpecialPackaging} />
                     <Label htmlFor="hasSpecialPackaging">This product has multiple packaging units (e.g., sold in packs or boxes)</Label>
                 </div>
-                {hasSpecialPackaging && (
-                   <div className="space-y-4 pt-4 border-t">
-                        <Label>Packaging Units</Label>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Unit Name</TableHead>
-                                    <TableHead>Contains</TableHead>
-                                    <TableHead>Price</TableHead>
-                                    <TableHead>SKU</TableHead>
-                                    <TableHead />
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {product.unitsOfMeasure.map((uom, index) => (
-                                    <TableRow key={index}>
-                                        <TableCell><Input value={uom.name} onChange={(e) => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? "e.g., Piece" : "e.g., Packet"} /></TableCell>
-                                        <TableCell>
+                <div className="space-y-4 pt-4 border-t">
+                    <Label className="font-semibold">Packaging Units</Label>
+                     <Alert>
+                        <Info className="h-4 w-4" />
+                        <AlertDescription>
+                            Define your packaging from smallest to largest. The first unit is your base for inventory tracking. Price and SKU for each packaging will be set in the Variants table below.
+                        </AlertDescription>
+                    </Alert>
+                    <div className="space-y-3">
+                        {product.unitsOfMeasure.map((uom, index) => (
+                            <Card key={index} className="p-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                                    <div className="space-y-2">
+                                        <Label htmlFor={`uom-name-${index}`}>{index === 0 ? 'Base Unit Name' : 'Unit Name'}</Label>
+                                        <Input id={`uom-name-${index}`} value={uom.name} onChange={(e) => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? "e.g., Piece" : "e.g., Packet"} />
+                                    </div>
+                                    <div className="flex items-end gap-2">
+                                      <div className="space-y-2 flex-1">
+                                          <Label htmlFor={`uom-contains-${index}`}>Contains</Label>
                                           <Input 
+                                            id={`uom-contains-${index}`} 
                                             type="number" 
                                             value={uom.contains} 
                                             onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} 
                                             placeholder={index > 0 ? `of ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}
                                             disabled={index === 0}
                                           />
-                                        </TableCell>
-                                        <TableCell><Input type="number" value={uom.price} onChange={(e) => handleUnitOfMeasureChange(index, 'price', Number(e.target.value))} placeholder="e.g. 80000" /></TableCell>
-                                        <TableCell><Input value={uom.sku} onChange={(e) => handleUnitOfMeasureChange(index, 'sku', e.target.value)} placeholder="e.g., CNDL-PCK" /></TableCell>
-                                         <TableCell>
-                                          {index > 0 && (
-                                              <Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)}>
-                                                  <Trash2 className="h-4 w-4 text-destructive" />
-                                              </Button>
-                                          )}
-                                      </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                        <Button variant="outline" size="sm" onClick={addUnitOfMeasure}>
-                          <PlusCircle className="mr-2 h-4 w-4" /> Add Unit
-                        </Button>
-                   </div>
-                )}
+                                      </div>
+                                       {index > 0 && (
+                                            <Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)}>
+                                                <Trash2 className="h-4 w-4 text-destructive" />
+                                            </Button>
+                                        )}
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                    {hasSpecialPackaging && (
+                        <Button variant="outline" size="sm" onClick={addUnitOfMeasure}><PlusCircle className="mr-2 h-4 w-4" /> Add Unit</Button>
+                    )}
+                </div>
               </div>
             </CardContent>
           </Card>
-          
-          {/* Pricing */}
+
           <Card>
             <CardHeader>
               <CardTitle>Pricing</CardTitle>
-              <CardDescription>Manage your product's retail and wholesale prices.</CardDescription>
+              <CardDescription>Set the price for the base unit. Prices for other units or variants are set below.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="retailPrice">Base Unit Price ({product.currency})</Label>
                   <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
-                  <p className="text-xs text-muted-foreground">This is the price for one base unit (e.g., one candle).</p>
                 </div>
                  <div className="space-y-2">
                     <Label>Compare At Price</Label>
                     <div className="flex items-center space-x-4 pt-2">
                         <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')} className="flex items-center space-x-4">
                             <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="no" id="show-compare-no" />
-                            <Label htmlFor="show-compare-no" className="font-normal">Disabled</Label>
+                                <RadioGroupItem value="no" id="show-compare-no" />
+                                <Label htmlFor="show-compare-no" className="font-normal">Disabled</Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                            <RadioGroupItem value="yes" id="show-compare-yes" />
-                            <Label htmlFor="show-compare-yes" className="font-normal">Enabled</Label>
+                                <RadioGroupItem value="yes" id="show-compare-yes" />
+                                <Label htmlFor="show-compare-yes" className="font-normal">Enabled</Label>
                             </div>
                         </RadioGroup>
-                        {showComparePrice && (
-                            <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000" className="w-full"/>
-                        )}
+                        {showComparePrice && (<Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000" className="w-full"/>)}
                     </div>
                      {showComparePrice && <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>}
                 </div>
               </div>
-              <Separator />
-              <div className="space-y-4">
-                <h4 className="font-medium text-sm">Wholesale Pricing</h4>
-                 <p className="text-xs text-muted-foreground">Define special prices for customer groups based on the total quantity of the base unit purchased.</p>
-                {product.wholesalePricing && product.wholesalePricing.length > 0 && (
-                  <div className="space-y-2">
-                    {product.wholesalePricing.map((tier, index) => (
-                      <Card key={index} className="p-3">
-                        <div className="flex justify-between items-start gap-4">
-                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 flex-1">
-                            <div className="space-y-1">
-                              <Label htmlFor={`ws-group-${index}`} className="text-xs">Customer Group</Label>
-                              <Input
-                                id={`ws-group-${index}`}
-                                type="text"
-                                value={tier.customerGroup}
-                                onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
-                                placeholder="e.g. Wholesale"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`ws-qty-${index}`} className="text-xs">Min. Quantity</Label>
-                              <Input 
-                                id={`ws-qty-${index}`}
-                                type="number" 
-                                value={tier.minOrderQuantity} 
-                                onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
-                                placeholder="Min. Quantity"
-                              />
-                            </div>
-                            <div className="space-y-1">
-                              <Label htmlFor={`ws-price-${index}`} className="text-xs">Price</Label>
-                              <Input 
-                                id={`ws-price-${index}`}
-                                type="number" 
-                                value={tier.price} 
-                                onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
-                                placeholder="Price per item"
-                              />
-                            </div>
-                          </div>
-                          <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="ml-2 flex-shrink-0" aria-label="Remove wholesale tier">
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                )}
-                <Button variant="outline" size="sm" onClick={handleAddWholesalePrice}>
-                  <PlusCircle className="mr-2 h-4 w-4" />
-                  Add wholesale tier
-                </Button>
-              </div>
             </CardContent>
           </Card>
           
-          {/* Inventory & Shipping */}
-          {product.productType === 'Physical' && (
-            <Card>
-                <CardHeader>
-                    <CardTitle>Inventory &amp; Shipping</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                     <div className="space-y-2">
-                        <Label htmlFor="inventoryTracking">Inventory Tracking</Label>
-                        <Select value={product.inventoryTracking} onValueChange={(v) => handleSelectChange('inventoryTracking', v)}>
-                            <SelectTrigger id="inventoryTracking">
-                                <SelectValue placeholder="Select tracking method" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Don't Track">Don't Track</SelectItem>
-                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
-                                <SelectItem value="Track with Serial Numbers">Track with Serial Numbers</SelectItem>
-                            </SelectContent>
-                        </Select>
-                     </div>
-
-                     {product.inventoryTracking !== 'Don\'t Track' && !product.hasVariants && product.variants.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-4 border-l-2">
-                            <div className="space-y-2">
-                                <Label htmlFor="onHand">On Hand Quantity (Base Units)</Label>
-                                <Input id="onHand" type="number" value={product.variants[0]?.stockByLocation?.[0]?.stock?.onHand || ''} onChange={(e) => handleVariantStockChange(product.variants[0].id, 'Main Warehouse', e.target.value)} />
-                                <p className="text-xs text-muted-foreground">Total physical stock of the smallest unit.</p>
-                            </div>
-                            {settings?.inventory?.enableLowStockAlerts && (
-                                <div className="space-y-2">
-                                    <Label htmlFor="lowStockThreshold">Low Stock Threshold (Base Units)</Label>
-                                    <Input id="lowStockThreshold" type="number" value={product.lowStockThreshold || ''} onChange={handleNumberChange} />
-                                </div>
-                            )}
-                        </div>
-                     )}
-
-                     <div className="flex items-center space-x-2">
-                        <Checkbox id="requiresShipping" checked={product.requiresShipping} onCheckedChange={(c) => handleCheckboxChange('requiresShipping', !!c)} disabled={product.productType !== 'Physical'}/>
-                        <Label htmlFor="requiresShipping">This is a physical product that requires shipping</Label>
-                     </div>
-                      {product.requiresShipping && (
-                        <div className="pl-6 space-y-4">
-                             <div className="space-y-2">
-                                <Label htmlFor="weight">Weight (kg)</Label>
-                                <Input id="weight" type="number" value={product.weight || ''} onChange={handleNumberChange} />
-                            </div>
-                             <div className="space-y-2">
-                                <Label>Dimensions (cm)</Label>
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                                     <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Length</Label>
-                                        <Input type="number" placeholder="Length" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
-                                     </div>
-                                      <Input type="number" placeholder="Length" className="hidden sm:block" value={product.dimensions?.length || ''} onChange={(e) => handleDimensionChange('length', e.target.value)} />
-
-                                      <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Width</Label>
-                                        <Input type="number" placeholder="Width" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
-                                     </div>
-                                     <Input type="number" placeholder="Width" className="hidden sm:block" value={product.dimensions?.width || ''} onChange={(e) => handleDimensionChange('width', e.target.value)} />
-
-                                     <div className="space-y-1 sm:hidden">
-                                        <Label className="text-xs">Height</Label>
-                                        <Input type="number" placeholder="Height" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
-                                     </div>
-                                     <Input type="number" placeholder="Height" className="hidden sm:block" value={product.dimensions?.height || ''} onChange={(e) => handleDimensionChange('height', e.target.value)} />
-                                </div>
-                            </div>
-                        </div>
-                     )}
-                </CardContent>
-            </Card>
-          )}
-
-          {product.hasVariants && product.variants && product.variants.length > 0 && (
+           {(product.hasVariants || product.unitsOfMeasure.length > 1) && (
                 <Card>
                     <CardHeader>
-                        <CardTitle>Variant Details</CardTitle>
-                        <CardDescription>Manage price, stock, and SKU for each product combination.</CardDescription>
+                        <CardTitle>Variant Pricing & Inventory</CardTitle>
+                        <CardDescription>Manage price, SKU, and stock for each sellable combination.</CardDescription>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
                     <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Variant</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Price</TableHead>
-                                    <TableHead>SKU</TableHead>
-                                    <TableHead>On Hand (Main)</TableHead>
-                                    <TableHead className="text-center">Images</TableHead>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Variant / Package</TableHead>
+                                <TableHead>Price</TableHead>
+                                <TableHead>SKU</TableHead>
+                                <TableHead>On Hand (Base Units)</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {product.variants.map((variant) => (
+                                <TableRow key={variant.id}>
+                                    <TableCell className="font-medium">
+                                        {Object.values(variant.optionValues).join(' / ')} 
+                                        {Object.keys(variant.optionValues).length > 0 && ' - '}
+                                        {variant.unitOfMeasure}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input type="number" aria-label="Variant Price" value={variant.price ?? ''} onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)} placeholder={String(product.retailPrice)} className="h-8 min-w-[100px]"/>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input aria-label="Variant SKU" value={variant.sku || ''} onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)} placeholder="Variant SKU" className="h-8 min-w-[120px]"/>
+                                    </TableCell>
+                                     <TableCell>
+                                        <Input type="number" aria-label="Variant On Hand Stock" value={variant.stockByLocation[0]?.stock.onHand || 0} disabled className="h-8 w-24 bg-muted"/>
+                                    </TableCell>
                                 </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {product.variants.map((variant) => (
-                                    <TableRow key={variant.id}>
-                                        <TableCell className="font-medium">
-                                            {Object.values(variant.optionValues).join(' / ')}
-                                        </TableCell>
-                                        <TableCell>
-                                             <Select value={variant.status} onValueChange={(v) => handleVariantChange(variant.id, 'status', v as ProductVariant['status'])}>
-                                                <SelectTrigger className="h-8 min-w-[120px]">
-                                                    <SelectValue placeholder="Select status" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="In Stock">In Stock</SelectItem>
-                                                    <SelectItem value="Out of Stock">Out of Stock</SelectItem>
-                                                    <SelectItem value="Low Stock">Low Stock</SelectItem>
-                                                    <SelectItem value="Pre-Order">Pre-Order</SelectItem>
-                                                    <SelectItem value="Backordered">Backordered</SelectItem>
-                                                    <SelectItem value="Discontinued">Discontinued</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input
-                                                type="number"
-                                                aria-label="Variant Price"
-                                                value={variant.price ?? ''}
-                                                onChange={(e) => handleVariantChange(variant.id, 'price', e.target.value)}
-                                                placeholder={String(product.retailPrice)}
-                                                className="h-8 min-w-[100px]"
-                                            />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input
-                                                aria-label="Variant SKU"
-                                                value={variant.sku || ''}
-                                                onChange={(e) => handleVariantChange(variant.id, 'sku', e.target.value)}
-                                                placeholder="Variant SKU"
-                                                className="h-8 min-w-[120px]"
-                                            />
-                                        </TableCell>
-                                         <TableCell>
-                                            <Input
-                                                type="number"
-                                                aria-label="Variant On Hand Stock"
-                                                value={variant.stockByLocation[0]?.stock.onHand || 0}
-                                                onChange={(e) => handleVariantStockChange(variant.id, 'Main Warehouse', e.target.value)}
-                                                className="h-8 w-20"
-                                                disabled={product.inventoryTracking === 'Don\'t Track'}
-                                            />
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                        <Dialog>
-                                                <DialogTrigger asChild>
-                                                    <Button variant="outline" size="sm" disabled={uploadedImages.length === 0}>
-                                                        <ImageIcon className="h-4 w-4 mr-2" />
-                                                        {variant.imageIds?.length || 0}
-                                                    </Button>
-                                                </DialogTrigger>
-                                                <DialogContent className="max-w-2xl">
-                                                    <DialogHeader>
-                                                        <DialogTitle>Manage Images for {Object.values(variant.optionValues).join(' / ')}</DialogTitle>
-                                                    </DialogHeader>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 py-4 max-h-[50vh] overflow-y-auto">
-                                                        {uploadedImages.map((image) => {
-                                                            const imageId = 'id' in image ? image.id : '';
-                                                            const imageUrl = image instanceof File ? URL.createObjectURL(image) : image.url;
-                                                            const isSelected = variant.imageIds?.includes(imageId) ?? false;
-                                                            return (
-                                                                <div key={imageId} className="relative">
-                                                                    <label htmlFor={`img-${variant.id}-${imageId}`} className="cursor-pointer">
-                                                                        <Image
-                                                                            src={imageUrl}
-                                                                            alt="Product image"
-                                                                            width={150}
-                                                                            height={150}
-                                                                            className="rounded-md object-cover aspect-square"
-                                                                        />
-                                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                                                                            <Checkbox
-                                                                                id={`img-${variant.id}-${imageId}`}
-                                                                                checked={isSelected}
-                                                                                onCheckedChange={(checked) => handleVariantImageSelect(variant.id, imageId, !!checked)}
-                                                                                className="h-6 w-6 border-white data-[state=checked]:bg-primary data-[state=checked]:border-primary"
-                                                                            />
-                                                                        </div>
-                                                                    </label>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                    <DialogFooter>
-                                                        <DialogClose asChild>
-                                                            <Button>Done</Button>
-                                                        </DialogClose>
-                                                    </DialogFooter>
-                                                </DialogContent>
-                                            </Dialog>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
+                            ))}
+                        </TableBody>
                     </Table>
                     </CardContent>
                 </Card>
             )}
+
+          <Card>
+            <CardHeader><CardTitle>Inventory & Shipping</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+                <div className="space-y-2">
+                    <Label htmlFor="sku">Base Unit SKU</Label>
+                    <Input id="sku" value={product.sku} onChange={handleInputChange} placeholder="e.g. CNDL-PCE" />
+                </div>
+                {product.inventoryTracking !== "Don't Track" && !product.hasVariants && product.unitsOfMeasure.length <= 1 ? (
+                    <div className="space-y-2">
+                        <Label htmlFor="stock">On Hand Quantity</Label>
+                        <Input id="stock" type="number" placeholder="Enter total stock"/>
+                    </div>
+                ) : (
+                    <Alert>
+                        <Info className="h-4 w-4"/>
+                        <AlertTitle>Inventory Management</AlertTitle>
+                        <AlertDescription>
+                            Stock for products with variants or multiple packages is managed in the Inventory module via stock adjustments.
+                        </AlertDescription>
+                    </Alert>
+                )}
+            </CardContent>
+          </Card>
         </div>
 
         <div className="lg:col-span-1 space-y-6">
             <Card>
-                <CardHeader>
-                    <CardTitle>Product Status</CardTitle>
-                </CardHeader>
+                <CardHeader><CardTitle>Product Status</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
                     <div className='space-y-2'>
                         <Label htmlFor="status">Listing Status</Label>
-                        <Select value={product.status} onValueChange={handleStatusChange}>
-                            <SelectTrigger id="status">
-                                <SelectValue placeholder="Set status" />
-                            </SelectTrigger>
+                        <Select value={product.status} onValueChange={(v) => setProduct(p => ({...p, status: v as Product['status']}))}>
+                            <SelectTrigger id="status"><SelectValue /></SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="published">Published</SelectItem>
                                 <SelectItem value="draft">Draft</SelectItem>
                                 <SelectItem value="archived">Archived</SelectItem>
-                                <SelectItem value="Pre-Order">Pre-Order</SelectItem>
                             </SelectContent>
                         </Select>
-                    </div>
-                     <Separator />
-                    <div className='space-y-3'>
-                        <Label>Visibility</Label>
-                         <div className="flex items-start space-x-3">
-                            <Checkbox id="visibility-online" checked={product.productVisibility?.includes('Online Store')} onCheckedChange={(c) => handleVisibilityChange('Online Store', !!c)}/>
-                            <div className="grid gap-1.5 leading-none">
-                                <Label htmlFor="visibility-online" className="flex items-center gap-2"><Laptop />Online Store</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    Show this product on your website.
-                                </p>
-                            </div>
-                        </div>
-                        <div className="flex items-start space-x-3">
-                            <Checkbox id="visibility-pos" checked={product.productVisibility?.includes('POS')} onCheckedChange={(c) => handleVisibilityChange('POS', !!c)}/>
-                            <div className="grid gap-1.5 leading-none">
-                                <Label htmlFor="visibility-pos" className="flex items-center gap-2"><Store />Point of Sale</Label>
-                                <p className="text-sm text-muted-foreground">
-                                    Show this product in your physical store.
-                                </p>
-                            </div>
-                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -1052,9 +601,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                      <div className="space-y-2">
                         <Label htmlFor="category">Category</Label>
                         <Select value={product.category} onValueChange={(v) => setProduct(p => ({...p, category: v}))}>
-                            <SelectTrigger id="category">
-                                <SelectValue placeholder="Select a category" />
-                            </SelectTrigger>
+                            <SelectTrigger id="category"><SelectValue placeholder="Select a category" /></SelectTrigger>
                             <SelectContent>
                                 {mainCategories.map(mainCat => (
                                     <SelectGroup key={mainCat.id}>
@@ -1067,61 +614,12 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             </SelectContent>
                         </Select>
                     </div>
-                     <div className="space-y-2">
-                        <Label>Suppliers</Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    role="combobox"
-                                    className="w-full justify-between h-auto min-h-10"
-                                >
-                                    <div className="flex flex-wrap gap-1">
-                                        {(product.supplierIds || []).length > 0 
-                                            ? (product.supplierIds || []).map(id => {
-                                                const supplier = suppliers.find(s => s.id === id);
-                                                return <Badge key={id} variant="secondary">{supplier?.name || id}</Badge>;
-                                            })
-                                            : "Select suppliers..."
-                                        }
-                                    </div>
-                                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
-                                <Command>
-                                    <CommandInput placeholder="Search suppliers..." />
-                                    <CommandEmpty>No suppliers found.</CommandEmpty>
-                                    <CommandGroup>
-                                        {suppliers.map((supplier) => (
-                                        <CommandItem
-                                            key={supplier.id}
-                                            value={supplier.name}
-                                            onSelect={() => handleSupplierSelect(supplier.id)}
-                                        >
-                                            <Check
-                                            className={cn("mr-2 h-4 w-4",
-                                                (product.supplierIds || []).includes(supplier.id) ? "opacity-100" : "opacity-0"
-                                            )}
-                                            />
-                                            {supplier.name}
-                                        </CommandItem>
-                                        ))}
-                                    </CommandGroup>
-                                </Command>
-                            </PopoverContent>
-                        </Popover>
-                    </div>
-                     <div className="space-y-2">
-                        <Label htmlFor="tags">Tags</Label>
-                        <Input id="tags" value={product.tags?.join(', ') || ''} onChange={(e) => setProduct(p => ({...p, tags: e.target.value.split(',').map(t => t.trim())}))} placeholder="e.g. vibrant, summer, new" />
-                    </div>
                 </CardContent>
             </Card>
         </div>
       </div>
        <div className="flex justify-end gap-2 mt-6">
-            <Button variant="outline" onClick={handleBack}>Cancel</Button>
+            <Button variant="outline" onClick={() => router.back()}>Cancel</Button>
             <Button onClick={handleSave} disabled={isSaving}>
                 {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {isSaving ? 'Saving...' : 'Save Product'}
@@ -1130,7 +628,3 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
-
-    
-
-    

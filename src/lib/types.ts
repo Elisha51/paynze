@@ -1,5 +1,4 @@
 
-
 import type { OnboardingFormData as OnboardingData } from '@/context/onboarding-context';
 import { COMMISSION_RULE_TRIGGERS, COMMISSION_RULE_TYPES } from './config';
 export type OnboardingFormData = OnboardingData;
@@ -53,6 +52,7 @@ export type ProductOption = {
 export type ProductVariant = {
   id: string; // e.g., 'variant-sm-red'
   optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
+  unitOfMeasure: string; // e.g., "Piece", "Pack"
   price?: number; // Overrides the main product price
   sku?: string; // e.g., 'TSHIRT-RED-SM'
   barcode?: string;
@@ -79,9 +79,7 @@ export type PreorderSettings = {
 export type UnitOfMeasure = {
   name: string; // e.g., 'Piece', 'Packet', 'Box'
   isBaseUnit?: boolean;
-  contains?: number; // How many of the *next smaller* unit this one contains. e.g., a Packet `contains` 6 Pieces.
-  price?: number;
-  sku?: string;
+  contains: number; // How many of the *next smaller* unit this one contains. e.g., a Packet `contains` 6 Pieces.
 };
 
 export type Product = {
@@ -646,4 +644,3 @@ export type Affiliate = {
     paidCommission: number;
     payoutHistory?: Payout[];
 };
-
