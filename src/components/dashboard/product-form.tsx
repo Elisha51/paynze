@@ -687,25 +687,24 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </div>
                  <div className="space-y-2">
                     <Label>Compare At Price</Label>
-                    <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')} className="flex items-center space-x-4 pt-2">
-                        <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="no" id="show-compare-no" />
-                        <Label htmlFor="show-compare-no" className="font-normal">Disabled</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="yes" id="show-compare-yes" />
-                        <Label htmlFor="show-compare-yes" className="font-normal">Enabled</Label>
-                        </div>
-                    </RadioGroup>
+                    <div className="flex items-center space-x-4 pt-2">
+                        <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')} className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="no" id="show-compare-no" />
+                            <Label htmlFor="show-compare-no" className="font-normal">Disabled</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="yes" id="show-compare-yes" />
+                            <Label htmlFor="show-compare-yes" className="font-normal">Enabled</Label>
+                            </div>
+                        </RadioGroup>
+                        {showComparePrice && (
+                            <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000" className="w-full"/>
+                        )}
+                    </div>
+                     {showComparePrice && <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>}
                 </div>
               </div>
-              {showComparePrice && (
-                  <div className="space-y-2">
-                      <Label htmlFor="compareAtPrice">Compare At Price ({product.currency})</Label>
-                      <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000"/>
-                      <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>
-                  </div>
-              )}
                 <Separator />
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
@@ -760,6 +759,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
               <Separator />
               <div className="space-y-4">
                 <h4 className="font-medium text-sm">Wholesale Pricing</h4>
+                 <p className="text-xs text-muted-foreground">Define special prices for customer groups based on the total quantity of the base unit purchased.</p>
                 {product.wholesalePricing && product.wholesalePricing.length > 0 && (
                   <div className="space-y-2">
                     {product.wholesalePricing.map((tier, index) => (
@@ -1239,5 +1239,3 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
-
-    
