@@ -57,16 +57,18 @@ export type UnitOfMeasure = {
   isBaseUnit?: boolean;
   contains: number; // How many base units this package contains.
   sku: string;
+  retailPrice: number;
 };
 
 export type ProductVariant = {
   id: string; // e.g., 'var-sm-red-piece'
   optionValues: { [key: string]: string }; // e.g., { Size: 'Small', Color: 'Red' }
   unitOfMeasure: string;
-  retailPrice: number;
+  retailPrice?: number;
+  compareAtPrice?: number;
   costPerItem?: number;
-  sku: string;
-  status: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
+  sku?: string;
+  status?: 'In Stock' | 'Out of Stock' | 'Low Stock' | 'Pre-Order' | 'Backordered' | 'Discontinued';
   stockByLocation: InventoryLocationStock[]; 
   stockAdjustments?: StockAdjustment[];
   inventoryItems?: InventoryItem[];
@@ -106,7 +108,6 @@ export type Product = {
 
   // III. Pricing & Taxation
   currency: string;
-  compareAtPrice?: number;
   wholesalePricing: WholesalePrice[];
   isTaxable: boolean;
   taxClass?: string;

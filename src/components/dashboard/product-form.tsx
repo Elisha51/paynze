@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers, Boxes, Loader2, Info, PackageCheck } from 'lucide-react';
@@ -64,7 +65,7 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
-  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '' }],
+  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, sku: '', retailPrice: 0 }],
   requiresShipping: true,
   currency: 'UGX',
   isTaxable: false,
@@ -148,6 +149,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
           optionValues: combo,
           unitOfMeasure: unit.name,
           retailPrice: existingVariant?.retailPrice,
+          compareAtPrice: existingVariant?.compareAtPrice,
           costPerItem: existingVariant?.costPerItem,
           sku: existingVariant?.sku ?? unit.sku,
           status: existingVariant?.status ?? 'In Stock',
@@ -216,7 +218,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }
 
   const addUnitOfMeasure = () => {
-    const newUnit: UnitOfMeasure = { name: '', contains: 1, sku: '' };
+    const newUnit: UnitOfMeasure = { name: '', contains: 1, sku: '', retailPrice: 0 };
     setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
   }
 
@@ -454,9 +456,10 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                         <TableHeader>
                             <TableRow>
                                 <TableHead>Variant</TableHead>
-                                <TableHead>SKU</TableHead>
-                                <TableHead>Retail Price ({settings?.currency || 'UGX'})</TableHead>
-                                <TableHead>Cost per item</TableHead>
+                                <TableHead><div className="flex items-center gap-1.5">SKU <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Unique code to track this specific item.</TooltipContent></Tooltip></div></TableHead>
+                                <TableHead><div className="flex items-center gap-1.5">Retail Price ({settings?.currency || 'UGX'}) <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>The standard price for this item.</TooltipContent></Tooltip></div></TableHead>
+                                <TableHead><div className="flex items-center gap-1.5">Compare At Price <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>An optional higher price to show a sale.</TooltipContent></Tooltip></div></TableHead>
+                                <TableHead><div className="flex items-center gap-1.5">Cost per item <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Your cost for the item. Used for profit calculation.</TooltipContent></Tooltip></div></TableHead>
                                 <TableHead className="text-right">Stock</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -476,7 +479,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     <TableCell>
                                         <Input
                                             type="text"
-                                            value={matchingProductVariant.sku}
+                                            value={matchingProductVariant.sku || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'sku', e.target.value)}
                                             className="w-32"
                                             placeholder="SKU-123"
@@ -487,6 +490,14 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                             type="number"
                                             value={matchingProductVariant.retailPrice || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'retailPrice', Number(e.target.value))}
+                                            className="w-28"
+                                        />
+                                    </TableCell>
+                                     <TableCell>
+                                        <Input
+                                            type="number"
+                                            value={matchingProductVariant.compareAtPrice || ''}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'compareAtPrice', Number(e.target.value))}
                                             className="w-28"
                                         />
                                     </TableCell>
@@ -539,10 +550,10 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                  <div className="space-y-2">
                                     <Label>Product/Variant</Label>
                                     <Select value={tier.variantSku} onValueChange={(v) => updateWholesaleTier(index, 'variantSku', v)}>
-                                        <SelectTrigger><SelectValue /></SelectTrigger>
+                                        <SelectTrigger><SelectValue placeholder="Select one..."/></SelectTrigger>
                                         <SelectContent>
                                             {allSellableUnits.filter(u => u.sku).map(unit => (
-                                                <SelectItem key={unit.sku} value={unit.sku}>
+                                                <SelectItem key={unit.sku} value={unit.sku || ''}>
                                                     {Object.values(unit.optionValues).join(' / ') || product.name} ({unit.unitOfMeasure})
                                                 </SelectItem>
                                             ))}
@@ -550,11 +561,15 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     </Select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Min. Quantity</Label>
+                                    <Label className="flex items-center gap-1.5">Min. Quantity
+                                        <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Minimum quantity to get this price.</TooltipContent></Tooltip>
+                                    </Label>
                                     <Input type="number" value={tier.minOrderQuantity} onChange={(e) => updateWholesaleTier(index, 'minOrderQuantity', Number(e.target.value))} />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label>Price per unit</Label>
+                                     <Label className="flex items-center gap-1.5">Price per unit
+                                        <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>The special wholesale price for this tier.</TooltipContent></Tooltip>
+                                    </Label>
                                     <Input type="number" value={tier.price} onChange={(e) => updateWholesaleTier(index, 'price', Number(e.target.value))} />
                                 </div>
                             </div>
@@ -635,15 +650,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                       <SelectItem value="Don't Track">Don't Track</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-                 <div className="space-y-2">
-                    <Label className="flex items-center gap-1.5" htmlFor="compareAtPrice">Compare-at price
-                        <Tooltip>
-                        <TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger>
-                        <TooltipContent><p className="max-w-xs">To show a sale, enter a price higher than your product's price.</p></TooltipContent>
-                        </Tooltip>
-                    </Label>
-                    <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} />
                 </div>
                  <div className="flex items-center space-x-2">
                     <Checkbox id="isTaxable" checked={product.isTaxable} onCheckedChange={(c) => handleProductChange('isTaxable', !!c)} />
