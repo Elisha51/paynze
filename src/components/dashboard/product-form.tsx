@@ -49,8 +49,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Switch } from '../ui/switch';
-import { Separator } from '../ui/separator';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
+import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '../ui/tooltip';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
 const defaultStockByLocation = [{ locationName: 'Main Warehouse', stock: defaultStock }];
@@ -63,7 +62,7 @@ const emptyProduct: Product = {
   status: 'draft',
   images: [],
   inventoryTracking: 'Track Quantity',
-  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1 }],
+  unitsOfMeasure: [{ name: 'Piece', isBaseUnit: true, contains: 1, price: 0, sku: '' }],
   requiresShipping: true,
   currency: 'UGX',
   isTaxable: false,
@@ -73,9 +72,8 @@ const emptyProduct: Product = {
   wholesalePricing: [],
   productVisibility: ['Online Store'],
   supplierIds: [],
-  retailPrice: 0, // Keep for backward compatibility with initial form state
+  retailPrice: 0, // Obsolete but kept for safety with old data structures
 };
-
 
 const generateVariantCombinations = (options: ProductOption[]): Record<string, string>[] => {
     if (options.every(opt => !opt.name || opt.values.length === 0)) {
@@ -133,16 +131,21 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     const units = product.unitsOfMeasure;
     const results: ProductVariant[] = [];
 
+    const baseUnit = units.find(u => u.isBaseUnit);
+    if (!baseUnit) return [];
+
     for (const combo of variantCombos) {
       for (const unit of units) {
-        const variantIdentifier = [...Object.values(combo), unit.name].join('-').replace(/\s+/g, '-').toLowerCase();
+        const variantIdentifierParts = [...Object.values(combo), unit.name];
+        const variantIdentifier = variantIdentifierParts.join('-').replace(/\s+/g, '-').toLowerCase();
+        
         const existingVariant = product.variants.find(v => v.id === `var-${variantIdentifier}`);
         
         results.push({
           id: existingVariant?.id || `var-${variantIdentifier}`,
           optionValues: combo,
           unitOfMeasure: unit.name,
-          price: existingVariant?.price ?? (unit.isBaseUnit ? product.retailPrice : 0),
+          price: existingVariant?.price ?? (unit.price || 0),
           sku: existingVariant?.sku ?? '',
           status: existingVariant?.status ?? 'In Stock',
           stockByLocation: existingVariant?.stockByLocation ?? defaultStockByLocation,
@@ -150,7 +153,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
       }
     }
     return results;
-  }, [product.options, product.hasVariants, product.unitsOfMeasure, product.retailPrice, product.variants]);
+  }, [product.options, product.hasVariants, product.unitsOfMeasure, product.variants]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -210,7 +213,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   }
 
   const addUnitOfMeasure = () => {
-    const newUnit: UnitOfMeasure = { name: '', contains: 1 };
+    const newUnit: UnitOfMeasure = { name: '', contains: 1, price: 0, sku: '' };
     setProduct(prev => ({ ...prev, unitsOfMeasure: [...(prev.unitsOfMeasure || []), newUnit] }));
   }
 
@@ -328,139 +331,179 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Packaging</CardTitle>
-                    <CardDescription>Define how this product is sold (e.g., pieces, packs).</CardDescription>
+                    <CardTitle>Packaging & Pricing</CardTitle>
+                    <CardDescription>Define how this product is sold (e.g., pieces, packs) and set prices for each.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <div className="space-y-3">
                     {(product.unitsOfMeasure || []).map((uom, index) => (
                         <Card key={index} className="p-3">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
-                            <div className="space-y-2">
-                            <Label htmlFor={`uom-name-${index}`} className="flex items-center gap-1.5">
-                                    {index === 0 ? 'Base Unit Name' : 'Unit Name'}
-                                    <Tooltip>
-                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
-                                        <TooltipContent>
-                                            <p className="max-w-xs">{index === 0 ? "The name of the smallest individual item you sell, e.g., 'Piece', 'Can', 'Bottle'." : "The name for this package, e.g., 'Pack of 6'."}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </Label>
-                            <Input id={`uom-name-${index}`} value={uom.name} onChange={(e) => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? "e.g., Piece" : "e.g., Pack of 6"} />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+                                <div className="space-y-2">
+                                    <Label htmlFor={`uom-name-${index}`} className="flex items-center gap-1.5">
+                                        {index === 0 ? 'Base Unit Name' : 'Unit Name'}
+                                        <Tooltip>
+                                            <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                            <TooltipContent><p className="max-w-xs">{index === 0 ? "The name of the smallest individual item you sell, e.g., 'Piece', 'Can', 'Bottle'." : "The name for this package, e.g., 'Pack of 6'."}</p></TooltipContent>
+                                        </Tooltip>
+                                    </Label>
+                                    <Input id={`uom-name-${index}`} value={uom.name} onChange={(e) => handleUnitOfMeasureChange(index, 'name', e.target.value)} placeholder={index === 0 ? "e.g., Piece" : "e.g., Pack of 6"} />
+                                </div>
+                                <div className="flex items-end gap-2">
+                                    <div className="space-y-2 flex-1">
+                                        <Label htmlFor={`uom-contains-${index}`} className="flex items-center gap-1.5">
+                                            {index === 0 ? 'Contains' : `Contains (${product.unitsOfMeasure?.[0]?.name || 'base units'})`}
+                                            <Tooltip>
+                                                <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                                <TooltipContent><p className="max-w-xs">How many base units are in this package.</p></TooltipContent>
+                                            </Tooltip>
+                                        </Label>
+                                        <Input id={`uom-contains-${index}`} type="number" value={uom.contains} onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} disabled={index === 0}/>
+                                    </div>
+                                    {index > 0 && (<Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>)}
+                                </div>
                             </div>
-                            <div className="flex items-end gap-2">
-                            <div className="space-y-2 flex-1">
-                                <Label htmlFor={`uom-contains-${index}`} className="flex items-center gap-1.5">
-                                    {index === 0 ? 'Contains' : `Contains (${product.unitsOfMeasure?.[0]?.name || 'base units'})`}
-                                    <Tooltip>
-                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
-                                        <TooltipContent><p className="max-w-xs">How many base units are in this package.</p></TooltipContent>
-                                    </Tooltip>
-                                </Label>
-                                <Input id={`uom-contains-${index}`} type="number" value={uom.contains} onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} disabled={index === 0}/>
-                            </div>
-                            {index > 0 && (<Button variant="ghost" size="icon" onClick={() => removeUnitOfMeasure(index)}><Trash2 className="h-4 w-4 text-destructive" /></Button>)}
-                            </div>
-                        </div>
                         </Card>
                     ))}
-                    </div>
                     <Button variant="outline" size="sm" onClick={addUnitOfMeasure}><PlusCircle className="mr-2 h-4 w-4" /> Add Packaging Unit</Button>
+                    <Separator />
+                    <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                           <div className="space-y-2">
+                                <Label className="flex items-center gap-1.5" htmlFor="costPerItem">Cost per item ({product.unitsOfMeasure[0]?.name || 'Base Unit'})
+                                    <Tooltip>
+                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                        <TooltipContent><p className="max-w-xs">Your cost to acquire one base unit. Used for profit calculation and not shown to customers.</p></TooltipContent>
+                                    </Tooltip>
+                                </Label>
+                                <Input id="costPerItem" type="number" value={product.costPerItem || ''} onChange={handleNumberChange} />
+                            </div>
+                             <div className="space-y-2">
+                                <Label className="flex items-center gap-1.5" htmlFor="compareAtPrice">Compare-at price
+                                     <Tooltip>
+                                        <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                                        <TooltipContent><p className="max-w-xs">To show a sale, enter a price higher than your product's price.</p></TooltipContent>
+                                    </Tooltip>
+                                </Label>
+                                <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} />
+                            </div>
+                        </div>
+                         <div className="flex items-center space-x-2">
+                            <Checkbox id="isTaxable" checked={product.isTaxable} onCheckedChange={(c) => handleProductChange('isTaxable', !!c)} />
+                            <Label htmlFor="isTaxable">Charge tax on this product</Label>
+                        </div>
+                    </div>
                 </CardContent>
+            </Card>
+            
+            <Card>
+              <CardHeader>
+                <CardTitle>Variants</CardTitle>
+                <CardDescription>Define product variations like size or color.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="hasVariants"
+                    checked={product.hasVariants}
+                    onCheckedChange={(c) => handleProductChange('hasVariants', !!c)}
+                    disabled={product.productType !== 'Physical' || product.inventoryTracking === "Don't Track"}
+                  />
+                  <div className="grid gap-1.5 leading-none">
+                    <Label htmlFor="hasVariants" className="flex items-center gap-1.5">This product has variants
+                        <Tooltip>
+                            <TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger>
+                            <TooltipContent><p className="max-w-xs">Offer different versions of this product, like sizes, colors, or materials.</p></TooltipContent>
+                        </Tooltip>
+                    </Label>
+                  </div>
+                </div>
+                {product.hasVariants && (
+                  <div className="space-y-4 pl-8 border-l">
+                    <h4 className="font-medium">Options</h4>
+                    {(product.options || []).map((option, index) => (
+                      <Card key={index} className="p-4">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1 space-y-2">
+                            <div className="space-y-1"><Label htmlFor={`option-name-${index}`}>Option Name</Label><Input id={`option-name-${index}`} value={option.name} onChange={(e) => handleOptionChange(index, 'name', e.target.value)} placeholder="e.g., Size"/></div>
+                            <div className="space-y-1"><Label htmlFor={`option-values-${index}`}>Option Values</Label><Input id={`option-values-${index}`} value={option.values.join(', ')} onChange={(e) => handleOptionChange(index, 'value', e.target.value)} placeholder="e.g., Small, Medium, Large"/><p className="text-xs text-muted-foreground">Separate values with a comma.</p></div>
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6"><X className="h-4 w-4 text-destructive" /></Button>
+                        </div>
+                      </Card>
+                    ))}
+                    {(product.options || []).length < 3 && (<Button variant="outline" size="sm" onClick={addOption}><PlusCircle className="mr-2 h-4 w-4" /> Add another option</Button>)}
+                  </div>
+                )}
+              </CardContent>
             </Card>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Variants</CardTitle>
-                    <CardDescription>Define product variations like size or color. This will generate all possible combinations.</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                     <div className="flex items-start space-x-3">
-                        <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleProductChange('hasVariants', !!c)} disabled={product.productType !== 'Physical'}/>
-                        <div className="grid gap-1.5 leading-none">
-                            <Label htmlFor="hasVariants">This product has variants</Label>
-                            <p className="text-sm text-muted-foreground">Offer different versions of this product, like sizes or colors.</p>
-                        </div>
-                    </div>
-                    {product.hasVariants && (
-                        <div className="space-y-4 pl-8 border-l">
-                            <h4 className="font-medium">Options</h4>
-                            {(product.options || []).map((option, index) => (
-                            <Card key={index} className="p-4">
-                                <div className="flex justify-between items-start gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <div className="space-y-1"><Label htmlFor={`option-name-${index}`}>Option Name</Label><Input id={`option-name-${index}`} value={option.name} onChange={(e) => handleOptionChange(index, 'name', e.target.value)} placeholder="e.g., Size"/></div>
-                                    <div className="space-y-1"><Label htmlFor={`option-values-${index}`}>Option Values</Label><Input id={`option-values-${index}`} value={option.values.join(', ')} onChange={(e) => handleOptionChange(index, 'value', e.target.value)} placeholder="e.g., Small, Medium, Large"/><p className="text-xs text-muted-foreground">Separate values with a comma.</p></div>
-                                </div>
-                                <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6"><X className="h-4 w-4 text-destructive" /></Button>
-                                </div>
-                            </Card>
-                            ))}
-                            {(product.options || []).length < 3 && (<Button variant="outline" size="sm" onClick={addOption}><PlusCircle className="mr-2 h-4 w-4" /> Add another option</Button>)}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
           </div>
 
           <div className="lg:col-span-2 space-y-6">
-              <Card>
+            <Card>
                 <CardHeader>
-                    <CardTitle>Variants &amp; Pricing</CardTitle>
-                    <CardDescription>Manage the price, SKU, and inventory for each sellable product combination.</CardDescription>
+                    <CardTitle>Organization</CardTitle>
                 </CardHeader>
-                <CardContent className="overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Variant</TableHead>
-                                <TableHead>Price ({settings?.currency || 'UGX'})</TableHead>
-                                <TableHead>SKU</TableHead>
-                                <TableHead>Available</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {allSellableUnits.map((variant) => {
-                                const variantName = Object.values(variant.optionValues).join(' / ');
-                                const displayName = product.hasVariants ? `${variantName} - ${variant.unitOfMeasure}` : variant.unitOfMeasure;
-                                return (
-                                    <TableRow key={variant.id}>
-                                        <TableCell className="font-medium">{displayName}</TableCell>
-                                        <TableCell>
-                                            <Input type="number" placeholder="0.00" value={variant.price || ''} onChange={(e) => handleVariantTableChange(variant.id, 'price', Number(e.target.value))} className="w-28" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input placeholder="Enter SKU" value={variant.sku || ''} onChange={(e) => handleVariantTableChange(variant.id, 'sku', e.target.value)} className="w-32" />
-                                        </TableCell>
-                                        <TableCell>
-                                            <Input type="number" placeholder="0" value={variant.stockByLocation?.[0]?.stock.available || 0} className="w-20"
-                                                onChange={(e) => handleVariantTableChange(variant.id, 'stockByLocation', [{ locationName: 'Main Warehouse', stock: { ...defaultStock, onHand: Number(e.target.value), available: Number(e.target.value) }}])}
-                                            />
-                                        </TableCell>
-                                    </TableRow>
-                                );
-                            })}
-                        </TableBody>
-                    </Table>
+                <CardContent className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="status" className="flex items-center gap-1.5">Status
+                                <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p>"Published" is visible to customers, "Draft" is hidden.</p></TooltipContent></Tooltip>
+                            </Label>
+                            <Select value={product.status} onValueChange={(v) => handleProductChange('status', v as Product['status'])}>
+                                <SelectTrigger id="status"><SelectValue /></SelectTrigger>
+                                <SelectContent><SelectItem value="published">Published</SelectItem><SelectItem value="draft">Draft</SelectItem></SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="productType" className="flex items-center gap-1.5">Product Type
+                                <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p>Physical (shipped), Digital (downloadable), or Service (non-shippable).</p></TooltipContent></Tooltip>
+                            </Label>
+                            <Select value={product.productType} onValueChange={(v) => handleProductChange('productType', v)}>
+                                <SelectTrigger id="productType"><SelectValue placeholder="Select product type" /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Physical">Physical</SelectItem>
+                                    <SelectItem value="Digital">Digital</SelectItem>
+                                    <SelectItem value="Service">Service</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                     <div className="space-y-2">
+                        <Label htmlFor="category">Category</Label>
+                        <Select value={product.category} onValueChange={(v) => setProduct(p => ({...p, category: v}))}>
+                            <SelectTrigger id="category"><SelectValue placeholder="Select a category" /></SelectTrigger>
+                            <SelectContent>
+                            {mainCategories.map(mainCat => (<SelectGroup key={mainCat.id}><SelectLabel>{mainCat.name}</SelectLabel>{(subCategoriesByParent[mainCat.id] || []).map(subCat => (<SelectItem key={subCat.id} value={subCat.name}>{subCat.name}</SelectItem>))}</SelectGroup>))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                     <div className="space-y-2">
+                         <Label className="flex items-center gap-1.5">Product Visibility
+                            <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p>Where this product can be sold.</p></TooltipContent></Tooltip>
+                         </Label>
+                         <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex items-center space-x-2"><Checkbox id="vis-online" checked={product.productVisibility?.includes('Online Store')} /><Label htmlFor="vis-online" className="font-normal flex items-center gap-2"><Laptop/> Online Store</Label></div>
+                            <div className="flex items-center space-x-2"><Checkbox id="vis-pos" disabled/><Label htmlFor="vis-pos" className="font-normal flex items-center gap-2 opacity-50"><Store/> Point of Sale (coming soon)</Label></div>
+                         </div>
+                     </div>
                 </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader><CardTitle>Organization</CardTitle></CardHeader>
+             <Card>
+              <CardHeader>
+                  <CardTitle>Inventory</CardTitle>
+                  <CardDescription>Configure stock tracking for this product.</CardDescription>
+              </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="status">Status</Label>
-                  <Select value={product.status} onValueChange={(v) => handleProductChange('status', v as Product['status'])}>
-                    <SelectTrigger id="status"><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="published">Published</SelectItem><SelectItem value="draft">Draft</SelectItem></SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="category">Category</Label>
-                  <Select value={product.category} onValueChange={(v) => setProduct(p => ({...p, category: v}))}>
-                    <SelectTrigger id="category"><SelectValue placeholder="Select a category" /></SelectTrigger>
+                  <Label className="flex items-center gap-1.5">Inventory Tracking
+                    <Tooltip><TooltipTrigger asChild><Info className="h-3 w-3 text-muted-foreground cursor-help" /></TooltipTrigger><TooltipContent><p className="max-w-xs">"Track Quantity" enables stock management. "Don't Track" sets inventory to unlimited.</p></TooltipContent></Tooltip>
+                  </Label>
+                  <Select value={product.inventoryTracking} onValueChange={(v) => handleProductChange('inventoryTracking', v)}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {mainCategories.map(mainCat => (<SelectGroup key={mainCat.id}><SelectLabel>{mainCat.name}</SelectLabel>{(subCategoriesByParent[mainCat.id] || []).map(subCat => (<SelectItem key={subCat.id} value={subCat.name}>{subCat.name}</SelectItem>))}</SelectGroup>))}
+                      <SelectItem value="Track Quantity">Track Quantity</SelectItem>
+                      <SelectItem value="Don't Track">Don't Track</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
