@@ -160,7 +160,8 @@ const getColumns = (
       },
     cell: ({ row }) => {
       const product = row.original;
-      const baseVariant = product.variants.find(v => v.unitOfMeasure === product.unitsOfMeasure.find(u => u.isBaseUnit)?.name);
+      const baseUnitName = product.unitsOfMeasure?.find(u => u.isBaseUnit)?.name;
+      const baseVariant = product.variants.find(v => v.unitOfMeasure === baseUnitName);
       const price = baseVariant?.retailPrice;
       if (price === undefined) {
         return <div className="text-right text-muted-foreground">-</div>;
