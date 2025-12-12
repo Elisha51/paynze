@@ -67,7 +67,7 @@ const emptyProduct: Product = {
   hasVariants: false,
   options: [{ name: '', values: [] }],
   variants: [
-    { id: 'default-variant', unitOfMeasure: 'Piece', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation }
+    { id: 'default-variant', unitOfMeasure: 'Piece', optionValues: {}, status: 'In Stock', stockByLocation: defaultStockByLocation, price: 0 }
   ],
   wholesalePricing: [],
   productVisibility: ['Online Store'],
@@ -107,6 +107,7 @@ const generateVariants = (options: ProductOption[], units: UnitOfMeasure[]): Pro
                 unitOfMeasure: unit.name,
                 status: 'In Stock',
                 stockByLocation: [],
+                price: 0, // Default price
             });
         }
     }
@@ -151,8 +152,15 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   useEffect(() => {
     if (!product.hasVariants && (product.unitsOfMeasure?.length || 0) <= 1) {
         // Simple product, ensure one variant exists for the base unit
-        if (product.variants.length === 0) {
-            setProduct(prev => ({...prev, variants: [ { id: 'default-variant', unitOfMeasure: prev.unitsOfMeasure[0].name, optionValues: {}, status: 'In Stock', stockByLocation: [] } ]}));
+        const baseUnitName = product.unitsOfMeasure?.[0]?.name || 'Piece';
+        if (product.variants.length === 0 || product.variants[0].unitOfMeasure !== baseUnitName) {
+             setProduct(prev => ({...prev, variants: [ { ...emptyProduct.variants[0], unitOfMeasure: baseUnitName, price: prev.retailPrice } ]}));
+        } else if (product.variants.length > 0 && product.variants[0].price !== product.retailPrice) {
+            setProduct(prev => {
+                const newVariants = [...prev.variants];
+                newVariants[0].price = prev.retailPrice;
+                return {...prev, variants: newVariants};
+            })
         }
         return;
     }
@@ -166,12 +174,16 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
         oldVar.unitOfMeasure === newVar.unitOfMeasure && 
         JSON.stringify(oldVar.optionValues) === JSON.stringify(newVar.optionValues)
       );
+      // Carry over the base retail price to new base units
+      if (!existing && newVar.unitOfMeasure === product.unitsOfMeasure[0].name) {
+          return { ...newVar, price: product.retailPrice };
+      }
       return existing ? { ...newVar, ...existing, id: existing.id } : newVar;
     });
 
     setProduct(prev => ({...prev, variants: updatedVariants}));
 
-  }, [product.hasVariants, product.options, product.unitsOfMeasure]);
+  }, [product.hasVariants, product.options, product.unitsOfMeasure, product.retailPrice]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -199,7 +211,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     if (field === 'productType') {
         const isPhysical = value === 'Physical';
         productUpdates.requiresShipping = isPhysical;
-        productUpdates.inventoryTracking = isPhysical ? 'Track Quantity' : 'Don\'t Track';
+        productUpdates.inventoryTracking = isPhysical ? 'Track Quantity' : 'Don\\'t Track';
         if (!isPhysical) {
             productUpdates.hasVariants = false;
         }
@@ -403,7 +415,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             <CardHeader>
                 <CardTitle>Variants</CardTitle>
                 <CardDescription>
-                    Define product variations (like size or color) and packaging units, then manage the price and SKU for each combination below.
+                    Define product variations and packaging. The table below will update to show all sellable combinations.
                 </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -481,61 +493,9 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
 
         <div className="lg:col-span-2 space-y-6">
            <Card>
-                <CardHeader>
-                    <CardTitle>Pricing</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                    <Label htmlFor="retailPrice">Base Unit Price ({product.currency})</Label>
-                    <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
-                    <p className="text-xs text-muted-foreground">The default price for your smallest unit.</p>
-                    </div>
-                    <div className="space-y-2">
-                        <Label>Compare At Price</Label>
-                        <div className="flex items-center space-x-4 pt-2">
-                            <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')} className="flex items-center space-x-4">
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="no" id="show-compare-no" />
-                                    <Label htmlFor="show-compare-no" className="font-normal">Disabled</Label>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <RadioGroupItem value="yes" id="show-compare-yes" />
-                                    <Label htmlFor="show-compare-yes" className="font-normal">Enabled</Label>
-                                </div>
-                            </RadioGroup>
-                            {showComparePrice && (<Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000" className="w-full"/>)}
-                        </div>
-                        {showComparePrice && <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>}
-                    </div>
-                </div>
-                 <div className="space-y-2">
-                    <Label htmlFor="costPerItem">Cost per item (Base Unit)</Label>
-                    <Input id="costPerItem" type="number" value={product.costPerItem} onChange={handleNumberChange} placeholder="Enter cost" className="max-w-xs"/>
-                    <p className="text-xs text-muted-foreground">Used for calculating profit margins.</p>
-                </div>
-                </CardContent>
-            </Card>
-            
-            <Card>
-                <CardHeader>
-                    <CardTitle>Wholesale Pricing</CardTitle>
-                </CardHeader>
-                <CardContent>
-                     <Alert>
-                        <Info className="h-4 w-4" />
-                        <AlertDescription>
-                            Wholesale tiers apply to the total quantity of the base unit (e.g., 'Pieces') in the cart, regardless of packaging.
-                        </AlertDescription>
-                    </Alert>
-                    {/* Wholesale pricing form would go here */}
-                </CardContent>
-            </Card>
-
-           <Card>
             <CardHeader>
-                <CardTitle>Packaging</CardTitle>
-                <CardDescription>Define how this product is sold (e.g., pieces, packs, boxes).</CardDescription>
+              <CardTitle>Packaging</CardTitle>
+              <CardDescription>Define how this product is sold (e.g., pieces, packs, boxes).</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 <div className="space-y-3">
@@ -570,34 +530,80 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </div>
                 <Button variant="outline" size="sm" onClick={addUnitOfMeasure}><PlusCircle className="mr-2 h-4 w-4" /> Add Packaging Unit</Button>
             </CardContent>
-        </Card>
+          </Card>
+           <Card>
+                <CardHeader>
+                    <CardTitle>Pricing</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-2">
+                      <Label htmlFor="retailPrice">Base Unit Price ({product.currency})</Label>
+                      <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
+                      <p className="text-xs text-muted-foreground">The default price for your smallest unit. Prices for other packages are set in the Variants table.</p>
+                  </div>
+                  <div className="space-y-4">
+                      <Label>Compare At Price</Label>
+                      <div className="flex items-center space-x-4">
+                          <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="no" id="show-compare-no" checked={!showComparePrice} onClick={() => setShowComparePrice(false)}/>
+                              <Label htmlFor="show-compare-no" className="font-normal">Disabled</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                               <RadioGroupItem value="yes" id="show-compare-yes" checked={showComparePrice} onClick={() => setShowComparePrice(true)}/>
+                              <Label htmlFor="show-compare-yes" className="font-normal">Enabled</Label>
+                          </div>
+                          {showComparePrice && (<Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000" className="max-w-[150px]"/>)}
+                      </div>
+                      {showComparePrice && <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>}
+                  </div>
+                 <div className="space-y-2">
+                    <Label htmlFor="costPerItem">Cost per item (Base Unit)</Label>
+                    <Input id="costPerItem" type="number" value={product.costPerItem} onChange={handleNumberChange} placeholder="Enter cost" className="max-w-xs"/>
+                    <p className="text-xs text-muted-foreground">Used for calculating profit margins.</p>
+                </div>
+                </CardContent>
+            </Card>
             
             <Card>
-                <CardHeader><CardTitle>Inventory & Shipping</CardTitle></CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="space-y-2">
-                        <Label>Inventory Tracking</Label>
-                         <Select value={product.inventoryTracking} onValueChange={(v) => handleProductChange('inventoryTracking', v)}>
-                            <SelectTrigger><SelectValue /></SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Don't Track">Don't Track</SelectItem>
-                                <SelectItem value="Track Quantity">Track Quantity</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                <CardHeader>
+                    <CardTitle>Wholesale Pricing</CardTitle>
+                </CardHeader>
+                <CardContent>
                      <Alert>
                         <Info className="h-4 w-4" />
                         <AlertDescription>
-                            Initial stock quantities for each variant are set via a Purchase Order or Stock Adjustment after the product is created.
+                            Wholesale tiers apply to the total quantity of the base unit (e.g., 'Pieces') in the cart, regardless of packaging.
                         </AlertDescription>
                     </Alert>
-                    <div className="space-y-2">
-                        <Label htmlFor="sku">Base Unit SKU</Label>
-                        <Input id="sku" value={product.sku} onChange={handleInputChange} placeholder="e.g. TSHIRT-BLK" />
-                         <p className="text-xs text-muted-foreground">SKUs for specific variants are set in the variants table.</p>
-                    </div>
                 </CardContent>
             </Card>
+
+           <Card>
+            <CardHeader><CardTitle>Inventory & Shipping</CardTitle></CardHeader>
+            <CardContent className="space-y-6">
+                <div className="space-y-2">
+                    <Label>Inventory Tracking</Label>
+                     <Select value={product.inventoryTracking} onValueChange={(v) => handleProductChange('inventoryTracking', v)}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="Don't Track">Don't Track</SelectItem>
+                            <SelectItem value="Track Quantity">Track Quantity</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                 <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertDescription>
+                        Initial stock quantities for each variant are set via a Purchase Order or Stock Adjustment after the product is created.
+                    </AlertDescription>
+                </Alert>
+                <div className="space-y-2">
+                    <Label htmlFor="sku">Base Unit SKU</Label>
+                    <Input id="sku" value={product.sku} onChange={handleInputChange} placeholder="e.g. TSHIRT-BLK" />
+                     <p className="text-xs text-muted-foreground">SKUs for specific variants are set in the variants table.</p>
+                </div>
+            </CardContent>
+          </Card>
 
              <Card>
                 <CardHeader>
