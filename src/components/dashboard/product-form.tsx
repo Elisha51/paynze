@@ -813,8 +813,66 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             </CardContent>
           </Card>
           
+          <Card>
+            <CardHeader>
+                <CardTitle>Variants</CardTitle>
+                <CardDescription>Define different product versions (e.g., size, color).</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+                <div className="flex items-start space-x-3">
+                    <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)} disabled={product.inventoryTracking === "Don't Track"}/>
+                    <div className="grid gap-1.5 leading-none">
+                        <Label htmlFor="hasVariants">This product has variants</Label>
+                        <p className="text-sm text-muted-foreground">
+                            Offer different versions of this product, like sizes or colors.
+                        </p>
+                    </div>
+                </div>
+
+                {product.hasVariants && (
+                    <div className="space-y-4 pl-8 border-l">
+                        <h4 className="font-medium">Options</h4>
+                        {product.options.map((option, index) => (
+                            <Card key={index} className="p-4">
+                                <div className="flex justify-between items-start gap-4">
+                                    <div className="flex-1 space-y-2">
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`option-name-${index}`}>Option Name</Label>
+                                            <Input
+                                                id={`option-name-${index}`}
+                                                value={option.name}
+                                                onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
+                                                placeholder="e.g., Size"
+                                            />
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label htmlFor={`option-values-${index}`}>Option Values</Label>
+                                            <Input
+                                                id={`option-values-${index}`}
+                                                value={option.values.join(', ')}
+                                                onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
+                                                placeholder="e.g., Small, Medium, Large"
+                                            />
+                                            <p className="text-xs text-muted-foreground">Separate values with a comma.</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6">
+                                        <X className="h-4 w-4 text-destructive" />
+                                    </Button>
+                                </div>
+                            </Card>
+                        ))}
+                        {product.options.length < 3 && (
+                            <Button variant="outline" size="sm" onClick={addOption}>
+                                <PlusCircle className="mr-2 h-4 w-4" /> Add another option
+                            </Button>
+                        )}
+                    </div>
+                )}
+            </CardContent>
+          </Card>
+            
           {product.productType === 'Physical' && (
-            <>
             <Card>
                 <CardHeader>
                     <CardTitle>Inventory &amp; Shipping</CardTitle>
@@ -886,67 +944,9 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                      )}
                 </CardContent>
             </Card>
+          )}
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Variants</CardTitle>
-                    <CardDescription>Define different product versions (e.g., size, color).</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <div className="flex items-start space-x-3">
-                        <Checkbox id="hasVariants" checked={product.hasVariants} onCheckedChange={(c) => handleCheckboxChange('hasVariants', !!c)} disabled={product.inventoryTracking === "Don't Track"}/>
-                        <div className="grid gap-1.5 leading-none">
-                            <Label htmlFor="hasVariants">This product has variants</Label>
-                            <p className="text-sm text-muted-foreground">
-                                Offer different versions of this product, like sizes or colors.
-                            </p>
-                        </div>
-                    </div>
-
-                    {product.hasVariants && (
-                        <div className="space-y-4 pl-8 border-l">
-                            <h4 className="font-medium">Options</h4>
-                            {product.options.map((option, index) => (
-                                <Card key={index} className="p-4">
-                                    <div className="flex justify-between items-start gap-4">
-                                        <div className="flex-1 space-y-2">
-                                            <div className="space-y-1">
-                                                <Label htmlFor={`option-name-${index}`}>Option Name</Label>
-                                                <Input
-                                                    id={`option-name-${index}`}
-                                                    value={option.name}
-                                                    onChange={(e) => handleOptionChange(index, 'name', e.target.value)}
-                                                    placeholder="e.g., Size"
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <Label htmlFor={`option-values-${index}`}>Option Values</Label>
-                                                <Input
-                                                    id={`option-values-${index}`}
-                                                    value={option.values.join(', ')}
-                                                    onChange={(e) => handleOptionChange(index, 'value', e.target.value)}
-                                                    placeholder="e.g., Small, Medium, Large"
-                                                />
-                                                <p className="text-xs text-muted-foreground">Separate values with a comma.</p>
-                                            </div>
-                                        </div>
-                                        <Button variant="ghost" size="icon" onClick={() => removeOption(index)} className="mt-6">
-                                            <X className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </Card>
-                            ))}
-                            {product.options.length < 3 && (
-                                <Button variant="outline" size="sm" onClick={addOption}>
-                                    <PlusCircle className="mr-2 h-4 w-4" /> Add another option
-                                </Button>
-                            )}
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-            
-            {product.hasVariants && product.variants && product.variants.length > 0 && (
+          {product.hasVariants && product.variants && product.variants.length > 0 && (
                 <Card>
                     <CardHeader>
                         <CardTitle>Variant Details</CardTitle>
@@ -1069,8 +1069,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                     </CardContent>
                 </Card>
             )}
-            </>
-          )}
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -1239,3 +1237,5 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
+
+    
