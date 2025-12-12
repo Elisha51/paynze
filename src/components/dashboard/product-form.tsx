@@ -685,17 +685,18 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                   <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
                   <p className="text-xs text-muted-foreground">This is the price for one base unit (e.g., one candle).</p>
                 </div>
-                <div className="space-y-2">
-                  <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')}>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="no" id="show-compare-no" />
-                      <Label htmlFor="show-compare-no">No "compare at" price</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="yes" id="show-compare-yes" />
-                      <Label htmlFor="show-compare-yes">Show "compare at" price</Label>
-                    </div>
-                  </RadioGroup>
+                 <div className="space-y-2">
+                    <Label>Compare At Price</Label>
+                    <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')} className="flex items-center space-x-4 pt-2">
+                        <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="no" id="show-compare-no" />
+                        <Label htmlFor="show-compare-no" className="font-normal">Disabled</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                        <RadioGroupItem value="yes" id="show-compare-yes" />
+                        <Label htmlFor="show-compare-yes" className="font-normal">Enabled</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
               </div>
               {showComparePrice && (
@@ -734,6 +735,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                               value={uom.contains} 
                                               onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} 
                                               placeholder={index > 0 ? `of ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}
+                                              disabled={index === 0}
                                             />
                                           </TableCell>
                                           <TableCell><Input type="number" value={uom.price} onChange={(e) => handleUnitOfMeasureChange(index, 'price', Number(e.target.value))} placeholder="e.g. 80000" /></TableCell>
@@ -1237,7 +1239,5 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
-
-    
 
     
