@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers, Boxes, Loader2, Info, PackageCheck } from 'lucide-react';
@@ -158,7 +157,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
       }
     }
     return results;
-  }, [product.options, product.hasVariants, product.unitsOfMeasure, product.variants, product.name]);
+  }, [product.options, product.hasVariants, product.unitsOfMeasure, product.variants]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -358,7 +357,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
             <Card>
                 <CardHeader>
                     <CardTitle>Packaging & Pricing</CardTitle>
-                    <CardDescription>Define how this product is sold (e.g., pieces, packs) and set prices for each.</CardDescription>
+                    <CardDescription>Define how this product is sold (e.g., pieces, packs) and set its base price.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {(product.unitsOfMeasure || []).map((uom, index) => (
@@ -457,9 +456,9 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                             <TableRow>
                                 <TableHead>Variant</TableHead>
                                 <TableHead><div className="flex items-center gap-1.5">SKU <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Unique code to track this specific item.</TooltipContent></Tooltip></div></TableHead>
+                                <TableHead><div className="flex items-center gap-1.5">Cost per item <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Your cost for the item. Used for profit calculation.</TooltipContent></Tooltip></div></TableHead>
                                 <TableHead><div className="flex items-center gap-1.5">Retail Price ({settings?.currency || 'UGX'}) <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>The standard price for this item.</TooltipContent></Tooltip></div></TableHead>
                                 <TableHead><div className="flex items-center gap-1.5">Compare At Price <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>An optional higher price to show a sale.</TooltipContent></Tooltip></div></TableHead>
-                                <TableHead><div className="flex items-center gap-1.5">Cost per item <Tooltip><TooltipTrigger asChild><button type="button"><Info className="h-3 w-3 text-muted-foreground cursor-help" /></button></TooltipTrigger><TooltipContent>Your cost for the item. Used for profit calculation.</TooltipContent></Tooltip></div></TableHead>
                                 <TableHead className="text-right">Stock</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -488,6 +487,15 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     <TableCell>
                                         <Input
                                             type="number"
+                                            value={matchingProductVariant.costPerItem || ''}
+                                            onChange={(e) => handleVariantTableChange(variant.id, 'costPerItem', Number(e.target.value))}
+                                            className="w-28"
+                                            placeholder="e.g., 20000"
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <Input
+                                            type="number"
                                             value={matchingProductVariant.retailPrice || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'retailPrice', Number(e.target.value))}
                                             className="w-28"
@@ -499,15 +507,6 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                             value={matchingProductVariant.compareAtPrice || ''}
                                             onChange={(e) => handleVariantTableChange(variant.id, 'compareAtPrice', Number(e.target.value))}
                                             className="w-28"
-                                        />
-                                    </TableCell>
-                                    <TableCell>
-                                        <Input
-                                            type="number"
-                                            value={matchingProductVariant.costPerItem || ''}
-                                            onChange={(e) => handleVariantTableChange(variant.id, 'costPerItem', Number(e.target.value))}
-                                            className="w-28"
-                                            placeholder="e.g., 20000"
                                         />
                                     </TableCell>
                                      <TableCell className="text-right">
@@ -534,7 +533,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                  <CardContent className="space-y-4">
                     {(product.wholesalePricing || []).map((tier, index) => (
                         <Card key={tier.id} className="p-4 relative">
-                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={() => removeWholesaleTier(index)}>
+                            <Button variant="ghost" size="icon" className="absolute top-1 right-1 h-7 w-7" onClick={()={() => removeWholesaleTier(index)}}>
                                 <X className="h-4 w-4 text-destructive" />
                             </Button>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -671,3 +670,5 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </TooltipProvider>
   );
 }
+
+    
