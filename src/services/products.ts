@@ -1,6 +1,5 @@
 
-
-import type { Product, ProductVariant } from '@/lib/types';
+import type { Product, ProductVariant, StockAdjustment } from '@/lib/types';
 import { DataService } from './data-service';
 
 const defaultStock = (onHand: number) => [{ locationName: 'Main Warehouse', stock: { onHand, available: onHand, reserved: 0, damaged: 0, sold: 0 } }];
@@ -190,4 +189,101 @@ export async function updateProduct(updatedProduct: Product): Promise<Product> {
 
 export async function deleteProduct(sku: string): Promise<void> {
   await productService.delete(sku);
+}
+
+export async function updateProductStock(
+    variantSku: string, 
+    quantityChange: number, 
+    type: StockAdjustment['type'], 
+    reason: string,
+    location: string = 'Main Warehouse'
+) {
+    const products = await getProducts();
+    let productToUpdate: Product | undefined;
+    let variantIndex = -1;
+
+    for (const p of products) {
+        const vIndex = p.variants.findIndex(v => v.sku === variantSku);
+        if (vIndex !== -1) {
+            productToUpdate = p;
+            variantIndex = vIndex;
+            break;
+        }
+    }
+    
+    if (!productToUpdate || variantIndex === -1) {
+        console.warn(`Stock update failed: Variant with SKU ${variantSku} not found.`);
+        return;
+    }
+    
+    const product = { ...productToUpdate };
+    const variant = { ...product.variants[variantIndex] };
+    const stockByLocation = [...variant.stockByLocation];
+    let locIndex = stockByLocation.findIndex(l => l.locationName === location);
+    
+    if (locIndex === -1) {
+        stockByLocation.push({ locationName: location, stock: { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 }});
+        locIndex = stockByLocation.length - 1;
+    }
+
+    const stock = { ...stockByLocation[locIndex].stock };
+    let adjustmentQuantity = 0;
+
+    switch (type) {
+        case 'Sale':
+            stock.onHand -= quantityChange;
+            stock.reserved -= quantityChange;
+            stock.sold += quantityChange;
+            adjustmentQuantity = -quantityChange;
+            break;
+        case 'Reserve':
+            if (stock.available >= quantityChange) {
+                stock.available -= quantityChange;
+                stock.reserved += quantityChange;
+            } else {
+                console.warn(`Not enough stock to reserve for SKU ${variantSku}. Available: ${stock.available}, Required: ${quantityChange}`);
+                return; // Or throw an error
+            }
+            break;
+        case 'Un-reserve':
+            if (stock.reserved >= quantityChange) {
+                stock.reserved -= quantityChange;
+                stock.available += quantityChange;
+            }
+            break;
+        case 'Initial Stock':
+        case 'Manual Adjustment':
+        case 'Return':
+            stock.onHand += quantityChange;
+            stock.available += quantityChange;
+            adjustmentQuantity = quantityChange;
+            break;
+        case 'Damage':
+            stock.onHand -= quantityChange;
+            stock.available -= quantityChange;
+            stock.damaged += quantityChange;
+            adjustmentQuantity = -quantityChange;
+            break;
+        default: 
+            break;
+    }
+    
+    stockByLocation[locIndex].stock = stock;
+    variant.stockByLocation = stockByLocation;
+
+    if(type !== 'Reserve' && type !== 'Un-reserve') {
+        const adjustment: StockAdjustment = {
+            id: `adj-${Date.now()}`,
+            date: new Date().toISOString(),
+            type,
+            quantity: adjustmentQuantity,
+            reason,
+            channel: 'Manual',
+            details: `At ${location}`
+        };
+        variant.stockAdjustments = [...(variant.stockAdjustments || []), adjustment];
+    }
+    
+    product.variants[variantIndex] = variant;
+    await updateProduct(product);
 }

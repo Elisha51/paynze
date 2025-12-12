@@ -1,7 +1,7 @@
 
 'use client';
 import type { Order, Product, Staff, Role, StockAdjustment, CommissionRuleCondition, Affiliate, DeliveryNote } from '@/lib/types';
-import { getProducts, updateProduct } from './products';
+import { getProducts, updateProductStock } from './products';
 import { getStaff, updateStaff } from './staff';
 import { getRoles } from './roles';
 import { DataService } from './data-service';
@@ -42,8 +42,8 @@ function initializeMockOrders(): Order[] {
             date: '2024-07-25T11:00:00Z', 
             status: 'Picked Up', 
             fulfillmentMethod: 'Pickup',
-            items: [{ sku: 'KIT-001-RF', name: 'Colorful Kitenge Fabric - Red, Floral', quantity: 5, price: 32000, category: 'Fabrics' }],
-            total: 160000,
+            items: [{ sku: 'ANK-GEO-YD', name: 'Ankara Fabric - Geometric', quantity: 5, price: 25000, category: 'Fabrics' }],
+            total: 125000,
             shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
             fulfilledByStaffId: 'staff-002',
             fulfilledByStaffName: 'Jane Smith',
@@ -57,8 +57,8 @@ function initializeMockOrders(): Order[] {
             date: '2024-07-24T14:00:00Z', 
             status: 'Paid', 
             fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'EBOOK-001', name: 'E-commerce Business Guide', quantity: 1, price: 10000, category: 'Digital Goods' }],
-            total: 10000,
+            items: [{ sku: 'EBOOK-ACC-01-DL', name: 'Small Business Accounting Guide', quantity: 1, price: 45000, category: 'Digital Goods' }],
+            total: 45000,
             shippingAddress: { street: '101 Maple Drive', city: 'Dar es Salaam', postalCode: '11101', country: 'Tanzania' },
         },
         { 
@@ -69,8 +69,8 @@ function initializeMockOrders(): Order[] {
             date: '2024-07-24T09:00:00Z', 
             status: 'Ready for Delivery',
             fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
-            total: 80000,
+            items: [{ sku: 'CNDL-PCE', name: 'Scented Soy Candle - Piece', quantity: 2, price: 15000, category: 'Home Goods' }],
+            total: 30000,
             shippingAddress: { street: '222 Rosewood Ave', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
         },
         { 
@@ -81,8 +81,8 @@ function initializeMockOrders(): Order[] {
             date: '2024-07-23T16:00:00Z', 
             status: 'Ready for Pickup', 
             fulfillmentMethod: 'Pickup',
-            items: [{ sku: 'SHOE-002-43', name: 'Handmade Leather Shoes', quantity: 1, price: 75000, category: 'Footwear' }],
-            total: 75000,
+            items: [{ sku: 'TSHIRT-L-BLK-P', name: 'Classic Cotton T-Shirt - L / Black', quantity: 1, price: 35000, category: 'Apparel' }],
+            total: 35000,
             shippingAddress: { street: '333 Palm Street', city: 'Jinja', postalCode: '12345', country: 'Uganda' },
         },
         { 
@@ -93,8 +93,8 @@ function initializeMockOrders(): Order[] {
             date: '2024-07-23T10:00:00Z', 
             status: 'Cancelled', 
             fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 10, price: 30000, category: 'Fabrics' }],
-            total: 300000,
+            items: [{ sku: 'ANK-FLO-ROLL', name: 'Ankara Fabric - Floral / Full Roll', quantity: 10, price: 275000, category: 'Fabrics' }],
+            total: 2750000,
             shippingAddress: { street: '789 Pine Street', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
         },
         { 
@@ -105,8 +105,8 @@ function initializeMockOrders(): Order[] {
             date: '2024-07-22T18:00:00Z', 
             status: 'Attempted Delivery', 
             fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 2, price: 25000, category: 'Accessories' }],
-            total: 50000,
+            items: [{ sku: 'TSHIRT-M-WHT-P', name: 'Classic Cotton T-Shirt - M / White', quantity: 2, price: 35000, category: 'Apparel' }],
+            total: 70000,
             shippingAddress: { street: '555 Acacia Lane', city: 'Nairobi', postalCode: '00100', country: 'Kenya' },
             assignedStaffId: 'staff-003', // Peter Jones
             assignedStaffName: 'Peter Jones',
@@ -125,8 +125,8 @@ function initializeMockOrders(): Order[] {
             date: '2024-07-21T12:00:00Z', 
             status: 'Delivered', 
             fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 1, price: 50000, category: 'Groceries' }],
-            total: 50000,
+            items: [{ sku: 'LP-PRO-14-UNIT', name: 'ProBook 14"', quantity: 1, price: 8500000, category: 'Electronics' }],
+            total: 8500000,
             currency: 'UGX',
             shippingAddress: { street: '777 Test Road', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
             assignedStaffId: 'staff-003',
@@ -136,60 +136,6 @@ function initializeMockOrders(): Order[] {
             deliveryNotes: [
                  { id: 'note-008a', staffId: 'staff-003', staffName: 'Peter Jones', note: 'Status updated to "Delivered". Left with security guard as per instruction.', date: '2024-07-21T15:00:00Z' }
             ]
-        },
-        { 
-            id: 'ORD-009', 
-            customerId: 'cust-02',
-            customerName: 'Olivia Smith',
-            customerEmail: 'olivia@example.com',
-            date: '2024-07-20T11:00:00Z', 
-            status: 'Shipped', 
-            fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'COFF-01', name: 'Rwenzori Coffee Beans', quantity: 2, price: 40000, category: 'Groceries' }],
-            total: 80000,
-            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-            assignedStaffId: 'staff-003',
-            assignedStaffName: 'Peter Jones',
-        },
-        { 
-            id: 'ORD-010', 
-            customerId: 'cust-02',
-            customerName: 'Olivia Smith',
-            customerEmail: 'olivia@example.com',
-            date: '2024-05-10T15:00:00Z', 
-            status: 'Delivered', 
-            fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'JEWEL-01', name: 'Maasai Beaded Necklace', quantity: 1, price: 25000, category: 'Accessories' }],
-            total: 25000,
-            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-            fulfilledByStaffId: 'staff-003',
-            fulfilledByStaffName: 'Peter Jones'
-        },
-        { 
-            id: 'ORD-011', 
-            customerId: 'cust-02',
-            customerName: 'Olivia Smith',
-            customerEmail: 'olivia@example.com',
-            date: '2024-05-10T15:00:00Z', 
-            status: 'Delivered', 
-            fulfillmentMethod: 'Delivery',
-            items: [{ sku: 'KIT-001-BG', name: 'Colorful Kitenge Fabric - Blue, Geometric', quantity: 3, price: 35000, category: 'Fabrics' }],
-            total: 105000,
-            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
-            fulfilledByStaffId: 'staff-003',
-            fulfilledByStaffName: 'Peter Jones'
-        },
-        { 
-            id: 'ORD-012', 
-            customerId: 'cust-02',
-            customerName: 'Olivia Smith',
-            customerEmail: 'olivia@example.com',
-            date: '2024-04-01T12:00:00Z', 
-            status: 'Cancelled', 
-            fulfillmentMethod: 'Pickup',
-            items: [{ sku: 'SHOE-002-43', name: 'Handmade Leather Shoes - Size 43', quantity: 1, price: 75000, category: 'Footwear' }],
-            total: 75000,
-            shippingAddress: { street: '456 Oak Avenue', city: 'Kampala', postalCode: '54321', country: 'Uganda' },
         },
     ];
     return [...mockOrders].map((order, index) => {
@@ -382,85 +328,4 @@ export async function updateOrder(orderId: string, updates: Partial<Order>): Pro
     
 
     return updatedOrder;
-}
-
-export async function updateProductStock(
-    variantSku: string, 
-    quantityChange: number, 
-    type: StockAdjustment['type'], 
-    reason: string
-) {
-    const products = await getProducts();
-    let productToUpdate: Product | undefined;
-    let variantIndex = -1;
-
-    for (const p of products) {
-        const vIndex = p.variants.findIndex(v => v.sku === variantSku);
-        if (vIndex !== -1) {
-            productToUpdate = p;
-            variantIndex = vIndex;
-            break;
-        }
-    }
-    
-    if (!productToUpdate || variantIndex === -1) {
-        console.warn(`Stock update failed: Variant with SKU ${variantSku} not found.`);
-        return;
-    }
-    
-    const product = { ...productToUpdate };
-    const variant = { ...product.variants[variantIndex] };
-    const locationName = 'Main Warehouse'; // Simplification for mock data
-    let locIndex = variant.stockByLocation.findIndex(l => l.locationName === locationName);
-    
-    if (locIndex === -1) {
-        variant.stockByLocation.push({ locationName, stock: { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 }});
-        locIndex = variant.stockByLocation.length - 1;
-    }
-
-    const stock = { ...variant.stockByLocation[locIndex].stock };
-    let adjustmentQuantity = 0;
-
-    switch (type) {
-        case 'Sale':
-            stock.onHand -= quantityChange;
-            stock.reserved -= quantityChange; // Also decrease reserved stock
-            stock.sold += quantityChange;
-            adjustmentQuantity = -quantityChange;
-            break;
-        case 'Reserve':
-            if (stock.available >= quantityChange) {
-                stock.available -= quantityChange;
-                stock.reserved += quantityChange;
-            }
-            break;
-        case 'Un-reserve':
-            if (stock.reserved >= quantityChange) {
-                stock.reserved -= quantityChange;
-                stock.available += quantityChange;
-            }
-            break;
-        default: 
-            // For other types like 'Damage', 'Initial Stock', etc.
-            // This logic might need expansion based on requirements.
-            break;
-    }
-    
-    variant.stockByLocation[locIndex].stock = stock;
-
-    // We only log "terminal" events like Sale, not temporary holds like Reserve/Un-reserve
-    if (type === 'Sale' || type === 'Initial Stock' || type === 'Damage') {
-        const adjustment: StockAdjustment = {
-            id: `adj-${Date.now()}`,
-            date: new Date().toISOString(),
-            type,
-            quantity: adjustmentQuantity,
-            reason,
-            channel: 'Online'
-        };
-        variant.stockAdjustments = [...(variant.stockAdjustments || []), adjustment];
-    }
-    
-    product.variants[variantIndex] = variant;
-    await updateProduct(product);
 }

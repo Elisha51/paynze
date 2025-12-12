@@ -129,7 +129,7 @@ export function ProductDetailsInventory({ product, dateRange: date }: ProductDet
         currentTotalStock.sold = soldInPeriod;
         
         const currentLocationStock = product.variants.reduce((acc, v) => {
-            const variantName = product.hasVariants ? Object.values(v.optionValues).join(' / ') : 'Default';
+            const variantName = product.hasVariants ? Object.values(v.optionValues).join(' / ') : (product.unitsOfMeasure?.find(u=>u.isBaseUnit)?.name || 'Default');
             (v.stockByLocation || []).forEach(locStock => {
                 if (!acc[locStock.locationName]) {
                     acc[locStock.locationName] = [];
