@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import { ArrowLeft, PlusCircle, Trash2, Image as ImageIcon, Sparkles, Save, Package, Download, Clock, X, Store, Laptop, Check, ChevronsUpDown, Layers, Boxes, Loader2, Info, PackageCheck } from 'lucide-react';
@@ -51,7 +50,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '../ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '../ui/alert';
 import { Switch } from '../ui/switch';
-import { Tooltip, TooltipProvider, TooltipContent, TooltipTrigger } from '../ui/tooltip';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { Separator } from '../ui/separator';
 
 const defaultStock = { onHand: 0, available: 0, reserved: 0, damaged: 0, sold: 0 };
@@ -106,13 +105,11 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [customerGroups, setCustomerGroups] = useState<CustomerGroup[]>([]);
-  const [showComparePrice, setShowComparePrice] = useState(!!initialProduct?.compareAtPrice);
   const { toast } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     setProduct(prev => ({ ...emptyProduct, ...prev, ...initialProduct }));
-    setShowComparePrice(!!initialProduct?.compareAtPrice);
     
     const data = localStorage.getItem('onboardingData');
     if (data) {
@@ -150,8 +147,8 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
           id: existingVariant?.id || `var-${variantIdentifier}`,
           optionValues: combo,
           unitOfMeasure: unit.name,
-          retailPrice: existingVariant?.retailPrice ?? 0,
-          costPerItem: existingVariant?.costPerItem ?? 0,
+          retailPrice: existingVariant?.retailPrice,
+          costPerItem: existingVariant?.costPerItem,
           sku: existingVariant?.sku ?? unit.sku,
           status: existingVariant?.status ?? 'In Stock',
           stockByLocation: existingVariant?.stockByLocation ?? defaultStockByLocation,
@@ -159,7 +156,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
       }
     }
     return results;
-  }, [product.options, product.hasVariants, product.unitsOfMeasure, product.variants]);
+  }, [product.options, product.hasVariants, product.unitsOfMeasure, product.variants, product.name]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { id, value } = e.target;
@@ -267,7 +264,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
       const newTier: WholesalePrice = {
           id: `ws-${Date.now()}`,
           customerGroup: customerGroups[0]?.name || '',
-          variantSku: allSellableUnits[0]?.sku || '',
+          variantSku: allSellableUnits.find(u => u.sku)?.sku || '',
           minOrderQuantity: 1,
           price: 0,
       };
@@ -544,8 +541,10 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                     <Select value={tier.variantSku} onValueChange={(v) => updateWholesaleTier(index, 'variantSku', v)}>
                                         <SelectTrigger><SelectValue /></SelectTrigger>
                                         <SelectContent>
-                                            {allSellableUnits.map(unit => (
-                                                <SelectItem key={unit.sku} value={unit.sku}>{Object.values(unit.optionValues).join(' / ') || product.name} ({unit.unitOfMeasure})</SelectItem>
+                                            {allSellableUnits.filter(u => u.sku).map(unit => (
+                                                <SelectItem key={unit.sku} value={unit.sku}>
+                                                    {Object.values(unit.optionValues).join(' / ') || product.name} ({unit.unitOfMeasure})
+                                                </SelectItem>
                                             ))}
                                         </SelectContent>
                                     </Select>
@@ -666,6 +665,3 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </TooltipProvider>
   );
 }
-
-    
-
