@@ -86,7 +86,7 @@ export function ProductDetailsOverview({ product }: { product: Product }) {
   }
   
   const hasMultipleUnits = (product.unitsOfMeasure?.length || 0) > 1;
-  const baseVariant = product.variants.find(v => v.unitOfMeasure === product.unitsOfMeasure.find(u => u.isBaseUnit)?.name);
+  const baseVariant = product.variants.find(v => v.unitOfMeasure === product.unitsOfMeasure?.find(u => u.isBaseUnit)?.name);
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
