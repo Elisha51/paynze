@@ -672,53 +672,46 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                 </CardContent>
             </Card>
           )}
-
+          
           <Card>
             <CardHeader>
-                <CardTitle>Pricing</CardTitle>
-                <CardDescription>Manage your product's retail and wholesale prices.</CardDescription>
+              <CardTitle>Pricing</CardTitle>
+              <CardDescription>Manage your product's retail and wholesale prices.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="retailPrice">Base Unit Price ({product.currency})</Label>
-                        <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
-                        <p className="text-xs text-muted-foreground">This is the price for one base unit (e.g., one candle).</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="retailPrice">Base Unit Price ({product.currency})</Label>
+                  <Input id="retailPrice" type="number" value={product.retailPrice} onChange={handleNumberChange} placeholder="e.g. 35000"/>
+                  <p className="text-xs text-muted-foreground">This is the price for one base unit (e.g., one candle).</p>
+                </div>
+                <div className="space-y-2">
+                  <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')}>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="no" id="show-compare-no" />
+                      <Label htmlFor="show-compare-no">No "compare at" price</Label>
                     </div>
-                    <div className="space-y-2">
-                        <RadioGroup value={showComparePrice ? "yes" : "no"} onValueChange={(v) => setShowComparePrice(v === 'yes')}>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="no" id="show-compare-no" />
-                                <Label htmlFor="show-compare-no">No "compare at" price</Label>
-                            </div>
-                             <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="yes" id="show-compare-yes" />
-                                <Label htmlFor="show-compare-yes">Show "compare at" price</Label>
-                            </div>
-                        </RadioGroup>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="yes" id="show-compare-yes" />
+                      <Label htmlFor="show-compare-yes">Show "compare at" price</Label>
                     </div>
-                 </div>
-                {showComparePrice && (
-                    <div className="space-y-2">
-                        <Label htmlFor="compareAtPrice">Compare At Price ({product.currency})</Label>
-                        <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000"/>
-                         <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>
-                    </div>
-                )}
+                  </RadioGroup>
+                </div>
+              </div>
+              {showComparePrice && (
+                  <div className="space-y-2">
+                      <Label htmlFor="compareAtPrice">Compare At Price ({product.currency})</Label>
+                      <Input id="compareAtPrice" type="number" value={product.compareAtPrice || ''} onChange={handleNumberChange} placeholder="e.g. 40000"/>
+                      <p className="text-xs text-muted-foreground">To show a sale, make this price higher than the retail price.</p>
+                  </div>
+              )}
                 <Separator />
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
-                      <Switch id="hasSpecialPackaging" checked={hasSpecialPackaging} onCheckedChange={setHasSpecialPackaging} disabled={product.hasVariants} />
+                      <Switch id="hasSpecialPackaging" checked={hasSpecialPackaging} onCheckedChange={setHasSpecialPackaging} />
                       <Label htmlFor="hasSpecialPackaging">This product has multiple packaging units (e.g., sold in packs or boxes)</Label>
                   </div>
-                  {product.hasVariants && (
-                      <Alert variant="default" className="bg-blue-50 border-blue-200 text-blue-800">
-                          <Info className="h-4 w-4 !text-blue-800" />
-                          <AlertDescription>Multiple packaging units cannot be configured for products with variants like size or color.</AlertDescription>
-                      </Alert>
-                  )}
-
-                  {hasSpecialPackaging && !product.hasVariants && (
+                  {hasSpecialPackaging && (
                      <div className="space-y-2 pl-8 border-l">
                           <Label>Packaging Units</Label>
                           <Table>
@@ -740,7 +733,7 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                                               type="number" 
                                               value={uom.contains} 
                                               onChange={(e) => handleUnitOfMeasureChange(index, 'contains', Number(e.target.value))} 
-                                              disabled={index === 0} 
+                                              disabled={index === 0}
                                               placeholder={index > 0 ? `of ${product.unitsOfMeasure[index-1].name}s` : 'Base Unit'}
                                             />
                                           </TableCell>
@@ -763,59 +756,59 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
                      </div>
                   )}
                 </div>
-                <Separator />
-                <div className="space-y-4">
-                    <h4 className="font-medium text-sm">Wholesale Pricing</h4>
-                    {product.wholesalePricing && product.wholesalePricing.length > 0 && (
-                        <div className="space-y-2">
-                            {product.wholesalePricing.map((tier, index) => (
-                                <Card key={index} className="p-3">
-                                    <div className="flex justify-between items-start gap-4">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 flex-1">
-                                            <div className="space-y-1">
-                                                <Label htmlFor={`ws-group-${index}`} className="text-xs">Customer Group</Label>
-                                                <Input
-                                                    id={`ws-group-${index}`}
-                                                    type="text"
-                                                    value={tier.customerGroup}
-                                                    onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
-                                                    placeholder="e.g. Wholesale"
-                                                />
-                                            </div>
-                                             <div className="space-y-1">
-                                                <Label htmlFor={`ws-qty-${index}`} className="text-xs">Min. Quantity</Label>
-                                                <Input 
-                                                    id={`ws-qty-${index}`}
-                                                    type="number" 
-                                                    value={tier.minOrderQuantity} 
-                                                    onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
-                                                    placeholder="Min. Quantity"
-                                                />
-                                            </div>
-                                             <div className="space-y-1">
-                                                <Label htmlFor={`ws-price-${index}`} className="text-xs">Price</Label>
-                                                <Input 
-                                                    id={`ws-price-${index}`}
-                                                    type="number" 
-                                                    value={tier.price} 
-                                                    onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
-                                                    placeholder="Price per item"
-                                                />
-                                            </div>
-                                        </div>
-                                         <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="ml-2 flex-shrink-0" aria-label="Remove wholesale tier">
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
-                                </Card>
-                            ))}
+              <Separator />
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm">Wholesale Pricing</h4>
+                {product.wholesalePricing && product.wholesalePricing.length > 0 && (
+                  <div className="space-y-2">
+                    {product.wholesalePricing.map((tier, index) => (
+                      <Card key={index} className="p-3">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 flex-1">
+                            <div className="space-y-1">
+                              <Label htmlFor={`ws-group-${index}`} className="text-xs">Customer Group</Label>
+                              <Input
+                                id={`ws-group-${index}`}
+                                type="text"
+                                value={tier.customerGroup}
+                                onChange={(e) => handleWholesalePriceChange(index, 'customerGroup', e.target.value)}
+                                placeholder="e.g. Wholesale"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`ws-qty-${index}`} className="text-xs">Min. Quantity</Label>
+                              <Input 
+                                id={`ws-qty-${index}`}
+                                type="number" 
+                                value={tier.minOrderQuantity} 
+                                onChange={(e) => handleWholesalePriceChange(index, 'minOrderQuantity', e.target.value)}
+                                placeholder="Min. Quantity"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <Label htmlFor={`ws-price-${index}`} className="text-xs">Price</Label>
+                              <Input 
+                                id={`ws-price-${index}`}
+                                type="number" 
+                                value={tier.price} 
+                                onChange={(e) => handleWholesalePriceChange(index, 'price', e.target.value)}
+                                placeholder="Price per item"
+                              />
+                            </div>
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={() => handleRemoveWholesalePrice(index)} className="ml-2 flex-shrink-0" aria-label="Remove wholesale tier">
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </div>
-                    )}
-                    <Button variant="outline" size="sm" onClick={handleAddWholesalePrice}>
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add wholesale tier
-                    </Button>
-                </div>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+                <Button variant="outline" size="sm" onClick={handleAddWholesalePrice}>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add wholesale tier
+                </Button>
+              </div>
             </CardContent>
           </Card>
           
@@ -1245,3 +1238,5 @@ export function ProductForm({ initialProduct, onSave }: { initialProduct?: Parti
     </div>
   );
 }
+
+    
